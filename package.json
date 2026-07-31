@@ -1,0 +1,16 @@
+{
+  "name": "crown-quest",
+  "version": "1.0.0",
+  "description": "Crown Quest — a mobile Royal Match style match-3 puzzle game in vanilla JavaScript and canvas.",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve -l 8080 .",
+    "test": "node tools/smoke.js",
+    "shots": "node tools/shots.js"
+  },
+  "keywords": ["match-3", "puzzle", "game", "canvas", "mobile"],
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
+}

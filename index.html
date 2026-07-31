@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1b1246">
+<meta name="description" content="Crown Quest — a Royal Match style match-3 puzzle game built with vanilla JavaScript and canvas.">
+<title>Crown Quest — Royal Match Clone</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============================= HOME ============================= -->
+  <section id="screen-home" class="screen is-active">
+    <header class="topbar">
+      <div class="pill pill-lives" id="lives-pill" title="Lives">
+        <span class="pill-icon">&#10084;</span>
+        <span class="pill-value" id="lives-value">5</span>
+        <span class="pill-sub" id="lives-timer">full</span>
+      </div>
+      <div class="pill pill-coins" id="coins-pill" title="Coins">
+        <span class="pill-icon">&#9679;</span>
+        <span class="pill-value" id="coins-value">500</span>
+      </div>
+      <button class="icon-btn" id="btn-settings" aria-label="Settings">&#9881;</button>
+    </header>
+
+    <div class="home-hero">
+      <div class="king" aria-hidden="true">
+        <svg viewBox="0 0 220 200" width="100%" height="100%">
+          <defs>
+            <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffe9a3"/><stop offset=".45" stop-color="#ffc531"/><stop offset="1" stop-color="#c98600"/>
+            </linearGradient>
+            <linearGradient id="robe" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#e8465f"/><stop offset="1" stop-color="#a3122f"/>
+            </linearGradient>
+            <radialGradient id="face" cx=".4" cy=".35" r=".8">
+              <stop offset="0" stop-color="#ffe2c4"/><stop offset="1" stop-color="#f0bd91"/>
+            </radialGradient>
+          </defs>
+          <!-- robe -->
+          <path d="M56 200c0-42 24-64 54-64s54 22 54 64z" fill="url(#robe)"/>
+          <path d="M96 136h28l-14 34z" fill="#fff" opacity=".85"/>
+          <!-- collar -->
+          <path d="M74 142c10-10 22-14 36-14s26 4 36 14c-12 8-24 12-36 12s-24-4-36-12z" fill="#fdfdfd"/>
+          <circle cx="88" cy="146" r="3" fill="#2b2b3d"/><circle cx="110" cy="150" r="3" fill="#2b2b3d"/><circle cx="132" cy="146" r="3" fill="#2b2b3d"/>
+          <!-- head -->
+          <ellipse cx="110" cy="94" rx="40" ry="40" fill="url(#face)"/>
+          <!-- beard -->
+          <path d="M76 100c0 34 15 46 34 46s34-12 34-46c-8 12-20 16-34 16s-26-4-34-16z" fill="#fdfdfd"/>
+          <path d="M98 112h24c0 8-5 13-12 13s-12-5-12-13z" fill="#d9827a"/>
+          <!-- eyes + brows -->
+          <circle cx="96" cy="88" r="4.5" fill="#2b2b3d"/><circle cx="124" cy="88" r="4.5" fill="#2b2b3d"/>
+          <circle cx="97.6" cy="86.4" r="1.6" fill="#fff"/><circle cx="125.6" cy="86.4" r="1.6" fill="#fff"/>
+          <path d="M88 78q8-6 16-1M116 77q8-5 16 1" stroke="#fdfdfd" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <circle cx="82" cy="102" r="7" fill="#ff9a9a" opacity=".5"/><circle cx="138" cy="102" r="7" fill="#ff9a9a" opacity=".5"/>
+          <!-- crown -->
+          <path d="M70 62l6-34 14 18 20-26 20 26 14-18 6 34z" fill="url(#gold)" stroke="#a86e00" stroke-width="3" stroke-linejoin="round"/>
+          <rect x="68" y="60" width="84" height="14" rx="7" fill="url(#gold)" stroke="#a86e00" stroke-width="3"/>
+          <circle cx="76" cy="28" r="6" fill="#ff5470" stroke="#a86e00" stroke-width="2"/>
+          <circle cx="110" cy="20" r="7" fill="#54c2ff" stroke="#a86e00" stroke-width="2"/>
+          <circle cx="144" cy="28" r="6" fill="#5ee08a" stroke="#a86e00" stroke-width="2"/>
+          <circle cx="92" cy="67" r="4" fill="#ff5470"/><circle cx="110" cy="67" r="4" fill="#54c2ff"/><circle cx="128" cy="67" r="4" fill="#5ee08a"/>
+        </svg>
+      </div>
+      <h1 class="game-title"><span>Crown</span> Quest</h1>
+      <p class="game-tagline">Help the King restore the royal castle, one match at a time.</p>
+    </div>
+
+    <div class="map-wrap">
+      <div id="level-map" class="level-map"></div>
+    </div>
+
+    <footer class="home-footer">
+      <button class="btn btn-play" id="btn-play">
+        <span class="btn-play-label">Play</span>
+        <span class="btn-play-level" id="btn-play-level">Level 1</span>
+      </button>
+    </footer>
+  </section>
+
+  <!-- ============================= GAME ============================= -->
+  <section id="screen-game" class="screen">
+    <header class="game-top">
+      <button class="icon-btn" id="btn-back" aria-label="Back to map">&#8592;</button>
+      <div class="moves-box">
+        <div class="moves-label">Moves</div>
+        <div class="moves-value" id="moves-value">20</div>
+      </div>
+      <div class="game-top-right">
+        <div class="level-chip" id="level-chip">Level 1</div>
+        <div class="score-chip"><span id="score-value">0</span></div>
+      </div>
+    </header>
+
+    <div class="goals" id="goals"></div>
+
+    <div class="board-wrap" id="board-wrap">
+      <canvas id="board" aria-label="Game board"></canvas>
+      <div class="board-banner hidden" id="board-banner"></div>
+    </div>
+
+    <div class="boosters" id="boosters"></div>
+  </section>
+
+  <!-- ============================= OVERLAY ============================= -->
+  <div id="overlay" class="overlay hidden"><div id="dialog" class="dialog"></div></div>
+  <div id="toast" class="toast hidden"></div>
+</div>
+
+<div id="rotate" aria-hidden="true">
+  <div class="phone"></div>
+  <p>Crown Quest is played in portrait — please rotate your device.</p>
+</div>
+
+<script src="js/utils.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/art.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/board.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
