@@ -539,7 +539,8 @@ body {
   70%, 100% { transform: rotate(0deg); }
 }
 
-@media (orientation: landscape) and (max-height: 560px) {
+/* Touch devices only — a short desktop window should still get the game. */
+@media (orientation: landscape) and (max-height: 560px) and (pointer: coarse) {
   #rotate { display: flex; }
   #app { visibility: hidden; }
 }

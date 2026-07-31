@@ -103,7 +103,18 @@ js/game.js          the level itself: input, animation, resolution loop
 js/ui.js            screens, level map, HUD, dialogs, boosters
 js/main.js          boot + mobile viewport handling
 tools/smoke.js      headless Chromium test that autoplays levels
+tools/build-artifact.js  bundles everything into one standalone HTML file
 ```
+
+### Single-file build
+
+```bash
+npm run build        # -> dist/crown-quest.html
+```
+
+Inlines the stylesheet and every script into one self-contained page with no
+external requests — handy for sharing the game as a single file. It is
+generated from the sources above, so rebuild it after any change.
 
 ### Level format
 

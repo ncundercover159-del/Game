@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "start": "npx --yes serve -l 8080 .",
+    "build": "node tools/build-artifact.js",
     "test": "node tools/smoke.js",
     "shots": "node tools/shots.js"
   },
