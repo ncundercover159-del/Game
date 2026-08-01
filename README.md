@@ -10,7 +10,8 @@ paths at runtime.
 > phone gets a "please rotate" screen instead of a squashed board.
 
 It runs as a plain web page **and** ships as a native iOS app via Capacitor —
-see **[IOS.md](IOS.md)** for the App Store build and submission guide.
+see **[IOS.md](IOS.md)** for the App Store build and submission guide, and
+**[MONETIZATION.md](MONETIZATION.md)** for the ads and Remove Ads purchase.
 
 ---
 
@@ -106,6 +107,9 @@ js/game.js          the level itself: input, animation, resolution loop
 js/ui.js            screens, level map, HUD, dialogs, boosters
 js/main.js          boot + mobile viewport handling
 js/native.js        Capacitor bridge: haptics, status bar, splash, lifecycle
+js/config.js        ad unit IDs, IAP product ID, ad frequency — edit this one
+js/ads.js           AdMob: banner, interstitial caps, rewarded video
+js/iap.js           the Remove Ads non-consumable, purchase and restore
 capacitor.config.json    native shell configuration
 assets/             App Store icon + launch image sources (opaque sRGB)
 tools/smoke.js      headless Chromium test that autoplays levels
@@ -168,8 +172,13 @@ many levels it plays.
 **`tools/native-test.js`** injects a stub Capacitor bridge so the iOS code path
 runs in the browser. It checks the boot sequence talks to the status bar and
 splash plugins, that haptics fire during real play, and that backgrounding the
-app suspends audio — catching plugin typos that would otherwise only surface on
-a device.
+app suspends audio. It also covers monetisation: that a rewarded ad pays out
+only when watched to the end, that the interstitial frequency cap holds, that
+the banner never appears over the board, and that Remove Ads disables banners
+and interstitials while leaving rewarded video available.
+
+Off-device, ads and purchases fall back to an on-screen simulator, so every
+one of those flows can be exercised in a browser too.
 
 Any console or page error fails either run.
 

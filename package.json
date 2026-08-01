@@ -33,11 +33,13 @@
     "playwright": "^1.49.1"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^7.2.0",
     "@capacitor/app": "^7.1.2",
     "@capacitor/core": "^7.6.8",
     "@capacitor/haptics": "^7.0.5",
     "@capacitor/ios": "^7.6.8",
     "@capacitor/splash-screen": "^7.0.5",
-    "@capacitor/status-bar": "^7.0.6"
+    "@capacitor/status-bar": "^7.0.6",
+    "cordova-plugin-purchase": "^13.18.0"
   }
 }

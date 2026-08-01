@@ -278,7 +278,106 @@ body {
   display: block;
 }
 
-.home-footer { flex: 0 0 auto; display: flex; justify-content: center; }
+/* ------------------------------ offers ------------------------------ */
+
+.home-offers {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.offer-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 10px;
+  border-radius: 14px;
+  border: 2px solid var(--panel-line);
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.05));
+  color: #fff;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: transform .1s ease, filter .15s ease;
+}
+.offer-btn:active { transform: translateY(2px); }
+.offer-btn:disabled { filter: grayscale(.6) brightness(.75); cursor: default; }
+.offer-btn.offer-buy { border-color: rgba(255,197,49,.55); background: linear-gradient(180deg, rgba(255,197,49,.26), rgba(255,197,49,.10)); }
+.offer-icon {
+  display: grid; place-items: center;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--gold-0), var(--gold-1));
+  color: #5a3b00;
+  font-size: 11px;
+  font-weight: 900;
+}
+.offer-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.offer-text b { font-size: 14px; font-weight: 900; }
+.offer-text i { font-style: normal; font-size: 11px; opacity: .75; font-weight: 700; }
+
+.btn-inline { padding: 6px 14px; font-size: 13px; border-radius: 12px; box-shadow: none; }
+.btn-inline:active { transform: translateY(2px); }
+
+/* Space given up to a native AdMob banner, which floats over the WebView. */
+.has-banner .home-footer { padding-bottom: var(--banner-space, 0px); }
+
+/* --------------------------- ad simulator --------------------------- */
+
+#ad-sim-banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--safe-b, 0px);
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .5);
+  background: rgba(0, 0, 0, .45);
+  border-top: 1px dashed rgba(255, 255, 255, .22);
+  pointer-events: none;
+}
+
+.ad-sim {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(4, 2, 14, .92);
+  animation: fadeIn .2s ease;
+}
+.ad-sim-card {
+  width: min(340px, 100%);
+  border-radius: 20px;
+  padding: 22px 20px 18px;
+  text-align: center;
+  background: linear-gradient(180deg, #241a52, #140d38);
+  border: 2px dashed rgba(255,255,255,.3);
+}
+.ad-sim-tag {
+  display: inline-block;
+  font-size: 11px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 999px;
+  background: rgba(255,255,255,.14);
+  margin-bottom: 8px;
+}
+.ad-sim-card h3 { margin: 0 0 6px; font-size: 20px; }
+.ad-sim-card p { margin: 0; font-size: 13px; opacity: .8; line-height: 1.4; }
+.ad-sim-timer {
+  font-size: 40px; font-weight: 900; margin: 12px 0 4px;
+  color: var(--gold-1);
+  font-variant-numeric: tabular-nums;
+}
+.ad-sim-actions { display: flex; gap: 10px; margin-top: 12px; }
+.ad-sim-actions .btn { flex: 1; padding: 10px 12px; font-size: 15px; }
+
+.home-footer { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
 .btn-play {
   display: flex;
   flex-direction: column;

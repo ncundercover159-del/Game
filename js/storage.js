@@ -18,6 +18,8 @@ const Store = {
       livesAt: Date.now(),
       sound: true,
       totalStars: 0,
+      removeAds: false,
+      ads: { levelEnds: 0, lastInterstitial: 0, lastFreeCoins: 0 },
     };
   },
 
@@ -27,6 +29,9 @@ const Store = {
     this.data = Object.assign(this.defaults(), saved || {});
     if (typeof this.data.stars !== 'object' || !this.data.stars) this.data.stars = {};
     if (typeof this.data.best !== 'object' || !this.data.best) this.data.best = {};
+    if (typeof this.data.ads !== 'object' || !this.data.ads) {
+      this.data.ads = { levelEnds: 0, lastInterstitial: 0, lastFreeCoins: 0 };
+    }
     SFX.enabled = !!this.data.sound;
     return this.data;
   },
@@ -113,4 +118,16 @@ const Store = {
   },
 
   setSound(on) { this.data.sound = !!on; SFX.enabled = !!on; this.save(); },
+
+  // --- ads ------------------------------------------------------------
+
+  adState() { return this.data.ads; },
+
+  /* Rewarded "free coins" is on a cooldown so it cannot be farmed. */
+  msToFreeCoins() {
+    const wait = (AdConfig.rewards.freeCoinsCooldownMinutes || 0) * 60 * 1000;
+    return Math.max(0, wait - (Date.now() - (this.data.ads.lastFreeCoins || 0)));
+  },
+
+  noteFreeCoins() { this.data.ads.lastFreeCoins = Date.now(); this.save(); },
 };

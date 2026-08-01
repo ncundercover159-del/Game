@@ -44,6 +44,7 @@ const UI = {
       dialog: document.getElementById('dialog'),
       toast: document.getElementById('toast'),
       canvas: document.getElementById('board'),
+      offers: document.getElementById('home-offers'),
     };
 
     this.game = new Game(this.els.canvas, {
@@ -67,6 +68,7 @@ const UI = {
 
     this.buildBoosters();
     this.buildMap();
+    this.buildOffers();
     this.refreshTop();
     setInterval(() => this.refreshTop(), 1000);
 
@@ -78,6 +80,9 @@ const UI = {
 
   showScreen(name) {
     for (const key in this.screens) this.screens[key].classList.toggle('is-active', key === name);
+    // A banner belongs on the map, never over the board.
+    if (name === 'home') Ads.showBanner();
+    else Ads.hideBanner();
   },
 
   refreshTop() {
@@ -90,6 +95,7 @@ const UI = {
       this.els.livesTimer.textContent = Utils.formatTime(Store.msToNextLife());
     }
     this.els.playLevel.textContent = 'Level ' + Math.min(Store.data.level, this.MAX_LEVEL);
+    this.refreshOffers();
   },
 
   // ------------------------------------------------------------ level map
@@ -130,6 +136,77 @@ const UI = {
       const current = map.querySelector('.map-node.current') || map.querySelector('.map-node');
       if (current) map.scrollTop = Math.max(0, current.offsetTop - map.clientHeight / 2);
     });
+  },
+
+  // --------------------------------------------------------------- offers
+
+  /* Two entry points on the home screen: a rewarded-video coin top-up, and
+   * the Remove Ads purchase (which disappears once owned). */
+  buildOffers() {
+    const wrap = this.els.offers;
+    if (!wrap) return;
+    wrap.innerHTML = '';
+
+    this.freeCoinsBtn = Utils.el('button', 'offer-btn');
+    this.freeCoinsBtn.innerHTML = '<span class="offer-icon">▶</span><span class="offer-text">'
+      + '<b>Free Coins</b><i id="free-coins-sub">Watch an ad</i></span>';
+    this.freeCoinsBtn.addEventListener('click', () => { SFX.button(); this.watchForCoins(); });
+    wrap.appendChild(this.freeCoinsBtn);
+
+    this.removeAdsBtn = Utils.el('button', 'offer-btn offer-buy');
+    this.removeAdsBtn.addEventListener('click', () => { SFX.button(); this.buyRemoveAds(); });
+    wrap.appendChild(this.removeAdsBtn);
+
+    this.refreshOffers();
+  },
+
+  refreshOffers() {
+    if (!this.els.offers) return;
+
+    if (this.freeCoinsBtn) {
+      const wait = Store.msToFreeCoins();
+      const sub = document.getElementById('free-coins-sub');
+      if (sub) sub.textContent = wait > 0 ? 'Ready in ' + Utils.formatTime(wait) : 'Watch an ad';
+      this.freeCoinsBtn.disabled = wait > 0;
+      this.freeCoinsBtn.classList.toggle('hidden', !AdConfig.enabled);
+    }
+
+    if (this.removeAdsBtn) {
+      const owned = IAP.owned;
+      this.removeAdsBtn.classList.toggle('hidden', owned || !IapConfig.enabled);
+      this.removeAdsBtn.innerHTML = '<span class="offer-icon">✦</span><span class="offer-text">'
+        + '<b>Remove Ads</b><i>' + IAP.priceString() + '</i></span>';
+    }
+  },
+
+  async watchForCoins() {
+    if (Store.msToFreeCoins() > 0) return;
+    const watched = await Ads.showRewarded();
+    if (!watched) return;
+    Store.noteFreeCoins();
+    Store.addCoins(AdConfig.rewards.freeCoins);
+    SFX.coin();
+    this.refreshTop();
+    this.toast('+' + AdConfig.rewards.freeCoins + ' coins!');
+  },
+
+  async buyRemoveAds() {
+    const ok = await IAP.buy();
+    if (ok && IAP.owned) this.onAdsRemoved();
+  },
+
+  /* Called after a successful purchase or restore. */
+  onAdsRemoved() {
+    Ads.hideBanner();
+    this.refreshTop();
+    this.refreshOffers();
+    this.toast('Ads removed — thank you!');
+  },
+
+  /* Between-levels ad, run on the way out of a finished level. */
+  async levelTransition(next) {
+    await Ads.maybeShowInterstitial();
+    next();
   },
 
   // -------------------------------------------------------------- dialogs
@@ -359,13 +436,18 @@ const UI = {
 
     for (let i = 0; i < result.stars; i++) setTimeout(() => SFX.star(i), 220 + i * 190);
 
+    Ads.noteLevelEnd();
     const next = Math.min(id + 1, this.MAX_LEVEL);
     this.dialog({
       title: 'Victory!',
       body,
       buttons: [
-        { label: 'Next Level', cls: 'btn-green', onClick: () => { this.game.stop(); this.startLevel(next); } },
-        { label: 'Level Map', cls: 'btn-ghost', onClick: () => this.quitToMap() },
+        {
+          label: 'Next Level',
+          cls: 'btn-green',
+          onClick: () => this.levelTransition(() => { this.game.stop(); this.startLevel(next); }),
+        },
+        { label: 'Level Map', cls: 'btn-ghost', onClick: () => this.levelTransition(() => this.quitToMap()) },
       ],
     });
   },
@@ -377,11 +459,28 @@ const UI = {
       .map(g => Object.assign({}, g, { count: g.count - g.done }));
     if (remaining.length) body.appendChild(this.goalStrip(remaining));
 
+    Ads.noteLevelEnd();
     const canBuy = Store.coins() >= this.CONTINUE_COST;
+    const buttons = [];
+
+    // Watching an ad is offered ahead of the coin option: it is free for
+    // the player and it is the placement that actually earns.
+    if (AdConfig.enabled) {
+      buttons.push({
+        label: '+' + AdConfig.rewards.extraMoves + ' Moves &nbsp; <span class="offer-icon">▶</span> Watch Ad',
+        cls: 'btn-green',
+        onClick: async () => {
+          const watched = await Ads.showRewarded();
+          if (!watched) { this.showLose(result); return; }
+          this.game.grantMoves(AdConfig.rewards.extraMoves);
+        },
+      });
+    }
+
     this.dialog({
       title: 'Out of Moves',
       body,
-      buttons: [
+      buttons: buttons.concat([
         {
           label: '+5 Moves &nbsp; ' + this.coinText(this.CONTINUE_COST),
           cls: 'btn-gold',
@@ -395,15 +494,15 @@ const UI = {
         },
         {
           label: 'Retry',
-          cls: 'btn-green',
-          onClick: () => {
+          cls: AdConfig.enabled ? 'btn-ghost' : 'btn-green',
+          onClick: () => this.levelTransition(() => {
             this.game.stop();
             if (Store.lives() <= 0) { this.showLives(); this.quitToMap(); return; }
             this.startLevel(result.level.id);
-          },
+          }),
         },
-        { label: 'Level Map', cls: 'btn-ghost', onClick: () => this.quitToMap() },
-      ],
+        { label: 'Level Map', cls: 'btn-ghost', onClick: () => this.levelTransition(() => this.quitToMap()) },
+      ]),
     });
   },
 
@@ -418,10 +517,26 @@ const UI = {
       ? 'You have all your lives.'
       : 'Next life in <b>' + Utils.formatTime(Store.msToNextLife()) + '</b>'));
 
+    const buttons = [];
+    if (AdConfig.enabled && !full) {
+      buttons.push({
+        label: 'Free Life &nbsp; <span class="offer-icon">▶</span> Watch Ad',
+        cls: 'btn-green',
+        onClick: async () => {
+          const watched = await Ads.showRewarded();
+          if (!watched) return;
+          Store.addLives(1);
+          SFX.coin();
+          this.refreshTop();
+          this.toast('+1 life!');
+        },
+      });
+    }
+
     this.dialog({
       title: 'Lives',
       body,
-      buttons: [
+      buttons: buttons.concat([
         {
           label: 'Refill &nbsp; ' + this.coinText(this.REFILL_COST),
           cls: 'btn-gold',
@@ -435,7 +550,7 @@ const UI = {
           },
         },
         { label: 'Close', cls: 'btn-ghost' },
-      ],
+      ]),
     });
   },
 
@@ -460,6 +575,36 @@ const UI = {
     stats.appendChild(Utils.el('span', '', 'Stars collected'));
     stats.appendChild(Utils.el('b', '', '★ ' + Store.data.totalStars));
     body.appendChild(stats);
+
+    if (IapConfig.enabled) {
+      const ads = Utils.el('div', 'dlg-row');
+      ads.appendChild(Utils.el('span', '', 'Ads'));
+      if (IAP.owned) {
+        ads.appendChild(Utils.el('b', '', 'Removed ✓'));
+      } else {
+        const buy = Utils.el('button', 'btn btn-gold btn-inline', 'Remove ' + IAP.priceString());
+        buy.addEventListener('click', async () => {
+          SFX.button();
+          this.closeDialog();
+          await this.buyRemoveAds();
+        });
+        ads.appendChild(buy);
+      }
+      body.appendChild(ads);
+
+      // Apple requires a visible restore path for non-consumables.
+      const restore = Utils.el('div', 'dlg-row');
+      restore.appendChild(Utils.el('span', '', 'Purchases'));
+      const rbtn = Utils.el('button', 'btn btn-ghost btn-inline', 'Restore');
+      rbtn.addEventListener('click', async () => {
+        SFX.button();
+        this.closeDialog();
+        const ok = await IAP.restore();
+        this.toast(ok ? 'Purchases restored' : 'Nothing to restore');
+      });
+      restore.appendChild(rbtn);
+      body.appendChild(restore);
+    }
 
     this.dialog({
       title: 'Settings',

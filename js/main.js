@@ -15,6 +15,10 @@
     Store.load();
     Levels.validate();
     UI.init();
+    // Ads and the store initialise in the background; the game never waits
+    // on the network to become playable.
+    Ads.init().then(() => UI.refreshOffers());
+    IAP.init().then(() => UI.refreshOffers());
     UI.showScreen('home');
     // Dismiss the native launch image only once the home screen has painted.
     requestAnimationFrame(() => requestAnimationFrame(() => Native.ready()));

@@ -83,6 +83,10 @@ The first two hide the status bar so the board gets the full screen. The third
 declares that the app uses no encryption — without it, every single upload
 stops and waits for you to answer that question by hand.
 
+Ads and the Remove Ads purchase need additional setup — your AdMob app ID in
+Info.plist, the App Store Connect product, and a revised App Privacy
+declaration. That is all in **[MONETIZATION.md](MONETIZATION.md)**.
+
 ## 5. Test on a real device
 
 Plug in an iPhone, select it in Xcode, and hit Run. Check specifically:
@@ -101,11 +105,13 @@ At [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → **Apps →
 - **Name**: must be unique across the App Store. "Crown Quest" may well be
   taken — check first and be ready with an alternative.
 - **Category**: Games → Puzzle (secondary: Casual).
-- **Age rating**: answer the questionnaire. With no ads, no purchases, no
-  user content and no gambling, this lands at **4+**.
-- **Privacy**: the app collects nothing and has no network calls, so answer
-  **"Data Not Collected"** on the App Privacy form. You still must supply a
-  privacy policy URL — host `PRIVACY.md` somewhere public (GitHub Pages works).
+- **Age rating**: answer the questionnaire. With non-targeted ads, no user
+  content and no gambling, this still lands at **4+**. Do not opt into the
+  Kids Category — it forbids third-party ads.
+- **Privacy**: with ads enabled the app is no longer "Data Not Collected" —
+  the AdMob SDK collects device and usage data. MONETIZATION.md lists what to
+  declare. You must also supply a privacy policy URL; host `PRIVACY.md`
+  somewhere public (GitHub Pages works).
 - **Screenshots**: required at 6.7" (1290×2796) and 6.5" (1242×2688).
   `npm run shots` renders the game's screens; retake them at those exact sizes,
   or screenshot the simulator, which is simpler and always the right size.
@@ -129,8 +135,8 @@ worth knowing where this app stands.
 What works in its favour, and is already implemented:
 
 - It is a **game**, not a repackaged brochure or content feed.
-- It works **fully offline** — no server, no network permission, nothing loaded
-  from the web at runtime.
+- It works **fully offline** — the game itself needs no server; only the ad
+  SDK talks to the network.
 - It uses **native device features**: Haptic Engine feedback, native splash
   screen, status bar control, and app lifecycle handling.
 - It has **substantial content**: 60 levels, power-ups, obstacles, a progression
@@ -141,6 +147,8 @@ What would raise risk, and is worth avoiding:
 
 - Shipping with fewer levels, or with placeholder art.
 - Adding an in-app link that opens a website in a browser view.
+- Ads that interrupt play. Interstitials are capped to between-levels for
+  exactly this reason.
 - Submitting a build where the layout is visibly broken on any supported device.
 
 If a rejection does come, Apple's note will name the guideline. Reviewers
@@ -152,8 +160,9 @@ play, the native haptics, and the amount of content.
 | Item | Cost |
 |---|---|
 | Apple Developer Program | $99 / year |
+| AdMob account | free |
 | Everything in this repo | free, MIT |
 
-Apple takes no cut here because the game has no purchases. If you later add
-in-app purchases, that revenue is subject to Apple's commission and requires
-implementing StoreKit.
+Apple takes a commission on the Remove Ads purchase — 15% under the Small
+Business Program (under $1M/year, which you have to opt into), 30% otherwise.
+Ad revenue from AdMob is paid by Google and Apple takes no cut of it.

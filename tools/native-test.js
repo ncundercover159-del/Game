@@ -24,11 +24,16 @@ function launchOptions() {
 const BRIDGE_STUB = `
 window.__nativeCalls = [];
 (function () {
-  const record = (name) => new Proxy({}, {
-    get: (_, method) => (...args) => {
-      window.__nativeCalls.push(name + '.' + String(method) +
-        (args.length && typeof args[0] === 'object' ? ' ' + JSON.stringify(args[0]) : ''));
-      return Promise.resolve({ value: true });
+  // Overrides must win over the catch-all recorder, so the get trap checks
+  // the target for an own property first.
+  const record = (name, overrides) => new Proxy(overrides || {}, {
+    get: (target, method) => {
+      if (Object.prototype.hasOwnProperty.call(target, method)) return target[method];
+      return (...args) => {
+        window.__nativeCalls.push(name + '.' + String(method) +
+          (args.length && typeof args[0] === 'object' ? ' ' + JSON.stringify(args[0]) : ''));
+        return Promise.resolve({ value: true });
+      };
     },
   });
   window.Capacitor = {
@@ -39,6 +44,15 @@ window.__nativeCalls = [];
       StatusBar: record('StatusBar'),
       SplashScreen: record('SplashScreen'),
       App: record('App'),
+      AdMob: record('AdMob', {
+        // A watched ad resolves with a reward item; closing it early does not.
+        showRewardVideoAd: () => {
+          window.__nativeCalls.push('AdMob.showRewardVideoAd');
+          return window.__rewardOutcome === false
+            ? Promise.resolve(null)
+            : Promise.resolve({ type: 'coins', amount: 1 });
+        },
+      }),
     },
   };
 })();
@@ -123,6 +137,105 @@ async function main() {
     problems.push(`audio was not suspended on background (${bg.before} -> ${bg.after})`);
   }
   console.log(`audio on background: ${bg.before} -> ${bg.after}`);
+
+  // --- ads: initialise, preload, gate, reward ---------------------------
+  const ads = await page.evaluate(async () => {
+    const out = { issues: [] };
+    window.__nativeCalls.length = 0;
+
+    await Ads.init();
+    out.initCalls = window.__nativeCalls.slice();
+    if (!Ads.native) out.issues.push('Ads.native false with the AdMob plugin present');
+
+    // banner belongs on the map only
+    window.__nativeCalls.length = 0;
+    UI.showScreen('home');
+    await new Promise(r => setTimeout(r, 50));
+    out.bannerOnHome = window.__nativeCalls.some(c => c.startsWith('AdMob.showBanner'));
+    window.__nativeCalls.length = 0;
+    UI.showScreen('game');
+    await new Promise(r => setTimeout(r, 50));
+    out.bannerHiddenInGame = window.__nativeCalls.some(c => c.startsWith('AdMob.hideBanner'));
+    UI.showScreen('home');
+
+    // rewarded video pays out only when the ad reports a reward
+    window.__rewardOutcome = true;
+    Ads._rewardedLoaded = true;
+    out.rewardWatched = await Ads.showRewarded();
+    window.__rewardOutcome = false;
+    Ads._rewardedLoaded = true;
+    out.rewardClosedEarly = await Ads.showRewarded();
+
+    // interstitial frequency cap
+    Store.data.level = 10;
+    Store.data.ads = { levelEnds: 0, lastInterstitial: 0, lastFreeCoins: 0 };
+    out.cappedAtZero = Ads.canShowInterstitial();
+    Ads.noteLevelEnd();
+    Ads.noteLevelEnd();
+    out.allowedAfterN = Ads.canShowInterstitial();
+    Ads._interstitialLoaded = true;
+    await Ads.maybeShowInterstitial();
+    out.blockedImmediatelyAfter = Ads.canShowInterstitial();
+
+    // early levels are exempt
+    Store.data.level = 2;
+    Store.data.ads.levelEnds = 5;
+    Store.data.ads.lastInterstitial = 0;
+    out.skippedEarlyLevels = Ads.canShowInterstitial();
+    Store.data.level = 10;
+    return out;
+  });
+
+  if (!ads.initCalls.some(c => c.startsWith('AdMob.initialize'))) problems.push('AdMob.initialize was not called');
+  if (!ads.bannerOnHome) problems.push('no banner requested on the home screen');
+  if (!ads.bannerHiddenInGame) problems.push('banner not hidden when entering a level');
+  if (ads.rewardWatched !== true) problems.push('watching a rewarded ad did not report success');
+  if (ads.rewardClosedEarly !== false) problems.push('closing a rewarded ad early still paid out');
+  if (ads.cappedAtZero !== false) problems.push('interstitial allowed before the level-end threshold');
+  if (ads.allowedAfterN !== true) problems.push('interstitial not allowed after the threshold');
+  if (ads.blockedImmediatelyAfter !== false) problems.push('interstitial not rate-limited after showing one');
+  if (ads.skippedEarlyLevels !== false) problems.push('interstitial shown during the early levels');
+  console.log(`ads: init ok, banner home-only, reward gating ok, frequency cap ok`);
+
+  // --- remove ads entitlement -------------------------------------------
+  const iap = await page.evaluate(async () => {
+    const out = { issues: [] };
+    Store.data.removeAds = false;
+    const coinsBefore = Store.coins();
+
+    out.bannerBefore = Ads.shouldShow('banner');
+    out.interstitialBefore = Ads.shouldShow('interstitial');
+
+    IAP.grant(true);
+
+    out.owned = IAP.owned;
+    out.coinsAdded = Store.coins() - coinsBefore;
+    out.bannerAfter = Ads.shouldShow('banner');
+    out.interstitialAfter = Ads.shouldShow('interstitial');
+    out.rewardedAfter = Ads.shouldShow('rewarded');
+
+    // granting twice must not pay the bonus twice
+    const again = IAP.grant(true);
+    out.grantedTwice = again;
+
+    // survives a reload of the save file
+    Store.save();
+    Store.load();
+    out.persisted = !!Store.data.removeAds;
+
+    Store.data.removeAds = false;
+    Store.save();
+    return out;
+  });
+
+  if (!iap.owned) problems.push('grant() did not set the removeAds entitlement');
+  if (iap.coinsAdded <= 0) problems.push('purchase bonus coins were not awarded');
+  if (!(iap.bannerBefore && iap.interstitialBefore)) problems.push('ads were not showing before the purchase');
+  if (iap.bannerAfter || iap.interstitialAfter) problems.push('banner/interstitial still enabled after Remove Ads');
+  if (!iap.rewardedAfter) problems.push('rewarded video was disabled by Remove Ads (it should stay opt-in)');
+  if (iap.grantedTwice) problems.push('entitlement granted twice — bonus coins could be farmed');
+  if (!iap.persisted) problems.push('Remove Ads did not survive a save/load round trip');
+  console.log(`remove ads: entitlement ok, +${iap.coinsAdded} bonus coins, rewarded still available`);
 
   await browser.close();
 
