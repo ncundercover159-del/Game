@@ -276,6 +276,7 @@ class Game {
     } else {
       this.selected = p;
       SFX.select();
+      Native.haptic('select');
     }
   }
 
@@ -308,6 +309,7 @@ class Game {
 
     if (!valid) {
       SFX.invalid();
+      Native.haptic('warning');
       await this.animateSwap(ga, gb, b, a);
       this.busy = false;
       return;
@@ -331,6 +333,7 @@ class Game {
     const ga = this.board.gemAt(a.r, a.c);
     if (!ga) return;
     SFX.invalid();
+    Native.haptic('warning');
     this.busy = true;
     const dx = (b.c - a.c) * 0.22, dy = (b.r - a.r) * 0.22;
     await this.tweenProps(ga, { x: a.c + dx, y: a.r + dy }, 90, Utils.easeOutQuad);
@@ -423,6 +426,7 @@ class Game {
       matched = true;
       this.cascade++;
       SFX.match(this.cascade);
+      Native.haptic('light');
 
       const creations = [];
       const toClear = new Map();
@@ -495,6 +499,7 @@ class Game {
     FX.flash(px.x, px.y, this.cell * 0.9, 'rgba(255,255,255,.75)', 0.35);
     this.addScore(200, px, '+200');
     SFX.coin();
+    Native.haptic('medium');
   }
 
   /* Fires power-ups in waves so chain reactions read clearly. */
@@ -517,7 +522,9 @@ class Game {
         }
       }
 
-      this.shake(wave.some(a => a.power === POWER.TNT || a.visual) ? 9 : 5, 0.28);
+      const heavy = wave.some(a => a.power === POWER.TNT || a.visual);
+      this.shake(heavy ? 9 : 5, 0.28);
+      Native.haptic(heavy ? 'heavy' : 'medium');
       await this.delay(230);
 
       const next = [];
@@ -809,6 +816,7 @@ class Game {
     this.state = 'ending';
     this.showBanner('Level Complete!');
     SFX.win();
+    Native.haptic('success');
     await this.delay(900);
     this.hideBanner();
 
@@ -852,6 +860,7 @@ class Game {
     this.state = 'over';
     this.showBanner('Out of Moves!');
     SFX.lose();
+    Native.haptic('error');
     await this.delay(1100);
     this.hideBanner();
     if (this.hooks.onLose) this.hooks.onLose({ score: this.score, level: this.level, goals: this.goals });

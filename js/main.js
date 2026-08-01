@@ -11,10 +11,13 @@
 
   function boot() {
     setAppHeight();
+    Native.init();
     Store.load();
     Levels.validate();
     UI.init();
     UI.showScreen('home');
+    // Dismiss the native launch image only once the home screen has painted.
+    requestAnimationFrame(() => requestAnimationFrame(() => Native.ready()));
 
     window.addEventListener('resize', setAppHeight);
     window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 200));

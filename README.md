@@ -9,6 +9,9 @@ paths at runtime.
 > On a desktop browser use the device toolbar / responsive mode; a landscape
 > phone gets a "please rotate" screen instead of a squashed board.
 
+It runs as a plain web page **and** ships as a native iOS app via Capacitor —
+see **[IOS.md](IOS.md)** for the App Store build and submission guide.
+
 ---
 
 ## Running it
@@ -102,9 +105,19 @@ js/board.js         board state and rules: matching, blasts, gravity
 js/game.js          the level itself: input, animation, resolution loop
 js/ui.js            screens, level map, HUD, dialogs, boosters
 js/main.js          boot + mobile viewport handling
+js/native.js        Capacitor bridge: haptics, status bar, splash, lifecycle
+capacitor.config.json    native shell configuration
+assets/             App Store icon + launch image sources (opaque sRGB)
 tools/smoke.js      headless Chromium test that autoplays levels
+tools/native-test.js     runs the native code path against a stubbed bridge
 tools/build-artifact.js  bundles everything into one standalone HTML file
+tools/build-www.js       stages the web assets Capacitor ships in the app
+tools/make-app-assets.js renders the app icon and splash screens
 ```
+
+Everything under `js/` runs unchanged in both targets: `js/native.js`
+feature-detects the Capacitor bridge and no-ops in a browser, so there is one
+codebase rather than a web version and an app version.
 
 ### Single-file build
 
@@ -141,17 +154,24 @@ contiguous**, otherwise gems can never reach the cells under a gap.
 ## Tests
 
 ```bash
-npm install     # playwright, only needed for the test
-npm test
+npm install
+npm test          # gameplay + native bridge
 ```
 
-`tools/smoke.js` launches mobile-emulated Chromium, plays a real touch swipe,
-then autoplays several levels while asserting after every turn that no
-playable cell is empty, that render positions match the grid, and that no
-unresolved match is left behind. It finishes by firing every power-up combo
-and checking the board still settles. Any console or page error fails the run.
+**`tools/smoke.js`** launches mobile-emulated Chromium, plays a real touch
+swipe, then autoplays several levels while asserting after every turn that
+gravity has reached a fixed point, that render positions match the grid, and
+that no unresolved match is left behind. It finishes by firing every power-up
+combo and checking the board still settles. Set `SMOKE_LEVELS` to change how
+many levels it plays.
 
-Set `SMOKE_LEVELS` to change how many levels it plays.
+**`tools/native-test.js`** injects a stub Capacitor bridge so the iOS code path
+runs in the browser. It checks the boot sequence talks to the status bar and
+splash plugins, that haptics fire during real play, and that backgrounding the
+app suspends audio — catching plugin typos that would otherwise only surface on
+a device.
+
+Any console or page error fails either run.
 
 ---
 

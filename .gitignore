@@ -1,6 +1,11 @@
 node_modules/
 package-lock.json
+
+# generated output — rebuild with the npm scripts
 dist/
+www/
+ios/
+
 tools/shots/
 tools/screenshot-*.png
 .DS_Store

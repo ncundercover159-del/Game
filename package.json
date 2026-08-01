@@ -6,12 +6,38 @@
   "scripts": {
     "start": "npx --yes serve -l 8080 .",
     "build": "node tools/build-artifact.js",
-    "test": "node tools/smoke.js",
+    "build:www": "node tools/build-www.js",
+    "assets": "node tools/make-app-assets.js",
+    "assets:generate": "npx capacitor-assets generate --ios",
+    "ios:init": "npm run build:www && npx cap add ios",
+    "ios:sync": "npm run build:www && npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "test": "node tools/smoke.js && node tools/native-test.js",
+    "test:web": "node tools/smoke.js",
+    "test:native": "node tools/native-test.js",
     "shots": "node tools/shots.js"
   },
-  "keywords": ["match-3", "puzzle", "game", "canvas", "mobile"],
+  "keywords": [
+    "match-3",
+    "puzzle",
+    "game",
+    "canvas",
+    "mobile",
+    "ios",
+    "capacitor"
+  ],
   "license": "MIT",
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.6.8",
     "playwright": "^1.49.1"
+  },
+  "dependencies": {
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.6.8",
+    "@capacitor/haptics": "^7.0.5",
+    "@capacitor/ios": "^7.6.8",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6"
   }
 }

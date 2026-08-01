@@ -1,0 +1,25 @@
+{
+  "appId": "com.example.crownquest",
+  "appName": "Crown Quest",
+  "webDir": "www",
+  "backgroundColor": "#0e0a2a",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "backgroundColor": "#0e0a2a",
+    "limitsNavigationsToAppBoundDomains": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "backgroundColor": "#0e0a2a",
+      "iosSpinnerStyle": "small",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK",
+      "backgroundColor": "#0e0a2a"
+    }
+  }
+}
