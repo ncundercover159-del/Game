@@ -1,0 +1,81 @@
+<title>RERUN — A Chronophotograph</title>
+
+<canvas id="gl"></canvas>
+
+<!-- register marks: this is a photographic plate, and plates get trimmed -->
+<div id="marks"><i></i><i></i><i></i><i></i></div>
+
+<div id="hud" class="hidden">
+  <div class="stamp">YOUR PAST SELVES<b id="selves">0</b></div>
+  <div class="line">
+    <span id="exposure">EXPOSURE 01 / 20</span>
+    <span id="timer">20.0</span>
+  </div>
+  <div id="title">ONE PLATE</div>
+  <div id="pips"></div>
+</div>
+
+<div id="score" class="hidden"><span id="round-score">0.0</span> PLATE-SECONDS &middot; TOTAL <span id="total">0</span></div>
+
+<div id="centre" class="hidden"></div>
+
+<div id="controls" class="hidden">
+  <div id="pad"><div id="pad-track"></div><div id="pad-knob"></div></div>
+  <button id="stab" type="button">KNIFE</button>
+  <button id="jump" type="button">JUMP</button>
+</div>
+
+<!-- ------------------------------------------------------------ home -->
+<div id="screen-home" class="screen">
+  <div class="plate-card">
+    <div class="wordmark" role="img" aria-label="RERUN">
+      <span class="g" style="--i:3;--o:.055" aria-hidden="true">RERUN</span>
+      <span class="g" style="--i:2;--o:.11" aria-hidden="true">RERUN</span>
+      <span class="g" style="--i:1;--o:.22" aria-hidden="true">RERUN</span>
+      <span class="lead">RERUN</span>
+    </div>
+    <div class="rule"></div>
+    <p class="sub">A CHRONOPHOTOGRAPH IN TWENTY EXPOSURES</p>
+  </div>
+
+  <ol class="rules">
+    <li><b>Twenty seconds an exposure.</b> Twenty exposures. Hard cut, no
+      exceptions.</li>
+    <li><b>Then you come back.</b> Everything you just did is developed into a
+      ghost that repeats it, on a twenty-second loop, forever.</li>
+    <li><b>Ghosts are solid.</b> A storey is 2.8m. You can jump 1.8m. The only
+      way up is to stand on somebody you used to be.</li>
+    <li><b>There are more plates than there are of you.</b> So leave someone
+      useful behind. You are cooperating with your past self, who was an
+      idiot.</li>
+    <li><b>Blue plates are turnstiles.</b> They only hold while weight is
+      <em>increasing</em>. Standing on one is a wasted body.</li>
+    <li><b>You are carrying a knife.</b> Stand against a past self and press
+      KNIFE. It is not deleted &mdash; from that instant in its loop it simply
+      dies, and falls, and does so again every twenty seconds for the rest of
+      the plate.</li>
+  </ol>
+
+  <button id="begin" class="big" type="button">EXPOSE</button>
+  <p class="fineprint">Left thumb walks. JUMP is bottom right.<br>
+    There is no undo. That is the game.</p>
+</div>
+
+<!-- ----------------------------------------------------------- results -->
+<div id="screen-results" class="screen hidden">
+  <h2>PLATE DEVELOPED</h2>
+  <div id="r-score"></div>
+  <div id="r-awards"></div>
+  <div id="r-split"></div>
+  <div id="r-strip"></div>
+  <button id="again" class="big" type="button">EXPOSE AGAIN</button>
+  <p class="fineprint">Going again clears every ghost. It is the only way it
+    ever happens.</p>
+</div>
+
+<div id="rotate" class="hidden">
+  <div>
+    <div class="rot">&#8635;</div>
+    <p>TURN BACK<br><small>The plate is portrait.</small></p>
+  </div>
+</div>
