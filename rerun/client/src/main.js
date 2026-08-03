@@ -33,6 +33,7 @@ const G = {
   title: '',
   goal: '',
   required: [],
+  turnstiles: [],
   playStart: 0,
   phaseEndsAt: 0,
   plateMask: 0,
@@ -230,6 +231,7 @@ net.addEventListener('solved', (e) => {
 
 net.addEventListener('reset', () => {
   ghosts.clear();
+  avatars.reset();
   G.results = null;
   G.eulogies = [];
   ui.setGhostCount(0);
@@ -249,6 +251,7 @@ function onPhase(d) {
   G.title = d.title;
   G.goal = d.goal;
   G.required = d.required || [];
+  G.turnstiles = d.turnstiles || [];
   G.playStart = d.playStart;
   G.phaseEndsAt = d.phaseEndsAt;
   G.serverGhostCount = d.ghosts;
@@ -276,8 +279,8 @@ function onPhase(d) {
 
   if (d.phase === PHASE.COUNTDOWN) {
     ui.setRound(d.round, d.title);
-    ui.buildPips(G.required);
-    world.updatePlates(0, G.required);
+    ui.buildPips(G.required, G.turnstiles);
+    world.updatePlates(0, G.required, G.turnstiles);
     G.myDead = false;
     G.revealed = 0;
     // Reset local prediction to the spawn so the countdown doesn't show you
@@ -384,13 +387,13 @@ function frame(nowPerf) {
   // One ghost pass per frame: it fills the collision bodies that local
   // prediction needs *and* writes the instance buffers and decals.
   world.setDoorOpen(G.doorOpen, dt);
-  world.updatePlates(G.plateMask, G.required);
+  world.updatePlates(G.plateMask, G.required, G.turnstiles);
   world.beginDecals();
   ghosts.update(ghostClock(), nowPerf, world);
 
   if (G.screen === 'game' && G.phase === PHASE.PLAY && G.meValid) predict(dt);
 
-  avatars.update(buildRenderPlayers(), world.camera, world);
+  avatars.update(buildRenderPlayers(), world.camera, world, dt);
   world.endDecals();
   world.render();
 
@@ -470,8 +473,10 @@ function buildRenderPlayers() {
 
     // Our own capsule comes from local prediction so the stick feels attached
     // to it rather than to the network.
+    let grounded = (f & 8) !== 0;
     if (slot === net.slot && G.meValid && G.phase === PHASE.PLAY) {
       x = G.me.x; y = G.me.y; z = G.me.z; yaw = G.me.yaw;
+      grounded = G.me.grounded;
     }
 
     // In the lobby everyone just bobs, waiting to find out what this is.
@@ -485,6 +490,7 @@ function buildRenderPlayers() {
       dead: (f & 1) !== 0,
       disconnected: (f & 2) !== 0 || conn.get(slot) === false,
       late: (f & 4) !== 0 || late.get(slot) === true,
+      grounded,
       name: names.get(slot) || '',
     });
   }

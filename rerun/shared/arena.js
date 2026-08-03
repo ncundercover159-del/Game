@@ -48,9 +48,9 @@ export const STATIC_BOXES = [
 
   // the closet (north-west). North side is the arena wall.
   box(-5.2, -4.8, 0, ROOM_TOP, -9, -5.6, 'room'),
-  box(-1.6, -1.25, 0, ROOM_TOP, -9, -5.6, 'room'),
+  box(-0.9, -0.55, 0, ROOM_TOP, -9, -5.6, 'room'),
   box(-5.2, -4.2, 0, ROOM_TOP, -5.95, -5.6, 'room'),
-  box(-3.0, -1.25, 0, ROOM_TOP, -5.95, -5.6, 'room'),
+  box(-3.0, -0.55, 0, ROOM_TOP, -5.95, -5.6, 'room'),
 ];
 
 // The door fills the closet doorway. Solid unless the door plate is held.
@@ -70,57 +70,70 @@ export const PIT = { x0: -1.6, x1: 2.4, z0: 0.4, z1: 3.6 };
 export const PLATES = [
   { id: 'P1', name: 'CENTRE', x: 0, y: 0, z: -2.2 },
   { id: 'P2', name: 'THE LONG WAY', x: 3.8, y: 0, z: 7.2 },
-  { id: 'P3', name: 'THE LEDGE', x: 3.4, y: LEDGE_TOP, z: -7.3 },
+  { id: 'P3', name: 'THE LEDGE', x: 4.2, y: LEDGE_TOP, z: -7.6 },
   { id: 'P4', name: 'THE TURNSTILE', x: -3.8, y: 0, z: 7.2, momentum: true },
   // Deliberately off to the side of the doorway, so the doorman doesn't also
   // plug the door they are holding open.
   { id: 'P5', name: 'DOOR SWITCH', x: -1.9, y: 0, z: -4.4, holdsDoor: true },
-  { id: 'P6', name: 'THE CLOSET', x: -3.4, y: 0, z: -7.5 },
+  { id: 'P6', name: 'THE CLOSET', x: -3.8, y: 0, z: -7.5 },
   { id: 'P7', name: 'PIT EAST', x: 3.8, y: 0, z: 2.0 },
   { id: 'P8', name: 'PIT WEST', x: -3.6, y: 0, z: 2.0 },
+
+  // Twenty rounds need more than eight plates to escalate against.
+  { id: 'P9', name: 'THE SHELF', x: 2.5, y: LEDGE_TOP, z: -6.9 },
+  { id: 'P10', name: 'BACK OF THE CLOSET', x: -1.9, y: 0, z: -7.5 },
+  { id: 'P11', name: 'THE GAP', x: 0.5, y: 0, z: -7.4 },
+  { id: 'P12', name: 'THE CORNER', x: -4.2, y: 0, z: 4.9 },
+  { id: 'P13', name: 'THE OTHER TURNSTILE', x: 1.3, y: 0, z: 8.0, momentum: true },
+  { id: 'P14', name: 'THE NARROWS', x: 4.2, y: 0, z: -3.4 },
 ];
 
 export const PLATE_INDEX = Object.fromEntries(PLATES.map((p, i) => [p.id, i]));
 
 // --- rounds ---------------------------------------------------------------
-// Each round needs strictly more simultaneous presses than the last.
+// Twenty rounds. One to fourteen escalate by plate count. Fifteen to twenty
+// hold all fourteen and start converting them to turnstiles — plates that only
+// stay down while weight is *increasing* — so a wall of parked ghosts stops
+// being enough and the room needs a permanent stream of arrivals.
+const R = (n, plates, title, goal, momentumExtra) => ({
+  n, plates, title, goal, ...(momentumExtra ? { momentumExtra } : {}),
+});
+
+const ORDER = [
+  'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P11', 'P7',
+  'P8', 'P9', 'P10', 'P14', 'P12', 'P13',
+];
+const upTo = (k) => ORDER.slice(0, k);
+
 export const ROUNDS = [
-  {
-    n: 1,
-    plates: ['P1'],
-    title: 'ONE PLATE',
-    goal: 'Stand on it. This is the whole round.',
-  },
-  {
-    n: 2,
-    plates: ['P1', 'P2'],
-    title: 'TWO PLATES, FAR APART',
-    goal: 'Split up. Enjoy this while it lasts.',
-  },
-  {
-    n: 3,
-    plates: ['P1', 'P2', 'P3'],
-    title: 'THREE PLATES',
-    goal: 'The ledge is out of jump range. Stand on somebody.',
-  },
-  {
-    n: 4,
-    plates: ['P1', 'P2', 'P3', 'P4'],
-    title: 'FOUR PLATES',
-    goal: 'The turnstile only counts arrivals. Standing on it does nothing.',
-  },
-  {
-    n: 5,
-    plates: ['P1', 'P2', 'P3', 'P5', 'P6'],
-    title: 'FIVE PLATES',
-    goal: 'The closet door needs a doorman. Forever.',
-  },
-  {
-    n: 6,
-    plates: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8'],
-    title: 'THE RECKONING',
-    goal: 'Every plate. Every ghost. Total plate-seconds.',
-  },
+  R(1, upTo(1), 'ONE PLATE', 'Stand on it. This is the whole round.'),
+  R(2, upTo(2), 'TWO PLATES, FAR APART', 'Split up. Enjoy this while it lasts.'),
+  R(3, upTo(3), 'THREE PLATES', 'The ledge is out of jump range. Stand on somebody.'),
+  R(4, upTo(4), 'FOUR PLATES', 'The turnstile only counts arrivals. Standing on it does nothing.'),
+  R(5, upTo(5), 'FIVE PLATES', 'The door switch holds the closet open. Someone has to hold it.'),
+  R(6, upTo(6), 'SIX PLATES', 'And someone has to be inside the closet when they do.'),
+  R(7, upTo(7), 'SEVEN PLATES', 'The gap between the closet and the ledge counts now.'),
+  R(8, upTo(8), 'EIGHT PLATES', 'East of the pit. Mind the pit.'),
+  R(9, upTo(9), 'NINE PLATES', 'And west of it. You are running out of people.'),
+  R(10, upTo(10), 'TEN PLATES', 'A second plate on the ledge. Build a taller pile.'),
+  R(11, upTo(11), 'ELEVEN PLATES', 'Two in the closet, one door, one doorman.'),
+  R(12, upTo(12), 'TWELVE PLATES', 'The narrows, on the far side of everything.'),
+  R(13, upTo(13), 'THIRTEEN PLATES', 'The corner nobody has visited yet.'),
+  R(14, upTo(14), 'FOURTEEN PLATES', 'Every plate in the room. This is not the last round.'),
+
+  R(15, upTo(14), 'THE FIRST CONVERSION', 'Centre is a turnstile now. Parking a ghost on it is no longer enough.',
+    ['P1']),
+  R(16, upTo(14), 'THE SECOND', 'The long way is a turnstile too. Someone has to keep arriving.',
+    ['P1', 'P2']),
+  R(17, upTo(14), 'THE THIRD', 'The ledge joins them. Arrivals, up there, forever.',
+    ['P1', 'P2', 'P3']),
+  R(18, upTo(14), 'THE FOURTH', 'The door switch. Hold it by arriving at it, repeatedly.',
+    ['P1', 'P2', 'P3', 'P5']),
+  R(19, upTo(14), 'THE FIFTH', 'The closet. You knew this was coming.',
+    ['P1', 'P2', 'P3', 'P5', 'P6']),
+  R(20, upTo(14), 'THE RECKONING',
+    'Every plate. Half of them turnstiles. Every ghost you have ever been.',
+    ['P1', 'P2', 'P3', 'P5', 'P6', 'P11', 'P7']),
 ];
 
 export function roundSpec(roundNumber) {
@@ -129,6 +142,15 @@ export function roundSpec(roundNumber) {
 
 export function requiredPlateIndices(roundNumber) {
   return roundSpec(roundNumber).plates.map((id) => PLATE_INDEX[id]);
+}
+
+/** Plate indices behaving as turnstiles this round: the permanently-momentum
+ *  ones, plus whatever the round converts. */
+export function momentumPlateIndices(roundNumber) {
+  const out = new Set();
+  PLATES.forEach((p, i) => { if (p.momentum) out.add(i); });
+  for (const id of roundSpec(roundNumber).momentumExtra || []) out.add(PLATE_INDEX[id]);
+  return out;
 }
 
 // --- spawns ---------------------------------------------------------------

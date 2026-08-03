@@ -1,23 +1,22 @@
 // RERUN — ghosts.
 //
-// All sixty bodies are one InstancedMesh. Hats are three more. Flies are a
-// single Points cloud. This is the one real performance requirement in the
-// project and it is built in, not retrofitted.
+// Sixty articulated bodies across five InstancedMeshes (head, torso, arms,
+// legs, eyes). Hats are three more, flies a single Points cloud. This is the
+// one real performance requirement in the project and it is built in, not
+// retrofitted — a per-ghost skinned mesh would be sixty draw calls.
 //
 // Ghosts are deterministic replays against a server-synced clock, so they need
 // no ongoing network sync at all — just the recording, sent once.
 
 import {
-  CapsuleGeometry, CircleGeometry, ConeGeometry, CylinderGeometry,
-  InstancedMesh, MeshBasicMaterial, Color, Points, PointsMaterial,
-  BufferGeometry, BufferAttribute, DoubleSide,
+  ConeGeometry, CylinderGeometry, InstancedMesh, MeshBasicMaterial, Color,
+  Points, PointsMaterial, BufferGeometry, BufferAttribute, DoubleSide,
 } from 'three';
 
-import {
-  MAX_GHOSTS, PLAYER_RADIUS, PLAYER_HEIGHT, EYE_HEIGHT, SLOT_COLORS,
-} from '@shared/constants.js';
-import { sampleAt, makeSampleOut } from '@shared/ghostbuf.js';
+import { MAX_GHOSTS, SLOT_COLORS } from '@shared/constants.js';
+import { sampleAt, makeSampleOut, buildStride } from '@shared/ghostbuf.js';
 import { writeMatrix, writeLeaningMatrix } from './instancing.js';
+import { CharacterRig } from './character.js';
 
 const FLIES_PER_GHOST = 5;
 const MAX_FLY_GHOSTS = 12;
@@ -27,12 +26,14 @@ export function ghostColor(slot, gen) {
   const hsl = { h: 0, s: 0, l: 0 };
   base.getHSL(hsl);
   const c = new Color();
-  // Your colour, progressively desaturated by generation — but never all the
-  // way to grey, so you can still tell whose disaster you're looking at.
+  // Your colour, progressively desaturated by generation. Asymptotic rather
+  // than exponential-to-a-floor: over twenty generations an exponential curve
+  // bottoms out by about gen 8 and every ghost after that is the same grey.
+  const g = Math.max(0, gen - 1);
   c.setHSL(
     hsl.h,
-    Math.max(0.16, hsl.s * Math.pow(0.62, Math.max(0, gen - 1))),
-    Math.max(0.26, hsl.l * (1 - 0.06 * (gen - 1))),
+    hsl.s * (0.30 + 0.70 * Math.pow(0.86, g)),
+    hsl.l * (0.55 + 0.45 * Math.pow(0.90, g)),
   );
   return c;
 }
@@ -44,38 +45,17 @@ export class Ghosts {
     this.bodies = []; // collision bodies for local prediction
     this.onScream = null;
 
-    // --- bodies ---
-    const capsule = new CapsuleGeometry(
-      PLAYER_RADIUS, PLAYER_HEIGHT - PLAYER_RADIUS * 2, 3, 8,
-    );
-    capsule.translate(0, PLAYER_HEIGHT / 2, 0);
-    this.bodyMesh = new InstancedMesh(
-      capsule,
-      new MeshBasicMaterial({ transparent: true, opacity: 0.58, depthWrite: false }),
-      MAX_GHOSTS,
-    );
-    this.bodyMesh.frustumCulled = false;
-    this.bodyMesh.count = 0;
-    primeColors(this.bodyMesh);
-
-    // --- eyes ---
-    const eye = new CircleGeometry(0.072, 6);
-    this.eyeMesh = new InstancedMesh(
-      eye,
-      new MeshBasicMaterial({ color: 0x0b0c14, transparent: true, opacity: 0.75, side: DoubleSide, depthWrite: false }),
-      MAX_GHOSTS * 2,
-    );
-    this.eyeMesh.frustumCulled = false;
-    this.eyeMesh.count = 0;
+    // --- bodies: head, torso, arms, legs, eyes — five draw calls for sixty ---
+    this.rig = new CharacterRig(scene, MAX_GHOSTS, { ghost: true, opacity: 0.6 });
 
     // --- hats: gen 3 a cone, gen 4 a wide brim, gen 5 something structurally
     //     unsound, gen 6 all three at once and enormous ---
-    const coneGeo = new ConeGeometry(0.29, 0.46, 8);
-    coneGeo.translate(0, 0.23, 0);
+    const coneGeo = new ConeGeometry(0.26, 0.44, 8);
+    coneGeo.translate(0, 0.22, 0);
     this.coneMesh = this.makeHat(coneGeo);
 
     // Wide, but not so wide it hides the wearer from a top-down camera.
-    const brimGeo = new CylinderGeometry(0.52, 0.52, 0.05, 14);
+    const brimGeo = new CylinderGeometry(0.44, 0.44, 0.05, 14);
     brimGeo.translate(0, 0.025, 0);
     this.brimMesh = this.makeHat(brimGeo);
 
@@ -95,21 +75,23 @@ export class Ghosts {
     this.flies.frustumCulled = false;
     this.flyPos = flyPos;
 
-    scene.add(this.bodyMesh, this.eyeMesh, this.coneMesh, this.brimMesh, this.towerMesh, this.flies);
+    scene.add(this.coneMesh, this.brimMesh, this.towerMesh, this.flies);
   }
 
   makeHat(geo, doubleSided) {
     const m = new InstancedMesh(
       geo,
       new MeshBasicMaterial({
-        transparent: true, opacity: 0.62, depthWrite: false,
+        transparent: true, opacity: 0.5, depthWrite: false,
         side: doubleSided ? DoubleSide : undefined,
       }),
       MAX_GHOSTS,
     );
     m.frustumCulled = false;
     m.count = 0;
-    primeColors(m);
+    const white = new Color(1, 1, 1);
+    for (let i = 0; i < MAX_GHOSTS; i++) m.setColorAt(i, white);
+    m.instanceColor.needsUpdate = true;
     return m;
   }
 
@@ -129,6 +111,7 @@ export class Ghosts {
         gen: g.gen,
         round: g.round,
         rec: g.rec,
+        stride: buildStride(g.rec),
         color: ghostColor(g.slot, g.gen),
         bobPhase: (g.id * 2.399963) % (Math.PI * 2),
         revealAt: nowMs + (g.revealDelayMs || 0),
@@ -159,15 +142,12 @@ export class Ghosts {
    * @param world       optional World, to drop a decal per ghost
    */
   update(ghostClock, nowMs, world) {
-    const bodyArr = this.bodyMesh.instanceMatrix.array;
-    const eyeArr = this.eyeMesh.instanceMatrix.array;
     const coneArr = this.coneMesh.instanceMatrix.array;
     const brimArr = this.brimMesh.instanceMatrix.array;
     const towerArr = this.towerMesh.instanceMatrix.array;
 
     // Instance slots shift as ghosts reveal and retire, so colours are written
     // alongside the matrices rather than cached by list index.
-    const bodyCol = this.bodyMesh.instanceColor.array;
     const coneCol = this.coneMesh.instanceColor.array;
     const brimCol = this.brimMesh.instanceColor.array;
     const towerCol = this.towerMesh.instanceColor.array;
@@ -175,12 +155,13 @@ export class Ghosts {
     const bodies = this.bodies;
     bodies.length = 0;
 
-    let n = 0, eN = 0, coneN = 0, brimN = 0, towerN = 0, flyN = 0;
+    let n = 0, coneN = 0, brimN = 0, towerN = 0, flyN = 0;
     const tSec = nowMs / 1000;
+    this.rig.begin();
 
     for (let i = 0; i < this.list.length && n < MAX_GHOSTS; i++) {
       const g = this.list[i];
-      const s = sampleAt(g.rec, ghostClock, g.cur);
+      const s = sampleAt(g.rec, ghostClock, g.cur, g.stride);
 
       // Collision bodies use the exact sample — the server does the same maths
       // on the same clock, so the two agree.
@@ -207,28 +188,34 @@ export class Ghosts {
       const scale = 0.6 + 0.4 * pop + (pop < 1 ? Math.sin(pop * Math.PI) * 0.18 : 0);
 
       const y = s.y + bob;
-      writeMatrix(bodyArr, n, s.x, y, s.z, s.yaw, scale, scale, scale);
-      bodyCol[n * 3] = g.color.r; bodyCol[n * 3 + 1] = g.color.g; bodyCol[n * 3 + 2] = g.color.b;
-
-      // eyes
-      const c = Math.cos(s.yaw), sn = Math.sin(s.yaw);
-      const fx = sn * PLAYER_RADIUS * 0.92, fz = c * PLAYER_RADIUS * 0.92;
-      const rx = c * 0.145, rz = -sn * 0.145;
-      const ey = y + EYE_HEIGHT * scale;
-      writeMatrix(eyeArr, eN++, s.x + fx + rx, ey, s.z + fz + rz, s.yaw, 1, 1, 1);
-      writeMatrix(eyeArr, eN++, s.x + fx - rx, ey, s.z + fz - rz, s.yaw, 1, 1, 1);
+      this.rig.write({
+        x: s.x, y, z: s.z, yaw: s.yaw,
+        dist: s.dist,
+        speed: Math.hypot(s.vx, s.vz),
+        grounded: s.grounded,
+        dead: s.dead,
+        t: tSec,
+        scale,
+        color: g.color,
+      });
 
       // hats
-      const head = y + PLAYER_HEIGHT * scale;
+      const head = y + CharacterRig.headTop(scale);
+      // Gen 3 a cone, 4 a wide brim, 5 something structurally unsound, 6 all
+      // three at once — and from there it keeps growing, because twenty rounds
+      // means twenty generations and they should not all look like gen 6.
       const gen = g.gen;
-      const huge = gen >= 6 ? 1.55 : 1;
+      const huge = gen >= 6 ? Math.min(2.1, 1.15 + (gen - 6) * 0.05) : 1;
       if (gen === 3 || gen >= 6) {
         writeMatrix(coneArr, coneN, s.x, head + 0.02 * huge, s.z, s.yaw, huge, huge, huge);
         setCol(coneCol, coneN++, g.color);
       }
       if (gen === 4 || gen >= 6) {
+        // The brim is the one that hides its wearer from a camera looking
+        // down, so it grows at less than half the rate of the vertical hats.
+        const wide = 1 + (huge - 1) * 0.45;
         const lift = gen >= 6 ? 0.5 * huge : 0.02;
-        writeMatrix(brimArr, brimN, s.x, head + lift, s.z, s.yaw, huge, huge, huge);
+        writeMatrix(brimArr, brimN, s.x, head + lift, s.z, s.yaw, wide, huge, wide);
         setCol(brimCol, brimN++, g.color);
       }
       if (gen === 5 || gen >= 6) {
@@ -256,11 +243,7 @@ export class Ghosts {
       n++;
     }
 
-    this.bodyMesh.count = n;
-    this.bodyMesh.instanceMatrix.needsUpdate = true;
-    this.bodyMesh.instanceColor.needsUpdate = true;
-    this.eyeMesh.count = eN;
-    this.eyeMesh.instanceMatrix.needsUpdate = true;
+    this.rig.end();
     this.coneMesh.count = coneN;
     this.coneMesh.instanceMatrix.needsUpdate = true;
     this.coneMesh.instanceColor.needsUpdate = true;
@@ -281,13 +264,6 @@ export class Ghosts {
   }
 
   get length() { return this.list.length; }
-}
-
-/** Force three to allocate the instanceColor buffer so we can write it raw. */
-function primeColors(mesh) {
-  const white = new Color(1, 1, 1);
-  for (let i = 0; i < mesh.instanceMatrix.count; i++) mesh.setColorAt(i, white);
-  mesh.instanceColor.needsUpdate = true;
 }
 
 function setCol(arr, i, c) {

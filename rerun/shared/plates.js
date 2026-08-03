@@ -38,10 +38,12 @@ export function resetPlateStates(states) {
 
 /**
  * bodies: [{ x, y, z, kind: 'live'|'ghost', ref }]
+ * momentumSet: plate indices behaving as turnstiles this round. Later rounds
+ * convert ordinary plates, so this is per-round rather than per-plate.
  * Returns nothing; mutates `states`. `contributors` holds the bodies standing
  * on each pressed plate so plate-seconds can be attributed.
  */
-export function evaluatePlates(states, bodies, now) {
+export function evaluatePlates(states, bodies, now, momentumSet) {
   for (let i = 0; i < PLATES.length; i++) {
     const plate = PLATES[i];
     const st = states[i];
@@ -62,7 +64,8 @@ export function evaluatePlates(states, bodies, now) {
     st.prevMass = st.mass;
     st.mass = mass;
 
-    if (plate.momentum) {
+    const isTurnstile = momentumSet ? momentumSet.has(i) : !!plate.momentum;
+    if (isTurnstile) {
       // Only stays down while weight is *increasing*. It wants arrivals, not
       // residents.
       if (mass > st.prevMass) st.momentumUntil = now + MOMENTUM_HOLD_MS;

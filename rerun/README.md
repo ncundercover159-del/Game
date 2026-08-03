@@ -2,11 +2,12 @@
 
 *Every round, your past self comes back. Solid. In the way. Forever.*
 
-A 3–8 player 3D web game for phones. Six rounds, twenty seconds each. At the
-end of every round everything you did is recorded and replayed as a **ghost**
-that repeats your exact run, in a twenty-second loop, for the rest of the
-match. Ghosts never stop. They accumulate. Six rounds means six copies of you,
-all looping simultaneously.
+A 3–8 player 3D web game for phones. Twenty rounds, twenty seconds each. At
+the end of every round everything you did is recorded and replayed as a
+**ghost** that repeats your exact run, in a twenty-second loop, for the rest of
+the match. Ghosts never stop. They accumulate. Twenty rounds means twenty
+copies of you, all looping simultaneously — and with a full room the ghost cap
+starts retiring your oldest selves, with a eulogy, around round eight.
 
 **Ghosts are solid.** They collide with living players. They can shove you off
 a ledge, block a doorway, or — usefully — be stood on.
@@ -60,11 +61,11 @@ cd rerun/client
 npm run build:solo     # -> ../artifact/dist/rerun-solo.html
 ```
 
-One self-contained HTML file, ~540KB, no network at all: the server `Room`
+One self-contained HTML file, ~546KB, no network at all: the server `Room`
 runs in the page behind a loopback socket, so the phase machine, recordings,
-plate authority and wire messages are the real ones. One player, six rounds,
-five past selves by the end — which is the whole game, since you were always
-cooperating with yourself.
+plate authority and wire messages are the real ones. One player, twenty rounds,
+nineteen past selves by the end — which is the whole game, since you were
+always cooperating with yourself.
 
 ### One-command production build
 
@@ -87,8 +88,13 @@ than the last one.
 | 2 | 2 | Far apart. Living players can just split up. Feels fine. |
 | 3 | 3 | One is on a 2.1m ledge. Jump apex is 1.36m. Stand on somebody. |
 | 4 | 4 | The turnstile only stays down while weight is *increasing*. It wants arrivals, not residents. |
-| 5 | 5 | One is inside the closet, whose door is held open by a separate plate. Someone has to be the doorman. Forever. |
-| 6 | 8 | **THE RECKONING.** Every plate, every ghost, all at once. |
+| 5–6 | 5–6 | The closet: a door held open by one plate, and plates inside it. Someone has to be the doorman. Forever. |
+| 7–14 | 7–14 | One more plate each round, until every plate in the room is lit at once. |
+| 15–19 | 14 | No new plates. Instead, one more of them converts to a turnstile each round, so a wall of parked ghosts stops being enough. |
+| 20 | 14 | **THE RECKONING.** Half the room is turnstiles and every ghost you have ever been is in it. |
+
+Turnstile plates render blue and their pips are dashed, because standing on one
+is a wasted body.
 
 Scoring is plate-seconds, accumulated per tick across the required set, plus a
 +25 bonus the first time a round's full set is held simultaneously.
@@ -114,7 +120,8 @@ rerun/
     codes.js       4-letter room codes
   client/       vite + vanilla js + three.js. no react.
     src/world.js       scene, merged arena, plates, decals, camera fit
-    src/ghosts.js      InstancedMesh ghost rendering + hats + flies
+    src/character.js   the articulated rig: head, torso, arms, legs, walk cycle
+    src/ghosts.js      instanced ghost rendering + hats + flies
     src/avatars.js     living players + projected name tags
     src/instancing.js  raw instance-matrix writers
     src/input.js       joystick + JUMP
@@ -190,14 +197,20 @@ rather than to the network.
 
 ### Rendering budget
 
-- All ghost bodies are **one `InstancedMesh`** whose matrix buffer is written
-  raw each frame. Hats are three more (cone, brim, and the structurally unsound
-  one). Flies are a single `Points` cloud. This was built in from step one, not
-  retrofitted, because sixty capsules with individual draw calls will tank a
-  mid-tier Android.
-- Living players are instanced too. The arena is merged into one geometry.
+- Characters are articulated — head, torso, two arms, two legs — with a real
+  walk cycle, an airborne pose and a death flail. Every *part* is its own
+  `InstancedMesh`, so one draw call covers that part across all sixty ghosts.
+  Five draw calls for the whole crowd, where a skinned mesh per ghost would be
+  sixty. Animating all sixty rigs measures at **0.09ms/frame**.
+- The walk cycle is driven by cumulative distance travelled, derived from the
+  recording when a ghost is decoded. So the feet match the ground rather than
+  skating, and every client derives the same phase from the same tape without
+  transmitting a byte of animation data.
+- Living players use the same rig, lit and opaque. The arena is merged into one
+  geometry.
 - **No shadow maps at all.** Fake radial decals only, culled beyond 15m.
-- ~15 draw calls, ~20k triangles, comfortably inside the 40/25k budget.
+- 16 draw calls and ~17.5k triangles with 60 ghosts on screen, inside the
+  40 / 25k budget.
 - `setPixelRatio(min(devicePixelRatio, 2))`, dropping to 1.5 automatically
   after sustained frame pressure.
 - Camera is a fixed high angle framing the whole arena. It does not follow you.
@@ -269,6 +282,12 @@ There are no automated tests. Run this on real phones.
       cannot feel it as a delay.
 - [ ] One ghost, on its own, is funny. If it isn't, sixty won't be.
 
+**Characters**
+- [ ] Legs and arms swing in a real walk cycle, and the feet do not skate.
+- [ ] Jumping tucks a knee up and throws the arms overhead.
+- [ ] A ghost that died flails, upside-down-ish, forever.
+- [ ] Sixty animated ghosts still report under 40 draw calls in `__rerun.info`.
+
 **Ghosts**
 - [ ] Round two: your ghost repeats round one exactly, including standing still.
 - [ ] You can be shoved by your own past self.
@@ -281,6 +300,7 @@ There are no automated tests. Run this on real phones.
 - [ ] Fall in the pit; the scream plays.
 - [ ] Next round, your ghost falls in the same pit with the same scream.
 - [ ] By round five there is a rhythmic background of distant screams.
+- [ ] Around round eight with a full room, the oldest ghosts retire with a eulogy.
 - [ ] A player who fell in round two can still see themselves falling in round
       six.
 
@@ -288,11 +308,13 @@ There are no automated tests. Run this on real phones.
 - [ ] Round 3's ledge plate cannot be reached without standing on a body.
 - [ ] Round 4's turnstile ignores someone standing on it and responds to
       arrivals.
+- [ ] From round 15 the converted turnstiles read blue, in the arena and in
+      the pips.
 - [ ] Round 5's closet door opens only while the door switch is held.
 - [ ] Pips at the top of the screen match the plates lighting up in the arena.
 
 **Multiplayer**
-- [ ] Six phones on different networks play a full six-round match.
+- [ ] Six phones on different networks play a full twenty-round match.
 - [ ] Two people describing the arena at the 15-second mark of round five agree
       about where the ghosts are.
 - [ ] Refresh mid-round: back in under five seconds with all ghosts intact.

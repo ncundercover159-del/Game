@@ -6,7 +6,7 @@
 export const ROUND_SECONDS = 20;
 export const COUNTDOWN_SECONDS = 3;
 export const SETTLING_SECONDS = 4;
-export const TOTAL_ROUNDS = 6;
+export const TOTAL_ROUNDS = 20;
 export const RECORD_HZ = 20;
 export const MAX_GHOSTS = 60;
 export const GHOST_PUSH_FORCE = 14;
@@ -34,7 +34,6 @@ export const INPUT_MS = 1000 / INPUT_HZ;
 export const PLAYER_RADIUS = 0.38;
 export const PLAYER_HEIGHT = 1.5; // feet to the top of the head
 export const BODY_RADIUS = PLAYER_RADIUS; // ghosts are the same size
-export const EYE_HEIGHT = 1.17;
 
 // ---- movement ------------------------------------------------------------
 // Grippy, not floaty: near-instant acceleration on the ground, a little less

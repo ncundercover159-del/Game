@@ -97,13 +97,14 @@ export class UI {
   }
 
   // ------------------------------------------------------------------ HUD
-  buildPips(required) {
+  buildPips(required, turnstiles) {
+    const turn = new Set(turnstiles || []);
     this.el.pips.innerHTML = '';
     this.pipEls = [];
     for (const idx of required) {
       const d = document.createElement('div');
-      d.className = 'pip';
-      d.title = PLATES[idx].name;
+      d.className = turn.has(idx) ? 'pip turn' : 'pip';
+      d.title = PLATES[idx].name + (turn.has(idx) ? ' (turnstile)' : '');
       this.el.pips.appendChild(d);
       this.pipEls.push({ el: d, idx });
     }

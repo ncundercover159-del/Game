@@ -7,7 +7,7 @@ import {
 } from '../shared/constants.js';
 import {
   BOXES_DOOR_CLOSED, BOXES_DOOR_OPEN, roundSpec,
-  requiredPlateIndices, spawnFor,
+  requiredPlateIndices, momentumPlateIndices, spawnFor,
 } from '../shared/arena.js';
 import { createPlayerState, resetPlayerState, stepPlayer } from '../shared/physics.js';
 import {
@@ -43,6 +43,7 @@ export class Room {
     this.plateStates = createPlateStates();
     this.doorOpen = false;
     this.requiredPlates = [];
+    this.momentumPlates = momentumPlateIndices(1);
     this.teamScore = 0;
     this.roundPlateSeconds = 0;
     this.roundSolved = false;
@@ -147,6 +148,7 @@ export class Room {
     this.playStart = now + COUNTDOWN_MS;
     this.phaseEndsAt = this.playStart;
     this.requiredPlates = requiredPlateIndices(round);
+    this.momentumPlates = momentumPlateIndices(round);
     this.roundPlateSeconds = 0;
     this.roundSolved = false;
     resetPlateStates(this.plateStates);
@@ -496,7 +498,7 @@ export class Room {
       }
     }
 
-    evaluatePlates(this.plateStates, bodies, now);
+    evaluatePlates(this.plateStates, bodies, now, this.momentumPlates);
     this.doorOpen = doorIsOpen(this.plateStates);
 
     if (dt <= 0) return;
@@ -589,6 +591,7 @@ export class Room {
       phaseEndsAt: this.phaseEndsAt,
       now: Date.now(),
       required: this.requiredPlates,
+      turnstiles: [...(this.momentumPlates || [])],
       title: spec.title,
       goal: spec.goal,
       ghosts: this.ghosts.length,

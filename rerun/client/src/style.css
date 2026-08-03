@@ -116,6 +116,13 @@ html, body {
   background: var(--hot);
   box-shadow: 0 0 10px rgba(255, 210, 74, 0.85);
 }
+/* Turnstiles: only down while weight is increasing. Standing on one is a
+   wasted body, so they never read as ordinary plates. */
+.pip.turn { border-color: rgba(79, 195, 255, 0.5); border-style: dashed; }
+.pip.turn.on {
+  background: var(--live);
+  box-shadow: 0 0 10px rgba(79, 195, 255, 0.85);
+}
 
 #score-line {
   font-size: 11px;

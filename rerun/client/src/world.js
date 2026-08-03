@@ -139,16 +139,34 @@ export class World {
     this._colOn = new Color(0xffd24a);
     this._colRingOff = new Color(0x22263f);
     this._colRingArmed = new Color(0x8a6f1e);
+    this._colOnT = new Color(0x4fc3ff);
+    this._colArmedT = new Color(0x1d566d);
+    this._colRingArmedT = new Color(0x2a6f95);
+    this._plateKey = '';
   }
 
-  /** mask: bitfield of pressed plates. required: array of plate indices. */
-  updatePlates(mask, required) {
+  /**
+   * mask: bitfield of pressed plates. required: plate indices this round.
+   * turnstiles: indices that only stay down while weight is increasing — they
+   * read blue, because standing on one is a waste of a body.
+   */
+  updatePlates(mask, required, turnstiles) {
+    const key = `${mask}|${required}|${turnstiles}`;
+    if (key === this._plateKey) return;
+    this._plateKey = key;
+
     const req = new Set(required || []);
+    const turn = new Set(turnstiles || []);
     for (let i = 0; i < PLATES.length; i++) {
       const on = (mask & (1 << i)) !== 0;
       const armed = req.has(i);
-      this.plateMesh.setColorAt(i, on ? this._colOn : armed ? this._colArmed : this._colOff);
-      this.ringMesh.setColorAt(i, on ? this._colOn : armed ? this._colRingArmed : this._colRingOff);
+      const t = turn.has(i);
+      this.plateMesh.setColorAt(i,
+        on ? (t ? this._colOnT : this._colOn)
+          : armed ? (t ? this._colArmedT : this._colArmed) : this._colOff);
+      this.ringMesh.setColorAt(i,
+        on ? (t ? this._colOnT : this._colOn)
+          : armed ? (t ? this._colRingArmedT : this._colRingArmed) : this._colRingOff);
     }
     this.plateMesh.instanceColor.needsUpdate = true;
     this.ringMesh.instanceColor.needsUpdate = true;

@@ -52,8 +52,9 @@ export function fillForward(rec, from, to) {
  * Sample a recording at `tMs` within the 20s loop, interpolating between the
  * 20Hz keyframes. Writes into `out` to avoid allocating 60 objects a frame.
  * The same maths runs on the server, so client and server agree.
+ * Pass `stride` (from buildStride) to get cumulative distance for animation.
  */
-export function sampleAt(rec, tMs, out) {
+export function sampleAt(rec, tMs, out, stride) {
   let t = tMs % ROUND_MS;
   if (t < 0) t += ROUND_MS;
   const f = t / RECORD_INTERVAL_MS;
@@ -84,12 +85,44 @@ export function sampleAt(rec, tMs, out) {
   out.vz = (z1 - z0) * perSecond;
 
   out.dead = (rec.flags[i0] & FLAG_DEAD) !== 0;
+  out.grounded = (rec.flags[i0] & FLAG_GROUNDED) !== 0;
   out.index = i0;
+
+  if (stride) {
+    out.dist = stride[i0] + (stride[i1] - stride[i0]) * a;
+  } else {
+    out.dist = 0;
+  }
   return out;
 }
 
 export function makeSampleOut() {
-  return { x: 0, y: 0, z: 0, yaw: 0, vx: 0, vy: 0, vz: 0, dead: false, index: 0 };
+  return {
+    x: 0, y: 0, z: 0, yaw: 0, vx: 0, vy: 0, vz: 0,
+    dead: false, grounded: true, dist: 0, index: 0,
+  };
+}
+
+/**
+ * Cumulative horizontal distance travelled, one entry per sample.
+ *
+ * The walk cycle is driven off this rather than off wall-clock time, so a
+ * ghost's feet match the ground it covers and every client derives the same
+ * phase from the same recording. Computed once when a ghost is decoded — it is
+ * derived from the tape, never transmitted.
+ */
+export function buildStride(rec) {
+  const n = rec.yaw.length;
+  const out = new Float32Array(n);
+  let d = 0;
+  for (let i = 1; i < n; i++) {
+    const a = (i - 1) * 3, b = i * 3;
+    const dx = (rec.pos[b] - rec.pos[a]) / POS_SCALE;
+    const dz = (rec.pos[b + 2] - rec.pos[a + 2]) / POS_SCALE;
+    d += Math.sqrt(dx * dx + dz * dz);
+    out[i] = d;
+  }
+  return out;
 }
 
 // --- wire format ----------------------------------------------------------
