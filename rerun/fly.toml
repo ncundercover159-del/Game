@@ -1,0 +1,33 @@
+# Fly.io — `fly launch --no-deploy` then `fly deploy` from this directory.
+app = "rerun"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8787"
+  RERUN_MIN_PLAYERS = "3"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  # Rooms live in server memory, so never scale past one machine and never
+  # let the only machine stop mid-match.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.http_options]
+    h2_backend = false
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

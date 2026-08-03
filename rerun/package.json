@@ -1,0 +1,22 @@
+{
+  "name": "rerun-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "RERUN — server. Rooms, recordings, the playback clock and the plates.",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "client:install": "npm --prefix client install",
+    "client:dev": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "build": "npm --prefix client install && npm --prefix client run build"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

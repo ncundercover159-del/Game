@@ -1,0 +1,25 @@
+# Netlify — static client only. Set "Base directory" to `rerun/client` in the
+# site settings so this file is picked up, and set VITE_SERVER_URL to your
+# deployed server (wss://…). The game will not connect without it.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

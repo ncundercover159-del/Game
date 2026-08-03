@@ -1,3 +1,11 @@
+> This repo holds two games. **[RERUN](rerun/)** is the multiplayer one — six
+> rounds, twenty seconds each, and every round your past self comes back solid
+> and in the way. See [`rerun/README.md`](rerun/README.md).
+>
+> Below is ORBIT, the single-file arcade one.
+
+---
+
 # ORBIT
 
 A one-thumb arcade game for killing five minutes — built for phones, in a single

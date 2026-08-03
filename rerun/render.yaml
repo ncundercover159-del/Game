@@ -1,0 +1,15 @@
+# Render — one web service that serves the client and the WebSocket server.
+# Point Render's "Root Directory" at `rerun`.
+services:
+  - type: web
+    name: rerun
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8787
+      - key: RERUN_MIN_PLAYERS
+        value: 3
