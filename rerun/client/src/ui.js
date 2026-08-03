@@ -195,7 +195,7 @@ export class UI {
   // -------------------------------------------------------------- results
   renderResults(res, isHost) {
     this.el.resultsScore.innerHTML =
-      `${res.teamScore.toFixed(1)}<small>TOTAL PLATE-SECONDS &middot; ${res.ghosts} GHOSTS STILL RUNNING</small>`;
+      `${res.teamScore.toFixed(1)}<small>TOTAL PLATE-SECONDS &middot; ${res.ghosts} GHOST${res.ghosts === 1 ? '' : 'S'} STILL RUNNING</small>`;
 
     this.el.resultsAwards.innerHTML = res.awards.map((a) =>
       `<div class="award"><div class="t">${escapeHtml(a.title)}</div>` +
@@ -215,7 +215,7 @@ export class UI {
       '<div class="sect">BY ROUND</div>' +
       res.rounds.map((r) =>
         `<div class="rrow"><span class="n">ROUND ${r.round}${r.solved ? ' &middot; FULL SET' : ''}</span>` +
-        `<span class="s">${r.ghosts} ghosts</span>` +
+        `<span class="s">${r.ghosts} ghost${r.ghosts === 1 ? '' : 's'}</span>` +
         `<span class="v">${r.plateSeconds.toFixed(1)}</span></div>`).join('');
 
     this.el.btnAgain.classList.toggle('hidden', !isHost);

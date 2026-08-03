@@ -1,0 +1,100 @@
+<title>RERUN</title>
+
+<canvas id="gl"></canvas>
+<div id="tags"></div>
+
+<!-- ------------------------------------------------------------- HUD -->
+<div id="hud" class="hidden">
+  <div id="hud-top">
+    <div id="past-selves">YOUR PAST SELVES: <b>0</b></div>
+    <div id="round-line">
+      <span id="round-label">ROUND 1 / 6</span>
+      <span id="round-timer">20.0</span>
+    </div>
+    <div id="round-title">ONE PLATE</div>
+    <div id="plate-pips"></div>
+    <div id="score-line"><span id="round-score">0.0</span> PLATE-SECONDS &middot; TOTAL <span id="team-score">0</span></div>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<div id="centre" class="hidden"></div>
+
+<!-- ---------------------------------------------------------- controls -->
+<div id="controls" class="hidden">
+  <div id="stick-zone">
+    <div id="stick-base"><div id="stick-knob"></div></div>
+  </div>
+  <button id="jump" type="button">JUMP</button>
+</div>
+
+<!-- ------------------------------------------------------------ screens -->
+<div id="screen-home" class="screen">
+  <div class="logo">
+    <div class="wordmark" role="img" aria-label="RERUN">
+      <span class="g" style="--i:5;--o:.07" aria-hidden="true">RERUN</span>
+      <span class="g" style="--i:4;--o:.10" aria-hidden="true">RERUN</span>
+      <span class="g" style="--i:3;--o:.14" aria-hidden="true">RERUN</span>
+      <span class="g" style="--i:2;--o:.21" aria-hidden="true">RERUN</span>
+      <span class="g" style="--i:1;--o:.34" aria-hidden="true">RERUN</span>
+      <span class="lead">RERUN</span>
+    </div>
+    <p class="tag">Every round, your past self comes back.<br>Solid. In the way. Forever.</p>
+  </div>
+
+  <ol class="rules">
+    <li><b>Twenty seconds a round.</b> Six rounds. Hard cut, no exceptions.</li>
+    <li><b>Then you come back.</b> Everything you just did replays as a ghost, on a twenty-second loop, for the rest of the match.</li>
+    <li><b>Ghosts are solid.</b> They shove you, block doorways, and hold plates down. You can stand on their shoulders.</li>
+    <li><b>There are more plates than there are of you.</b> So leave someone useful behind. You are cooperating with your past self, who was an idiot.</li>
+  </ol>
+
+  <div class="panel">
+    <label class="field">
+      <span>YOUR NAME</span>
+      <input id="name-input" type="text" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="WHO">
+    </label>
+    <button id="btn-create" class="big" type="button">BEGIN</button>
+    <div class="or">OR</div>
+    <label class="field field-code">
+      <span>ROOM CODE</span>
+      <input id="code-input" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD">
+    </label>
+    <button id="btn-join" class="big ghosty" type="button">JOIN</button>
+  </div>
+
+  <p id="home-error"></p>
+  <p class="fineprint">Left half of the screen steers. JUMP is bottom right.<br>There is no undo. That is the game.</p>
+</div>
+
+<div id="screen-lobby" class="screen hidden">
+  <div class="lobby-code">
+    <span class="lobby-code-label">ROOM CODE</span>
+    <div id="lobby-code">----</div>
+    <button id="btn-share" class="small" type="button">SHARE LINK</button>
+  </div>
+  <div id="lobby-players"></div>
+  <div class="lobby-foot">
+    <button id="btn-start" class="big" type="button">START</button>
+    <p id="lobby-hint"></p>
+  </div>
+</div>
+
+<div id="screen-results" class="screen hidden">
+  <h2>THE RECKONING IS OVER</h2>
+  <div id="results-score"></div>
+  <div id="results-awards"></div>
+  <div id="results-players"></div>
+  <div id="results-rounds"></div>
+  <button id="btn-again" class="big hidden" type="button">GO AGAIN</button>
+  <p id="results-hint"></p>
+</div>
+
+<div id="rotate" class="hidden">
+  <div>
+    <div class="rot-icon">&#8635;</div>
+    <p>ROTATE BACK<br><small>RERUN is portrait only.</small></p>
+  </div>
+</div>
+
+<div id="net-status" class="hidden"></div>

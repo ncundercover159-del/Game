@@ -444,7 +444,7 @@ button.small {
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-#results-score small { display: block; font-size: 10px; letter-spacing: 0.24em; color: var(--dimmer); margin-top: 6px; }
+#results-score small { display: block; font-size: 10px; letter-spacing: 0.14em; color: var(--dimmer); margin-top: 8px; line-height: 1.5; }
 #results-awards { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 9px; }
 .award {
   border: 1px solid var(--edge);
@@ -472,7 +472,7 @@ button.small {
 .rrow .n { flex: 1; text-align: left; }
 .rrow .v { font-variant-numeric: tabular-nums; color: var(--hot); }
 .rrow .s { font-size: 10px; color: var(--dimmer); }
-.sect { font-size: 10px; letter-spacing: 0.24em; color: var(--dimmer); font-weight: 800; margin-top: 6px; }
+.sect { font-size: 10px; letter-spacing: 0.14em; color: var(--dimmer); font-weight: 800; margin-top: 6px; }
 #results-hint { font-size: 11px; letter-spacing: 0.1em; color: var(--dimmer); margin: 0; }
 
 /* --------------------------------------------------------------- rotate */

@@ -53,6 +53,19 @@ interesting, so START is disabled. To poke at it solo while developing:
 RERUN_MIN_PLAYERS=1 npm start
 ```
 
+### Solo build (single file, no server)
+
+```bash
+cd rerun/client
+npm run build:solo     # -> ../artifact/dist/rerun-solo.html
+```
+
+One self-contained HTML file, ~540KB, no network at all: the server `Room`
+runs in the page behind a loopback socket, so the phase machine, recordings,
+plate authority and wire messages are the real ones. One player, six rounds,
+five past selves by the end — which is the whole game, since you were always
+cooperating with yourself.
+
 ### One-command production build
 
 ```bash

@@ -17,7 +17,10 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: { '@shared': shared },
+    alias: {
+      '@shared': shared,
+      '@transport': fileURLToPath(new URL('./src/net.js', import.meta.url)),
+    },
   },
   build: {
     target: 'es2020',

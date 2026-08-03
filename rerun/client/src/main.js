@@ -12,7 +12,9 @@ import { Avatars } from './avatars.js';
 import { Controls } from './input.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
-import { Net, storedSession, clearSession } from './net.js';
+// Swapped at build time: the real WebSocket transport, or the in-page
+// loopback used by the single-file solo build.
+import { Net, storedSession, clearSession } from '@transport';
 
 const world = new World(document.getElementById('gl'));
 const ghosts = new Ghosts(world.scene);
@@ -179,7 +181,10 @@ net.addEventListener('joined', (e) => {
   ui.netStatus('');
   if (!d.resumed) ui.error('');
   if (d.late && !catchingSince) showCatchingUp();
-  history.replaceState(null, '', `${location.pathname}?room=${d.code}`);
+  // Sandboxed embeds can refuse this; the room code is cosmetic in the URL.
+  try {
+    history.replaceState(null, '', `${location.pathname}?room=${d.code}`);
+  } catch { /* not our business */ }
 });
 
 net.addEventListener('room', (e) => {
@@ -277,7 +282,7 @@ function onPhase(d) {
     G.revealed = 0;
     // Reset local prediction to the spawn so the countdown doesn't show you
     // sliding in from last round's grave.
-    const sp = spawnFor(net.slot);
+    const sp = spawnFor(net.slot, d.round);
     resetPlayerState(G.me, sp.x, sp.z);
     G.meValid = true;
   }
@@ -543,7 +548,7 @@ requestAnimationFrame(frame);
 // Handy in dev: `__rerun.info` prints the draw-call and triangle budget.
 window.__rerun = {
   get info() { return { ...world.info, ghosts: ghosts.length }; },
-  G, ghosts, world, net,
+  G, ghosts, world, net, controls, audio, avatars,
   fakeGhosts: (n) => fakeGhosts(n),
 };
 

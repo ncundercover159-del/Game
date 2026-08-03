@@ -133,14 +133,39 @@ export function requiredPlateIndices(roundNumber) {
 
 // --- spawns ---------------------------------------------------------------
 // South end, spread out so round one isn't a stampede.
+// Kept clear of the walls and the pit by at least the spawn spiral's radius,
+// so the per-round offset below never has to be clamped.
 export const SPAWNS = [
-  { x: -4.0, z: 7.9 }, { x: -2.4, z: 8.3 }, { x: -0.8, z: 7.9 }, { x: 0.8, z: 8.3 },
-  { x: 2.4, z: 7.9 }, { x: 4.0, z: 8.3 }, { x: -4.6, z: 5.6 }, { x: 4.6, z: 5.6 },
+  { x: -3.1, z: 6.9 }, { x: -1.85, z: 6.3 }, { x: -0.6, z: 6.9 }, { x: 0.6, z: 6.3 },
+  { x: 1.85, z: 6.9 }, { x: 3.1, z: 6.3 }, { x: -2.4, z: 5.6 }, { x: 2.4, z: 5.6 },
 ];
 
-export function spawnFor(slot) {
-  return SPAWNS[slot % SPAWNS.length];
+// Six rounds, six points on a hexagon: every pair is at least SPAWN_RING
+// apart, which is comfortably more than a body is wide (0.76m).
+const SPAWN_RINGS = 6;
+const SPAWN_RING = 0.98;
+
+/**
+ * Where a player starts a given round.
+ *
+ * Every ghost's recording begins at its owner's spawn, so a fixed spawn would
+ * put you inside all of your past selves at t=0 of every round and the
+ * resolver would fire you out of the room. Each round gets its own corner of a
+ * small hexagon instead, so your past selves line up beside you rather than
+ * inside you.
+ */
+export function spawnFor(slot, round = 1) {
+  const base = SPAWNS[slot % SPAWNS.length];
+  const k = (Math.max(1, round) - 1) % SPAWN_RINGS;
+  // Per-slot phase so neighbouring players' rings aren't aligned.
+  const a = (k / SPAWN_RINGS) * Math.PI * 2 + slot * 0.4;
+  return {
+    x: clampTo(base.x + Math.cos(a) * SPAWN_RING, ARENA.minX + 0.75, ARENA.maxX - 0.75),
+    z: clampTo(base.z + Math.sin(a) * SPAWN_RING, ARENA.minZ + 0.75, ARENA.maxZ - 0.75),
+  };
 }
+
+function clampTo(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 
 // --- helpers --------------------------------------------------------------
 

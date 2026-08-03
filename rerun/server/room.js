@@ -66,7 +66,7 @@ export class Room {
   addPlayer(id, name, ws) {
     const slot = this.freeSlot();
     if (slot < 0) return null;
-    const spawn = spawnFor(slot);
+    const spawn = spawnFor(slot, this.round || 1);
     const p = {
       id,
       slot,
@@ -152,7 +152,7 @@ export class Room {
     resetPlateStates(this.plateStates);
 
     for (const p of this.players.values()) {
-      const spawn = spawnFor(p.slot);
+      const spawn = spawnFor(p.slot, round);
       resetPlayerState(p.state, spawn.x, spawn.z);
       p.roundPlateSeconds = 0;
       p.recIdx = -1;
@@ -298,7 +298,7 @@ export class Room {
       p.plateSeconds = 0;
       p.alive = false;
       p.late = false;
-      const spawn = spawnFor(p.slot);
+      const spawn = spawnFor(p.slot, 1);
       resetPlayerState(p.state, spawn.x, spawn.z);
     }
     this.broadcastJSON({ t: 'reset' });
@@ -603,7 +603,7 @@ export class Room {
     const live = [];
     for (const p of this.players.values()) {
       if (this.phase === PHASE.LOBBY) {
-        const sp = spawnFor(p.slot);
+        const sp = spawnFor(p.slot, 1);
         live.push([p.slot, r2(sp.x), 0, r2(sp.z), 0, p.connected ? 0 : 1]);
         continue;
       }

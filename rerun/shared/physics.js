@@ -21,8 +21,16 @@ import {
   DEATH_Y,
   DEATH_REST_Y,
 } from './constants.js';
+import { ARENA, WALL_TOP } from './arena.js';
 
 const BODY_SUM_R = R + BODY_RADIUS;
+
+// The pop stops below the walls; the containment box is the wall faces.
+const POP_CEILING = WALL_TOP - H - 0.2;
+const CONTAIN = {
+  minX: ARENA.minX + R, maxX: ARENA.maxX - R,
+  minZ: ARENA.minZ + R, maxZ: ARENA.maxZ - R,
+};
 
 export function createPlayerState(x, z, yaw = Math.PI) {
   return {
@@ -257,13 +265,23 @@ function resolveHorizontal(p, world, dt, now, contacts) {
 
   // Degenerate case: a ghost walked through you and there is geometry on the
   // other side, so the resolver can't satisfy both. Pop upward.
-  // It looks bad. It is very funny. It is not fixed further than this.
-  if (unresolved && bodyContact) {
+  // It looks bad. It is very funny. It is not fixed further than this —
+  // except that it stops below the walls, because repeated pops would
+  // otherwise walk you up and over them.
+  if (unresolved && bodyContact && p.y < POP_CEILING) {
     p.y += 0.11;
     if (p.vy < 5.0) p.vy = 5.0;
     p.grounded = false;
     p.onBody = -1;
   }
+
+  // Whatever the resolver just did, you are still in the room. This is a
+  // guarantee, not a nudge: escaping the arena is the one failure that isn't
+  // funny, because everything outside it is empty space.
+  if (p.x < CONTAIN.minX) { p.x = CONTAIN.minX; if (p.vx < 0) p.vx = 0; }
+  else if (p.x > CONTAIN.maxX) { p.x = CONTAIN.maxX; if (p.vx > 0) p.vx = 0; }
+  if (p.z < CONTAIN.minZ) { p.z = CONTAIN.minZ; if (p.vz < 0) p.vz = 0; }
+  else if (p.z > CONTAIN.maxZ) { p.z = CONTAIN.maxZ; if (p.vz > 0) p.vz = 0; }
 }
 
 function resolveVertical(p, world, prevY, now) {

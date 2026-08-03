@@ -1,0 +1,132 @@
+/* RERUN — solo build chrome.
+   Loaded after the game's stylesheet, so these rules win.
+
+   Deliberately single-theme: the whole page is a lit arena on a near-black
+   ground. A light mode would be a different game. */
+
+:root {
+  /* A near-black with a blue bias, chosen to sit under the arena's navy
+     rather than fight it. */
+  --bg: #0a0b12;
+  --ghost-ink: 238, 241, 255;
+}
+
+/* ---- the room, faintly visible before anyone is in it ---- */
+#screen-home {
+  background:
+    radial-gradient(130% 75% at 50% 26%, rgba(10, 11, 18, 0.62), rgba(10, 11, 18, 0.93) 58%, #0a0b12 100%);
+  justify-content: flex-start;
+  gap: 22px;
+  padding-top: calc(var(--safe-t) + 34px);
+}
+
+/* ---- the wordmark accumulates its own past selves ---- */
+.logo { display: flex; flex-direction: column; align-items: center; }
+
+.wordmark {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+  max-width: 100%;
+}
+.wordmark > span {
+  display: block;
+  font-size: clamp(46px, 16.5vw, 104px);
+  font-weight: 900;
+  letter-spacing: 0.015em;
+  line-height: 0.94;
+  white-space: nowrap;
+}
+.wordmark > span.g {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  color: rgb(var(--ghost-ink));
+  opacity: 0;
+  transform: translate(calc(var(--i) * 6px), calc(var(--i) * 5px));
+  animation: wm-spawn 520ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  /* Furthest back arrives first — same order the settling beat uses. */
+  animation-delay: calc((6 - var(--i)) * 170ms);
+}
+.wordmark > span.lead {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+}
+
+@keyframes wm-spawn {
+  from {
+    opacity: 0;
+    transform: translate(calc(var(--i) * 6px), calc(var(--i) * 5px)) scale(1.13);
+  }
+  to {
+    opacity: var(--o);
+    transform: translate(calc(var(--i) * 6px), calc(var(--i) * 5px)) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordmark > span.g { animation: none; opacity: var(--o); }
+}
+
+.logo .tag {
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  letter-spacing: 0.09em;
+  color: var(--dim);
+}
+
+/* ---- the four things you need to know ---- */
+.rules {
+  list-style: none;
+  counter-reset: rule;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  text-align: left;
+}
+.rules li {
+  counter-increment: rule;
+  position: relative;
+  padding-left: 26px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: rgba(var(--ghost-ink), 0.64);
+  letter-spacing: 0.012em;
+}
+/* Numbered because it is a sequence: this is the order a round happens in. */
+.rules li::before {
+  content: counter(rule);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--hot);
+  font-variant-numeric: tabular-nums;
+}
+.rules li b { color: var(--ink); font-weight: 800; }
+
+/* ---- no rooms to create or join when the server is a variable ---- */
+#screen-home .panel .or,
+#screen-home .panel #btn-join,
+#screen-home .panel .field-code,
+#screen-lobby .lobby-code,
+#screen-lobby #lobby-players {
+  display: none;
+}
+#screen-home .panel {
+  background: rgba(16, 18, 30, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.fineprint { line-height: 1.7; }
+
+/* ---- results ---- */
+#results-hint:empty { display: none; }

@@ -44,9 +44,9 @@ export class World {
 
     this.camera = new PerspectiveCamera(52, 1, 0.5, 120);
 
-    const hemi = new HemisphereLight(0xa8c0ff, 0x1a1626, 1.35);
+    const hemi = new HemisphereLight(0xa8c0ff, 0x1a1626, 1.7);
     this.scene.add(hemi);
-    const dir = new DirectionalLight(0xfff0d0, 1.05);
+    const dir = new DirectionalLight(0xfff0d0, 1.3);
     dir.position.set(-7, 16, 5);
     this.scene.add(dir);
 
@@ -241,7 +241,7 @@ export class World {
     // whose shoulders.
     const a = this.camera.aspect;
     const t = Math.max(0, Math.min(1, (a - 0.42) / (1.1 - 0.42)));
-    const elev = (68 - t * 18) * (Math.PI / 180);
+    const elev = (62 - t * 16) * (Math.PI / 180);
     const dir = new Vector3(0, Math.sin(elev), Math.cos(elev)).normalize();
     // Camera-local up, in the vertical plane containing `dir`.
     const up = new Vector3(0, 1, 0).addScaledVector(dir, -dir.y).normalize();
