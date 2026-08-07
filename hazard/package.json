@@ -1,0 +1,19 @@
+{
+  "name": "hazard-pay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "HAZARD PAY — co-op first-person physics jobs. Server: authoritative Rapier sim over ws.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "client:install": "npm --prefix client install",
+    "client:dev": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.14.0",
+    "ws": "^8.18.0"
+  }
+}
