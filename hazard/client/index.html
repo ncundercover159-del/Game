@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14161b">
+<meta name="description" content="HAZARD PAY — co-op physics contracting. Clear the unit. Mind the pit.">
+<title>HAZARD PAY</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314161b'/%3E%3Cpath d='M16 5 30 28H2Z' fill='%23f2b705'/%3E%3Crect x='14.4' y='12' width='3.2' height='8' rx='1.4' fill='%2314161b'/%3E%3Ccircle cx='16' cy='23.4' r='1.9' fill='%2314161b'/%3E%3C/svg%3E">
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<!-- The HUD is filled in by hud.js; the shell lives here so the layout is
+     inspectable without running the game. -->
+<div id="hud" class="hidden">
+  <div id="crosshair" class="ch-idle"><i></i></div>
+
+  <div id="hud-top">
+    <div id="quota">
+      <div class="quota-row">
+        <span class="label">QUOTA</span>
+        <span id="quota-figure">&pound;0 / &pound;0</span>
+      </div>
+      <div class="bar"><b id="quota-bar"></b></div>
+    </div>
+    <div id="clock">--:--</div>
+  </div>
+
+  <ul id="tasks"></ul>
+
+  <div id="hud-bottom">
+    <div id="vitals">
+      <div class="vital">
+        <span class="label">HEALTH</span>
+        <div class="bar"><b id="health-bar"></b></div>
+      </div>
+      <div class="vital">
+        <span class="label">STAMINA</span>
+        <div class="bar"><b id="stamina-bar"></b></div>
+      </div>
+    </div>
+    <div id="held"></div>
+  </div>
+
+  <div id="feed"></div>
+  <div id="banner"></div>
+</div>
+
+<div id="screen" class="screen">
+  <div class="logo">
+    <h1>HAZARD PAY</h1>
+    <p class="tag">Anything not bolted down is billable.</p>
+  </div>
+  <div class="panel">
+    <label class="field">
+      <span>NAME</span>
+      <input id="name-input" type="text" maxlength="14" autocomplete="off"
+             autocapitalize="characters" spellcheck="false" placeholder="CONTRACTOR">
+    </label>
+    <label class="field">
+      <span>JOB CODE <small>(blank opens a new unit)</small></span>
+      <input id="code-input" type="text" maxlength="4" autocomplete="off"
+             autocapitalize="characters" spellcheck="false" placeholder="----">
+    </label>
+    <button id="btn-join" class="big" type="button">CLOCK ON</button>
+  </div>
+  <p id="screen-error"></p>
+  <p class="fineprint">
+    WASD move &middot; SHIFT sprint &middot; CTRL crouch &middot; SPACE jump<br>
+    E grab &middot; Q throw &middot; R/F reel in &amp; out &middot; G use &amp; revive
+  </p>
+</div>
+
+<div id="results" class="hidden">
+  <div class="panel">
+    <h2>DEBRIEF</h2>
+    <div id="results-body"></div>
+  </div>
+</div>
+
+<div id="lock-hint" class="hidden">CLICK TO LOOK</div>
+<div id="netstat" class="hidden"></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

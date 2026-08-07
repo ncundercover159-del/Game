@@ -1,0 +1,163 @@
+/* HAZARD PAY — the overlay.
+   Site signage: high-vis yellow on soot, condensed caps, hard edges. Nothing
+   rounded, nothing glassy. The HUD is a clipboard, not a spaceship. */
+
+:root {
+  --soot: #14161b;
+  --soot-2: #1c1f26;
+  --bone: #e8e6df;
+  --dim: rgba(232, 230, 223, 0.58);
+  --faint: rgba(232, 230, 223, 0.3);
+  --hair: rgba(232, 230, 223, 0.14);
+  --hiviz: #f2c53d;
+  --good: #58d68d;
+  --bad: #e5533d;
+  --face: "Helvetica Neue", "Arial Narrow", Inter, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0; height: 100%; overflow: hidden;
+  background: var(--soot); color: var(--bone);
+  font-family: var(--face);
+  -webkit-user-select: none; user-select: none;
+}
+
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.hidden { display: none !important; }
+
+/* ------------------------------------------------------------------- HUD */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+
+#crosshair {
+  position: absolute; left: 50%; top: 50%; width: 22px; height: 22px;
+  transform: translate(-50%, -50%);
+}
+#crosshair i {
+  position: absolute; left: 50%; top: 50%; width: 5px; height: 5px;
+  margin: -2.5px 0 0 -2.5px; border-radius: 50%;
+  background: rgba(232, 230, 223, 0.85);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  transition: transform 90ms ease-out, background 90ms;
+}
+#crosshair.ch-target i { background: var(--hiviz); transform: scale(1.9); }
+#crosshair.ch-holding i { background: var(--good); transform: scale(1.4); }
+
+#hud-top {
+  position: absolute; top: 18px; left: 0; right: 0;
+  display: flex; align-items: flex-start; justify-content: center; gap: 26px;
+}
+#quota { width: 300px; }
+.quota-row { display: flex; justify-content: space-between; align-items: baseline; }
+.label { font-size: 8.5px; letter-spacing: 0.26em; color: var(--dim); font-weight: 700; }
+#quota-figure { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bar {
+  height: 5px; margin-top: 5px; background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--hair); overflow: hidden;
+}
+.bar b { display: block; height: 100%; width: 0%; background: var(--hiviz); transition: width 180ms linear; }
+#quota-bar.met { background: var(--good); }
+
+#clock {
+  font-size: 26px; font-weight: 300; font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em; line-height: 1;
+}
+#clock.urgent { color: var(--bad); }
+
+#tasks {
+  position: absolute; top: 78px; left: 20px; margin: 0; padding: 0;
+  list-style: none; max-width: 290px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+#tasks li { position: relative; padding-left: 20px; }
+#tasks li i {
+  position: absolute; left: 0; top: 2px; width: 11px; height: 11px;
+  border: 1.5px solid var(--faint);
+}
+#tasks li.done i { background: var(--good); border-color: var(--good); }
+#tasks li.done .t { color: var(--dim); text-decoration: line-through; }
+#tasks .t { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; }
+#tasks .t b { color: var(--hiviz); }
+#tasks .d { display: block; font-size: 10px; color: var(--faint); line-height: 1.45; margin-top: 2px; }
+
+#hud-bottom {
+  position: absolute; left: 20px; bottom: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+#vitals { display: flex; gap: 14px; }
+.vital { width: 132px; }
+#health-bar { background: var(--good); }
+#health-bar.low { background: var(--bad); }
+#stamina-bar { background: #6fb3e0; }
+#stamina-bar.low { background: var(--hiviz); }
+#held {
+  font-size: 10.5px; letter-spacing: 0.14em; font-weight: 700; color: var(--hiviz);
+}
+
+#banner {
+  position: absolute; left: 50%; top: 58%; transform: translateX(-50%);
+  font-size: 13px; font-weight: 700; letter-spacing: 0.2em;
+  padding: 7px 14px; background: rgba(20, 22, 27, 0.82);
+  border-left: 3px solid var(--hiviz);
+}
+#banner.good { border-color: var(--good); color: var(--good); }
+#banner.bad { border-color: var(--bad); color: var(--bad); }
+
+#netstat {
+  position: absolute; right: 16px; bottom: 14px;
+  font-size: 9.5px; letter-spacing: 0.1em; color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------- screens */
+.screen, #results {
+  position: fixed; inset: 0; z-index: 20; background: var(--soot);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; padding: 32px 24px; text-align: center; overflow-y: auto;
+}
+#results { background: rgba(20, 22, 27, 0.93); }
+#results .panel { width: 100%; max-width: 380px; text-align: left; }
+#results h2, .screen h1 {
+  margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.34em;
+}
+#results .big { font-size: 24px; font-weight: 700; letter-spacing: 0.18em; margin: 14px 0; }
+#results .good { color: var(--good); }
+#results .bad { color: var(--bad); }
+#results dl { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+#results dl div {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--hair); padding-bottom: 5px;
+}
+#results dt { font-size: 8.5px; letter-spacing: 0.2em; color: var(--dim); font-weight: 700; }
+#results dd { margin: 0; font-size: 17px; font-variant-numeric: tabular-nums; }
+#results .bonus { list-style: none; margin: 14px 0 0; padding: 0; font-size: 11px; color: var(--dim); }
+#results .bonus b { color: var(--hiviz); }
+
+.card {
+  width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px;
+}
+.field { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+.field span { font-size: 8.5px; letter-spacing: 0.24em; color: var(--dim); font-weight: 700; }
+.field small { color: var(--faint); letter-spacing: 0.1em; }
+.field input {
+  background: var(--soot-2); border: 1px solid var(--hair); color: var(--bone);
+  font: 700 14px/1 var(--face); letter-spacing: 0.2em; padding: 11px 12px;
+}
+.field input:focus { outline: none; border-color: var(--hiviz); }
+
+button.big {
+  width: 100%; padding: 15px; border: 1.5px solid var(--hiviz); background: transparent;
+  color: var(--hiviz); font: 700 12px/1 var(--face); letter-spacing: 0.3em; cursor: pointer;
+  transition: background 130ms, color 130ms;
+}
+button.big:hover { background: var(--hiviz); color: var(--soot); }
+
+#screen-error { color: var(--bad); font-size: 11px; letter-spacing: 0.1em; min-height: 1em; }
+.fineprint { font-size: 9.5px; letter-spacing: 0.12em; color: var(--faint); line-height: 2; margin: 0; }
+
+#lock-hint {
+  position: fixed; left: 50%; bottom: 20%; transform: translateX(-50%); z-index: 6;
+  font-size: 10px; letter-spacing: 0.26em; color: var(--dim); pointer-events: none;
+}
+body.locked #lock-hint { display: none; }
