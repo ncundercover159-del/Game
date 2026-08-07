@@ -1,11 +1,9 @@
-// RERUN 2D — screens and HUD. Plain DOM over the plate.
+// THE LUMPS — screens and HUD, written in the margins of the page.
 
 import { TOTAL_ROUNDS } from './constants.js';
-import { PLATES } from './arena.js';
+import { PLATES } from '@shared/arena.js';
 
 const $ = (id) => document.getElementById(id);
-const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
-  'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
 
 export class UI {
   constructor() {
@@ -14,7 +12,7 @@ export class UI {
       hud: $('hud'), score: $('score'), centre: $('centre'),
       controls: $('controls'), rotate: $('rotate'),
       stamp: $('selves').parentElement, selves: $('selves'),
-      exposure: $('exposure'), timer: $('timer'), title: $('title'),
+      obs: $('obs'), timer: $('timer'), title: $('title'),
       pips: $('pips'), roundScore: $('round-score'), total: $('total'),
       rScore: $('r-score'), rAwards: $('r-awards'), rSplit: $('r-split'), rStrip: $('r-strip'),
     };
@@ -68,8 +66,8 @@ export class UI {
   }
 
   setRound(round, title) {
-    this.el.exposure.textContent =
-      `EXPOSURE ${String(round).padStart(2, '0')} / ${TOTAL_ROUNDS}`;
+    this.el.obs.textContent =
+      `OBS. ${String(round).padStart(2, '0')} / ${TOTAL_ROUNDS}`;
     this.el.title.textContent = title;
   }
 
@@ -99,39 +97,41 @@ export class UI {
   settling(total, shown, eulogies) {
     const eul = eulogies.length
       ? `<div class="eul">${eulogies.map((e) =>
-        `RETIRED &middot; GENERATION ${ROMAN[e.gen] || e.gen}<br>` +
-        `IT HELD ${e.plateSeconds.toFixed(1)} PLATE-SECONDS. THE PLATE IS FULL.`,
+        `SPECIMEN ${e.gen} INCINERATED — TANK AT CAPACITY.<br>` +
+        `LIFETIME CONTRIBUTION ${e.plateSeconds.toFixed(1)} PLATE-SECONDS.`,
       ).join('<br><br>')}</div>`
       : '';
     this.centre(
-      '<div class="head">DEVELOPING</div>' +
-      '<div class="sub">The exposure is being fixed. It does not come off again.</div>' +
+      '<div class="head">DECANTING</div>' +
+      '<div class="sub">Everything you just did is going into the tank with you. ' +
+      'It does not come back out.</div>' +
       `<div class="pop">${shown} / ${total} PAST SELVES</div>${eul}`,
       true,
     );
   }
 
-  /** Shown the first time a past self is knifed, so the rule lands once. */
+  /** Shown the first time a past self is knifed, so the rule lands exactly once. */
   murdered(gen) {
     this.centre(
       '<div class="head">YOU KILLED YOURSELF</div>' +
-      `<div class="sub">Generation ${gen} dies there now. It will walk up to that ` +
-      'moment and die again every twenty seconds, for the rest of the plate.</div>',
+      `<div class="sub">Specimen ${gen} dies there now. It will still scuttle all ` +
+      'the way up to that spot and die again, every twenty seconds, for the rest ' +
+      'of the experiment. It will not hold a plate again.</div>',
       true,
     );
   }
 
   dead() {
     this.centre(
-      '<div class="head">YOU FELL</div>' +
-      '<div class="sub">So does the ghost. Every twenty seconds. For the rest of the plate.</div>',
+      '<div class="head">YOU WENT IN THE HOLE</div>' +
+      '<div class="sub">So will the ghost. Every twenty seconds. Forever.</div>',
       true,
     );
   }
 
   results(r) {
     this.el.rScore.innerHTML =
-      `${r.score.toFixed(1)}<small>PLATE-SECONDS &middot; ${r.ghosts} GHOST${r.ghosts === 1 ? '' : 'S'} STILL RUNNING</small>`;
+      `${r.score.toFixed(1)}<small>PLATE-SECONDS · ${r.ghosts} SPECIMEN${r.ghosts === 1 ? '' : 'S'} STILL RUNNING</small>`;
 
     this.el.rAwards.innerHTML = r.awards.map((a) =>
       `<div class="award"><div class="t">${esc(a.title)}</div>` +

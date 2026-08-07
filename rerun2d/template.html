@@ -1,14 +1,11 @@
-<title>RERUN — A Chronophotograph</title>
+<title>THE LUMPS — RERUN</title>
 
 <canvas id="gl"></canvas>
 
-<!-- register marks: this is a photographic plate, and plates get trimmed -->
-<div id="marks"><i></i><i></i><i></i><i></i></div>
-
 <div id="hud" class="hidden">
-  <div class="stamp">YOUR PAST SELVES<b id="selves">0</b></div>
+  <div class="stamp">PAST SELVES IN TANK<b id="selves">0</b></div>
   <div class="line">
-    <span id="exposure">EXPOSURE 01 / 20</span>
+    <span id="obs">OBS. 01 / 20</span>
     <span id="timer">20.0</span>
   </div>
   <div id="title">ONE PLATE</div>
@@ -20,62 +17,67 @@
 <div id="centre" class="hidden"></div>
 
 <div id="controls" class="hidden">
-  <div id="pad"><div id="pad-track"></div><div id="pad-knob"></div></div>
+  <div id="pad-zone"></div>
+  <div id="pad"><div id="pad-ring"></div><div id="pad-knob"></div></div>
   <button id="stab" type="button">KNIFE</button>
-  <button id="jump" type="button">JUMP</button>
+  <button id="jump" type="button">HOP</button>
 </div>
 
 <!-- ------------------------------------------------------------ home -->
 <div id="screen-home" class="screen">
-  <div class="plate-card">
-    <div class="wordmark" role="img" aria-label="RERUN">
-      <span class="g" style="--i:3;--o:.055" aria-hidden="true">RERUN</span>
-      <span class="g" style="--i:2;--o:.11" aria-hidden="true">RERUN</span>
-      <span class="g" style="--i:1;--o:.22" aria-hidden="true">RERUN</span>
-      <span class="lead">RERUN</span>
+  <div class="card">
+    <div class="tag">FIG. 1 &middot; ENCLOSURE 7</div>
+    <div class="wordmark" role="img" aria-label="The Lumps">
+      <span class="g" style="--i:3;--o:.10" aria-hidden="true">LUMPS</span>
+      <span class="g" style="--i:2;--o:.20" aria-hidden="true">LUMPS</span>
+      <span class="g" style="--i:1;--o:.38" aria-hidden="true">LUMPS</span>
+      <span class="lead">LUMPS</span>
     </div>
     <div class="rule"></div>
-    <p class="sub">A CHRONOPHOTOGRAPH IN TWENTY EXPOSURES</p>
+    <canvas id="mascot"></canvas>
+    <p class="sub">A RERUN IN TWENTY OBSERVATIONS</p>
   </div>
 
   <ol class="rules">
-    <li><b>Twenty seconds an exposure.</b> Twenty exposures. Hard cut, no
-      exceptions.</li>
-    <li><b>Then you come back.</b> Everything you just did is developed into a
-      ghost that repeats it, on a twenty-second loop, forever.</li>
-    <li><b>Ghosts are solid.</b> A storey is 2.8m. You can jump 1.8m. The only
-      way up is to stand on somebody you used to be.</li>
-    <li><b>There are more plates than there are of you.</b> So leave someone
-      useful behind. You are cooperating with your past self, who was an
-      idiot.</li>
+    <li><b>You are a Lump.</b> Twenty seconds an observation, twenty
+      observations. Hard cut, no exceptions, no undo.</li>
+    <li><b>Then you come back.</b> Everything you just did is decanted into the
+      tank as a solid past self that repeats it on a twenty-second loop,
+      forever, alongside you.</li>
+    <li><b>Past selves are furniture.</b> They shove you, they never budge, and
+      you can climb on their heads. The shelf is 2.1m up and you can only jump
+      1.36m, so the only way onto it is somebody you used to be.</li>
+    <li><b>There are more plates than there are of you.</b> Leave a useful idiot
+      behind on each one. You are cooperating with a version of yourself who
+      cannot hear you.</li>
     <li><b>Blue plates are turnstiles.</b> They only hold while weight is
-      <em>increasing</em>. Standing on one is a wasted body.</li>
+      <em>increasing</em>. Parking a specimen on one wastes it.</li>
     <li><b>You are carrying a knife.</b> Stand against a past self and press
       KNIFE. It is not deleted &mdash; from that instant in its loop it simply
-      dies, and falls, and does so again every twenty seconds for the rest of
-      the plate.</li>
+      dies where it stands, and does so again every twenty seconds for the rest
+      of the experiment. It will never hold a plate again.</li>
   </ol>
 
-  <button id="begin" class="big" type="button">EXPOSE</button>
-  <p class="fineprint">Left thumb walks. JUMP is bottom right.<br>
-    There is no undo. That is the game.</p>
+  <button id="begin" class="big" type="button">BEGIN OBSERVATION</button>
+  <p class="fineprint">Left thumb anywhere on the left to scuttle.<br>
+    HOP and KNIFE are bottom right.</p>
 </div>
 
 <!-- ----------------------------------------------------------- results -->
 <div id="screen-results" class="screen hidden">
-  <h2>PLATE DEVELOPED</h2>
+  <h2>EXPERIMENT CONCLUDED</h2>
   <div id="r-score"></div>
   <div id="r-awards"></div>
   <div id="r-split"></div>
   <div id="r-strip"></div>
-  <button id="again" class="big" type="button">EXPOSE AGAIN</button>
-  <p class="fineprint">Going again clears every ghost. It is the only way it
+  <button id="again" class="big" type="button">FRESH TANK</button>
+  <p class="fineprint">A fresh tank is an empty tank. It is the only way it
     ever happens.</p>
 </div>
 
 <div id="rotate" class="hidden">
   <div>
     <div class="rot">&#8635;</div>
-    <p>TURN BACK<br><small>The plate is portrait.</small></p>
+    <p>TURN BACK<br><small>The page is portrait.</small></p>
   </div>
 </div>

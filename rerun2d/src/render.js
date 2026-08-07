@@ -1,681 +1,727 @@
-// RERUN 2D — the plate.
+// THE LUMPS — the plate, drawn as a page.
 //
-// The whole game is drawn as a chronophotograph: a cutaway section inked in
-// bone hairlines on a soot-black ground, with the bodies as the only solid
-// things in it. Ghosts are exposures — outline figures trailing their own
-// previous positions, which costs nothing because we already hold the tape.
+// The enclosure is a measured plan: floor, walls, the shelf, the hole, drawn in
+// one ink on aged paper the way you would draw a tank you were about to put
+// something horrible into. The specimens are the only saturated thing on the
+// page, and the joke is entirely in that gap — deadpan apparatus, absurd
+// tenants.
 //
-// Generation decays the exposure. A first-generation ghost is a whole figure;
-// by the fourteenth it has burned down to a stick-and-dot diagram. That is the
-// art direction and the frame budget pulling in the same direction: the older
-// the crowd gets, the cheaper it is to draw.
+// Plan view is flat. Height is carried by exactly one trick: a body is shifted
+// up the screen in proportion to how far it is above the surface underneath it,
+// and leaves its shadow behind. Geometry is never shifted, because lifting a
+// wall would hide the room behind it.
 
 import {
-  ARENA, STATIC_BOXES, DOOR_BOX, DOOR_DROP, SHAFT, PLATES,
-} from './arena.js';
-import { INK, PLAYER_H, PLATE_HALF, PLAYER_INK, MOVE_SPEED } from './constants.js';
-import { sampleAt, makeSample } from './ghostbuf.js';
+  PAPER, LIFT, PLATE_RADIUS, TOTAL_ROUNDS, PHASE,
+  pigmentFor, hatFor, mix,
+} from './constants.js';
+import {
+  ARENA, STATIC_BOXES, DOOR_BOX, PIT, PLATES, LEDGE_TOP,
+  BOXES_DOOR_CLOSED, BOXES_DOOR_OPEN, surfaceBelow,
+} from '@shared/arena.js';
+import { poseOf, makeMem, drawLump } from './creature.js';
 
-// Enough room under the ground line to watch somebody fall out of the
-// building, and no more empty air above the top floor than the drawing needs.
-const VIEW = { y0: -2.4, y1: 17.2 };
-const HEADER = 118; // the HUD owns this band
-const FOOTER = 0.205; // and the thumbs own this fraction
-const STRIDE_RATE = (Math.PI * 2) / 1.35;
+const FACE = '"Helvetica Neue", "Arial Narrow", Inter, system-ui, sans-serif';
+const TAU = Math.PI * 2;
 
-// Figure proportions, metres from the feet.
-const FIG = {
-  hip: 0.60, shoulder: 1.06, neck: 1.14, head: 1.31, headR: 0.20,
-  thigh: 0.33, shin: 0.31, upper: 0.26, fore: 0.24, hipX: 0.11, shX: 0.13,
-};
+// Room to breathe: the tank never runs into the thumbs or the header.
+const INSET_TOP = 74;
+const INSET_BOTTOM = 138;
+const INSET_SIDE = 22;
+const HEAD_ROOM = 1.4; // metres of empty page above the tank, for lifted bodies
 
-const scratch = makeSample();
-const TRAIL_MS = [110, 225, 350];
-const TRAIL_A = [0.34, 0.19, 0.10];
+// Specimens are drawn larger than they collide. At true scale a Lump is 0.69m
+// across in a 10.4m room, which on a phone is a dot — and a dot cannot have a
+// face. It squashes into its neighbours a little; blobs should.
+const DRAW_SCALE = 1.45;
 
 export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext('2d', { alpha: false });
-    this.bg = document.createElement('canvas');
-    this.fg = document.createElement('canvas');
-    this.grain = makeGrain();
-    this.dpr = 1;
-    this.S = 40;
-    this.ox = 0;
-    this.oy = 0;
-    this.scars = [];   // where somebody fell, and when
-    this.slashes = []; // and where the knife went in
+    this.ctx = canvas.getContext('2d');
+
+    this.page = document.createElement('canvas');   // paper + apparatus
+    this.stains = document.createElement('canvas'); // every death, forever
+    this.scars = [];
+    this.slashes = [];
+    this.styles = new Map();
+    this.pool = [];
+    this.draws = [];
+    this.shake = 0;
+    this.lastNow = performance.now();
+    this.liveMem = makeMem(1.7);
+    this.caret = { x: 0, y: 0, on: false };
+
     this.resize();
   }
 
-  // world -> screen
-  sx(x) { return this.ox + x * this.S; }
-  sy(y) { return this.oy - y * this.S; }
-
+  // ---- layout -------------------------------------------------------------
   resize() {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-    for (const c of [this.canvas, this.bg, this.fg]) {
-      c.width = Math.round(w * this.dpr);
-      c.height = Math.round(h * this.dpr);
-      if (c === this.canvas) { c.style.width = `${w}px`; c.style.height = `${h}px`; }
+    // Measured off the window, never off the canvas: the canvas's own box is
+    // downstream of the size we are about to give it.
+    const W = Math.max(1, window.innerWidth);
+    const H = Math.max(1, window.innerHeight);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+
+    this.W = W; this.H = H; this.dpr = dpr;
+    for (const c of [this.canvas, this.page, this.stains]) {
+      c.width = Math.round(W * dpr);
+      c.height = Math.round(H * dpr);
     }
-    this.w = w;
-    this.h = h;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // The header owns the top band and the thumbs own the bottom; the section
-    // gets what is left, centred in it.
-    const availH = h - HEADER - h * FOOTER;
-    const availW = w - 34;
-    const spanY = VIEW.y1 - VIEW.y0;
-    this.S = Math.min(availW / (ARENA.x1 - ARENA.x0), availH / spanY);
-    this.ox = (w - (ARENA.x1 - ARENA.x0) * this.S) / 2;
-    const top = HEADER + (availH - spanY * this.S) * 0.5;
-    this.oy = top + VIEW.y1 * this.S;
-
-    this.paintBackground();
-    this.paintForeground();
-  }
-
-  // ------------------------------------------------------------- static ---
-  paintBackground() {
-    const c = this.bg.getContext('2d');
-    const { dpr } = this;
-    c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    c.clearRect(0, 0, this.w, this.h);
-    c.fillStyle = INK.ground;
-    c.fillRect(0, 0, this.w, this.h);
+    const wide = ARENA.maxX - ARENA.minX + 1.2;      // + wall thickness
+    const deep = ARENA.maxZ - ARENA.minZ + HEAD_ROOM;
+    const availW = W - INSET_SIDE * 2;
+    const availH = H - INSET_TOP - INSET_BOTTOM;
+    this.S = Math.max(6, Math.min(availW / wide, availH / deep));
 
     const S = this.S;
-    const X = (x) => this.sx(x);
-    const Y = (y) => this.sy(y);
+    this.ox = W / 2;
+    this.oy = INSET_TOP + (availH - (ARENA.maxZ - ARENA.minZ) * S) / 2
+      - ARENA.minZ * S;
 
-    // A faint datum: the outline of the building's envelope.
+    this.drawPage();
+    this.restain();
+  }
+
+  sx(x) { return this.ox + x * this.S; }
+  sy(z) { return this.oy + z * this.S; }
+
+  // ---- the page: everything that never moves ------------------------------
+  drawPage() {
+    const c = this.page.getContext('2d');
+    const { S, W, H } = this;
+    c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    c.clearRect(0, 0, W, H);
+
+    // graph paper
+    c.fillStyle = PAPER.page;
+    c.fillRect(0, 0, W, H);
+    grid(c, 0, 0, W, H, S / 2, PAPER.grid, 1);
+    grid(c, 0, 0, W, H, S * 2.5, PAPER.gridBold, 1);
+
+    // a wash in the corners, so the page looks handled
+    const vg = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.32,
+      W / 2, H / 2, Math.max(W, H) * 0.78);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(74,54,32,0.24)');
+    c.fillStyle = vg;
+    c.fillRect(0, 0, W, H);
+
+    this.drawMargin(c);
+
+    const x0 = this.sx(ARENA.minX), x1 = this.sx(ARENA.maxX);
+    const z0 = this.sy(ARENA.minZ), z1 = this.sy(ARENA.maxZ);
+
+    // ---- floor ----
+    c.fillStyle = PAPER.floor;
+    c.fillRect(x0, z0, x1 - x0, z1 - z0);
+    grid(c, x0, z0, x1 - x0, z1 - z0, S, PAPER.floorGrid, 1, x0, z0);
+
+    // ---- the hole ----
+    this.drawPit(c);
+
+    // ---- the shelf: out of jump reach, and the whole reason you climb ----
+    const ledge = STATIC_BOXES.find((b) => b.kind === 'ledge');
+    this.drawSlab(c, ledge, PAPER.ledge, `+${LEDGE_TOP.toFixed(2)}`);
+
+    // ---- the closet ----
+    for (const b of STATIC_BOXES) if (b.kind === 'room') this.drawWall(c, b);
+
+    // ---- the tank rim ----
+    c.strokeStyle = PAPER.ink;
+    c.lineWidth = 3;
+    c.strokeRect(x0, z0, x1 - x0, z1 - z0);
     c.lineWidth = 1;
-    c.strokeStyle = INK.boneFaint;
-    inked(c, X(ARENA.x0), Y(VIEW.y0 + 0.4), X(ARENA.x0), Y(ARENA.y1), 1.1, 11);
-    inked(c, X(ARENA.x1), Y(VIEW.y0 + 0.4), X(ARENA.x1), Y(ARENA.y1), 1.1, 29);
-    inked(c, X(ARENA.x0), Y(ARENA.y1), X(ARENA.x1), Y(ARENA.y1), 1.1, 47);
+    c.strokeStyle = PAPER.inkFaint;
+    c.strokeRect(x0 - 5, z0 - 5, x1 - x0 + 10, z1 - z0 + 10);
 
-    // Storey datum lines, drawn faint all the way across so the section reads
-    // as a set of levels rather than a pile of platforms.
-    const levels = [...new Set(STATIC_BOXES.filter((b) => b.kind === 'floor').map((b) => b.y1))];
-    c.strokeStyle = 'rgba(239,231,216,0.055)';
-    c.setLineDash([2, 7]);
-    for (const y of levels) {
-      c.beginPath();
-      c.moveTo(X(ARENA.x0) - 8, Y(y));
-      c.lineTo(X(ARENA.x1) + 8, Y(y));
-      c.stroke();
-    }
-    c.setLineDash([]);
+    this.drawRuler(c, x0, x1, z0, z1);
+    this.drawCompass(c, x0 + 20, z1 - 34);
+  }
 
-    // The floors themselves: a struck line with the cut hatched beneath, the
-    // way a section drawing shows material you have sliced through.
-    let seed = 3;
-    for (const b of STATIC_BOXES) {
-      const x0 = X(b.x0), x1 = X(b.x1), yTop = Y(b.y1), yBot = Y(b.y0);
-      const isShell = b.kind === 'wall';
-      const depth = Math.min(yBot - yTop, S * 0.34);
+  drawPit(c) {
+    const { S } = this;
+    const x = this.sx(PIT.x0), y = this.sy(PIT.z0);
+    const w = (PIT.x1 - PIT.x0) * S, h = (PIT.z1 - PIT.z0) * S;
 
-      c.strokeStyle = isShell ? INK.boneFaint : INK.boneDim;
-      c.lineWidth = isShell ? 1 : 1.15;
-      hatch(c, x0, yTop, x1, yTop + depth, isShell ? 11 : 7);
+    // A hole is drawn as a hole: dark, with the rim stepping down into it.
+    c.fillStyle = PAPER.pitRim;
+    c.fillRect(x, y, w, h);
+    const inset = Math.min(w, h) * 0.09;
+    c.fillStyle = PAPER.pit;
+    c.fillRect(x + inset, y + inset, w - inset * 2, h - inset * 2);
 
-      if (!isShell) {
-        c.strokeStyle = INK.bone;
-        c.lineWidth = 2;
-        inked(c, x0, yTop, x1, yTop, 0.8, (seed += 7));
-        // A short return at each open end, so a ledge reads as an edge.
-        c.lineWidth = 1.4;
-        c.strokeStyle = INK.boneDim;
-        if (b.x0 > ARENA.x0 + 0.01) inked(c, x0, yTop, x0, yTop + depth, 0.6, (seed += 3));
-        if (b.x1 < ARENA.x1 - 0.01) inked(c, x1, yTop, x1, yTop + depth, 0.6, (seed += 3));
-      }
-    }
-
-    // The shaft: the one place the drawing stops and the dark keeps going.
-    const sx0 = X(SHAFT.x0), sx1 = X(SHAFT.x1), sy = Y(0);
-    c.strokeStyle = INK.bone;
+    c.strokeStyle = PAPER.ink;
     c.lineWidth = 2;
-    c.beginPath(); c.moveTo(sx0, sy); c.lineTo(sx0, sy + S * 0.5); c.stroke();
-    if (SHAFT.x1 < ARENA.x1 - 0.01) {
-      c.beginPath(); c.moveTo(sx1, sy); c.lineTo(sx1, sy + S * 0.5); c.stroke();
-    }
-    c.setLineDash([3, 9]);
+    c.strokeRect(x, y, w, h);
+
+    // rim ticks, pointing in — the convention for "this goes down"
+    c.strokeStyle = 'rgba(36,29,28,0.45)';
     c.lineWidth = 1;
-    for (let i = 0; i < 5; i++) {
-      c.strokeStyle = `rgba(239,231,216,${0.10 - i * 0.02})`;
-      const yy = sy + S * (0.8 + i * 0.55);
-      c.beginPath(); c.moveTo(sx0 + 3, yy); c.lineTo(sx1 - 3, yy); c.stroke();
-    }
-    c.setLineDash([]);
-
-    // The closet reads as an enclosed chamber, so its air is hatched too.
-    c.strokeStyle = 'rgba(239,231,216,0.055)';
-    c.lineWidth = 1;
-    hatch(c, X(6.4), Y(ARENA.y1), X(ARENA.x1), Y(14.0), 9);
-
-    // Emulsion grain over the whole plate.
-    c.save();
-    c.globalAlpha = 0.5;
-    c.fillStyle = c.createPattern(this.grain, 'repeat');
-    c.fillRect(0, 0, this.w, this.h);
-    c.restore();
-  }
-
-  paintForeground() {
-    const c = this.fg.getContext('2d');
-    c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    c.clearRect(0, 0, this.w, this.h);
-    // Plate vignette: the exposure falls off toward the edges of the glass.
-    const g = c.createRadialGradient(
-      this.w / 2, this.h * 0.42, Math.min(this.w, this.h) * 0.22,
-      this.w / 2, this.h * 0.42, Math.max(this.w, this.h) * 0.72,
-    );
-    g.addColorStop(0, 'rgba(11,10,13,0)');
-    g.addColorStop(0.62, 'rgba(11,10,13,0.34)');
-    g.addColorStop(1, 'rgba(11,10,13,0.9)');
-    c.fillStyle = g;
-    c.fillRect(0, 0, this.w, this.h);
-  }
-
-  // ------------------------------------------------------------- frame ----
-  draw(room, now, clock) {
-    const c = this.ctx;
-    c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    c.drawImage(this.bg, 0, 0, this.w, this.h);
-
-    this.drawDoor(c, room);
-    this.drawPlates(c, room);
-    this.drawScars(c, now);
-    this.drawTarget(c, room, now);
-
-    // Oldest first, so the newest exposure sits on top of the pile.
-    const n = room.ghosts.length;
-    const trailBudget = n > 34 ? 0 : n > 18 ? 1 : 3;
-    for (const g of room.ghosts) {
-      if (now < g.revealAt) continue;
-      this.drawGhost(c, g, clock, now, trailBudget);
-    }
-
-    if (room.phase !== 3) this.drawLiving(c, room.player, now);
-    this.drawSlashes(c, now);
-
-    c.drawImage(this.fg, 0, 0, this.w, this.h);
-  }
-
-  drawDoor(c, room) {
-    const drop = room.doorOpen ? DOOR_DROP : 0;
-    this.doorY = this.doorY === undefined ? drop : this.doorY + (drop - this.doorY) * 0.16;
-    const b = DOOR_BOX;
-    const x0 = this.sx(b.x0), x1 = this.sx(b.x1);
-    const y0 = this.sy(b.y1 - this.doorY), y1 = this.sy(b.y0 - this.doorY);
-    c.strokeStyle = room.doorOpen ? INK.boneFaint : INK.boneDim;
-    c.lineWidth = 1;
-    hatch(c, x0, y0, x1, y1, 5);
-    c.strokeStyle = room.doorOpen ? INK.boneDim : INK.bone;
-    c.lineWidth = 1.6;
-    c.strokeRect(x0, y0, x1 - x0, y1 - y0);
-  }
-
-  drawPlates(c, room) {
-    const S = this.S;
-    for (let i = 0; i < PLATES.length; i++) {
-      const p = PLATES[i];
-      const st = room.plates[i];
-      const armed = room.required.includes(i);
-      const turn = room.turnstiles.has(i);
-      const on = st.pressed;
-
-      const x = this.sx(p.x);
-      const y = this.sy(p.y);
-      const hw = PLATE_HALF * S;
-      const hh = S * 0.14;
-
-      const hot = turn ? INK.cold : INK.amber;
-      if (on) {
-        // Glow, built from concentric strokes. shadowBlur on mobile is a trap.
-        for (let k = 3; k >= 1; k--) {
-          c.strokeStyle = turn
-            ? `rgba(111,211,255,${0.10 * k})`
-            : `rgba(245,166,35,${0.10 * k})`;
-          c.lineWidth = k * 3;
-          c.beginPath();
-          c.moveTo(x - hw - k, y - 1);
-          c.lineTo(x + hw + k, y - 1);
-          c.stroke();
-        }
-        c.fillStyle = hot;
-        c.beginPath();
-        c.moveTo(x - hw, y);
-        c.lineTo(x + hw, y);
-        c.lineTo(x + hw * 0.82, y - hh);
-        c.lineTo(x - hw * 0.82, y - hh);
-        c.closePath();
-        c.fill();
-      } else {
-        c.strokeStyle = armed ? (turn ? INK.coldDim : INK.amberDim) : INK.boneFaint;
-        c.lineWidth = armed ? 1.6 : 1;
-        c.beginPath();
-        c.moveTo(x - hw, y);
-        c.lineTo(x + hw * 0.82 - (hw * 0.18), y - hh);
-        c.lineTo(x - hw * 0.82 + (hw * 0.18), y - hh);
-        c.lineTo(x + hw, y);
-        c.stroke();
-      }
-
-      // Turnstiles get arrows pointing inward: this one wants arrivals.
-      if (turn && armed) {
-        c.strokeStyle = on ? INK.cold : INK.coldDim;
-        c.lineWidth = 1.4;
-        const a = hh * 1.9;
-        for (const s of [-1, 1]) {
-          const bx = x + s * (hw + a * 0.9);
-          c.beginPath();
-          c.moveTo(bx + s * a * 0.55, y - a * 0.75);
-          c.lineTo(bx, y - a * 0.3);
-          c.lineTo(bx + s * a * 0.55, y + a * 0.15);
-          c.stroke();
-        }
-      }
-    }
-  }
-
-  // --------------------------------------------------------- the figures --
-  drawGhost(c, g, clock, now, trailBudget) {
-    const s = sampleAt(g.rec, clock, g.cur);
-    const decay = Math.min(1, (g.gen - 1) / 13);
-    const col = ghostInk(g.gen);
-    const base = 0.8 - decay * 0.26;
-
-    // Exposure trail: this ghost, a few frames ago. Marey, essentially.
-    const steps = Math.max(0, trailBudget - (decay > 0.6 ? 2 : decay > 0.25 ? 1 : 0));
-    for (let i = steps - 1; i >= 0; i--) {
-      sampleAt(g.rec, clock - TRAIL_MS[i], scratch);
-      if (scratch.y < VIEW.y0) continue;
-      this.figure(c, scratch, col, base * TRAIL_A[i], decay, now, true);
-    }
-
-    if (s.y < VIEW.y0) return;
-    const pop = Math.min(1, (now - g.revealAt) / 300);
-    this.figure(c, s, col, base * pop, decay, now, false, g.gen);
-  }
-
-  drawLiving(c, p, now) {
-    if (p.y < VIEW.y0) return;
-    const S = this.S;
-    // A standing pool of light, so the living body is never lost in the crowd.
-    const fx = this.sx(p.x), fy = this.sy(p.y);
-    const g = c.createRadialGradient(fx, fy, 1, fx, fy, S * 1.15);
-    g.addColorStop(0, 'rgba(247,234,211,0.16)');
-    g.addColorStop(1, 'rgba(247,234,211,0)');
-    c.fillStyle = g;
     c.beginPath();
-    c.arc(fx, fy, S * 1.15, 0, Math.PI * 2);
-    c.fill();
+    const step = Math.max(7, S * 0.34);
+    for (let i = x + step / 2; i < x + w; i += step) {
+      c.moveTo(i, y); c.lineTo(i, y + inset);
+      c.moveTo(i, y + h); c.lineTo(i, y + h - inset);
+    }
+    for (let j = y + step / 2; j < y + h; j += step) {
+      c.moveTo(x, j); c.lineTo(x + inset, j);
+      c.moveTo(x + w, j); c.lineTo(x + w - inset, j);
+    }
+    c.stroke();
 
-    this.figure(c, p, PLAYER_INK, 1, 0, now, false, 0, true);
+    label(c, 'NO FLOOR', x + w / 2, y + h / 2 + 3, 'rgba(239,231,216,0.62)', 8, 'center');
+  }
+
+  /** A raised platform: same plan, lighter, contoured, with a shadow south. */
+  drawSlab(c, b, fill, note) {
+    const x = this.sx(b.x0), y = this.sy(b.z0);
+    const w = (b.x1 - b.x0) * this.S, h = (b.z1 - b.z0) * this.S;
+
+    c.fillStyle = PAPER.shadow;
+    c.globalAlpha = 0.5;
+    c.fillRect(x + 4, y + 5, w, h);
+    c.globalAlpha = 1;
+
+    c.fillStyle = fill;
+    c.fillRect(x, y, w, h);
+    c.strokeStyle = PAPER.ink;
+    c.lineWidth = 2;
+    c.strokeRect(x, y, w, h);
+    c.strokeStyle = PAPER.inkFaint;
+    c.lineWidth = 1;
+    c.strokeRect(x + 4, y + 4, w - 8, h - 8);
+
+    // Spot height in the corner, out of the way of whatever plates sit on it.
+    if (note) label(c, note, x + 8, y + 15, PAPER.inkSoft, 9, 'left');
+  }
+
+  /** A wall, in plan: a hatched bar. Never lifted — that would hide the room. */
+  drawWall(c, b) {
+    const x = this.sx(b.x0), y = this.sy(b.z0);
+    const w = (b.x1 - b.x0) * this.S, h = (b.z1 - b.z0) * this.S;
+    c.fillStyle = PAPER.room;
+    c.fillRect(x, y, w, h);
+    hatch(c, x, y, w, h, 5, 'rgba(36,29,28,0.30)', 1);
+    c.strokeStyle = PAPER.ink;
+    c.lineWidth = 1.6;
+    c.strokeRect(x, y, w, h);
+  }
+
+  drawRuler(c, x0, x1, z0, z1) {
+    const S = this.S;
+    c.strokeStyle = PAPER.inkFaint;
+    c.lineWidth = 1;
+    c.beginPath();
+    for (let m = Math.ceil(ARENA.minX); m <= ARENA.maxX; m++) {
+      const x = this.sx(m);
+      const big = m % 5 === 0;
+      c.moveTo(x, z1 + 6); c.lineTo(x, z1 + (big ? 13 : 9));
+    }
+    for (let m = Math.ceil(ARENA.minZ); m <= ARENA.maxZ; m++) {
+      const y = this.sy(m);
+      const big = m % 5 === 0;
+      c.moveTo(x0 - 6, y); c.lineTo(x0 - (big ? 13 : 9), y);
+    }
+    c.stroke();
+
+    // scale bar: five metres, halved, the way a real one is
+    const bx = x1 - S * 5, by = z1 + 22;
+    c.fillStyle = PAPER.ink;
+    for (let i = 0; i < 5; i++) {
+      if (i % 2 === 0) c.fillRect(bx + i * S, by, S, 4);
+    }
+    c.strokeStyle = PAPER.ink;
+    c.lineWidth = 1;
+    c.strokeRect(bx, by, S * 5, 4);
+    label(c, '0', bx, by + 14, PAPER.inkSoft, 8, 'center');
+    label(c, '5 m', bx + S * 5, by + 14, PAPER.inkSoft, 8, 'center');
+
+    // Kept short: the scale bar starts five metres in from the right edge.
+    label(c, 'FIG. 1 · ENCLOSURE 7', x0, by + 13, PAPER.inkSoft, 8.5, 'left');
+    label(c, 'PLAN VIEW · SHEET 1 OF 1', x0, by + 25, PAPER.inkFaint, 7.5, 'left');
+  }
+
+  drawCompass(c, x, y) {
+    c.strokeStyle = PAPER.inkSoft;
+    c.fillStyle = PAPER.inkSoft;
+    c.lineWidth = 1.2;
+    c.beginPath();
+    c.moveTo(x, y + 13); c.lineTo(x, y - 9);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(x, y - 13); c.lineTo(x - 3.4, y - 6); c.lineTo(x + 3.4, y - 6);
+    c.closePath();
+    c.fill();
+    label(c, 'N', x, y + 23, PAPER.inkSoft, 8, 'center');
   }
 
   /**
-   * One exposure. Everything is precomputed into screen coordinates and then
-   * stroked as a single path, so a figure costs three canvas calls.
+   * Marginalia. The page is a sheet out of somebody's observation notebook, and
+   * it all lives down the sides and under the tank, where the HUD is not.
    */
-  figure(c, s, col, alpha, decay, now, isTrail, gen = 0, solid = false) {
-    if (alpha <= 0.012) return;
+  drawMargin(c) {
+    const { W, H } = this;
+    const hair = 'rgba(36,29,28,0.16)';
+
+    c.save();
+    c.translate(11, H / 2);
+    c.rotate(-Math.PI / 2);
+    label(c, 'SPECIMEN: LUMP (COMMON) · SUBJECT IS ITS OWN CONTROL',
+      0, 0, hair, 8, 'center');
+    c.restore();
+
+    c.save();
+    c.translate(W - 11, H / 2);
+    c.rotate(Math.PI / 2);
+    label(c, `POPULATION CAP 60 · ${TOTAL_ROUNDS} OBSERVATIONS · SURPLUS INCINERATED`,
+      0, 0, hair, 8, 'center');
+    c.restore();
+  }
+
+  // ---- stains: the page keeps every death --------------------------------
+  addScar(x, z) {
+    // One per death, and a match cannot produce more than about 140 of those.
+    // Dropping the oldest only affects what a resize rebuilds — the ink itself
+    // is already on the layer, which is rather the point.
+    if (this.scars.length > 240) this.scars.shift();
+    const s = { x, z, r: 0.28 + Math.random() * 0.2, seed: Math.random() * 9 };
+    this.scars.push(s);
+    this.stamp(this.stains.getContext('2d'), s);
+  }
+
+  restain() {
+    const c = this.stains.getContext('2d');
+    c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    c.clearRect(0, 0, this.W, this.H);
+    for (const s of this.scars) this.stamp(c, s);
+  }
+
+  /** A blot. Irregular, low contrast, and it never comes off. */
+  stamp(c, s) {
     const S = this.S;
-    const X = this.sx(s.x);
-    const Y = this.sy(s.y);
-    const f = s.facing || 1;
-
-    const speed = Math.min(1, Math.abs(s.vx === undefined ? 0 : s.vx) / (MOVE_SPEED * 0.7));
-    const grounded = s.grounded !== false;
-    const phase = (s.dist || 0) * STRIDE_RATE;
-
-    let thighA = Math.sin(phase) * 0.62 * speed;
-    let thighB = -thighA;
-    let kneeA = Math.max(0, -Math.sin(phase - 0.5)) * 0.88 * speed;
-    let kneeB = Math.max(0, Math.sin(phase - 0.5)) * 0.88 * speed;
-    let armA = -Math.sin(phase) * 0.5 * speed - 0.06;
-    let armB = -armA - 0.12;
-    let elbowA = 0.24 + Math.max(0, Math.sin(phase)) * 0.42;
-    let elbowB = 0.24 + Math.max(0, -Math.sin(phase)) * 0.42;
-    let lean = 0.13 * speed;
-    let bob = Math.abs(Math.sin(phase)) * 0.028 * speed;
-
-    if (!grounded) {
-      thighA = -0.85; kneeA = 1.25;
-      thighB = 0.5; kneeB = 0.35;
-      armA = -2.0; armB = -1.75;
-      elbowA = 0.35; elbowB = 0.5;
-      lean = -0.06; bob = 0;
-    }
-    if (s.dead) {
-      const t = now / 1000 * 9;
-      thighA = Math.sin(t) * 1.2; thighB = Math.sin(t + 2.1) * 1.2;
-      kneeA = 0.6 + Math.sin(t * 1.4) * 0.4; kneeB = 0.6 + Math.sin(t * 1.1) * 0.4;
-      armA = -2.6 + Math.sin(t * 1.3) * 0.4; armB = -2.5 + Math.sin(t * 0.9) * 0.4;
-      elbowA = 0.2; elbowB = 0.2;
-      lean = 0.5; bob = 0;
-    }
-
-    // Joints, in metres from the feet, then straight to screen space.
-    const hipY = FIG.hip + bob;
-    const sl = Math.sin(lean) * f, cl = Math.cos(lean);
-    const up = (h) => ({
-      x: X + (h - FIG.hip) * sl * S,
-      y: Y - (hipY + (h - FIG.hip) * cl) * S,
-    });
-
-    const hipL = { x: X - FIG.hipX * S * f, y: Y - hipY * S };
-    const hipR = { x: X + FIG.hipX * S * f, y: Y - hipY * S };
-    const sh = up(FIG.shoulder);
-    const shL = { x: sh.x - FIG.shX * S * f, y: sh.y };
-    const shR = { x: sh.x + FIG.shX * S * f, y: sh.y };
-    const head = up(FIG.head);
-
-    const knee = (hip, th) => ({
-      x: hip.x + Math.sin(th) * FIG.thigh * S * f,
-      y: hip.y + Math.cos(th) * FIG.thigh * S,
-    });
-    const foot = (kn, th, kb) => ({
-      x: kn.x + Math.sin(th - kb) * FIG.shin * S * f,
-      y: kn.y + Math.cos(th - kb) * FIG.shin * S,
-    });
-    const kA = knee(hipL, thighA), kB = knee(hipR, thighB);
-    const fA = foot(kA, thighA, kneeA), fB = foot(kB, thighB, kneeB);
-
-    const elbow = (s0, a) => ({
-      x: s0.x + Math.sin(a) * FIG.upper * S * f,
-      y: s0.y + Math.cos(a) * FIG.upper * S,
-    });
-    const hand = (e, a, b) => ({
-      x: e.x + Math.sin(a + b) * FIG.fore * S * f,
-      y: e.y + Math.cos(a + b) * FIG.fore * S,
-    });
-    const eA = elbow(shL, armA), eB = elbow(shR, armB);
-    const hA = hand(eA, armA, elbowA), hB = hand(eB, armB, elbowB);
-
-    c.globalAlpha = alpha;
-
-    if (solid) {
-      // The living body is the only filled thing on the plate.
-      c.strokeStyle = 'rgba(11,10,13,0.9)';
-      c.lineWidth = S * 0.20;
-      c.lineCap = 'round';
-      c.lineJoin = 'round';
-      strokeSkeleton(c, hipL, hipR, kA, kB, fA, fB, shL, shR, eA, eB, hA, hB, head);
-      c.strokeStyle = col;
-      c.lineWidth = S * 0.125;
-      strokeSkeleton(c, hipL, hipR, kA, kB, fA, fB, shL, shR, eA, eB, hA, hB, head);
-
-      c.fillStyle = col;
-      c.beginPath();
-      c.arc(head.x, head.y, FIG.headR * S, 0, Math.PI * 2);
-      c.fill();
-      c.strokeStyle = 'rgba(11,10,13,0.9)';
-      c.lineWidth = S * 0.035;
-      c.stroke();
-
-      // Two dots, looking where you are going.
-      c.fillStyle = INK.ground;
-      const ex = head.x + f * FIG.headR * S * 0.34;
-      const ey = head.y - FIG.headR * S * 0.12;
-      c.beginPath();
-      c.arc(ex - f * S * 0.055, ey, S * 0.035, 0, Math.PI * 2);
-      c.arc(ex + f * S * 0.075, ey, S * 0.035, 0, Math.PI * 2);
-      c.fill();
-      c.globalAlpha = 1;
-      return;
-    }
-
-    c.strokeStyle = col;
-    c.lineCap = 'round';
-    c.lineJoin = 'round';
-    c.lineWidth = S * (0.058 - decay * 0.024);
-    strokeSkeleton(c, hipL, hipR, kA, kB, fA, fB, shL, shR, eA, eB, hA, hB, head);
-
-    // The head: filled while the exposure is fresh, an open ring once it has
-    // burned down.
+    const x = this.sx(s.x), y = this.sy(s.z);
+    c.globalAlpha = 0.22;
+    c.fillStyle = PAPER.red;
     c.beginPath();
-    c.arc(head.x, head.y, FIG.headR * S * (1 - decay * 0.2), 0, Math.PI * 2);
-    if (decay < 0.45) {
-      c.fillStyle = col;
-      c.globalAlpha = alpha * 0.4;
-      c.fill();
-      c.globalAlpha = alpha;
+    const N = 11;
+    for (let i = 0; i <= N; i++) {
+      const a = (i / N) * TAU;
+      const r = s.r * S * (0.7 + Math.sin(a * 3 + s.seed) * 0.28 + Math.sin(a * 5 - s.seed) * 0.14);
+      const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r * 0.7;
+      if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
     }
-    c.lineWidth = S * (0.04 - decay * 0.018);
-    c.stroke();
-
-    if (!isTrail) {
-      // Marey's joint marks. They survive the decay longest, because by the
-      // end that is all the exposure is.
-      c.fillStyle = col;
+    c.closePath();
+    c.fill();
+    c.globalAlpha = 0.14;
+    for (let i = 0; i < 4; i++) {
+      const a = s.seed + i * 1.7;
       c.beginPath();
-      const r = S * (0.032 + decay * 0.012);
-      for (const j of [hipL, hipR, kA, kB, shL, shR, eA, eB]) {
-        c.moveTo(j.x + r, j.y);
-        c.arc(j.x, j.y, r, 0, Math.PI * 2);
-      }
+      c.arc(x + Math.cos(a) * s.r * S * 1.5, y + Math.sin(a) * s.r * S * 1.1,
+        s.r * S * 0.16, 0, TAU);
       c.fill();
-      if (gen >= 3) this.hats(c, head, gen, S, col, alpha, now, decay);
     }
     c.globalAlpha = 1;
   }
 
-  hats(c, head, gen, S, col, alpha, now, decay) {
-    const top = head.y - FIG.headR * S;
-    // Capped: at this size an unbounded hat leaves the plate entirely.
-    const grow = gen >= 6 ? Math.min(1.75, 1 + (gen - 6) * 0.055) : 1;
-    c.strokeStyle = col;
-    // The hat is part of the exposure, so it burns down with the figure.
-    c.lineWidth = S * (0.032 - decay * 0.014);
+  addSlash(fromX, fromZ, toX, toZ) {
+    this.slashes.push({ x0: fromX, z0: fromZ, x1: toX, z1: toZ, t: 1 });
+    this.shake = 1;
+  }
 
-    if (gen === 3 || gen >= 6) {
-      const w = S * 0.24 * grow, h = S * 0.42 * grow;
-      c.beginPath();
-      c.moveTo(head.x - w, top);
-      c.lineTo(head.x, top - h);
-      c.lineTo(head.x + w, top);
-      c.stroke();
+  // ---- frame --------------------------------------------------------------
+  draw(room, now, clock) {
+    const c = this.ctx;
+    const S = this.S;
+    let dt = (now - this.lastNow) / 1000;
+    this.lastNow = now;
+    if (!(dt > 0) || dt > 0.2) dt = 1 / 60;
+    const t = now / 1000;
+
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 6);
+
+    c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    if (this.shake > 0) {
+      const k = this.shake * this.shake * 3.5;
+      c.translate(Math.sin(now * 0.09) * k, Math.cos(now * 0.13) * k);
     }
-    if (gen === 4 || gen >= 6) {
-      // The brim widens more slowly than the cone climbs, or it swallows the
-      // figure it is meant to be sitting on.
-      const w = S * 0.36 * (1 + (grow - 1) * 0.45);
-      const y = gen >= 6 ? top - S * 0.42 * grow : top;
-      c.beginPath();
-      c.ellipse(head.x, y, w, S * 0.07, 0, 0, Math.PI * 2);
-      c.stroke();
-    }
-    if (gen === 5 || gen >= 6) {
-      // Structurally unsound. It sways.
-      const sway = Math.sin(now / 420 + gen) * 0.16;
-      let x = head.x, y = gen >= 6 ? top - S * 0.5 * grow : top;
-      for (let i = 0; i < 3; i++) {
-        const w = S * (0.2 - i * 0.045) * grow;
-        const h = S * 0.2 * grow;
-        x += sway * S * 0.16;
-        c.beginPath();
-        c.rect(x - w, y - h, w * 2, h);
-        c.stroke();
-        y -= h;
+
+    c.drawImage(this.page, 0, 0, this.W, this.H);
+    c.drawImage(this.stains, 0, 0, this.W, this.H);
+
+    this.drawDoor(c, room);
+    this.drawPlates(c, room, t);
+
+    // ---- collect, sort, draw -----------------------------------------------
+    const boxes = room.doorOpen ? BOXES_DOOR_OPEN : BOXES_DOOR_CLOSED;
+    const draws = this.draws;
+    draws.length = 0;
+    let n = 0;
+
+    const total = room.ghosts.length;
+    for (let i = 0; i < total; i++) {
+      const g = room.ghosts[i];
+      if (now < g.revealAt) continue;
+      const s = g.cur;
+      const e = this.slot(n++);
+      e.x = s.x; e.y = s.y; e.z = s.z;
+      e.pose = poseOf(s, dt, t, g.mem);
+
+      // Older exposures sit further back on the page, but never so far that a
+      // specimen you have to climb becomes hard to find.
+      let alpha = Math.max(0.62, 0.96 - (total - 1 - i) * 0.011);
+      // Corpses stay on the page — they are the record — but they step back so
+      // the specimens still doing something read on top of them.
+      if (e.pose.dead) alpha *= 0.75;
+      let scale = 1;
+      // A fresh one develops in: it arrives oversized and settles.
+      const since = (now - g.revealAt) / 340;
+      if (since < 1) {
+        scale = 1 + (1 - since) * (1 - since) * 0.5;
+        alpha *= 0.35 + since * 0.65;
       }
+      e.style = this.styleFor(g.gen, alpha, scale, false);
+      e.ring = 0;
+      e.target = room.target === g;
+      draws.push(e);
     }
-    if (gen >= 10) {
-      // A small trailing cloud of flies.
-      c.fillStyle = col;
-      c.globalAlpha = alpha * 0.8;
+
+    if (room.phase !== PHASE.RESULTS) {
+      const p = room.player;
+      const e = this.slot(n++);
+      e.x = p.x; e.y = p.y; e.z = p.z;
+      e.pose = poseOf(p, dt, t, this.liveMem);
+      e.style = this.styleFor(room.round, 1, 1.06, true);
+      e.ring = 1;
+      e.target = false;
+      draws.push(e);
+    }
+
+    draws.sort(byDepth);
+    this.caret.on = false;
+    for (const e of draws) this.drawSpecimen(c, e, boxes, t);
+
+    // Which one is you, in a tank of sixty. A caret, because on this page
+    // everything is annotated — and on top of everything, because in a crowd
+    // this is the only thing keeping you findable.
+    if (this.caret.on) {
+      const bob = Math.sin(t * 3.4) * 2;
+      const x = this.caret.x;
+      const top = this.caret.y - S * 1.05 - bob;
+
+      // A tag on the page, not a mark on the specimen: a caret with a paper
+      // flag behind it, so it survives being drawn over sixty black outlines.
+      c.fillStyle = PAPER.ink;
       c.beginPath();
-      for (let i = 0; i < 4; i++) {
-        const a = now / 340 + i * 1.9 + gen;
-        const r = S * (0.3 + 0.12 * Math.sin(now / 500 + i));
-        c.rect(head.x + Math.cos(a) * r, top - S * 0.2 + Math.sin(a * 1.3) * r * 0.6,
-          S * 0.035, S * 0.035);
-      }
+      c.moveTo(x, top + 9);
+      c.lineTo(x - 5, top);
+      c.lineTo(x + 5, top);
+      c.closePath();
       c.fill();
-      c.globalAlpha = alpha;
+
+      c.save();
+      c.font = `700 7px ${FACE}`;
+      if ('letterSpacing' in c) c.letterSpacing = '1.12px';
+      const w = c.measureText('SUBJECT').width + 10;
+      c.fillStyle = PAPER.floor;
+      c.strokeStyle = PAPER.ink;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.rect(x - w / 2, top - 11, w, 11);
+      c.fill();
+      c.stroke();
+      c.fillStyle = PAPER.ink;
+      c.textAlign = 'center';
+      c.fillText('SUBJECT', x, top - 3);
+      c.restore();
     }
-  }
 
-  /** Brackets around the past self currently inside knife reach. */
-  drawTarget(c, room, now) {
-    const g = room.target;
-    if (!g) return;
-    const S = this.S;
-    const x = this.sx(g.cur.x);
-    const y = this.sy(g.cur.y);
-    const hw = S * 0.44, hh = S * PLAYER_H;
-    const t = S * 0.16;
-    const pulse = 0.45 + 0.3 * Math.sin(now / 140);
-    c.strokeStyle = `rgba(224,72,59,${pulse.toFixed(3)})`;
-    c.lineWidth = 1.6;
-    c.beginPath();
-    for (const sxv of [-1, 1]) {
-      for (const syv of [0, 1]) {
-        const cx = x + sxv * hw;
-        const cy = y - syv * hh;
-        c.moveTo(cx - sxv * t, cy);
-        c.lineTo(cx, cy);
-        c.lineTo(cx, cy + (syv ? t : -t));
-      }
-    }
-    c.stroke();
-  }
-
-  /** The knife going in. Brief, and the scar outlives it. */
-  addSlash(x0, y0, x1, y1) {
-    this.slashes.push({ x0, y0, x1, y1, at: performance.now() });
-    if (this.slashes.length > 8) this.slashes.shift();
-  }
-
-  drawSlashes(c, now) {
-    const S = this.S;
+    // ---- effects -----------------------------------------------------------
     for (let i = this.slashes.length - 1; i >= 0; i--) {
       const s = this.slashes[i];
-      const age = (now - s.at) / 260;
-      if (age > 1) { this.slashes.splice(i, 1); continue; }
-      const a = 1 - age;
-      const mx = (s.x0 + s.x1) / 2;
-      const my = (s.y0 + s.y1) / 2 + PLAYER_H * 0.55;
-      const len = S * (0.5 + age * 0.5);
-      c.strokeStyle = `rgba(224,72,59,${(0.95 * a).toFixed(3)})`;
-      c.lineWidth = 3 * a + 0.6;
+      s.t -= dt * 3.6;
+      if (s.t <= 0) { this.slashes.splice(i, 1); continue; }
+      c.globalAlpha = s.t;
+      c.strokeStyle = PAPER.red;
+      c.lineWidth = 2 + s.t * 4;
       c.lineCap = 'round';
       c.beginPath();
-      c.moveTo(this.sx(mx) - len, this.sy(my) - len * 0.55);
-      c.lineTo(this.sx(mx) + len, this.sy(my) + len * 0.55);
+      c.moveTo(this.sx(s.x0), this.sy(s.z0));
+      c.lineTo(this.sx(s.x1), this.sy(s.z1));
       c.stroke();
+      c.globalAlpha = 1;
     }
+
+    void S; void clock;
   }
 
-  // ---------------------------------------------------------------- marks --
-  /** Somebody fell here. The plate remembers. */
-  addScar(x, y) {
-    this.scars.push({ x, y, at: performance.now() });
-    if (this.scars.length > 14) this.scars.shift();
+  /** Wipe the page between matches. The stains are the only thing that carries. */
+  reset() {
+    this.scars.length = 0;
+    this.slashes.length = 0;
+    this.shake = 0;
+    this.liveMem = makeMem(1.7);
+    this.restain();
   }
 
-  drawScars(c, now) {
+  slot(i) {
+    let e = this.pool[i];
+    if (!e) { e = { x: 0, y: 0, z: 0, pose: null, style: null, ring: 0, target: false }; this.pool[i] = e; }
+    return e;
+  }
+
+  drawSpecimen(c, e, boxes, t) {
     const S = this.S;
-    for (let i = this.scars.length - 1; i >= 0; i--) {
-      const s = this.scars[i];
-      const age = (now - s.at) / 900;
-      if (age > 1) { this.scars.splice(i, 1); continue; }
-      const r = S * (0.3 + age * 1.5);
-      c.strokeStyle = `rgba(224,72,59,${0.5 * (1 - age)})`;
-      c.lineWidth = 2 * (1 - age) + 0.5;
+    const gy = surfaceBelow(boxes, e.x, e.z, e.y + 0.02);
+    const overNothing = gy === -Infinity;
+    const base = overNothing ? 0 : gy;
+
+    const px = this.sx(e.x);
+    const foot = this.sy(e.z);
+    const py = foot - (e.y - base) * S * LIFT;
+
+    // Below the floor and over the hole: it is inside the hole, so it is only
+    // visible through the hole.
+    const clipped = overNothing && e.y < -0.05;
+    if (clipped) {
+      c.save();
       c.beginPath();
-      c.arc(this.sx(s.x), this.sy(s.y + PLAYER_H * 0.5), r, -2.5, -0.7);
+      c.rect(this.sx(PIT.x0), this.sy(PIT.z0),
+        (PIT.x1 - PIT.x0) * S, (PIT.z1 - PIT.z0) * S);
+      c.clip();
+    }
+
+    // The living specimen is the one under observation, and is ringed as such.
+    if (e.ring && !e.pose.dead) {
+      c.save();
+      c.globalAlpha = 0.7;
+      c.strokeStyle = PAPER.ink;
+      c.lineWidth = 1.2;
+      c.setLineDash([4, 4]);
+      c.lineDashOffset = -t * 14;
+      c.beginPath();
+      c.ellipse(px, foot, S * 0.62, S * 0.40, 0, 0, TAU);
+      c.stroke();
+      c.restore();
+    }
+
+    // A knifed self gets chalked, because this is a laboratory.
+    if (e.pose.dead) {
+      c.save();
+      c.globalAlpha = 0.5;
+      c.strokeStyle = PAPER.inkSoft;
+      c.lineWidth = 1.4;
+      c.setLineDash([3, 5]);
+      c.beginPath();
+      c.ellipse(px, foot, S * 0.55, S * 0.38, 0, 0, TAU);
+      c.stroke();
+      c.restore();
+    }
+
+    if (e.target) {
+      c.save();
+      c.strokeStyle = PAPER.red;
+      c.lineWidth = 2;
+      c.globalAlpha = 0.55 + Math.sin(t * 14) * 0.3;
+      c.beginPath();
+      c.ellipse(px, foot, S * 0.58, S * 0.38, 0, 0, TAU);
       c.stroke();
       c.beginPath();
-      c.arc(this.sx(s.x), this.sy(s.y + PLAYER_H * 0.5), r * 1.35, -2.3, -0.9);
+      for (let i = 0; i < 4; i++) {
+        const a = i * (Math.PI / 2) + Math.PI / 4;
+        c.moveTo(px + Math.cos(a) * S * 0.66, foot + Math.sin(a) * S * 0.44);
+        c.lineTo(px + Math.cos(a) * S * 0.86, foot + Math.sin(a) * S * 0.58);
+      }
       c.stroke();
+      c.restore();
+    }
+
+    drawLump(c, px, py, overNothing ? null : foot, S, e.pose, e.style);
+
+    // Where to put the caret, if this is you. It cannot go on now — anything
+    // further south is drawn after this and would paint straight over it.
+    if (e.ring) { this.caret.x = px; this.caret.y = py; this.caret.on = true; }
+
+    if (clipped) c.restore();
+  }
+
+  drawDoor(c, room) {
+    const S = this.S;
+    const b = DOOR_BOX;
+    const x = this.sx(b.x0), y = this.sy(b.z0);
+    const w = (b.x1 - b.x0) * S, h = (b.z1 - b.z0) * S;
+    const open = room.doorSlide;
+
+    c.save();
+    c.globalAlpha = 1 - open * 0.88;
+    c.fillStyle = '#a8916c';
+    c.fillRect(x, y, w, h);
+    hatch(c, x, y, w, h, 4, 'rgba(36,29,28,0.42)', 1);
+    c.restore();
+
+    c.save();
+    c.strokeStyle = open > 0.5 ? PAPER.inkFaint : PAPER.ink;
+    c.lineWidth = 1.6;
+    c.setLineDash(open > 0.5 ? [4, 4] : []);
+    c.strokeRect(x, y, w, h);
+    c.restore();
+  }
+
+  drawPlates(c, room, t) {
+    const S = this.S;
+    const R = PLATE_RADIUS * S;
+    const req = new Set(room.required);
+
+    for (let i = 0; i < PLATES.length; i++) {
+      const p = PLATES[i];
+      const x = this.sx(p.x), y = this.sy(p.z);
+      const st = room.plates[i];
+      const needed = req.has(i);
+      const turn = room.turnstiles.has(i);
+      const tint = turn ? PAPER.blue : PAPER.red;
+
+      if (!needed) {
+        // Every plate exists in every round; the unlit ones stay on the plan so
+        // you can learn the room before it asks you for them.
+        c.strokeStyle = PAPER.inkHair;
+        c.lineWidth = 1;
+        ellipse(c, x, y, R * 0.94, R * 0.94, false);
+        continue;
+      }
+
+      if (st.pressed) {
+        const pulse = 1 + Math.sin(t * 9 + i) * 0.03;
+        c.globalAlpha = 0.30;
+        c.fillStyle = PAPER.amber;
+        ellipse(c, x, y, R * pulse, R * pulse, true);
+        c.globalAlpha = 1;
+        c.strokeStyle = PAPER.amber;
+        c.lineWidth = 2.4;
+        ellipse(c, x, y, R * pulse, R * pulse, false);
+        // radiating ticks: it is bearing weight
+        c.beginPath();
+        for (let k = 0; k < 8; k++) {
+          const a = k * (TAU / 8) + t * (turn ? 1.6 : 0.3);
+          c.moveTo(x + Math.cos(a) * R * 1.08, y + Math.sin(a) * R * 1.08);
+          c.lineTo(x + Math.cos(a) * R * 1.30, y + Math.sin(a) * R * 1.30);
+        }
+        c.lineWidth = 1.6;
+        c.stroke();
+      } else {
+        c.strokeStyle = tint;
+        c.lineWidth = 2;
+        c.setLineDash(turn ? [5, 4] : []);
+        ellipse(c, x, y, R, R, false);
+        c.setLineDash([]);
+        c.strokeStyle = turn ? PAPER.blueSoft : PAPER.redSoft;
+        c.lineWidth = 1;
+        ellipse(c, x, y, R * 0.84, R * 0.84, false);
+      }
+
+      if (turn) {
+        // Arrowheads pointing in: this one wants arrivals, not residents.
+        c.strokeStyle = st.pressed ? PAPER.amber : PAPER.blue;
+        c.lineWidth = 1.6;
+        c.beginPath();
+        for (let k = 0; k < 4; k++) {
+          const a = k * (TAU / 4) + Math.PI / 4 + t * 0.8;
+          const ax = x + Math.cos(a) * R * 0.62, ay = y + Math.sin(a) * R * 0.62;
+          c.moveTo(ax + Math.cos(a + 2.5) * R * 0.22, ay + Math.sin(a + 2.5) * R * 0.22);
+          c.lineTo(ax, ay);
+          c.lineTo(ax + Math.cos(a - 2.5) * R * 0.22, ay + Math.sin(a - 2.5) * R * 0.22);
+        }
+        c.stroke();
+      }
+
+      label(c, p.name, x, y + R + 11, st.pressed ? PAPER.ink : PAPER.inkSoft, 7.5, 'center');
     }
   }
+
+  // ---- specimen pigments ---------------------------------------------------
+  /**
+   * One style object per generation, kept and mutated rather than rebuilt:
+   * a generation appears at most once per frame, so there is nothing to alias.
+   * The living specimen gets its own, because during settling it shares a
+   * generation number with the ghost it has just become.
+   */
+  styleFor(gen, alpha, scale, living) {
+    const cache = living ? this.liveStyles || (this.liveStyles = new Map()) : this.styles;
+    let s = cache.get(gen);
+    if (!s) {
+      const base = pigmentFor(gen);
+      s = {
+        fill: base,
+        fillDark: mix(base, PAPER.ink, 0.30),
+        hat: mix(hatFor(gen), '#ffffff', 0.12),
+        sclera: '#fbf6e8',
+        ink: PAPER.ink,
+        shadow: PAPER.shadow,
+        gen,
+        alpha: 1,
+        scale: 1,
+        lineWidth: 1,
+      };
+      cache.set(gen, s);
+    }
+    s.alpha = alpha;
+    s.scale = scale * DRAW_SCALE;
+    s.lineWidth = Math.max(0.8, this.S * s.scale * (living ? 0.040 : 0.032));
+    return s;
+  }
 }
 
-// ------------------------------------------------------------------ bits ---
+// ------------------------------------------------------------------ helpers --
+function byDepth(a, b) { return (a.z - b.z) || (a.y - b.y); }
 
-function strokeSkeleton(c, hipL, hipR, kA, kB, fA, fB, shL, shR, eA, eB, hA, hB, head) {
+function grid(c, x, y, w, h, step, colour, lw, phaseX, phaseY) {
+  if (step < 4) return;
+  c.strokeStyle = colour;
+  c.lineWidth = lw;
   c.beginPath();
-  // spine
-  c.moveTo((hipL.x + hipR.x) / 2, hipL.y);
-  c.lineTo((shL.x + shR.x) / 2, shL.y);
-  // pelvis and shoulders
-  c.moveTo(hipL.x, hipL.y); c.lineTo(hipR.x, hipR.y);
-  c.moveTo(shL.x, shL.y); c.lineTo(shR.x, shR.y);
-  // legs
-  c.moveTo(hipL.x, hipL.y); c.lineTo(kA.x, kA.y); c.lineTo(fA.x, fA.y);
-  c.moveTo(hipR.x, hipR.y); c.lineTo(kB.x, kB.y); c.lineTo(fB.x, fB.y);
-  // arms
-  c.moveTo(shL.x, shL.y); c.lineTo(eA.x, eA.y); c.lineTo(hA.x, hA.y);
-  c.moveTo(shR.x, shR.y); c.lineTo(eB.x, eB.y); c.lineTo(hB.x, hB.y);
-  // neck
-  c.moveTo((shL.x + shR.x) / 2, shL.y); c.lineTo(head.x, head.y);
-  c.stroke();
-}
-
-/** Generation colour: warm bone burning down to cold ash. */
-export function ghostInk(gen) {
-  const d = Math.min(1, (gen - 1) / 13);
-  const r = Math.round(239 - d * 74);
-  const g = Math.round(231 - d * 58);
-  const b = Math.round(216 - d * 12);
-  return `rgb(${r},${g},${b})`;
-}
-
-/** A line with a little tremor in it, so the drawing looks inked not plotted. */
-function inked(c, x0, y0, x1, y1, amp, seed) {
-  const dx = x1 - x0, dy = y1 - y0;
-  const len = Math.hypot(dx, dy);
-  const steps = Math.max(2, Math.min(14, Math.round(len / 26)));
-  const nx = -dy / (len || 1), ny = dx / (len || 1);
-  c.beginPath();
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const w = i === 0 || i === steps ? 0 : (rnd(seed + i * 13) - 0.5) * 2 * amp;
-    const x = x0 + dx * t + nx * w;
-    const y = y0 + dy * t + ny * w;
-    if (i === 0) c.moveTo(x, y); else c.lineTo(x, y);
+  const px = phaseX === undefined ? 0 : phaseX;
+  const py = phaseY === undefined ? 0 : phaseY;
+  for (let i = px % step; i < x + w; i += step) {
+    if (i < x) continue;
+    c.moveTo(i, y); c.lineTo(i, y + h);
+  }
+  for (let j = py % step; j < y + h; j += step) {
+    if (j < y) continue;
+    c.moveTo(x, j); c.lineTo(x + w, j);
   }
   c.stroke();
 }
 
-/** Diagonal hatching: the section convention for material you have cut. */
-function hatch(c, x0, y0, x1, y1, gap) {
-  const h = y1 - y0;
-  if (h <= 0.5) return;
+function hatch(c, x, y, w, h, step, colour, lw) {
+  c.save();
   c.beginPath();
-  for (let x = x0 - h; x < x1; x += gap) {
-    const ax = Math.max(x0, x), ay = y0 + Math.max(0, x0 - x);
-    const bx = Math.min(x1, x + h), by = y0 + Math.min(h, x1 - x);
-    if (bx <= ax) continue;
-    c.moveTo(ax, ay);
-    c.lineTo(bx, by);
+  c.rect(x, y, w, h);
+  c.clip();
+  c.strokeStyle = colour;
+  c.lineWidth = lw;
+  c.beginPath();
+  for (let i = -h; i < w + h; i += step) {
+    c.moveTo(x + i, y);
+    c.lineTo(x + i - h, y + h);
   }
   c.stroke();
+  c.restore();
 }
 
-function rnd(n) {
-  const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
-  return x - Math.floor(x);
+function ellipse(c, x, y, rx, ry, fill) {
+  c.beginPath();
+  c.ellipse(x, y, rx, ry, 0, 0, TAU);
+  if (fill) c.fill(); else c.stroke();
 }
 
-function makeGrain() {
-  const g = document.createElement('canvas');
-  g.width = g.height = 96;
-  const c = g.getContext('2d');
-  const img = c.createImageData(96, 96);
-  for (let i = 0; i < img.data.length; i += 4) {
-    const v = Math.random();
-    img.data[i] = 255; img.data[i + 1] = 244; img.data[i + 2] = 226;
-    img.data[i + 3] = v > 0.86 ? 12 : v > 0.6 ? 5 : 0;
-  }
-  c.putImageData(img, 0, 0);
-  return g;
+function label(c, text, x, y, colour, size, align) {
+  c.save();
+  c.font = `700 ${size}px ${FACE}`;
+  c.fillStyle = colour;
+  c.textAlign = align || 'left';
+  if ('letterSpacing' in c) c.letterSpacing = `${(size * 0.16).toFixed(2)}px`;
+  c.fillText(text, x, y);
+  c.restore();
 }
+

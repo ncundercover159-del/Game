@@ -5,8 +5,14 @@ import { fileURLToPath, URL } from 'node:url';
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 
 // No Three.js, no dependencies at all — the 2D build is canvas and arithmetic.
+// It does share the simulation, though: the top-down view needs the same X/Z
+// physics with a height axis that the 3D game already runs, so ../shared is
+// the level and the maths, and rerun2d/ is purely how it looks.
 export default defineConfig({
   root: here('../../rerun2d'),
+  resolve: {
+    alias: { '@shared': here('../shared') },
+  },
   build: {
     target: 'es2020',
     outDir: here('../../rerun2d/dist'),

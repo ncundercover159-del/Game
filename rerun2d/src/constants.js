@@ -1,76 +1,78 @@
-// RERUN 2D — tuning.
+// THE LUMPS — tuning and palette.
 //
-// Side-on. The vertical axis is the whole point: you climb by standing on
-// your own past selves, and in a cutaway section that reads instantly.
+// The simulation numbers are not re-invented here. The top-down view needs
+// X/Z movement with a height axis, which is exactly what the 3D game already
+// runs and has already been argued with, so this build imports that wholesale
+// and only adds what is genuinely its own: the knife, and the look.
 
-export const ROUND_SECONDS = 20;
-export const COUNTDOWN_SECONDS = 3;
-export const SETTLING_SECONDS = 4;
-export const TOTAL_ROUNDS = 20;
-export const RECORD_HZ = 20;
-export const MAX_GHOSTS = 60;
-export const GHOST_PUSH_FORCE = 14;
-export const PLATE_ACTIVATION_MASS = 1;
-export const STEP_UP_HEIGHT = 0.45;
-export const JUMP_VELOCITY = 7;
-export const COYOTE_MS = 100;
+export {
+  ROUND_SECONDS, COUNTDOWN_SECONDS, SETTLING_SECONDS, TOTAL_ROUNDS,
+  RECORD_HZ, MAX_GHOSTS, PLATE_ACTIVATION_MASS, STEP_UP_HEIGHT,
+  JUMP_VELOCITY, ROUND_MS, COUNTDOWN_MS, SETTLING_MS, RECORD_INTERVAL_MS,
+  SAMPLES_PER_GHOST, TICK_HZ, TICK_MS, PLAYER_RADIUS, PLAYER_HEIGHT,
+  MOVE_SPEED, GRAVITY, DEATH_Y, DEATH_REST_Y, PLATE_RADIUS,
+  PLATE_FOOT_ABOVE, PLATE_FOOT_BELOW, MOMENTUM_HOLD_MS, FULL_SET_BONUS,
+  PHASE,
+} from '@shared/constants.js';
 
-export const ROUND_MS = ROUND_SECONDS * 1000;
-export const COUNTDOWN_MS = COUNTDOWN_SECONDS * 1000;
-export const SETTLING_MS = SETTLING_SECONDS * 1000;
-export const RECORD_INTERVAL_MS = 1000 / RECORD_HZ;
-export const SAMPLES_PER_GHOST = ROUND_SECONDS * RECORD_HZ; // 400
-
-export const TICK_HZ = 60;
-export const TICK_MS = 1000 / TICK_HZ;
-
-// --- bodies ---------------------------------------------------------------
-export const PLAYER_W = 0.72;
-export const PLAYER_H = 1.5;
-export const HALF_W = PLAYER_W / 2;
-
-// --- movement -------------------------------------------------------------
-export const MOVE_SPEED = 4.2;
-export const GROUND_ACCEL = 55;
-export const AIR_ACCEL = 20;
-export const GRAVITY = 18; // apex = 7^2 / (2*18) = 1.36m
-export const MAX_FALL = 34;
-
-export const DEATH_Y = -3.0;
-export const DEATH_REST_Y = -9.0;
-
-// --- the knife -------------------------------------------------------------
-// Reach is a little over a body's width, so you have to actually be on top of
-// the past self you are about to murder.
-export const STAB_REACH = 1.05;
-export const STAB_HEIGHT = 1.15;
+// --- the knife --------------------------------------------------------------
+// Reach is a shade over the distance at which two bodies are already touching
+// (0.38 + 0.38), so you have to be pressed against the specimen you are about
+// to murder. Omnidirectional: aiming a knife with a thumbstick is not a game.
+export const STAB_REACH = 1.02;
+export const STAB_HEIGHT = 1.1;
 export const STAB_COOLDOWN_MS = 320;
 
-// --- plates ---------------------------------------------------------------
-export const PLATE_HALF = 0.62; // plates are 1.24m wide
-export const PLATE_FOOT_BELOW = 0.18;
-export const PLATE_FOOT_ABOVE = 0.5;
-export const MOMENTUM_HOLD_MS = 700;
-export const FULL_SET_BONUS = 25;
+// --- projection -------------------------------------------------------------
+// Plan view, but not a flat one: a body is lifted up the screen in proportion
+// to how far it is above whatever it is standing on, and leaves its shadow
+// behind on the floor. The gap between the two is the only height cue there
+// is, so it has to be generous.
+export const LIFT = 0.62; // screen-metres per world-metre of height
 
-// --- phases ---------------------------------------------------------------
-export const PHASE = { COUNTDOWN: 0, PLAY: 1, SETTLING: 2, RESULTS: 3 };
+// --- the notebook -----------------------------------------------------------
+// Aged paper, one ink, and three pigments used sparingly enough that they mean
+// something. Everything structural is drawn as if someone measured it.
+export const PAPER = {
+  page: '#e6dcc4',
+  pageDark: '#d8ccae',
+  grid: 'rgba(60,48,38,0.075)',
+  gridBold: 'rgba(60,48,38,0.14)',
 
-// --- the plate ------------------------------------------------------------
-// A chronophotograph: warm black ground, bone line work, one amber accent for
-// the objective and one cold accent for the turnstiles. Nothing else.
-export const INK = {
-  ground: '#0b0a0d',
-  bone: '#efe7d8',
-  boneDim: 'rgba(239,231,216,0.30)',
-  boneFaint: 'rgba(239,231,216,0.13)',
-  amber: '#f5a623',
-  amberDim: 'rgba(245,166,35,0.30)',
-  cold: '#6fd3ff',
-  coldDim: 'rgba(111,211,255,0.30)',
-  blood: '#e0483b',
+  floor: '#f3ecda',
+  floorGrid: 'rgba(60,48,38,0.055)',
+  ledge: '#e3d8ba',
+  room: '#cbbc9b',
+  pit: '#221c19',
+  pitRim: '#3a302a',
+
+  ink: '#241d1c',
+  inkSoft: 'rgba(36,29,28,0.55)',
+  inkFaint: 'rgba(36,29,28,0.26)',
+  inkHair: 'rgba(36,29,28,0.13)',
+
+  red: '#d0402f',
+  redSoft: 'rgba(208,64,47,0.30)',
+  blue: '#2f7fb8',
+  blueSoft: 'rgba(47,127,184,0.30)',
+  amber: '#f0b429',
+  shadow: 'rgba(60,44,30,0.34)',
 };
 
-// Exposure colours for the living figure across a match. Warm inks, all
-// legible as line work on black.
-export const PLAYER_INK = '#f7ead3';
+// Ten pigments off the specimen chart. Generations walk the list, so a full
+// tank is a riot rather than a gradient.
+export const PIGMENTS = [
+  '#e8734a', '#f0b429', '#c8d44e', '#6fbf5e',
+  '#3fb8a0', '#4a9fd8', '#7a7ee0', '#b874d4',
+  '#e8659a', '#d4553f',
+];
+
+export function pigmentFor(gen) { return PIGMENTS[(gen * 3) % PIGMENTS.length]; }
+export function hatFor(gen) { return PIGMENTS[(gen * 7 + 4) % PIGMENTS.length]; }
+
+/** Blend two hex colours. Used for shading a pigment without a second palette. */
+export function mix(a, b, t) {
+  const A = parseInt(a.slice(1), 16), B = parseInt(b.slice(1), 16);
+  const ch = (sh) => Math.round(((A >> sh) & 255) + (((B >> sh) & 255) - ((A >> sh) & 255)) * t);
+  return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+}

@@ -104,6 +104,31 @@ export function makeSampleOut() {
 }
 
 /**
+ * Rewrite a recording so the body dies at sample `from` and stays there.
+ *
+ * The route up to that instant is left completely alone: the ghost still walks
+ * all the way here, every loop, and is still killed here, every loop. That is
+ * the whole point — a knifed past self is not deleted, it is given a death to
+ * repeat. Returns false if it was already dead by then.
+ */
+export function killFrom(rec, from) {
+  if (from < 0 || from >= SAMPLES_PER_GHOST) return false;
+  if (rec.flags[from] & FLAG_DEAD) return false;
+
+  const o = from * 3;
+  const x = rec.pos[o], y = rec.pos[o + 1], z = rec.pos[o + 2];
+  const yaw = rec.yaw[from];
+
+  for (let i = from; i < SAMPLES_PER_GHOST; i++) {
+    const p = i * 3;
+    rec.pos[p] = x; rec.pos[p + 1] = y; rec.pos[p + 2] = z;
+    rec.yaw[i] = yaw;
+    rec.flags[i] = FLAG_DEAD;
+  }
+  return true;
+}
+
+/**
  * Cumulative horizontal distance travelled, one entry per sample.
  *
  * The walk cycle is driven off this rather than off wall-clock time, so a
