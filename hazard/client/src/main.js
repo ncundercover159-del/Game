@@ -21,6 +21,7 @@ import { decodeSnapshot } from './net.js';
 import { WorldView } from './worldview.js';
 import { Controls } from './input.js';
 import { HUD } from './hud.js';
+import { installPost } from './art/post.js';
 import { LEVEL_BY_ID, DEFAULT_LEVEL } from '../../shared/levels/index.js';
 import { PROP_BY_ID } from '../../shared/props.js';
 import {
@@ -47,6 +48,7 @@ let controls = null;
 let hud = null;
 let mySlot = -1;
 let running = false;
+let post = null;
 
 // --- boot --------------------------------------------------------------------
 async function boot(levelId = DEFAULT_LEVEL) {
@@ -62,6 +64,8 @@ async function boot(levelId = DEFAULT_LEVEL) {
   controls = new Controls(canvas);
   controls.yaw = level.spawnYaw ?? Math.PI;
   hud = new HUD(level);
+  // The art pass owns what this returns; a passthrough is always valid.
+  post = installPost(renderer, view.scene, camera);
 
   room.begin(performance.now());
   resize();
@@ -149,7 +153,7 @@ function frame(now) {
 
   drainEvents();
   hud.update(room, me, fps, renderer.info.render.calls);
-  renderer.render(view.scene, camera);
+  post.render(dt);
 }
 
 function drainEvents() {
@@ -166,6 +170,7 @@ function resize() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  if (post) post.setSize(w, h);
 }
 window.addEventListener('resize', resize);
 
