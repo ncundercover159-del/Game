@@ -74,14 +74,14 @@ const cache = new Map();
 // mottle:   large-scale albedo drift, to break the tile. Costs four sines and
 //           saves a 1024² texture.
 const RECIPES = {
-  concrete: { tex: 'concrete', tile: 2.6, rough: 0.94, metal: 0.0, bump: 2.6, roughVar: -0.20, ao: 0.42, mottle: 0.20 },
-  panel: { tex: 'panel', tile: 1.7, rough: 0.74, metal: 0.22, bump: 3.4, roughVar: -0.22, ao: 0.45, mottle: 0.16 },
-  deckplate: { tex: 'deckplate', tile: 0.42, rough: 0.60, metal: 0.62, bump: 3.8, roughVar: -0.34, ao: 0.40, mottle: 0.14 },
-  grate: { tex: 'grate', tile: 0.60, rough: 0.58, metal: 0.68, bump: 3.4, roughVar: -0.22, ao: 0.55, mottle: 0.10 },
+  concrete: { tex: 'concrete', tile: 3.1, rough: 0.94, metal: 0.0, bump: 1.7, roughVar: -0.20, ao: 0.42, mottle: 0.18 },
+  panel: { tex: 'panel', tile: 2.1, rough: 0.74, metal: 0.22, bump: 2.2, roughVar: -0.22, ao: 0.48, mottle: 0.14 },
+  deckplate: { tex: 'deckplate', tile: 0.95, rough: 0.60, metal: 0.62, bump: 2.2, roughVar: -0.34, ao: 0.40, mottle: 0.12 },
+  grate: { tex: 'grate', tile: 0.70, rough: 0.58, metal: 0.68, bump: 2.4, roughVar: -0.22, ao: 0.55, mottle: 0.08 },
   steelblue: { tex: 'steelblue', tile: 1.10, rough: 0.52, metal: 0.55, bump: 2.2, roughVar: -0.26, ao: 0.30, mottle: 0.12 },
   railing: { tex: 'railing', tile: 0.85, rough: 0.58, metal: 0.28, bump: 2.0, roughVar: -0.20, ao: 0.26, mottle: 0.10 },
   plank: { tex: 'plank', tile: 1.20, rough: 0.90, metal: 0.0, bump: 2.4, roughVar: -0.16, ao: 0.34, mottle: 0.14 },
-  rubber: { tex: 'rubber', tile: 0.90, rough: 0.97, metal: 0.0, bump: 3.2, roughVar: -0.10, ao: 0.45, mottle: 0.10 },
+  rubber: { tex: 'rubber', tile: 0.90, rough: 0.97, metal: 0.0, bump: 2.4, roughVar: -0.10, ao: 0.45, mottle: 0.08 },
 
   // Prop surfaces. These sit near white and let vertex colour carry the hue —
   // see props.js. Seventeen kinds of object, ten materials, and a novelty
@@ -179,16 +179,28 @@ const FRAG_NORMAL = /* glsl */`
 #include <normal_fragment_maps>
 if ( tpTune.y > 0.0 ) {
   vec3 sp = - vViewPosition;
-  vec3 sx = normalize( dFdx( sp ) );
-  vec3 sy = normalize( dFdy( sp ) );
-  vec2 dH = vec2( dFdx( tpHeight ), dFdy( tpHeight ) ) * tpTune.y;
+  vec3 dpx = dFdx( sp );
+  vec3 dpy = dFdy( sp );
+  // normalize() of a zero-length derivative is a NaN, and a NaN normal is a
+  // white pixel. On a wall seen edge-on that happens along the whole silhouette,
+  // which is what put snow in the corners of the first render.
+  vec3 sx = dpx / max( length( dpx ), 1e-7 );
+  vec3 sy = dpy / max( length( dpy ), 1e-7 );
+  // Fade the relief out as the surface turns edge-on. A forty-metre ceiling of
+  // tread plate is seen at maybe five degrees, one texel spans a dozen pixels,
+  // and the height gradient there is noise — left alone it sparkles like tinsel.
+  // Physically this is also just true: you cannot resolve relief you cannot see.
+  float graze = smoothstep( 0.06, 0.34, abs( dot( normal, normalize( - sp ) ) ) );
+  // Clamped, because a mip transition can put a whole texel's worth of height
+  // change into one pixel and tip the normal past the horizon.
+  vec2 dH = clamp( vec2( dFdx( tpHeight ), dFdy( tpHeight ) ) * tpTune.y * graze, -0.45, 0.45 );
   vec3 R1 = cross( sy, normal );
   vec3 R2 = cross( normal, sx );
   float det = dot( sx, R1 );
   vec3 grad = sign( det ) * ( dH.x * R1 + dH.y * R2 );
-  // The clamp on det is the difference between relief and fireflies: at a
-  // grazing angle the two screen derivatives go parallel and det goes to zero.
-  normal = normalize( max( abs( det ), 0.20 ) * normal - grad );
+  // The floor on det matters for the same reason: at a grazing angle the two
+  // screen derivatives go parallel and the determinant collapses.
+  normal = normalize( max( abs( det ), 0.25 ) * normal - grad );
 }
 `;
 
@@ -278,6 +290,10 @@ export function materialFor(matName) {
  * baked into vertex colours so that forty objects of seventeen kinds share ten
  * materials. Still here because a caller is allowed to ask.
  *
+ * Built from scratch rather than cloned on purpose. Material.copy() runs
+ * userData through JSON, which would turn the shared texture and the tuning
+ * vector into anonymous objects and leave the variant untextured.
+ *
  * @param {string} matName as materialFor
  * @param {string|number} tint CSS colour or hex
  * @returns {THREE.Material} shared per (name, tint) pair
@@ -287,10 +303,19 @@ export function tintedMaterial(matName, tint) {
   const key = `${matName || 'unknown'}|${tint}`;
   const hit = cache.get(key);
   if (hit) return hit;
-  const mat = materialFor(matName).clone();
-  // clone() copies userData by reference for plain objects, which is what we
-  // want — the variant shares the parent's texture and tuning uniforms.
-  mat.color.set(tint);
+
+  const base = materialFor(matName);
+  const r = RECIPES[matName] || RECIPES.unknown;
+  const mat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(tint),
+    roughness: base.roughness,
+    metalness: base.metalness,
+    vertexColors: base.vertexColors,
+    transparent: base.transparent,
+    opacity: base.opacity,
+    side: base.side,
+  });
+  applyTriplanar(mat, r.tex || 'unknown');
   mat.name = key;
   cache.set(key, mat);
   return mat;

@@ -101,24 +101,29 @@ const GEN = {
     const grain = fbm(u, v, 40, 3, 23);
     const speck = vnoise(u, v, 110, 41);
     const stone = speck > 0.79 ? (speck - 0.79) / 0.21 : 0;
-    const crack = ridge(u, v, 6, 3, 71);
-    const crk = smooth(0.90, 0.985, crack);
+    // Map crazing, not a dry riverbed. The frequency has to be high and the
+    // threshold narrow or the ridged noise reads as camouflage from ten metres
+    // up — which is exactly what it did on the first pass.
+    const crack = ridge(u, v, 16, 3, 71);
+    const crk = smooth(0.955, 0.998, crack);
 
-    let l = 0.44 + (grain - 0.5) * 0.13 + (big - 0.5) * 0.13;
-    l *= mix(0.74, 1.06, smooth(0.34, 0.58, big));
+    let l = 0.44 + (grain - 0.5) * 0.13 + (big - 0.5) * 0.10;
+    l *= mix(0.82, 1.05, smooth(0.34, 0.58, big));
     l += stone * 0.20;
-    l *= 1 - crk * 0.45;
+    l *= 1 - crk * 0.28;
     o[0] = l * 1.03; o[1] = l * 1.0; o[2] = l * 0.94;
-    o[3] = clamp01(0.5 + (grain - 0.5) * 0.55 + stone * 0.4 - crk * 0.55);
+    o[3] = clamp01(0.5 + (grain - 0.5) * 0.45 + stone * 0.4 - crk * 0.40);
   },
 
   // Corrugated wall cladding. The ribs run along one texture axis, which under
   // box projection means they stand vertically on every wall — which is how
   // cladding is actually hung.
   panel(u, v, o) {
-    const rib = Math.cos(u * Math.PI * 2 * 6);
+    const rib = Math.cos(u * Math.PI * 2 * 4);
     const ribH = rib * 0.5 + 0.5;
-    const seam = smooth(0.985, 1.0, Math.abs(Math.cos(v * Math.PI * 3)));
+    // Sheet joints only at the tile edge. An earlier version put three across
+    // the tile and the wall came out looking like brickwork.
+    const seam = smooth(0.995, 1.0, Math.abs(Math.cos(v * Math.PI)));
     const dirt = fbm(u, v, 5, 4, 3);
     const spots = vnoise(u, v, 60, 17);
     const rustAt = smooth(0.62, 0.80, fbm(u, v, 9, 3, 53)) * smooth(0.55, 0.9, spots);
@@ -138,7 +143,11 @@ const GEN = {
   // Chequer plate. Two rows of raised lozenges at opposing angles, which is the
   // one industrial texture everybody recognises without being told.
   deckplate(u, v, o) {
-    const cells = 5;
+    // Three rows of lozenges, not five. The ceiling of the warehouse is this
+    // material and it is forty metres of it seen at a grazing angle: any
+    // pattern near the Nyquist limit turns the whole roof into moiré, however
+    // good the mip chain is. Big and calm beats fine and correct here.
+    const cells = 3;
     const gy = v * cells;
     const row = Math.floor(gy);
     const dir = row % 2 === 0 ? 1 : -1;
@@ -147,16 +156,16 @@ const GEN = {
     const a = dir * 0.62;
     const rx = fx * Math.cos(a) - fy * Math.sin(a);
     const ry = fx * Math.sin(a) + fy * Math.cos(a);
-    const d = Math.max(Math.abs(rx) / 0.30, Math.abs(ry) / 0.085);
-    const bar = 1 - smooth(0.72, 1.02, d);
+    const d = Math.max(Math.abs(rx) / 0.28, Math.abs(ry) / 0.115);
+    const bar = 1 - smooth(0.70, 1.05, d);
 
     const wear = fbm(u, v, 7, 3, 5);
     const grime = fbm(u, v, 22, 3, 19);
-    let l = 0.30 + 0.16 * grime;
-    l = mix(l, 0.52 + 0.16 * wear, bar);          // tread tops are polished
-    l *= mix(0.86, 1.06, wear);
+    let l = 0.32 + 0.13 * grime;
+    l = mix(l, 0.46 + 0.13 * wear, bar);          // tread tops are polished
+    l *= mix(0.90, 1.05, wear);
     o[0] = l * 1.0; o[1] = l * 1.01; o[2] = l * 1.05;
-    o[3] = clamp01(0.28 + bar * 0.62 + (grime - 0.5) * 0.2);
+    o[3] = clamp01(0.34 + bar * 0.46 + (grime - 0.5) * 0.16);
   },
 
   // Open steel grating: bearing bars one way, twisted cross rods the other,
@@ -184,7 +193,7 @@ const GEN = {
     const dirt = fbm(u, v, 6, 3, 61);
     const hole = smooth(0.90, 0.98, ridge(u, v, 14, 2, 9));
 
-    let r = 0.16, g = 0.29, b = 0.46;
+    let r = 0.21, g = 0.38, b = 0.58;
     const s = mix(0.80, 1.14, scuff) * mix(0.86, 1.04, dirt);
     r *= s; g *= s; b *= s;
     // Chipped paint shows grey primer, not bare steel — this is cheap racking.
