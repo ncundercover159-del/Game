@@ -52,6 +52,7 @@ export class WorldView {
     this.buildStatic();
     this.buildProps();
     this.buildExtractZone();
+    this.buildWater();
   }
 
   // --- sky, fog, lights -----------------------------------------------------
@@ -228,6 +229,78 @@ export class WorldView {
     this.scene.add(edges);
   }
 
+  // --- water ------------------------------------------------------------------
+  /**
+   * The rising water, if this level has any.
+   *
+   * One plane for the site and one more per declared tank, because a tank whose
+   * valve was skipped fills independently and its surface sits above the one
+   * outside it. The zone planes are hidden until they diverge, so the common
+   * case is a single extra draw call.
+   *
+   * The surface is the deadline made visible, which is the whole reason it is
+   * worth shading properly rather than tinting a quad: a player has to be able
+   * to read how fast it is coming from across the room.
+   */
+  buildWater() {
+    this.water = null;
+    const f = this.level.flood;
+    if (!f) return;
+
+    const b = brushBounds(this.level.brushes);
+    const geo = new THREE.PlaneGeometry(b.w, b.d, Math.ceil(b.w), Math.ceil(b.d));
+    geo.rotateX(-Math.PI / 2);
+    const mat = waterMaterial(this.level);
+    const surface = new THREE.Mesh(geo, mat);
+    surface.position.set(b.cx, f.start, b.cz);
+    surface.renderOrder = 2;
+    this.scene.add(surface);
+
+    const zones = [];
+    for (const [name, z] of Object.entries(f.zones || {})) {
+      const w = z.x[1] - z.x[0], d = z.z[1] - z.z[0];
+      const zg = new THREE.PlaneGeometry(w, d, Math.max(1, Math.ceil(w)), Math.max(1, Math.ceil(d)));
+      zg.rotateX(-Math.PI / 2);
+      const m = new THREE.Mesh(zg, mat);
+      m.position.set((z.x[0] + z.x[1]) / 2, f.start, (z.z[0] + z.z[1]) / 2);
+      m.renderOrder = 3;
+      m.visible = false;
+      this.scene.add(m);
+      zones.push({ name, mesh: m });
+    }
+
+    this.water = { surface, zones, mat, y: f.start };
+  }
+
+  /**
+   * Move the surface. `zoneYs` arrives in the level's declaration order, which
+   * is the order the server walks and the order the wire uses — three places
+   * agreeing on one iteration order rather than three places carrying a name.
+   */
+  setWater(y, zoneYs) {
+    if (!this.water || y === null || y === undefined) return;
+    this.water.y = y;
+    this.water.surface.position.y = y;
+    this.water.zones.forEach((z, i) => {
+      const zy = zoneYs && zoneYs.length > i ? zoneYs[i] : y;
+      z.mesh.position.y = zy;
+      // Only worth drawing when it disagrees with the sheet underneath it;
+      // coplanar with the main surface it is pure z-fighting.
+      z.mesh.visible = zy > y + 0.02;
+    });
+  }
+
+  /** Is this point under the water where it is standing? */
+  submerged(x, y, z) {
+    if (!this.water) return false;
+    for (const zn of this.water.zones) {
+      const f = this.level.flood.zones[zn.name];
+      if (x < f.x[0] || x > f.x[1] || z < f.z[0] || z > f.z[1]) continue;
+      return zn.mesh.visible ? y < zn.mesh.position.y : y < this.water.y;
+    }
+    return y < this.water.y;
+  }
+
   // --- per snapshot ---------------------------------------------------------
   /**
    * Fold a decoded snapshot into the scene's interpolation buffers.
@@ -322,6 +395,8 @@ export class WorldView {
       const n = Math.sin(renderNow * 0.017) * Math.sin(renderNow * 0.0071 + 1.3);
       l.light.intensity = l.base * LIGHT_GAIN * (1 - l.amount * Math.max(0, n) ** 3);
     }
+
+    if (this.water) this.water.mat.uniforms.uTime.value = renderNow * 0.001;
   }
 
   /** Which prop is nearest the crosshair, for the grab reticle. */
@@ -351,6 +426,157 @@ function shortestAngle(a) {
 function hashJitter(p) {
   const h = Math.sin(p[0] * 12.9898 + p[1] * 78.233 + p[2] * 37.719) * 43758.5453;
   return (h - Math.floor(h)) * 0.14 - 0.07;
+}
+
+/** The axis-aligned footprint of a level, with a little slack past the walls. */
+function brushBounds(brushes) {
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (const b of brushes) {
+    x0 = Math.min(x0, b.p[0] - b.s[0] / 2); x1 = Math.max(x1, b.p[0] + b.s[0] / 2);
+    z0 = Math.min(z0, b.p[2] - b.s[2] / 2); z1 = Math.max(z1, b.p[2] + b.s[2] / 2);
+  }
+  return { cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, w: x1 - x0 + 2, d: z1 - z0 + 2 };
+}
+
+/**
+ * Water, cheaply but not lazily.
+ *
+ * Three things do all the work, and none of them is a texture. Two crossed sine
+ * trains displace the surface and are differentiated analytically for a normal,
+ * so the ripples light correctly instead of being a pattern painted on a flat
+ * sheet. A Fresnel term drives both colour and opacity — looking straight down
+ * you see through it, looking across it you see the room reflected in it, which
+ * is the single cue that reads as "liquid" rather than "green glass". And the
+ * whole thing is fogged with the scene's own fog, because a surface that stays
+ * crisp at forty metres while the wall behind it fades reads as a decal.
+ */
+const WATER_LAMPS = 4;
+
+function waterMaterial(level) {
+  const env = level.env || {};
+  const deep = new THREE.Color(env.waterDeep || '#0b1f22');
+  const shallow = new THREE.Color(env.waterShallow || '#6fb9ae');
+
+  // The four brightest lamps, as actual reflections.
+  //
+  // The obvious cheap version — one fixed overhead light direction — does not
+  // work and fails in a way that looks like a different bug entirely. Looking
+  // down at your feet, the half vector is aligned with a near-vertical normal
+  // EVERYWHERE, so the highlight fires across the whole surface at once and the
+  // water renders as a flat blown-out sheet with no detail in it. A reflection
+  // has to be localised to be read as a reflection, and localising it means
+  // knowing where the lamps actually are.
+  const lamps = [...(level.lights || [])]
+    .sort((a, b) => b.intensity - a.intensity)
+    .slice(0, WATER_LAMPS);
+  const pos = [], col = [];
+  for (let i = 0; i < WATER_LAMPS; i++) {
+    const l = lamps[i];
+    pos.push(l ? new THREE.Vector3(l.p[0], l.p[1], l.p[2]) : new THREE.Vector3());
+    const c = new THREE.Color(l ? l.color : '#000');
+    col.push(c.multiplyScalar(l ? Math.min(1.6, l.intensity / 26) : 0));
+  }
+
+  return new THREE.ShaderMaterial({
+    fog: true,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    uniforms: THREE.UniformsUtils.merge([
+      THREE.UniformsLib.fog,
+      {
+        uTime: { value: 0 },
+        uDeep: { value: deep },
+        uShallow: { value: shallow },
+        uLampPos: { value: pos },
+        uLampCol: { value: col },
+      },
+    ]),
+    vertexShader: `
+      #include <common>
+      #include <fog_pars_vertex>
+      uniform float uTime;
+      varying vec3 vWorld;
+      varying vec2 vWave;
+      varying vec2 vRipple;
+      void main() {
+        vec3 p = position;
+        // Two trains at an angle to each other, at different rates. Parallel
+        // ones beat against each other and read as a moire; crossed ones read
+        // as chop.
+        float a = p.x * 0.42 + uTime * 0.9;
+        float b = p.z * 0.31 - uTime * 0.62 + p.x * 0.11;
+        p.y += sin(a) * 0.028 + sin(b) * 0.021;
+        vWave = vec2(a, b);
+        // A third, much finer train, carried to the fragment stage for the
+        // highlight only. Without it the specular is one smooth blob sliding
+        // about; chop is what breaks a reflection into glitter, and glitter is
+        // most of what makes a surface read as water rather than as jade.
+        vRipple = vec2(p.x * 3.1 + uTime * 2.2, p.z * 2.7 - uTime * 1.7);
+        vec4 world = modelMatrix * vec4(p, 1.0);
+        vWorld = world.xyz;
+        // Named mvPosition, not because it reads well but because
+        // <fog_vertex> is a text include that references that exact
+        // identifier. Call it anything else and the shader fails to compile
+        // at runtime, which shows up as an invisible surface rather than as
+        // an error anybody notices.
+        vec4 mvPosition = viewMatrix * world;
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }
+    `,
+    fragmentShader: `
+      #include <common>
+      #include <fog_pars_fragment>
+      #define LAMPS ${WATER_LAMPS}
+      uniform vec3 uDeep;
+      uniform vec3 uShallow;
+      uniform vec3 uLampPos[LAMPS];
+      uniform vec3 uLampCol[LAMPS];
+      varying vec3 vWorld;
+      varying vec2 vWave;
+      varying vec2 vRipple;
+      void main() {
+        // d/dx and d/dz of the displacement above, by hand, plus the fine train
+        // folded into the normal at a much smaller amplitude.
+        // The fine train contributes almost nothing to the silhouette and a
+        // great deal to the normal — 50mm/m of slope. That ratio is the point:
+        // chop you can see the shape of looks like corrugated iron, chop you
+        // can only see the highlights of looks like water.
+        float nx = cos(vWave.x) * 0.028 * 0.42 + cos(vWave.y) * 0.021 * 0.11
+                 + cos(vRipple.x) * 0.050;
+        float nz = cos(vWave.y) * 0.021 * 0.31 + cos(vRipple.y) * 0.044;
+        vec3 N = normalize(vec3(-nx, 1.0, -nz));
+        vec3 V = normalize(cameraPosition - vWorld);
+
+        float f = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 3.0);
+        vec3 col = mix(uDeep, uShallow, f * 0.85 + 0.06);
+
+        // One highlight per lamp, placed where that lamp actually is. Two lobes
+        // each: a broad sheen that pools under the fitting, and a tight one
+        // that the fine chop shatters into glitter.
+        vec3 spec = vec3(0.0);
+        for (int i = 0; i < LAMPS; i++) {
+          vec3 d = uLampPos[i] - vWorld;
+          float dist = length(d);
+          if (dist < 0.001) continue;
+          vec3 H = normalize(d / dist + V);
+          float nh = max(dot(N, H), 0.0);
+          float atten = 1.0 / (1.0 + dist * dist * 0.045);
+          spec += uLampCol[i] * (pow(nh, 60.0) * 0.9 + pow(nh, 700.0) * 2.6) * atten;
+        }
+        col += spec;
+
+        // A highlight is reflected light, so it does not care what is behind
+        // the surface: where the glint is strong the water must go opaque, or
+        // alpha blending drags every white sparkle back down towards the teal
+        // underneath it and the frame ends up with no neutral highlight at all.
+        float alpha = max(mix(0.62, 0.93, f), clamp(max(spec.r, max(spec.g, spec.b)), 0.0, 1.0));
+        gl_FragColor = vec4(col, alpha);
+        #include <fog_fragment>
+      }
+    `,
+  });
 }
 
 function shadeBox(geo, jitter) {

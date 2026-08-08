@@ -34,6 +34,11 @@ export const OFLAG = {
   EXTRACTED: 1 << 3,
 };
 
+// A water level of exactly this means "this level has no water", as distinct
+// from "the water is very low". -327.68m is unreachable through the position
+// quantiser, so the sentinel cannot collide with a real surface.
+export const NO_WATER = -32768;
+
 // --- a growable little-endian writer ---------------------------------------
 export class Writer {
   constructor(size = 2048) {

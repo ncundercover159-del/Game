@@ -17,7 +17,10 @@ export class HUD {
       tasks: $('tasks'), health: $('health-bar'), stamina: $('stamina-bar'),
       held: $('held'), crosshair: $('crosshair'), toast: $('banner'),
       results: $('results'), resultsBody: $('results-body'), fps: $('netstat'),
+      water: $('water'), prompt: $('prompt'),
     };
+    this.el.promptLabel = this.el.prompt.querySelector('.p-label');
+    this.el.promptBar = this.el.prompt.querySelector('.p-bar b');
     this.lastTasks = '';
     this.toastUntil = 0;
     this.buildTasks();
@@ -29,7 +32,9 @@ export class HUD {
         <i></i>
         <span class="t">${esc(t.title)}${t.bonus ? ` <b>+£${t.bonus}</b>` : ''}</span>
         <span class="d">${esc(t.detail)}</span>
+        <b class="p"></b>
       </li>`).join('');
+    this.taskBars = [...this.el.tasks.querySelectorAll('.p')];
   }
 
   update(room, me, fps, draws) {
@@ -48,11 +53,17 @@ export class HUD {
 
     // Task ticks. Serialised first so the DOM is only touched when it changes —
     // this runs every frame.
-    const sig = room.taskState.map((s) => (s.done ? 1 : 0)).join('');
+    const sig = room.taskState.map((s) => `${s.done ? 1 : 0}${Math.round(s.progress * 40)}`).join('');
     if (sig !== this.lastTasks) {
       this.lastTasks = sig;
       const lis = this.el.tasks.children;
-      for (let i = 0; i < lis.length; i++) lis[i].classList.toggle('done', room.taskState[i].done);
+      for (let i = 0; i < lis.length; i++) {
+        const st = room.taskState[i];
+        lis[i].classList.toggle('done', st.done);
+        if (this.taskBars[i]) {
+          this.taskBars[i].style.width = `${Math.min(100, (st.progress || 0) * 100).toFixed(0)}%`;
+        }
+      }
     }
 
     if (me) {
@@ -79,6 +90,31 @@ export class HUD {
       this.el.toast.classList.add('hidden');
       this.toastUntil = 0;
     }
+  }
+
+  /**
+   * The hold-to-use prompt.
+   *
+   * Driven from the actor's own turn timer rather than a local one, so the bar
+   * is the server's opinion of your progress and not the client's — a bar that
+   * fills and then does nothing is worse than no bar.
+   */
+  setPrompt(label, progress) {
+    const on = !!label;
+    this.el.prompt.classList.toggle('hidden', !on);
+    if (!on) return;
+    if (this.promptLabel !== label) {
+      this.promptLabel = label;
+      this.el.promptLabel.textContent = label;
+    }
+    this.el.promptBar.style.width = `${Math.min(100, progress * 100).toFixed(0)}%`;
+  }
+
+  /** Head under water. Opacity tracks depth so going under has a moment. */
+  setSubmerged(depth) {
+    const on = depth > 0;
+    this.el.water.classList.toggle('hidden', !on);
+    if (on) this.el.water.style.opacity = Math.min(1, 0.45 + depth * 0.4).toFixed(2);
   }
 
   flash(text, kind = 'note') {

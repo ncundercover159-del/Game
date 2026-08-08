@@ -8,13 +8,15 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { World, initPhysics, membership, GROUPS } from './world.js';
 import { Actor } from './actor.js';
-import { tryGrab, release, stepGrabs, pickTarget } from './grab.js';
+import { tryGrab, release, stepGrabs, pickTarget, lookDir } from './grab.js';
 import { LEVEL_BY_ID, DEFAULT_LEVEL, validateLevel } from '../shared/levels/index.js';
-import { Writer, MSG, PFLAG, OFLAG } from '../shared/protocol.js';
+import { Writer, MSG, PFLAG, OFLAG, NO_WATER } from '../shared/protocol.js';
 import {
   TICK_MS, TICK_DT, PHASE, MAX_PLAYERS, BUTTON, BRIEFING_MS, DEBRIEF_MS,
   EXTRACT_DWELL_MS, IMPACT_SAFE_MOMENTUM, IMPACT_DAMAGE_PER_NS,
   REVIVE_RADIUS, REVIVE_SECONDS, DOWNED_BLEEDOUT_MS, HEALTH_MAX,
+  VALVE_REACH, VALVE_TURN_MS, FLOOD_WRITEOFF_MS, DROWN_DAMAGE_PER_S,
+  POS_SCALE,
 } from '../shared/tune.js';
 
 export class Room {
@@ -44,6 +46,58 @@ export class Room {
     this.taskState = this.level.tasks.map((t) => ({ id: t.id, done: false, progress: 0 }));
 
     this.hitScratch = { a: null, b: null };
+
+    this.buildValves();
+    this.buildFlood();
+  }
+
+  /**
+   * The valves a level declares, indexed for the USE raycast.
+   *
+   * `level.sequence` is the authoritative copy; the brushes carry the same ids
+   * so the geometry can be found without a second table to keep in step. If a
+   * declared valve has no brush behind it there is nothing to look at and the
+   * job cannot be finished, so say so loudly at construction rather than
+   * quietly at minute four.
+   */
+  buildValves() {
+    this.valves = new Map();
+    this.valveOrder = [];
+    this.sequenceClean = true;
+    const seq = this.level.sequence;
+    if (!seq || !Array.isArray(seq.valves)) return;
+    for (const def of seq.valves) {
+      const brush = this.level.brushes.find((b) => b.valve === def.id);
+      if (!brush) throw new Error(`level ${this.level.id}: valve ${def.id} has no brush`);
+      this.valves.set(def.id, { id: def.id, def, brush, shut: false, penalised: false });
+    }
+  }
+
+  /**
+   * Rising water, if this level has any.
+   *
+   * `reaches` is a piecewise-linear curve through absolute heights keyed on
+   * seconds since the job went ACTIVE — not depths below the deck, because a
+   * depth is only meaningful next to the surface it was measured from and this
+   * plant has four of them.
+   *
+   * Zones are the one wrinkle. A tank whose valve was skipped fills early and
+   * independently, so water height is a function of position, not a scalar.
+   * Precompute the rectangles: this is read once per prop per tick and
+   * Object.entries in that loop is a hundred allocations a frame for nothing.
+   */
+  buildFlood() {
+    const f = this.level.flood;
+    this.floodY = f ? f.start : null;
+    this.floodBonus = new Map();      // zone name -> extra metres
+    this.floodZones = [];
+    if (!f || !f.zones) return;
+    for (const [name, z] of Object.entries(f.zones)) {
+      this.floodZones.push({
+        name, x0: z.x[0], x1: z.x[1], z0: z.z[0], z1: z.z[1],
+        rim: Number.isFinite(z.rim) ? z.rim : Infinity,
+      });
+    }
   }
 
   static async create(code, levelId) {
@@ -151,6 +205,7 @@ export class Room {
     this.drainContacts(now);
 
     if (this.phase === PHASE.ACTIVE) {
+      this.stepFlood(now);
       this.checkExtraction(now);
       this.checkDowned(now);
       this.checkTasks(now);
@@ -181,13 +236,22 @@ export class Room {
       if (input.buttons & BUTTON.PUSH) actor.holdDist = Math.min(3.2, actor.holdDist + 2.4 * TICK_DT);
     }
 
-    // Looking at a downed friend and holding USE revives them.
-    if (input.buttons & BUTTON.USE) this.tryRevive(actor, now);
-    else actor.reviving = null;
+    // One button, two jobs. A downed contractor beats plumbing every time: if
+    // you are stood over a friend with your hand out, you meant the friend, and
+    // the valve behind them can wait the three seconds.
+    if (input.buttons & BUTTON.USE) {
+      if (!this.tryRevive(actor, now)) this.tryValve(actor, now);
+      else { actor.turning = null; actor.turnProgress = 0; }
+    } else {
+      actor.reviving = null;
+      actor.turning = null;
+      actor.turnProgress = 0;
+    }
 
     void pickTarget;
   }
 
+  /** @returns {boolean} whether there was anybody to pick up. */
   tryRevive(actor, now) {
     let best = null, bd = REVIVE_RADIUS;
     for (const other of this.actors.values()) {
@@ -195,7 +259,7 @@ export class Room {
       const d = Math.hypot(other.pos.x - actor.pos.x, other.pos.y - actor.pos.y, other.pos.z - actor.pos.z);
       if (d < bd) { bd = d; best = other; }
     }
-    if (!best) { actor.reviving = null; return; }
+    if (!best) { actor.reviving = null; return false; }
     if (actor.reviving !== best.slot) { actor.reviving = best.slot; actor.reviveStart = now; }
     if (now - actor.reviveStart >= REVIVE_SECONDS * 1000) {
       best.downed = false;
@@ -204,6 +268,70 @@ export class Room {
       actor.reviving = null;
       this.emit('revive', { by: actor.slot, slot: best.slot });
     }
+    return true;
+  }
+
+  /** The static brush this contractor is pointing at, within `reach`. */
+  lookedAtBrush(actor, reach) {
+    if (!actor.alive || actor.ragdoll) return null;
+    const d = lookDir(actor);
+    const ray = new RAPIER.Ray({ x: actor.pos.x, y: actor.eye, z: actor.pos.z }, d);
+    const hit = this.world.world.castRay(ray, reach, true, undefined,
+      membership(GROUPS.GROUP_ACTOR, GROUPS.GROUP_STATIC));
+    return hit ? this.world.brushByCollider(hit.collider.handle) : null;
+  }
+
+  /**
+   * Hold USE on a wheel and it turns. Turning one out of order does not fail
+   * the sequence — it floods the tank you skipped, which is a worse punishment
+   * and a funnier one. A hard fail on a mis-press is miserable in a game where
+   * the person who pressed it is usually not the person who has to swim.
+   */
+  tryValve(actor, now) {
+    if (!this.valves.size) { actor.turning = null; return; }
+    const brush = this.lookedAtBrush(actor, VALVE_REACH);
+    const v = brush && brush.valve ? this.valves.get(brush.valve) : null;
+    if (!v || v.shut) { actor.turning = null; actor.turnProgress = 0; return; }
+
+    if (actor.turning !== v.id) { actor.turning = v.id; actor.turnStart = now; }
+    actor.turnProgress = Math.min(1, (now - actor.turnStart) / VALVE_TURN_MS);
+    if (actor.turnProgress < 1) return;
+
+    actor.turning = null;
+    actor.turnProgress = 0;
+    v.shut = true;
+    v.shutAt = now;
+    this.valveOrder.push(v.id);
+
+    // Anything below this one still open was skipped by definition.
+    const skipped = [];
+    for (const other of this.valves.values()) {
+      if (other.shut || other.penalised || other.def.order >= v.def.order) continue;
+      skipped.push(other.id);
+      this.floodPenalty(other);
+    }
+    this.emit('valve', {
+      id: v.id, order: v.def.order, label: v.def.label, by: actor.slot,
+      shut: this.valveOrder.length, total: this.valves.size, skipped,
+    });
+  }
+
+  /** Skipping a valve fills the tank it was holding back. */
+  floodPenalty(v) {
+    v.penalised = true;
+    this.sequenceClean = false;
+    const pen = this.level.sequence.penalty;
+    const zone = v.def.floods;
+    if (!pen || pen.kind !== 'flood_zone' || !zone
+        || !this.floodZones.some((z) => z.name === zone)) {
+      // A level may declare an order without declaring geometry for it. Say so
+      // rather than silently doing nothing, because "the penalty did not fire"
+      // and "the penalty is unwired" look identical from inside the game.
+      this.emit('penalty', { valve: v.id, zone: zone || null, metres: 0 });
+      return;
+    }
+    this.floodBonus.set(zone, (this.floodBonus.get(zone) || 0) + pen.metres);
+    this.emit('penalty', { valve: v.id, zone, metres: pen.metres });
   }
 
   /**
@@ -261,13 +389,91 @@ export class Room {
     }
   }
 
+  // --- water ------------------------------------------------------------------
+  /** Where the surface is at time `now`, following the level's curve. */
+  floodHeight(now) {
+    const f = this.level.flood;
+    if (!f) return null;
+    const t = (now - this.startedAt) / 1000;
+    let py = f.start;
+    let pt = f.startsAt || 0;
+    if (t <= pt) return py;
+    for (const r of (f.reaches || [])) {
+      if (t < r.at) return py + (r.y - py) * ((t - pt) / Math.max(1e-6, r.at - pt));
+      py = r.y; pt = r.at;
+    }
+    return Number.isFinite(f.end) ? f.end : py;
+  }
+
+  /**
+   * Water height at a point. Flat everywhere except inside a penalised tank,
+   * which fills to its own rim and stops — without the rim clamp, skipping the
+   * intake valve puts the filter bed's surface two metres above a deck that is
+   * still bone dry, which reads as a bug rather than as a punishment.
+   */
+  waterAt(x, z) {
+    if (this.floodY === null) return -Infinity;
+    for (const zn of this.floodZones) {
+      if (x < zn.x0 || x > zn.x1 || z < zn.z0 || z > zn.z1) continue;
+      const bonus = this.floodBonus.get(zn.name) || 0;
+      return bonus ? Math.min(zn.rim, this.floodY + bonus) : this.floodY;
+    }
+    return this.floodY;
+  }
+
+  /** Every zone's surface, in declaration order, for the wire. */
+  zoneHeights() {
+    return this.floodZones.map((zn) => {
+      const bonus = this.floodBonus.get(zn.name) || 0;
+      return bonus ? Math.min(zn.rim, this.floodY + bonus) : this.floodY;
+    });
+  }
+
+  /**
+   * What the water does to everything in it.
+   *
+   * Deliberately not buoyancy. A floating piano is funny exactly once and wrong
+   * for ever after, and it would also make the sump trivially solvable by
+   * waiting. Water here is a deadline with a body count: it writes off stock
+   * that goes under and it drowns anyone who stays under with it.
+   */
+  stepFlood(now) {
+    if (this.floodY === null) return;
+    this.floodY = this.floodHeight(now);
+
+    for (const rec of this.world.props.values()) {
+      if (rec.extracted || rec.flooded) continue;
+      const p = rec.rb.translation();
+      if (p.y >= this.waterAt(p.x, p.z)) { rec.sunkSince = 0; continue; }
+      if (!rec.sunkSince) { rec.sunkSince = now; continue; }
+      if (now - rec.sunkSince < FLOOD_WRITEOFF_MS) continue;
+      rec.flooded = true;
+      rec.dirty = true;
+      this.emit('sunk', { id: rec.id, kind: rec.kind, value: rec.def.value });
+    }
+
+    for (const actor of this.actors.values()) {
+      if (!actor.alive) { actor.waterY = -Infinity; continue; }
+      const w = this.waterAt(actor.pos.x, actor.pos.z);
+      actor.waterY = w;
+      // Ragdolled, the pelvis is the reference and the head is roughly half a
+      // metre above it — face down in six inches of water still counts, which
+      // is the correct amount of cruelty for a game about falling over.
+      const head = actor.ragdoll ? actor.pos.y + 0.5 : actor.eye;
+      if (head < w) actor.damage(DROWN_DAMAGE_PER_S * TICK_DT, now, 'drown');
+    }
+  }
+
   /** A prop counts when it has come to rest inside the van and stayed there. */
   checkExtraction(now) {
     const e = this.level.extract;
     const [ex, ey, ez] = e.p;
     const [sx, sy, sz] = e.s;
     for (const rec of this.world.props.values()) {
-      if (rec.extracted) continue;
+      // Written off is written off. Fishing a flooded safe out and driving it
+      // away would be the obvious exploit, and it is also just not how a loss
+      // adjuster works.
+      if (rec.extracted || rec.flooded) continue;
       const p = rec.rb.translation();
       const inside = Math.abs(p.x - ex) < sx / 2
         && Math.abs(p.y - ey) < sy / 2
@@ -321,6 +527,15 @@ export class Room {
         const n = (t.intact ? this.intactKinds : this.extractedKinds).get(t.kind) || 0;
         st.progress = Math.min(1, n / t.count);
         st.done = n >= t.count;
+      } else if (t.type === 'operate_in_order') {
+        // Done is "all of them shut", not "all of them shut in order". Order is
+        // scored in water, not in ticks: a required task that a mis-press can
+        // permanently fail is a required task that ends the job at minute one.
+        const total = this.valves.size;
+        const shut = this.valveOrder.length;
+        st.progress = total ? shut / total : 1;
+        st.done = total > 0 && shut >= total;
+        st.clean = this.sequenceClean;
       }
       // Only the required tasks gate the job; bonuses are just money.
       if (!t.bonus && !st.done) allDone = false;
@@ -408,14 +623,40 @@ export class Room {
       w.posw(p.x, p.y, p.z);
       w.quatw(q.x, q.y, q.z, q.w);
     }
+
+    // Water. Three bytes plus two per zone, sent every snapshot rather than on
+    // change, because the surface is moving continuously and a client that
+    // missed the one packet saying so would render a dry sump for ever.
+    if (this.floodY === null) w.i16w(NO_WATER);
+    else w.i16w(clampWater(this.floodY));
+    w.u8w(this.valveMask());
+    const zones = this.floodY === null ? [] : this.zoneHeights();
+    w.u8w(zones.length);
+    for (const y of zones) w.i16w(clampWater(y));
+
     this.world.clearDirty();
     return w.bytes();
+  }
+
+  /** One bit per declared valve, in declaration order. Eight is the ceiling. */
+  valveMask() {
+    let m = 0, i = 0;
+    for (const v of this.valves.values()) { if (v.shut) m |= (1 << i); i++; }
+    return m;
   }
 
   destroy() {
     for (const a of this.actors.values()) a.destroy();
     this.world.destroy();
   }
+}
+
+// Water shares the position quantiser, so it inherits its range. A surface
+// clamped rather than wrapped is merely wrong; a wrapped one is 327 metres of
+// wrong in the opposite direction.
+function clampWater(y) {
+  const v = Math.round(y * POS_SCALE);
+  return Math.max(NO_WATER + 1, Math.min(32767, v));
 }
 
 const ZERO_INPUT = {

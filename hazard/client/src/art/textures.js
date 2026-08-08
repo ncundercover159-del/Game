@@ -116,8 +116,8 @@ const GEN = {
   concrete(u, v, o) {
     const pour = fbm(u, v, 2, 3, 11);          // where one day's pour met the next
     const patch = fbm(u, v, 5, 3, 97);         // power-float swirl, wear, damp
-    const grain = fbm(u, v, 14, 3, 23);        // the tooth
-    const speck = vnoise(u, v, 56, 41);
+    const grain = fbm(u, v, 12, 3, 23);        // the tooth
+    const speck = vnoise(u, v, 38, 41);
     const stone = speck > 0.80 ? (speck - 0.80) / 0.20 : 0;
     const crack = ridge(u, v, 11, 2, 71);
     const crk = smooth(0.982, 0.999, crack);
@@ -136,7 +136,11 @@ const GEN = {
     // Height is mostly tooth. The crack contributes little: a deep crack in the
     // height channel is what threw the bright rims, and a real hairline crack
     // is a colour, not a valley.
-    o[3] = clamp01(0.5 + (grain - 0.5) * 0.22 + stone * 0.28 - crk * 0.16);
+    // Aggregate is a lump you can see, not a lump you can feel through a boot.
+    // At 0.28 the derivative bump was turning every stone into a lit pip and
+    // the floor measured a four-pixel feature size — the signature of noise
+    // rather than of texture.
+    o[3] = clamp01(0.5 + (grain - 0.5) * 0.20 + stone * 0.16 - crk * 0.16);
   },
 
   // Corrugated wall cladding. The ribs run along one texture axis, which under
@@ -192,11 +196,28 @@ const GEN = {
   // is, at four degrees of grazing angle, indistinguishable from noise, and the
   // chromatic aberration then painted the noise red and blue.
   //
-  // The answer is DETAIL AT TWO SCALES. The rib is the far read: eighty
-  // centimetres of pitch, so at thirty metres it is still a dozen pixels wide
-  // and the roof reads as a roof. The tread is the near read: it survives to
-  // about four metres and mips harmlessly away after that. Neither one is doing
-  // the other's job, which is the mistake the chequer plate was making.
+  // The answer is DETAIL AT TWO SCALES. The rib is the far read: over a metre
+  // of pitch, so at thirty metres it is still a dozen pixels wide and the roof
+  // reads as a roof. The tread is the near read: it survives to about four
+  // metres and mips harmlessly away after that. Neither one is doing the
+  // other's job, which is the mistake the chequer plate was making.
+  //
+  // AND THEN IT THREW STARBURSTS ANYWAY. Two lamps under this ceiling each grew
+  // a rosette of straight rays reaching a third of the way across the frame.
+  // That is textbook moiré: a regular high-contrast motif, minified past
+  // Nyquist over a surface hundreds of metres across, beating against the pixel
+  // grid — and where the beat frequency happens to land near a lamp, every
+  // ridge that catches the specular lights up along one radial line and the
+  // whole thing turns into a starburst. Anisotropic filtering cannot save it,
+  // because the pattern is still there in the mip and the SPECULAR is what is
+  // amplifying it: 0.34 metalness at 0.72 roughness is a semi-gloss mirror, and
+  // a mirror multiplies the aliasing by the lamp.
+  //
+  // Three things had to give at once, and no one of them was enough alone: the
+  // tread's contrast (here), the relief that turns it into normals, and the
+  // gloss that turns the normals into light (both in materials.js). What the
+  // ceiling loses is a near-read nobody was ever close enough to see. Anything
+  // repeated ten thousand times must be QUIET.
   deckplate(u, v, o) {
     // --- far read: three ribs across the tile ---
     const ribs = 3;
@@ -215,19 +236,22 @@ const GEN = {
     const a = dir * 0.62;
     const rx = fx * Math.cos(a) - fy * Math.sin(a);
     const ry = fx * Math.sin(a) + fy * Math.cos(a);
-    const bar = 1 - smooth(0.70, 1.05, Math.max(Math.abs(rx) / 0.30, Math.abs(ry) / 0.12));
+    // Softened edges as well as reduced amplitude. A hard-edged bar is a step
+    // function, and a step function has energy at every frequency including the
+    // ones that alias.
+    const bar = 1 - smooth(0.55, 1.15, Math.max(Math.abs(rx) / 0.30, Math.abs(ry) / 0.12));
 
-    const wear = fbm(u, v, 6, 3, 5);
-    const grime = fbm(u, v, 18, 3, 19);
-    // Low contrast on purpose, and lower on the tread than on the rib. Contrast
-    // is what turns minification into moiré, and the tread is the part that
-    // gets minified.
+    const wear = fbm(u, v, 5, 3, 5);
+    const grime = fbm(u, v, 11, 3, 19);
     let l = 0.30 + 0.09 * grime;
-    l = mix(l, l * 1.14, bar * (1 - crown));        // tread tops, polished
-    l *= 1 + crown * 0.30 - web * 0.10;             // the rib itself
+    l = mix(l, l * 1.05, bar * (1 - crown));        // tread tops, barely there
+    l *= 1 + crown * 0.26 - web * 0.09;             // the rib carries the read
     l *= mix(0.94, 1.05, wear);
-    o[0] = l * 1.0; o[1] = l * 1.01; o[2] = l * 1.06;
-    o[3] = clamp01(0.24 + crown * 0.52 + bar * 0.16 * (1 - crown) + (grime - 0.5) * 0.10);
+    o[0] = l * 1.0; o[1] = l * 1.01; o[2] = l * 1.05;
+    // The tread's contribution to HEIGHT is what the specular was amplifying,
+    // so it is the number that came down hardest: 0.16 to 0.04. The rib keeps
+    // its relief because the rib is a metre wide and never aliases.
+    o[3] = clamp01(0.24 + crown * 0.52 + bar * 0.04 * (1 - crown) + (grime - 0.5) * 0.08);
   },
 
   // Open steel grating: bearing bars one way, twisted cross rods the other,

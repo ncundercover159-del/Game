@@ -73,6 +73,16 @@ const cache = new Map();
 //           a corrugated wall look corrugated when the sun is behind you.
 // mottle:   large-scale albedo drift, to break the tile. Costs four sines and
 //           saves a 1024² texture.
+// fill:     bounce floor — see FRAG_AO. THE OTHER MOST IMPORTANT NUMBER HERE.
+//           A measured frame had 64% of its pixels sitting flat, dark and blue,
+//           and the black-point lift in post could only change the colour of
+//           that emptiness, never put anything in it. This is what puts
+//           something in it, and it must be paid per material because a
+//           concrete floor bounces and a black lacquered piano does not.
+// env:      envMapIntensity. The environment map is a bright studio room and
+//           its job here is highlights, not illumination; a large architectural
+//           metal at full strength turns into a mirror of a room that is not
+//           there, which is what blew the near wall out to 144 grey.
 // TILE IS IN METRES AND IT IS THE MOST IMPORTANT NUMBER IN THIS FILE. The
 // projection is world-scaled, so `tile: 3.2` means one copy of the map covers
 // 3.2 m of any surface it lands on, everywhere, regardless of brush size. Get
@@ -82,37 +92,49 @@ const cache = new Map();
 // and the motif should be obviously the thing it is meant to be, and stand at
 // 20 m and it should still be resolvable rather than a grey wash.
 const RECIPES = {
-  concrete: { tex: 'concrete', tile: 4.2, rough: 0.94, metal: 0.0, bump: 1.15, roughVar: -0.20, ao: 0.42, mottle: 0.16 },
-  panel: { tex: 'panel', tile: 3.6, rough: 0.74, metal: 0.22, bump: 2.4, roughVar: -0.22, ao: 0.48, mottle: 0.13 },
-  deckplate: { tex: 'deckplate', tile: 2.8, rough: 0.72, metal: 0.34, bump: 2.2, roughVar: -0.26, ao: 0.40, mottle: 0.11 },
-  grate: { tex: 'grate', tile: 0.70, rough: 0.58, metal: 0.68, bump: 2.4, roughVar: -0.22, ao: 0.55, mottle: 0.08 },
-  steelblue: { tex: 'steelblue', tile: 1.30, rough: 0.52, metal: 0.55, bump: 2.0, roughVar: -0.26, ao: 0.30, mottle: 0.11 },
-  railing: { tex: 'railing', tile: 0.85, rough: 0.58, metal: 0.28, bump: 2.0, roughVar: -0.20, ao: 0.26, mottle: 0.10 },
-  plank: { tex: 'plank', tile: 1.30, rough: 0.90, metal: 0.0, bump: 2.2, roughVar: -0.16, ao: 0.34, mottle: 0.13 },
-  rubber: { tex: 'rubber', tile: 0.90, rough: 0.97, metal: 0.0, bump: 2.4, roughVar: -0.10, ao: 0.45, mottle: 0.08 },
+  // The eight architectural surfaces. Their tiles all went UP by about half
+  // over the first pass: a measured feature size of 4-5 px against a reference
+  // that runs 8-27 is not "detailed", it is a screen of dots, and post makes it
+  // worse because every pass in the chain is another low-pass filter that the
+  // eye reads as more noise rather than less.
+  concrete: { tex: 'concrete', tile: 5.6, rough: 0.94, metal: 0.0, bump: 1.05, roughVar: -0.20, ao: 0.42, mottle: 0.16, fill: 0.34 },
+  panel: { tex: 'panel', tile: 4.6, rough: 0.80, metal: 0.10, bump: 2.1, roughVar: -0.20, ao: 0.46, mottle: 0.13, fill: 0.30, env: 0.45 },
+  // Fifteen hundred square metres of ceiling, and every number here is set by
+  // that. See the note in textures.js: bright metal + fine relief + a point
+  // lamp is a moiré rosette generator, and it threw starbursts a third of the
+  // way across the screen. Dusty painted deck, barely metallic, barely bumped.
+  deckplate: { tex: 'deckplate', tile: 4.0, rough: 0.94, metal: 0.07, bump: 0.7, roughVar: -0.10, ao: 0.30, mottle: 0.11, fill: 0.30, env: 0.22 },
+  grate: { tex: 'grate', tile: 0.88, rough: 0.62, metal: 0.60, bump: 2.2, roughVar: -0.22, ao: 0.55, mottle: 0.08, fill: 0.22, env: 0.7 },
+  steelblue: { tex: 'steelblue', tile: 1.75, rough: 0.68, metal: 0.28, bump: 1.5, roughVar: -0.22, ao: 0.30, mottle: 0.11, fill: 0.34, env: 0.5 },
+  railing: { tex: 'railing', tile: 1.05, rough: 0.62, metal: 0.22, bump: 1.8, roughVar: -0.20, ao: 0.26, mottle: 0.10, fill: 0.32 },
+  plank: { tex: 'plank', tile: 1.55, rough: 0.90, metal: 0.0, bump: 2.0, roughVar: -0.16, ao: 0.34, mottle: 0.13, fill: 0.32 },
+  rubber: { tex: 'rubber', tile: 1.15, rough: 0.97, metal: 0.0, bump: 2.2, roughVar: -0.10, ao: 0.45, mottle: 0.08, fill: 0.20 },
 
   // Prop surfaces. These sit near white and let vertex colour carry the hue —
   // see props.js. Seventeen kinds of object, ten materials, and a novelty
   // cheque can still be four different colours in a single draw call.
-  ceramic: { tex: 'ceramic', tile: 0.30, rough: 0.34, metal: 0.0, bump: 1.0, roughVar: -0.12, ao: 0.18, mottle: 0 },
-  plastic: { tex: 'plastic', tile: 0.42, rough: 0.58, metal: 0.0, bump: 1.6, roughVar: -0.14, ao: 0.22, mottle: 0 },
-  metal: { tex: 'metal', tile: 0.55, rough: 0.42, metal: 0.72, bump: 1.6, roughVar: -0.28, ao: 0.20, mottle: 0 },
-  glass: { tex: 'glass', tile: 0.50, rough: 0.10, metal: 0.0, bump: 0.8, roughVar: -0.08, ao: 0.10, mottle: 0, opacity: 0.42 },
-  fabric: { tex: 'fabric', tile: 0.34, rough: 0.98, metal: 0.0, bump: 1.8, roughVar: 0.10, ao: 0.34, mottle: 0 },
-  fur: { tex: 'fur', tile: 0.28, rough: 0.94, metal: 0.0, bump: 2.4, roughVar: 0.12, ao: 0.36, mottle: 0 },
-  card: { tex: 'card', tile: 0.60, rough: 0.86, metal: 0.0, bump: 1.0, roughVar: 0.08, ao: 0.16, mottle: 0 },
-  lacquer: { tex: 'lacquer', tile: 0.80, rough: 0.20, metal: 0.12, bump: 0.9, roughVar: -0.10, ao: 0.12, mottle: 0 },
-  enamel: { tex: 'enamel', tile: 0.85, rough: 0.26, metal: 0.06, bump: 1.4, roughVar: -0.38, ao: 0.20, mottle: 0 },
-  rust: { tex: 'rust', tile: 0.85, rough: 0.88, metal: 0.38, bump: 2.8, roughVar: -0.16, ao: 0.38, mottle: 0.08 },
+  ceramic: { tex: 'ceramic', tile: 0.30, rough: 0.34, metal: 0.0, bump: 1.0, roughVar: -0.12, ao: 0.18, mottle: 0, fill: 0.30 },
+  plastic: { tex: 'plastic', tile: 0.42, rough: 0.58, metal: 0.0, bump: 1.6, roughVar: -0.14, ao: 0.22, mottle: 0, fill: 0.30 },
+  metal: { tex: 'metal', tile: 0.55, rough: 0.42, metal: 0.66, bump: 1.6, roughVar: -0.28, ao: 0.20, mottle: 0, fill: 0.26, env: 0.8 },
+  glass: { tex: 'glass', tile: 0.50, rough: 0.10, metal: 0.0, bump: 0.8, roughVar: -0.08, ao: 0.10, mottle: 0, opacity: 0.42, fill: 0.45, env: 1.4 },
+  fabric: { tex: 'fabric', tile: 0.34, rough: 0.98, metal: 0.0, bump: 1.8, roughVar: 0.10, ao: 0.34, mottle: 0, fill: 0.30 },
+  fur: { tex: 'fur', tile: 0.28, rough: 0.94, metal: 0.0, bump: 2.4, roughVar: 0.12, ao: 0.36, mottle: 0, fill: 0.30 },
+  card: { tex: 'card', tile: 0.60, rough: 0.86, metal: 0.0, bump: 1.0, roughVar: 0.08, ao: 0.16, mottle: 0, fill: 0.30 },
+  lacquer: { tex: 'lacquer', tile: 0.80, rough: 0.20, metal: 0.12, bump: 0.9, roughVar: -0.10, ao: 0.12, mottle: 0, fill: 0.55, env: 1.3 },
+  enamel: { tex: 'enamel', tile: 0.85, rough: 0.26, metal: 0.06, bump: 1.4, roughVar: -0.38, ao: 0.20, mottle: 0, fill: 0.30, env: 1.1 },
+  rust: { tex: 'rust', tile: 0.85, rough: 0.88, metal: 0.38, bump: 2.6, roughVar: -0.16, ao: 0.38, mottle: 0.08, fill: 0.28 },
 
   // The contractor. Not asked for by the level, but figure.js wants the same
-  // triplanar machinery and there is no sense having two of it.
-  overall: { tex: 'overall', tile: 0.50, rough: 0.92, metal: 0.0, bump: 1.8, roughVar: 0.10, ao: 0.30, mottle: 0 },
-  gear: { tex: 'gear', tile: 0.34, rough: 0.44, metal: 0.06, bump: 1.6, roughVar: -0.20, ao: 0.22, mottle: 0 },
+  // triplanar machinery and there is no sense having two of it. Their fill runs
+  // high on purpose: a player who walks into an unlit corner and vanishes is a
+  // gameplay bug, not a lighting choice.
+  overall: { tex: 'overall', tile: 0.50, rough: 0.92, metal: 0.0, bump: 1.8, roughVar: 0.10, ao: 0.30, mottle: 0, fill: 0.38 },
+  gear: { tex: 'gear', tile: 0.34, rough: 0.44, metal: 0.06, bump: 1.6, roughVar: -0.20, ao: 0.22, mottle: 0, fill: 0.38 },
+  skin: { tex: 'skin', tile: 0.26, rough: 0.66, metal: 0.0, bump: 1.1, roughVar: 0.06, ao: 0.20, mottle: 0, fill: 0.40 },
 
   // The renderer's own names.
-  broken: { tex: 'broken', tile: 0.55, rough: 1.0, metal: 0.0, bump: 3.0, roughVar: -0.10, ao: 0.45, mottle: 0.10, noVertexColour: true },
-  unknown: { tex: 'unknown', tile: 1.0, rough: 1.0, metal: 0.0, bump: 0, roughVar: 0, ao: 0, mottle: 0 },
+  broken: { tex: 'broken', tile: 0.55, rough: 1.0, metal: 0.0, bump: 3.0, roughVar: -0.10, ao: 0.45, mottle: 0.10, fill: 0.28, noVertexColour: true },
+  unknown: { tex: 'unknown', tile: 1.0, rough: 1.0, metal: 0.0, bump: 0, roughVar: 0, ao: 0, mottle: 0, fill: 0.1 },
 };
 
 // --- the triplanar patch -----------------------------------------------------
@@ -218,7 +240,7 @@ if ( tpTune.y > 0.0 ) {
   // tread plate is seen at maybe five degrees, one texel spans a dozen pixels,
   // and the height gradient there is noise — left alone it sparkles like tinsel.
   // Physically this is also just true: you cannot resolve relief you cannot see.
-  float graze = smoothstep( 0.06, 0.34, abs( dot( normal, normalize( - sp ) ) ) );
+  float graze = smoothstep( 0.10, 0.44, abs( dot( normal, normalize( - sp ) ) ) );
   // Clamped, because a mip transition can put a whole texel's worth of height
   // change into one pixel and tip the normal past the horizon.
   vec2 dH = clamp( vec2( dFdx( tpHeight ), dFdy( tpHeight ) ) * tpTune.y * graze, -0.45, 0.45 );
@@ -241,9 +263,38 @@ if ( tpTune.y > 0.0 ) {
 }
 `;
 
+// Cavity occlusion, and then the bounce floor.
+//
+// THE BOUNCE FLOOR IS THE FIX FOR THE NAVY. A measured frame had sixty-four per
+// cent of its pixels flat, dark and blue — one indigo slab covering the
+// ceiling, the far racking and the crate two metres in front of the camera. The
+// instinct is to reach for the black-point lift in the grade, and that is
+// exactly wrong: a lift changes the COLOUR of emptiness and cannot add anything
+// to look at, so the frame goes from a black hole to a blue hole. The hole is
+// the problem.
+//
+// So: every surface gets a fraction of its own albedo back as light. It is a
+// cheat for the second and third light bounce that a real shed full of pale
+// concrete genuinely has and that a direct-lighting renderer simply does not
+// compute. What makes it work rather than merely brighten is that it is
+// TEXTURED and TINTED — what appears out of the dark is concrete-coloured
+// concrete with its own grain and its own cavity shading, so the eye gets
+// material back, not fog.
+//
+// Weighted by world-facing: a warehouse bounces off its floor and its pale
+// ceiling, so up- and down-facing surfaces catch more of it than a wall does,
+// and that alone gives every box in the dark a top, a side and a bottom. The
+// world normal is recovered by multiplying the view normal through viewMatrix
+// from the left, which for a rotation is its inverse and costs no uniform.
 const FRAG_AO = /* glsl */`
 #include <aomap_fragment>
-reflectedLight.indirectDiffuse *= 1.0 - tpTune.w * ( 1.0 - tpHeight );
+float tpCav = 1.0 - tpTune.w * ( 1.0 - tpHeight );
+reflectedLight.indirectDiffuse *= tpCav;
+if ( tpFill > 0.0 ) {
+  vec3 tpW = normalize( ( vec4( normal, 0.0 ) * viewMatrix ).xyz );
+  float tpUp = abs( tpW.y );
+  reflectedLight.indirectDiffuse += diffuseColor.rgb * tpFill * mix( 0.62, 1.30, tpUp ) * tpCav;
+}
 `;
 
 function patch(shader) {
@@ -251,6 +302,7 @@ function patch(shader) {
   shader.uniforms.tpMap = tp.map;
   shader.uniforms.tpTune = tp.tune;
   shader.uniforms.tpMottle = tp.mottle;
+  shader.uniforms.tpFill = tp.fill;
 
   shader.vertexShader = VERT_PARS + shader.vertexShader
     .replace('#include <beginnormal_vertex>', VERT_HOOK);
@@ -275,12 +327,14 @@ function patch(shader) {
  */
 export function applyTriplanar(mat, texName, over = {}) {
   const base = RECIPES[texName] || {};
-  const r = { tile: 1, bump: 2, roughVar: -0.2, ao: 0.3, mottle: 0, ...base, ...over };
+  const r = { tile: 1, bump: 2, roughVar: -0.2, ao: 0.3, mottle: 0, fill: 0.12, env: 1, ...base, ...over };
   mat.userData.tp = {
     map: { value: surfaceTexture(texName) },
     tune: { value: new THREE.Vector4(1 / r.tile, r.bump, r.roughVar, r.ao) },
     mottle: { value: r.mottle },
+    fill: { value: r.fill },
   };
+  mat.envMapIntensity = r.env;
   mat.onBeforeCompile = patch;
   mat.needsUpdate = true;
   return mat;

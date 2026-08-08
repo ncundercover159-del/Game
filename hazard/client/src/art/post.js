@@ -362,11 +362,19 @@ void main() {
   // The mask has to be TIGHT. A toe that reaches into the mid-tones does not
   // read as a lifted black, it reads as milk poured over the whole frame — the
   // first attempt used a half-luma ramp and turned a warehouse into fog.
-  // Squared, and done by a third of the way up, so it moves the empty pixels
+  // Squared, and done by a quarter of the way up, so it moves the empty pixels
   // and leaves anything with detail in it alone.
+  //
+  // And note what this can and cannot do. Measured, the darkest five per cent
+  // of the frame landed at RGB 35/33/58 — dead on the reference — while
+  // SIXTY-FOUR PER CENT of the same frame was a flat navy slab. Both facts at
+  // once, because a black point is a floor and says nothing about how much of
+  // the picture is lying on it. The fix for that was never here; it is the
+  // bounce floor in materials.js, which puts something in the dark instead of
+  // recolouring the nothing. This line is only allowed to set where zero is.
   float dist = min( -viewZ( vUv ), 70.0 );
   float far = 1.0 - exp( -dist * uAerialRate );
-  float shadow = 1.0 - smoothstep( 0.0, 0.30, dot( col, LUMA ) );
+  float shadow = 1.0 - smoothstep( 0.0, 0.24, dot( col, LUMA ) );
   shadow *= shadow;
   col += ( uLift + uAerial * far ) * shadow * vig;
 
@@ -431,7 +439,7 @@ class SitePass extends Pass {
     });
     this.brightMat = shader(BRIGHT_FRAG, {
       tScene: { value: null },
-      uThreshold: { value: 1.30 },
+      uThreshold: { value: 1.62 },
     });
     this.blurMat = shader(BLUR_FRAG, {
       tSrc: { value: null },
@@ -445,7 +453,7 @@ class SitePass extends Pass {
       uTexel: { value: new THREE.Vector2(1 / width, 1 / height) },
       uExposure: { value: 1 },
       uAO: { value: 0.70 },
-      uBloom: { value: 0.62 },
+      uBloom: { value: 0.55 },
       uVignette: { value: 0.36 },
       // Grain is measured in display units, and this one is easy to overdo in a
       // way that does not look like grain: at 0.045 the noise is ±6/255, which
@@ -453,16 +461,31 @@ class SitePass extends Pass {
       // threshold a reviewer uses to tell textured from smooth. The frame came
       // back 93% textured against a reference that leaves 63% of itself
       // deliberately plain. Grain must live under the detail, not on top of it.
-      uGrain: { value: 0.017 },
-      // UV units, multiplied by radius squared, so the extreme corner sees a
-      // quarter of this: 1.1 px at 1280 wide. See the note in the shader — the
-      // failure mode of this effect is not "too subtle", it is "rainbow".
-      uAberration: { value: 0.0035 },
+      uGrain: { value: 0.012 },
+      // UV units, multiplied by radius squared. See the note in the shader —
+      // the failure mode of this effect is not "too subtle", it is "rainbow".
+      //
+      // DO NOT SET THIS FROM ARITHMETIC. The predicted corner offset and the
+      // measured one disagree by a factor of two and a bit, because the
+      // aberration is applied as a difference on top of an FXAA'd colour and
+      // the resampling changes the effective displacement. A cross-correlation
+      // of the red and blue channels against green measured 2.8 px at the frame
+      // edge where a lens wants 0.6-1.5, so this is the number that produced
+      // 2.8, divided by what it needed dividing by. Trust the pixels.
+      uAberration: { value: 0.0026 },
       uTime: { value: 0 },
-      // Display-space black floor and its far-field extra. 0.145 * 255 = 37, so
-      // an absolutely unlit pixel in the near field lands near 37/34/60.
-      uLift: { value: new THREE.Vector3(0.145, 0.134, 0.235) },
-      uAerial: { value: new THREE.Vector3(0.050, 0.058, 0.088) },
+      // Display-space black floor and its far-field extra.
+      //
+      // These both came DOWN by a third once materials.js grew a bounce floor,
+      // and that ordering is the whole lesson. Before the bounce, the lift was
+      // the only thing in two thirds of the frame and had to be large enough to
+      // be a picture on its own — which is precisely why the warehouse went
+      // navy. Once every surface returns a fraction of its own albedo, the lift
+      // only has to do what a black point is for: keep absolute zero off the
+      // screen. Anything more and it starts tinting things that already have a
+      // colour of their own.
+      uLift: { value: new THREE.Vector3(0.098, 0.090, 0.156) },
+      uAerial: { value: new THREE.Vector3(0.030, 0.034, 0.055) },
       uAerialRate: { value: 0.030 },
     });
 

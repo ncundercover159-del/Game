@@ -19,6 +19,7 @@ import {
   STAMINA_MAX, STAMINA_SPRINT, STAMINA_REGEN, STAMINA_REGEN_DELAY_MS,
   STAMINA_HAUL_PER_KG, HAUL_FREE_KG, HEALTH_MAX, FALL_SAFE_SPEED, FALL_DAMAGE_PER_MS,
   RAGDOLL_TRIGGER_DAMAGE, RAGDOLL_MIN_MS, RAGDOLL_SETTLE_SPEED, BUTTON, TICK_DT,
+  WATER_SPEED_SCALE, WATER_WADE_DEPTH,
 } from '../shared/tune.js';
 
 const { GROUP_STATIC, GROUP_PROP, GROUP_ACTOR, GROUP_RAGDOLL } = GROUPS;
@@ -87,6 +88,10 @@ export class Actor {
 
     this.lastInputSeq = 0;
     this.impactAccum = 0;
+    // Where the surface is where this contractor is standing. The room writes
+    // it; a level with no water leaves it at negative infinity, which makes
+    // every comparison below false without a special case anywhere.
+    this.waterY = -Infinity;
 
     this.makeCapsule();
   }
@@ -166,12 +171,16 @@ export class Actor {
       this.stamina = Math.min(STAMINA_MAX, this.stamina + STAMINA_REGEN * TICK_DT);
     }
 
-    // Exhausted and loaded down is a walk, and a slow one.
+    // Exhausted and loaded down is a walk, and a slow one. Wading is slower
+    // still, and it eases in over the first 35cm — a hard step change at the
+    // waterline makes a shoreline feel like a wall rather than a shallows.
     const fatigue = this.stamina <= 0 ? 0.62 : 1;
     const loadPenalty = 1 / (1 + overweight * 0.006);
+    const depth = Math.max(0, Math.min(1, (this.waterY - this.pos.y) / WATER_WADE_DEPTH));
+    const wade = 1 - (1 - WATER_SPEED_SCALE) * depth;
     const target = (this.crouched ? CROUCH_SPEED
       : this.sprinting && this.stamina > 0 ? SPRINT_SPEED : WALK_SPEED)
-      * fatigue * loadPenalty;
+      * fatigue * loadPenalty * wade;
 
     // --- wish direction in world space ---
     const s = Math.sin(this.yaw), c = Math.cos(this.yaw);

@@ -127,6 +127,8 @@ class Client {
     this.abuse = 0;
     this.junk = 0;
     this.alive = true;
+    this.roomsMade = 0;
+    this.roomsSince = 0;
   }
 
   get open() { return this.ws.readyState === 1; }
@@ -415,7 +417,16 @@ class Session {
 function createSession(levelId) {
   if (rooms.size >= MAX_ROOMS) return null;
   const code = makeCode(rooms);
-  const session = new Session(code, LEVEL_BY_ID[levelId] ? levelId : DEFAULT_LEVEL);
+  let session;
+  try {
+    // A Room is a hundred-odd colliders and forty rigid bodies built
+    // synchronously, and a level is authored data that can fail validation.
+    // Neither is a reason to drop the socket.
+    session = new Session(code, LEVEL_BY_ID[levelId] ? levelId : DEFAULT_LEVEL);
+  } catch (err) {
+    console.error('room construction failed:', err && err.message);
+    return null;
+  }
   rooms.set(code, session);
   console.log(`room ${code} opened on "${session.room.level.name}" (${rooms.size} live)`);
   return session;
@@ -701,6 +712,13 @@ function onJoin(client, msg) {
   let session;
   const raw = msg.code == null ? '' : String(msg.code);
   if (raw.trim() === '') {
+    // Opening a job is the one verb that costs real money — a whole Rapier
+    // world — so it gets its own budget on top of the control bucket. Leaving
+    // and rejoining in a loop would otherwise let one socket build a physics
+    // world twelve times a second.
+    const now = Date.now();
+    if (now - client.roomsSince > 60_000) { client.roomsSince = now; client.roomsMade = 0; }
+    if (++client.roomsMade > 6) return fail(client, 'TOO MANY JOBS, SLOW DOWN');
     session = createSession(msg.levelId);
     if (!session) return fail(client, 'NO ROOM ON THE SERVER');
   } else {

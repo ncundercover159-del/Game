@@ -11,6 +11,11 @@
 <body>
 <canvas id="gl"></canvas>
 
+<!-- Underwater. A DOM wash rather than a post-process pass: it has to sit over
+     the finished frame whatever the art pass does to the chain, and a green
+     rectangle at 0.5 opacity costs nothing to composite. -->
+<div id="water" class="hidden"></div>
+
 <!-- The HUD is filled in by hud.js; the shell lives here so the layout is
      inspectable without running the game. -->
 <div id="hud" class="hidden">
@@ -41,6 +46,12 @@
       </div>
     </div>
     <div id="held"></div>
+  </div>
+
+  <!-- "Hold G" prompts: valves today, anything else that takes a second later. -->
+  <div id="prompt" class="hidden">
+    <span class="p-label"></span>
+    <div class="p-bar"><b></b></div>
   </div>
 
   <div id="feed"></div>

@@ -10,8 +10,10 @@
 // WebSocket; a test harness hands the same Net an in-process pipe to a Room it
 // is stepping itself. Neither knows which it is.
 
-import { Reader, MSG, PFLAG, OFLAG, Writer, writeInput, unpackQuat } from '../../shared/protocol.js';
-import { INTERP_DELAY_MS } from '../../shared/tune.js';
+import {
+  Reader, MSG, PFLAG, OFLAG, Writer, writeInput, unpackQuat, NO_WATER,
+} from '../../shared/protocol.js';
+import { INTERP_DELAY_MS, POS_SCALE } from '../../shared/tune.js';
 
 export { MSG, PFLAG, OFLAG };
 
@@ -32,6 +34,10 @@ export { MSG, PFLAG, OFLAG };
  *     u8 slot | u8 bone index | i16*3 position | u32 packed quaternion
  *   u16 prop count — only what moved, plus anything that just fell asleep
  *     u16 id | u8 OFLAG | i16*3 position | u32 packed quaternion
+ *   i16 water level in centimetres, or NO_WATER for a level with none
+ *   u8  valve bitmask, one bit per declared valve in declaration order
+ *   u8  zone count
+ *     i16 that zone's own surface, for a tank whose valve was skipped
  *
  * Positions are centimetres, angles are radians*10000, quaternions are
  * smallest-three. All of that is protocol.js's problem, not ours.
@@ -91,6 +97,15 @@ export function decodeSnapshot(buf) {
     const q = unpackQuat(r.u32r(), {});
     snap.props.push({ id, flags, x: p.x, y: p.y, z: p.z, qx: q.x, qy: q.y, qz: q.z, qw: q.w });
   }
+
+  const water = r.i16r();
+  // null rather than -Infinity: "no water" is a fact about the level, and a
+  // renderer that has to test for a magic float will eventually forget to.
+  snap.water = water === NO_WATER ? null : water / POS_SCALE;
+  snap.valves = r.u8r();
+  const zones = r.u8r();
+  snap.zoneWater = [];
+  for (let i = 0; i < zones; i++) snap.zoneWater.push(r.i16r() / POS_SCALE);
 
   return snap;
 }

@@ -95,6 +95,40 @@ html, body {
   font-size: 10.5px; letter-spacing: 0.14em; font-weight: 700; color: var(--hiviz);
 }
 
+/* Task progress. A tick tells you a task is done; a sliver tells you it is
+   worth carrying on, which matters for the ones you complete in stages. */
+#tasks li .p {
+  display: block; height: 2px; margin-top: 4px; width: 0;
+  background: var(--hiviz); opacity: 0.75; transition: width 0.25s linear;
+}
+#tasks li.done .p { background: var(--good); }
+
+/* Hold-to-use. Sits under the crosshair rather than beside it: your eyes are
+   already there, and a valve takes 1.2 seconds you have to be told about. */
+#prompt {
+  position: absolute; left: 50%; top: calc(50% + 26px); transform: translateX(-50%);
+  text-align: center; pointer-events: none;
+}
+#prompt .p-label {
+  display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+  color: var(--hiviz); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+#prompt .p-bar {
+  width: 92px; height: 3px; margin: 5px auto 0;
+  background: rgba(255, 255, 255, 0.16);
+}
+#prompt .p-bar b { display: block; height: 100%; width: 0; background: var(--hiviz); }
+
+/* Underwater. Two layers in one element: a flat tint for the colour shift and
+   an inset shadow for the vignette, because drowning should close in. */
+#water {
+  position: fixed; inset: 0; z-index: 9; pointer-events: none;
+  background: rgba(24, 74, 68, 0.42);
+  box-shadow: inset 0 0 190px 60px rgba(4, 22, 20, 0.85);
+  transition: opacity 0.22s linear;
+}
+#water.hidden { display: none; }
+
 #banner {
   position: absolute; left: 50%; top: 58%; transform: translateX(-50%);
   font-size: 13px; font-weight: 700; letter-spacing: 0.2em;

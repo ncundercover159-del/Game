@@ -38,6 +38,11 @@ export class World {
     this.events = new RAPIER.EventQueue(true);
     this.props = new Map();       // id -> prop record
     this.byHandle = new Map();    // collider handle -> prop record
+    // Static geometry needs the same treatment the props get. buildStatic used
+    // to create a collider and throw the brush away, which is fine right up
+    // until something wants to know what it just looked at — a valve is a brush
+    // and USE is a raycast, and a handle with nothing behind it cannot answer.
+    this.brushByHandle = new Map();
     this.nextPropId = 1;
     this.brokenThisTick = [];
     this.drifts = [];             // conveyors: [{collider, vel}]
@@ -60,6 +65,7 @@ export class World {
           GROUP_STATIC, GROUP_PROP | GROUP_ACTOR | GROUP_RAGDOLL,
         ));
       const col = this.world.createCollider(desc, rb);
+      this.brushByHandle.set(col.handle, b);
       if (b.drift) this.drifts.push({ col, vel: b.drift });
       // A conveyor is just a surface with a tangential velocity. Rapier does
       // this natively, which saves faking it with per-contact impulses.
@@ -150,6 +156,8 @@ export class World {
   }
 
   propByCollider(handle) { return this.byHandle.get(handle); }
+
+  brushByCollider(handle) { return this.brushByHandle.get(handle); }
 
   breakProp(rec) {
     if (rec.broken || rec.extracted) return false;

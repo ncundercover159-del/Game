@@ -120,6 +120,25 @@ export const BREAK_FLASH_MS = 260;
 export const EXTRACT_DWELL_MS = 900;    // a prop must sit still in the van
 export const QUOTA_GRACE = 0.0;
 
+// --- valves -----------------------------------------------------------------
+// Shorter than GRAB_RANGE on purpose. A grab wants to be forgiving because
+// missing one costs you a second; a valve wants to be deliberate because
+// turning the wrong one costs you a tank.
+export const VALVE_REACH = 2.4;
+export const VALVE_TURN_MS = 1200;      // they are wheels, not switches
+
+// --- water ------------------------------------------------------------------
+// A prop whose origin has been under the line this long is written off. Same
+// dwell as extraction, and for the same reason: one frame of contact is noise,
+// a second of it is a fact.
+export const FLOOD_WRITEOFF_MS = 900;
+export const DROWN_DAMAGE_PER_S = 12;   // survivable dunk, fatal trap
+// Wading is slow. Applied to the target speed only — acceleration and friction
+// are unchanged, so it feels like weight rather than ice.
+export const WATER_SPEED_SCALE = 0.55;
+// Under this much water over your feet, you are splashing, not swimming.
+export const WATER_WADE_DEPTH = 0.35;
+
 // --- wire quantisation ------------------------------------------------------
 // 1cm over +/-327m. Levels are nowhere near that big, so this never clips.
 export const POS_SCALE = 100;

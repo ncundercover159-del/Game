@@ -92,6 +92,11 @@ async function boot(levelId = DEFAULT_LEVEL) {
       tris: renderer.info.render.triangles,
       fps: Math.round(fps),
     }),
+    /** Push the job clock forward, so a harness can see the water risen. */
+    clockTo(seconds) {
+      room.startedAt = performance.now() - seconds * 1000;
+      room.phaseEndsAt = performance.now() + 1e9;
+    },
     /** Drop the camera somewhere for a screenshot. */
     look(x, y, z, yaw, pitch) {
       const me = room.actors.get(mySlot);
@@ -135,7 +140,13 @@ function frame(now) {
   if (snapAcc >= SNAPSHOT_MS) {
     snapAcc %= SNAPSHOT_MS;
     const snap = decodeSnapshot(room.snapshot(performance.now()));
-    if (snap) view.ingest(snap, now);
+    if (snap) {
+      view.ingest(snap, now);
+      // Water arrives on the wire like everything else, so the local game and
+      // the networked one are looking at the same number and a quantisation bug
+      // in it shows up here rather than only under multiplayer.
+      view.setWater(snap.water, snap.zoneWater);
+    }
   }
 
   view.sample(now, dt);
@@ -153,6 +164,15 @@ function frame(now) {
     // Hide your own body: you are inside it.
     const mine = view.figures.get(mySlot);
     if (mine) { mine.root.visible = false; mine.rig.visible = !!mine.ragdoll; }
+
+    // Under water, and by how much. The wash is driven off the eye rather than
+    // the feet, because wading through a flooded tank should not black out the
+    // screen — only going under should.
+    const eye = camera.position;
+    hud.setSubmerged(view.submerged(eye.x, eye.y, eye.z)
+      ? Math.min(1, (view.water.y - eye.y) / 1.5) : 0);
+
+    hud.setPrompt(me.turning ? `HOLD G · ${valveLabel(me.turning)}` : '', me.turnProgress || 0);
   }
 
   drainEvents();
@@ -160,10 +180,20 @@ function frame(now) {
   post.render(dt);
 }
 
+function valveLabel(id) {
+  const v = (room.level.sequence?.valves || []).find((x) => x.id === id);
+  return v ? v.label : id;
+}
+
 function drainEvents() {
   for (const e of room.drainEvents()) {
     if (e.type === 'break') hud.flash(`${PROP_BY_ID[e.detail.kind]?.name || 'SOMETHING'} DESTROYED`, 'bad');
     else if (e.type === 'extract') hud.flash(`+£${e.detail.value}`, 'good');
+    else if (e.type === 'sunk') hud.flash(`${PROP_BY_ID[e.detail.kind]?.name || 'SOMETHING'} LOST · -£${e.detail.value}`, 'bad');
+    else if (e.type === 'valve') hud.flash(`${e.detail.label} SHUT · ${e.detail.shut}/${e.detail.total}`, 'good');
+    // The penalty is the point of the whole sequence, so it gets its own line
+    // rather than being folded into the valve message it arrives with.
+    else if (e.type === 'penalty') hud.flash(`OUT OF ORDER · ${e.detail.valve} STILL OPEN`, 'bad');
     else if (e.type === 'phase' && e.detail.phase === PHASE.ACTIVE) hud.flash('CLOCK RUNNING', 'note');
     else if (e.type === 'phase' && e.detail.phase === PHASE.DEBRIEF) hud.results(room.results(e.detail.reason));
   }
@@ -186,8 +216,14 @@ document.getElementById('btn-join').addEventListener('click', () => {
 });
 
 // Autostart when the harness asks, so a screenshot run needs no click.
-if (new URLSearchParams(location.search).has('auto')) {
-  boot().catch((err) => console.error(err));
+// ?level= picks the job, because a harness that can only ever see the warehouse
+// cannot tell you whether the other two render at all.
+{
+  const q = new URLSearchParams(location.search);
+  if (q.has('auto')) {
+    const want = q.get('level');
+    boot(LEVEL_BY_ID[want] ? want : DEFAULT_LEVEL).catch((err) => console.error(err));
+  }
 }
 
 requestAnimationFrame(frame);

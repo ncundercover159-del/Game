@@ -84,6 +84,8 @@ const AVOID_DOWNED = 0.6;
 // How long a mate lies there before somebody puts the takings down and goes to
 // get them. A crew that is all on the floor loses the job outright.
 const RESCUE_PATIENCE_MS = 6000;
+// How long one contractor may occupy the tailgate before the queue moves on.
+const VAN_CLAIM_MS = 9000;
 // And how long a bot bangs its head against one waypoint before writing it off.
 const WAYPOINT_PATIENCE_MS = 5000;
 
@@ -202,6 +204,7 @@ export class Bot {
   }
 
   enter(mode, now) {
+    if (this.mode === MODE.DROP && mode !== MODE.DROP) this.pool.releaseVan(this.slot);
     this.mode = mode;
     this.since = now;
     this.movedAt = now;
@@ -309,6 +312,27 @@ export class Bot {
     const p = rec.rb.translation();
     const here = Math.hypot(me.pos.x - stand.x, me.pos.z - stand.z);
 
+    // The van is the one place the whole crew has a reason to stand at once,
+    // each holding something heavy, and room.js scores a prop's momentum
+    // against every bystander. Four contractors setting safes down a metre
+    // apart knock each other out, lie there, bleed out after fifty-five
+    // seconds and are gone for the shift — which is precisely how a crew that
+    // was banking £1,500 in its first thirty seconds ends up banking nothing
+    // for the next three hundred. So the tailgate is one at a time, and the
+    // rest wait their turn a few metres back.
+    // Claimed on final approach only. Taking it the moment a bot picks
+    // something up on the far side of the building would hand one contractor
+    // the tailgate for the entire walk back, and the other three would queue
+    // behind a van nobody is using.
+    if (here < 3.0 || this.mode === MODE.DROP) {
+      if (!this.pool.claimVan(this.slot, now)) {
+        if (this.mode === MODE.DROP) { this.mode = MODE.HAUL; this.since = now; }
+        const wait = this.pool.vanQueue(this.lane);
+        return this.goTo(room, me, now, wait.x, wait.y, wait.z,
+          { arrive: 1.0, carrying: true });
+      }
+    }
+
     if (this.mode === MODE.DROP || here < 1.2) {
       if (this.mode !== MODE.DROP) { this.mode = MODE.DROP; this.since = now; }
       // Hold it out over the van bed and let go. Aiming rather than walking in
@@ -364,7 +388,13 @@ export class Bot {
     const mate = room.actors.get(this.rescueSlot);
     if (!mate || !mate.downed) { this.enter(MODE.SEEK, now); return this.idle(me); }
     this.pool.claimRescue(this.rescueSlot, this.slot, now);
-    const d = Math.hypot(mate.pos.x - me.pos.x, mate.pos.z - me.pos.z);
+    if (now - this.since > GIVE_UP_MS) { this.enter(MODE.SEEK, now); return this.idle(me); }
+    // room.js measures REVIVE_RADIUS in three dimensions, and a contractor face
+    // down on the warehouse floor reads nearly two metres below the loading
+    // dock they fell off. Judging this on the horizontal alone is how a bot
+    // spends an entire shift stood on the dock above a colleague, holding USE,
+    // achieving nothing — which is exactly what the profile showed it doing.
+    const d = Math.hypot(mate.pos.x - me.pos.x, mate.pos.y - me.pos.y, mate.pos.z - me.pos.z);
     const aim = aimAt({ x: me.pos.x, y: me.pos.y + EYE_HEIGHT, z: me.pos.z },
       { x: mate.pos.x, y: mate.pos.y + 0.4, z: mate.pos.z });
     if (d < REVIVE_RADIUS * 0.8) {
@@ -376,9 +406,9 @@ export class Bot {
       input.buttons |= BUTTON.USE;
       return input;
     }
-    if (now - this.since > GIVE_UP_MS) { this.enter(MODE.SEEK, now); return this.idle(me); }
-    return this.goTo(room, me, now, mate.pos.x, mate.pos.y, mate.pos.z,
-      { arrive: REVIVE_RADIUS * 0.7, aim });
+    // Walk all the way onto them: the arrival test above is the 3D one, and
+    // probe() already makes an exception for whoever we are coming to get.
+    return this.goTo(room, me, now, mate.pos.x, mate.pos.y, mate.pos.z, { arrive: 0, aim });
   }
 
   // --- locomotion ------------------------------------------------------------
@@ -454,9 +484,12 @@ export class Bot {
     input.moveX = c * dir.x + s * dir.z;
     input.moveY = -s * dir.x + c * dir.z;
 
-    // Sprint on the way out, never on the way back: hauling burns the same
-    // stamina bar, and an exhausted contractor walks at 62%.
-    if (!opts.carrying && !me.held && dist > 6 && me.stamina > 40) {
+    // Sprint on the way out, never on the way back. Empty-handed there is no
+    // reason to hoard it — the bar refills during the haul, which is the half
+    // of the round trip that cannot be hurried anyway. Carrying, it is worse
+    // than useless: hauling drains the same bar, and an exhausted contractor
+    // walks at 62% of a walk.
+    if (!opts.carrying && !me.held && dist > 3 && me.stamina > 15) {
       input.buttons |= BUTTON.SPRINT;
     }
 
@@ -575,6 +608,8 @@ export class BotPool {
     this.claims = new Map();      // propId -> { slot, until }
     this.rescues = new Map();     // downed slot -> { slot, until }
     this.stands = new Map();      // lane -> where to stand at the van
+    this.queues = new Map();      // lane -> where to wait for the van
+    this.van = null;              // who currently has the tailgate
     // Everything heavy and moving, rebuilt once a tick and read by every bot's
     // steering. Rebuilding it per bot per candidate heading would be forty
     // props times nine headings times eight bots, for one answer.
@@ -642,6 +677,7 @@ export class BotPool {
   }
 
   drop(slot) {
+    this.releaseVan(slot);
     for (const [id, c] of this.claims) if (c.slot === slot) this.claims.delete(id);
     for (const [id, c] of this.rescues) if (c.slot === slot) this.rescues.delete(id);
     return this.bots.delete(slot);
@@ -668,6 +704,35 @@ export class BotPool {
   }
 
   claimRescue(downed, slot, now) { this.rescues.set(downed, { slot, until: now + CLAIM_MS }); }
+
+  /**
+   * The tailgate, which only one pair of hands may use at a time.
+   *
+   * Expires on its own, so a contractor knocked out halfway through setting a
+   * bath down does not hold the queue up for the rest of the shift.
+   */
+  claimVan(slot, now) {
+    const c = this.van;
+    if (c && c.slot !== slot && c.until > now) return false;
+    this.van = { slot, until: now + VAN_CLAIM_MS };
+    return true;
+  }
+
+  releaseVan(slot) { if (this.van && this.van.slot === slot) this.van = null; }
+
+  /** Somewhere to stand and wait with a piano, out of everyone's way. */
+  vanQueue(lane) {
+    let q = this.queues.get(lane);
+    if (!q) {
+      const stand = this.dropStand(lane);
+      const e = this.room.level.extract;
+      const dx = stand.x - e.p[0], dz = stand.z - e.p[2];
+      const len = Math.hypot(dx, dz) || 1;
+      q = { x: e.p[0] + (dx / len) * (len + 3.2), y: stand.y, z: e.p[2] + (dz / len) * (len + 3.2) };
+      this.queues.set(lane, q);
+    }
+    return q;
+  }
 
   /** Cached per lane: it is derived from level geometry, which does not move. */
   dropStand(lane = 0) {
