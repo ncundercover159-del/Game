@@ -297,7 +297,7 @@ apply the checklist.
   legible instantly — PEAK carries essentially all of its depth this way, with near rock at value
   0.20–0.30 lifting to 0.55–0.65 and taking the sky's hue almost completely by the summit. Every
   gameplay frame has something in the near field to frame the shot: a racking upright, a doorway
-  edge, a hanging cable. Sightlines are composed so the player's next objective sits in a読 clear
+  edge, a hanging cable. Sightlines are composed so the player's next objective sits in a clear
   midground pocket against a contrasting background.
 
 ---

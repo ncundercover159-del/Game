@@ -223,7 +223,7 @@ export const tower = {
     skyTop: '#0d1420', skyBottom: '#1d2634',
     fog: { color: '#131a26', near: 20, far: 96 },
     sun: { dir: [-0.30, -0.52, 0.80], color: '#a9bedd', intensity: 1.15 },
-    ambient: { sky: '#3a4d६8'.replace('६', '6'), ground: '#241f1a', intensity: 0.8 },
+    ambient: { sky: '#3a4d68', ground: '#241f1a', intensity: 0.8 },
     exposure: 1.05,
   },
 

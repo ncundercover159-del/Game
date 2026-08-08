@@ -4,8 +4,9 @@
 // means writing one file and adding one line here.
 
 import { warehouse } from './warehouse.js';
+import { tower } from './tower.js';
 
-export const LEVELS = [warehouse];
+export const LEVELS = [warehouse, tower];
 export const LEVEL_BY_ID = Object.fromEntries(LEVELS.map((l) => [l.id, l]));
 export const DEFAULT_LEVEL = warehouse.id;
 
