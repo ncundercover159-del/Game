@@ -31,8 +31,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { membership, GROUPS } from './world.js';
 import { liftCapacity } from './grab.js';
 import {
-  BUTTON, GRAB_RANGE, EYE_HEIGHT, HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX,
-  REVIVE_RADIUS,
+  BUTTON, GRAB_RANGE, EYE_HEIGHT, REVIVE_RADIUS, IMPACT_SAFE_MOMENTUM,
 } from '../shared/tune.js';
 
 const { GROUP_STATIC, GROUP_ACTOR } = GROUPS;
@@ -655,12 +654,33 @@ export class BotPool {
     return best;
   }
 
+  /**
+   * Props worth standing clear of.
+   *
+   * The bar is deliberately well under IMPACT_SAFE_MOMENTUM: by the time a
+   * thing is over the threshold it is already swinging, and the point is to not
+   * be there when it arrives.
+   */
+  trackHazards() {
+    this.hazards.length = 0;
+    for (const rec of this.room.world.props.values()) {
+      if (rec.extracted || rec.rb.isSleeping()) continue;
+      const v = rec.rb.linvel();
+      const momentum = Math.hypot(v.x, v.y, v.z) * rec.def.mass;
+      const carried = rec.held !== null;
+      if (!carried && momentum < IMPACT_SAFE_MOMENTUM * 0.5) continue;
+      const p = rec.rb.translation();
+      this.hazards.push({ rec, x: p.x, y: p.y, z: p.z, keep: rec.radius + 1.15 });
+    }
+  }
+
   // --- the tick --------------------------------------------------------------
   /**
    * Every bot writes one input packet. This is the only thing this file does to
    * a room, and it is the same thing an inbound websocket frame does.
    */
   think(now) {
+    this.trackHazards();
     for (const [slot, bot] of this.bots) {
       const actor = this.room.actors.get(slot);
       if (!actor) { this.drop(slot); continue; }
