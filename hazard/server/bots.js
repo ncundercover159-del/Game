@@ -32,6 +32,7 @@ import { membership, GROUPS } from './world.js';
 import { liftCapacity } from './grab.js';
 import {
   BUTTON, GRAB_RANGE, EYE_HEIGHT, REVIVE_RADIUS, IMPACT_SAFE_MOMENTUM, TICK_DT,
+  DOWNED_BLEEDOUT_MS,
 } from '../shared/tune.js';
 
 const { GROUP_STATIC, GROUP_ACTOR } = GROUPS;
@@ -81,9 +82,12 @@ const LOOK_RATE = 3.2;
 // to rest exactly on the route to the van.
 const AVOID_ACTOR = 1.1;
 const AVOID_DOWNED = 0.6;
+// Extra clearance a carrier keeps from anyone still standing, on top of the
+// load's own radius.
+const AVOID_CARRY_EXTRA = 1.2;
 // How long a mate lies there before somebody puts the takings down and goes to
 // get them. A crew that is all on the floor loses the job outright.
-const RESCUE_PATIENCE_MS = 6000;
+const RESCUE_PATIENCE_MS = 2500;
 // How long one contractor may occupy the tailgate before the queue moves on.
 const VAN_CLAIM_MS = 9000;
 // And how long a bot bangs its head against one waypoint before writing it off.
@@ -95,7 +99,7 @@ const MAX_LIFT_HEIGHT = 2.4;      // above this you need a boost, which bots lac
 const STUCK_SPEED = 0.55;         // m/s below which "walking" means "shoving a wall"
 const STUCK_MS = 500;
 const CLAIM_MS = 9000;
-const GIVE_UP_MS = 16_000;        // per target, before it goes on the ignore list
+const GIVE_UP_MS = 10_000;        // per target, before it goes on the ignore list
 const SNUB_MS = 30_000;           // how long an abandoned target stays ignored
 const REPLAN_MS = 4000;
 
@@ -123,6 +127,7 @@ export class Bot {
     this.seq = 1;
     this.since = 0;
     this.snubbed = new Map();   // propId -> the time it may be considered again
+    this.gaveUpOn = new Map();  // slot -> the time that casualty is worth another go
     this.route = [];
     this.routeAt = 0;
     this.routeKey = '';
@@ -388,7 +393,16 @@ export class Bot {
     const mate = room.actors.get(this.rescueSlot);
     if (!mate || !mate.downed) { this.enter(MODE.SEEK, now); return this.idle(me); }
     this.pool.claimRescue(this.rescueSlot, this.slot, now);
-    if (now - this.since > GIVE_UP_MS) { this.enter(MODE.SEEK, now); return this.idle(me); }
+    if (now - this.since > GIVE_UP_MS) {
+      // Write this one off for a while. Without the snub, SEEK immediately
+      // reconsiders the same unreachable casualty, re-enters RESCUE with a
+      // fresh clock and does it again — which profiled as one bot spending five
+      // solid minutes walking at somebody it could not get to.
+      this.gaveUpOn.set(this.rescueSlot, now + SNUB_MS);
+      this.pool.unclaimRescue(this.rescueSlot, this.slot);
+      this.enter(MODE.SEEK, now);
+      return this.idle(me);
+    }
     // room.js measures REVIVE_RADIUS in three dimensions, and a contractor face
     // down on the warehouse floor reads nearly two metres below the loading
     // dock they fell off. Judging this on the horizontal alone is how a bot
@@ -560,7 +574,15 @@ export class Bot {
     for (const other of room.actors.values()) {
       if (other === me || other.slot === this.rescueSlot) continue;
       if (Math.abs(other.pos.y - me.pos.y) > 2.2) continue;
-      const keep = other.downed || other.ragdoll ? AVOID_DOWNED : AVOID_ACTOR;
+      // A body on the floor gets barely any clearance — it cannot dodge, it is
+      // ankle height, and it has an unfortunate habit of coming to rest exactly
+      // on the route to the van, where a generous radius would seal the ramp.
+      // Someone on their feet gets a wide berth when WE are the one carrying,
+      // because what has to clear them is not this capsule, it is the hundred
+      // and thirty kilograms swinging an arm's length in front of it.
+      const keep = other.downed || other.ragdoll
+        ? AVOID_DOWNED
+        : AVOID_ACTOR + (me.held ? me.held.radius + AVOID_CARRY_EXTRA : 0);
       const next = Math.hypot(other.pos.x - spotX, other.pos.z - spotZ);
       if (next > keep) continue;
       if (next < Math.hypot(other.pos.x - me.pos.x, other.pos.z - me.pos.z)) return NO;
@@ -705,6 +727,11 @@ export class BotPool {
 
   claimRescue(downed, slot, now) { this.rescues.set(downed, { slot, until: now + CLAIM_MS }); }
 
+  unclaimRescue(downed, slot) {
+    const c = this.rescues.get(downed);
+    if (c && c.slot === slot) this.rescues.delete(downed);
+  }
+
   /**
    * The tailgate, which only one pair of hands may use at a time.
    *
@@ -751,13 +778,22 @@ export class BotPool {
   /** The nearest mate on the floor that nobody else is already going to. */
   casualtyFor(room, me, bot, now) {
     let best = null;
-    let bd = Infinity;
+    let bestScore = Infinity;
     for (const other of room.actors.values()) {
       if (other === me || !other.downed || !other.alive) continue;
       const c = this.rescues.get(other.slot);
       if (c && c.slot !== bot.slot && c.until > now) continue;
-      const d = Math.hypot(other.pos.x - me.pos.x, other.pos.z - me.pos.z);
-      if (d < bd) { bd = d; best = other; }
+      if ((bot.gaveUpOn.get(other.slot) || 0) > now) continue;
+      // Distance, but weighted by how long they have been lying there. Once
+      // DOWNED_BLEEDOUT_MS elapses room.js clears `alive`, and a contractor who
+      // has bled out cannot usefully be picked up again — tryRevive clears
+      // `downed` and restores health but never restores `alive`, so they stay a
+      // heap on the floor for the rest of the job. Nobody is allowed to reach
+      // that state while a pair of hands is free.
+      const down = now - (other.downedAt || now);
+      const urgency = 1 + (down / DOWNED_BLEEDOUT_MS) * 6;
+      const score = Math.hypot(other.pos.x - me.pos.x, other.pos.z - me.pos.z) / urgency;
+      if (score < bestScore) { bestScore = score; best = other; }
     }
     return best;
   }
@@ -783,7 +819,15 @@ export class BotPool {
       // Fragile stock is worth less than it says it is, because some of it will
       // arrive as pieces and pieces pay a tenth. Not a veto — a chandelier is
       // still a chandelier — just a thumb on the scale.
-      const worth = (rec.def.value + 40) * (rec.def.fragile ? 0.8 : 1);
+      let worth = (rec.def.value + 40) * (rec.def.fragile ? 0.8 : 1);
+      // And stock with something solid in the way is worth less again. The
+      // warehouse conveyor is a 1.08m wall running twenty-six metres across the
+      // middle of the building: too tall to autostep, too tall to jump, and
+      // perfectly invisible to a steering system that only looks one stride
+      // ahead. A bot that picks a mug on the far side of it will spend the rest
+      // of the shift grinding sideways along it. A penalty rather than a veto,
+      // so a room where everything is occluded still gets worked.
+      if (blocked(room, me, p)) worth *= 0.15;
       const score = worth / (d + 7);
       if (score > bestScore) { bestScore = score; best = rec; }
     }
@@ -897,6 +941,19 @@ function dropStand(room, lane = 0) {
     z: e.p[2] + uz * back + pz,
     aim: { x: e.p[0] + px, y: e.p[1] - e.s[1] / 2 + 0.55, z: e.p[2] + pz },
   };
+}
+
+/** Is there something solid between this contractor and that point? */
+function blocked(room, me, p) {
+  const o = { x: me.pos.x, y: me.pos.y + 0.95, z: me.pos.z };
+  let dx = p.x - o.x, dy = p.y - o.y, dz = p.z - o.z;
+  const len = Math.hypot(dx, dy, dz);
+  if (len < 1e-3) return false;
+  dx /= len; dy /= len; dz /= len;
+  return !!room.world.world.castRay(
+    new RAPIER.Ray(o, { x: dx, y: dy, z: dz }), Math.max(0, len - 0.6), true,
+    undefined, membership(GROUP_ACTOR, GROUP_STATIC),
+  );
 }
 
 function insideExtract(e, p, margin = 0) {

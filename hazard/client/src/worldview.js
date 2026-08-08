@@ -15,7 +15,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { PROP_BY_ID } from '../../shared/props.js';
 import { PFLAG, OFLAG } from '../../shared/protocol.js';
-import { PLAYER_RADIUS, PLAYER_HEIGHT, INTERP_DELAY_MS } from '../../shared/tune.js';
+import { PLAYER_RADIUS, PLAYER_HEIGHT, INTERP_DELAY_MS, SNAPSHOT_MS } from '../../shared/tune.js';
 import { materialFor } from './art/materials.js';
 import { meshForProp } from './art/props.js';
 import { BONE_SIZES } from './art/figure.js';
@@ -46,6 +46,8 @@ export class WorldView {
     this.props = new Map();     // wire id -> { obj, def, from, to }
     this.figures = new Map();   // slot -> figure
     this.stats = { staticDraws: 0, tris: 0 };
+    this.snapAt = 0;      // arrival time of the newest snapshot
+    this.snapPrev = 0;    // ...and of the one before it
 
     this.buildEnvironment();
     this.buildEnvironmentMap(renderer);
@@ -310,15 +312,35 @@ export class WorldView {
    * smoothness rather than a teleport.
    */
   ingest(snap, renderNow) {
+    // A span runs between the arrival times of two consecutive snapshots, and
+    // `sample` reads it one interval in the past. That is not the obvious
+    // arrangement and the obvious one has a bug in it worth spelling out.
+    //
+    // Anchoring each span to "now, until now plus the delay" and then sampling
+    // at now is fine at 60fps: a dozen frames pass between snapshots and the
+    // fraction climbs 0 to 1 as intended. But the moment a frame takes longer
+    // than SNAPSHOT_MS, every frame ingests, every ingest resets the span to
+    // now, and the fraction is pinned at 0 for ever. Every remote player
+    // freezes solid — not stuttering, not rubber banding, motionless — while
+    // the simulation underneath runs perfectly. It is invisible at a
+    // developer's frame rate and impossible to diagnose from a bug report.
+    //
+    // Real arrival times cannot do that. If snapshots are 90ms apart because
+    // the client is struggling, the span is 90ms wide and playback is smooth
+    // and 90ms behind, which is exactly what it should be.
+    this.snapPrev = this.snapAt || (renderNow - SNAPSHOT_MS);
+    this.snapAt = renderNow;
+
     for (const p of snap.props) {
       const rec = this.props.get(p.id);
       if (!rec) continue;
-      rec.from.p.copy(rec.obj.position);
-      rec.from.q.copy(rec.obj.quaternion);
-      rec.from.t = renderNow;
+      rec.from.p.copy(rec.seeded ? rec.to.p : rec.obj.position);
+      rec.from.q.copy(rec.seeded ? rec.to.q : rec.obj.quaternion);
+      rec.from.t = this.snapPrev;
       rec.to.p.set(p.x, p.y, p.z);
       rec.to.q.set(p.qx, p.qy, p.qz, p.qw);
-      rec.to.t = renderNow + INTERP_DELAY_MS;
+      rec.to.t = this.snapAt;
+      rec.seeded = true;
 
       const broken = (p.flags & OFLAG.BROKEN) !== 0;
       if (broken && !rec.broken) {
@@ -342,15 +364,19 @@ export class WorldView {
         this.scene.add(fig.rig);
         this.figures.set(pl.slot, fig);
       }
-      fig.from.p.copy(fig.root.position);
-      fig.from.yaw = fig.yaw;
-      fig.from.t = renderNow;
+      fig.from.p.copy(fig.seeded ? fig.to.p : fig.root.position);
+      fig.from.yaw = fig.seeded ? fig.to.yaw : fig.yaw;
+      fig.from.t = this.snapPrev;
       fig.to.p.set(pl.x, pl.y, pl.z);
       fig.to.yaw = pl.yaw;
-      fig.to.t = renderNow + INTERP_DELAY_MS;
+      fig.to.t = this.snapAt;
+      fig.seeded = true;
       fig.ragdoll = (pl.flags & PFLAG.RAGDOLL) !== 0;
       fig.crouched = (pl.flags & PFLAG.CROUCH) !== 0;
       fig.moving = (pl.flags & PFLAG.SPRINT) !== 0;
+      // Carrying changes the whole pose, so it has to reach the figure. It was
+      // already on the wire and was being decoded and thrown away.
+      fig.hauling = (pl.flags & PFLAG.HAULING) !== 0;
     }
 
     // Bones only arrive for people who are currently furniture.
@@ -370,24 +396,37 @@ export class WorldView {
     }
   }
 
-  /** Walk every interpolation buffer to `renderNow`. */
+  /**
+   * Walk every interpolation buffer to one snapshot in the past.
+   *
+   * The buffer is two snapshots deep, so the delay has to be one interval — no
+   * more. INTERP_DELAY_MS is 110ms, which is 2.2 intervals: sampling there
+   * would land before the start of the only span we hold and render everything
+   * a full snapshot stale and stepping. It stays imported as the figure to
+   * match if the buffer is ever made deeper.
+   */
   sample(renderNow, dt) {
+    const T = renderNow - SNAPSHOT_MS;
+    void INTERP_DELAY_MS;
     for (const rec of this.props.values()) {
-      const f = span(rec.from.t, rec.to.t, renderNow);
+      const f = span(rec.from.t, rec.to.t, T);
       rec.obj.position.lerpVectors(rec.from.p, rec.to.p, f);
       _q.copy(rec.from.q).slerp(rec.to.q, f);
       rec.obj.quaternion.copy(_q);
     }
 
     for (const fig of this.figures.values()) {
-      const f = span(fig.from.t, fig.to.t, renderNow);
+      const f = span(fig.from.t, fig.to.t, T);
       fig.root.visible = !fig.ragdoll;
       fig.rig.visible = fig.ragdoll;
-      if (fig.ragdoll) continue;
+      // Knocked over, the body comes off the wire and needs no animating — but
+      // the eyes are still theirs, and a contractor whose pupils freeze the
+      // instant they hit the floor stops being a character and becomes a prop.
+      if (fig.ragdoll) { fig.step(dt, false, { down: true }); continue; }
       fig.root.position.lerpVectors(fig.from.p, fig.to.p, f);
       fig.yaw = fig.from.yaw + shortestAngle(fig.to.yaw - fig.from.yaw) * f;
       fig.root.rotation.y = fig.yaw;
-      fig.step(dt, fig.moving);
+      fig.step(dt, fig.moving, { crouched: fig.crouched, hauling: fig.hauling });
     }
 
     for (const l of this.lamps) {

@@ -152,6 +152,23 @@ function frame(now) {
   view.sample(now, dt);
 
   // --- camera ---------------------------------------------------------------
+  //
+  // The +PI is not a fudge and removing it breaks the game in a way that is
+  // very hard to see and impossible to play around.
+  //
+  // A Three camera looks down its own -Z, so rotateY(yaw) points it at
+  // (-sin yaw, -cos yaw). Every other thing in this project that has a facing —
+  // the server's grab and valve rays via lookDir(), the figures via
+  // root.rotation.y, and every level's spawnYaw — uses (+sin yaw, +cos yaw).
+  // Those are opposite. Without the correction the camera looks due south while
+  // the contractor behind it reaches due north: you grab whatever is BEHIND
+  // you, valves cannot be turned by looking at them, and the warehouse spawn
+  // faces the dock wall instead of the job.
+  //
+  // Nothing caught it for a long time, because the headless tests set yaw
+  // directly and never involve a camera, and the screenshot harness picked its
+  // angles by eye and so silently learned the wrong convention. The regression
+  // test is in client/src/aimtest.js: it asserts the two vectors agree.
   if (me) {
     // The local contractor is simulated in this tab, so the camera reads the
     // authoritative position directly. No prediction, no reconciliation, no
@@ -159,7 +176,7 @@ function frame(now) {
     const eyeH = me.crouched ? CROUCH_EYE : EYE_HEIGHT;
     camera.position.set(me.pos.x, me.pos.y + eyeH, me.pos.z);
     camera.rotation.set(0, 0, 0);
-    camera.rotateY(controls.yaw);
+    camera.rotateY(controls.yaw + Math.PI);
     camera.rotateX(controls.pitch);
     // Hide your own body: you are inside it.
     const mine = view.figures.get(mySlot);
