@@ -321,23 +321,58 @@ export const flooded = {
       { id: 'V3', order: 3, label: 'SLUDGE RETURN', p: [13.0, 0.575, 6.0], floods: 'sludge' },
     ],
     // Out of order and the tank named by the valve you skipped fills early.
-    penalty: { kind: 'flood_zone', metres: 2.2 },
+    //
+    // 5.0m is deeper than the deepest tank on purpose. A single global figure
+    // cannot punish three tanks whose floors are at -2.0, -2.8 and -4.4 to the
+    // same degree: 2.2m used to drown the sump entirely and leave the filter
+    // bed — the one V1 actually feeds — completely untouched, so the most
+    // likely mistake in the sequence was also the only free one. Letting the
+    // rise saturate means the penalty is simply "this tank is full now", and
+    // `flood.zones[].rim` is what decides how full, per tank, if that ever
+    // needs to differ.
+    penalty: { kind: 'flood_zone', metres: 5.0 },
   },
 
-  // Rising water. Also unwired: no buoyancy, no drag, no drowning, no plane.
-  // Depths are absolute Y, not depths below the deck.
+  // Rising water. Absolute Y throughout, never depth below the deck.
+  //
+  // A prop whose ORIGIN goes under is written off after 900ms, which makes the
+  // starting level the single most dangerous number in this file. It was -3.6,
+  // which is 800mm above the sump floor: £4,478 of stock drowned on the loading
+  // screen, including the pump motor and one of the two fishbowls the job
+  // requires. The water now starts flush with the deepest floor it can reach,
+  // so at t=0 the plant is merely damp and every prop is still worth something.
+  //
+  // The curve is the deadline and it is the one thing a player can read off the
+  // water, so it is shaped by tank rather than by the clock: each segment ends
+  // as one tank's contents go under, deepest first.
   flood: {
-    start: -3.6,
-    // Ends 400mm over the plant deck, so the deck is wet and the gantry and the
-    // lorry are not. Reaching the top of the sump stair at t=340 is the job.
-    end: 0.4,
-    startsAt: 40,
+    start: -4.4,          // the floor of the main sump, exactly
+    end: 0.35,
+    startsAt: 45,         // grace: long enough to be standing in the sump
     reaches: [
-      { y: -2.8, at: 120, note: 'the sludge tank floor is gone' },
-      { y: -2.0, at: 190, note: 'the filter bed floor is gone' },
-      { y: -0.6, at: 300, note: 'only the sump stair head is above it' },
-      { y: 0.4, at: 360, note: 'the deck' },
+      { y: -3.40, at: 130, note: 'the sump is a write-off' },
+      { y: -2.50, at: 200, note: 'and the sludge tank with it' },
+      { y: -1.00, at: 280, note: 'the filter bed goes' },
+      { y: 0.35, at: 370, note: 'the deck itself; only the gantry and the lorry are dry' },
     ],
+
+    // Rectangles for the penalty, axis-aligned in X/Z, unbounded in Y, disjoint.
+    // These are the tanks' clear internal dimensions — the same numbers `tank()`
+    // is built from, which until now never left this module.
+    //
+    // `rim` is set to `end` on all three, deliberately. It caps the water inside
+    // a zone, so it has to sit at or above the level the open plant finishes at:
+    //   rim < end  and an unpenalised tank stops rising while the sheet outside
+    //              it carries on, and the last minute of the job has three
+    //              rectangles of water sitting below the surface around them.
+    //   rim > end  and a penalised tank can stand higher than the plant ever
+    //              floods, which is the bug the rim exists to prevent.
+    // rim === end is the only value that is right in both directions.
+    zones: {
+      bed: { x: [-21, -12], z: [-5, 5], rim: 0.35 },
+      sump: { x: [-7, 5], z: [-5, 5], rim: 0.35 },
+      sludge: { x: [9, 17], z: [-5, 5], rim: 0.35 },
+    },
   },
 
   tasks: [
@@ -348,12 +383,27 @@ export const flooded = {
         + 'water line. Everything below the water line is a write-off.',
     },
     {
-      id: 'fish', type: 'extract_kind', kind: 'fishbowl', count: 2,
-      // Unbonused, so this one gates the job. Both are at the bottom of a tank
-      // and both shatter at 2.6m/s, which is a fall of 110mm.
+      id: 'shutdown', type: 'operate_in_order', sequence: 'shutdown',
+      title: 'SHUT IT DOWN',
+      detail: 'Intake, filter bypass, sludge return. In that order. The '
+        + 'drawings are on the wall of the control room, which is four and a '
+        + 'half metres up.',
+    },
+    {
+      id: 'fish', type: 'extract_kind', kind: 'fishbowl', count: 1, intact: true,
+      // Required, and therefore ONE of the two rather than both.
+      //
+      // There is a fishbowl on the floor of the sump and another in the sludge
+      // tank, and the water writes the sump off at 63 seconds. Requiring both
+      // would let the clock delete a mandatory objective inside the first
+      // minute, with no way back and nothing the crew could do about it once it
+      // had happened — a job that cannot be completed but still runs for five
+      // more minutes is the worst failure state a level can have. Requiring one
+      // turns the same timer into a choice: sprint for the deep one, or write
+      // it off and walk to the shallow one.
       title: 'THE OCCUPANTS',
-      detail: 'Two of them. One in the sump, one in the sludge tank. They are, '
-        + 'admittedly, in their element. Get them out anyway.',
+      detail: 'There are two of them. You are contractually obliged to save '
+        + 'one. We appreciate that this is a decision.',
     },
     {
       id: 'motor', type: 'extract_kind', kind: 'generator', count: 1,

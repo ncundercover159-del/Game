@@ -356,9 +356,11 @@ export const tower = {
         + 'you and the coroner.',
     },
     {
-      id: 'chandelier', type: 'extract_kind', kind: 'chandelier', count: 1,
+      id: 'chandelier', type: 'extract_kind', kind: 'chandelier', count: 1, intact: true,
       // No bonus, so this one gates the job: room.js treats an unbonused task
-      // as mandatory. It is the only object on site that cannot be thrown.
+      // as mandatory. `intact` is the rest of it — without that flag the task
+      // is satisfied by throwing the chandelier off the roof and delivering the
+      // bag of glass, which pays a tenth and defeats the entire level.
       title: 'THE CHANDELIER',
       detail: 'Nineteen metres, in your hands, one flight at a time. It breaks '
         + 'at 2.2m/s, which is a fall of eighty millimetres.',

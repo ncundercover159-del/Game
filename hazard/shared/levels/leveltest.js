@@ -17,7 +17,7 @@
 // numbers worth asserting on are the ones the server will actually produce.
 
 import RAPIER from '@dimforge/rapier3d-compat';
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { Room } from '../../server/room.js';
 import { initPhysics, membership, GROUPS } from '../../server/world.js';
 import { LEVELS, LEVEL_BY_ID, validateLevel } from './index.js';
@@ -32,24 +32,6 @@ const ok = (name, cond, extra) => {
   return cond;
 };
 const warn = (name, extra) => console.log(`  WARN ${name}${extra ? ` — ${extra}` : ''}`);
-
-// ---------------------------------------------------------------------------
-// ONE known defect, in a file this pass does not own.
-//
-// warehouse.js authors its piano at y=0.70. The piano's compound sits with its
-// lowest face on its own origin, so that is a 700mm drop: 5.55m/s of impact,
-// which a contact resolves as 6.22m/s of velocity delta against a fragility of
-// 5.5. It breaks. It has always broken; nobody has seen it because room.js
-// deliberately refuses to score breakages before PHASE.ACTIVE and the briefing
-// is six seconds long, so the piano is already in pieces by the time anything
-// is counting — a shattered piano still extracts, for a tenth of £2,600.
-//
-// The fix is one number: author it at y <= 0.548 (fragile^2 / (2*22*1.12^2)).
-// Recorded rather than silently tolerated, and scoped to exactly this prop so
-// a second broken thing in the warehouse still fails the run.
-const KNOWN_SETTLE_DEFECTS = {
-  warehouse: ['piano'],
-};
 
 // ---------------------------------------------------------------------------
 // geometry probes
@@ -134,6 +116,41 @@ function onDrift(lvl, rec) {
 
 /** The bottom of the lowest brush in the level. Nothing may end up under it. */
 const floorOfTheWorld = (lvl) => Math.min(...lvl.brushes.map((b) => b.p[1] - b.s[1] / 2));
+
+/**
+ * The task types room.js actually implements, read out of room.js.
+ *
+ * A level naming a task type the server has never heard of does not fail
+ * loudly — `checkTasks` simply never sets `done`, so an unbonused task of that
+ * type gates the job for ever and the crew plays out the full time limit on a
+ * job that cannot be completed. That is the quietest possible failure and it
+ * looks exactly like bad luck.
+ *
+ * Scraped rather than hard-coded so this cannot rot: the day room.js grows
+ * `operate_in_order`, this picks it up with no edit here.
+ */
+async function supportedTaskTypes() {
+  const src = await readFile(new URL('../../server/room.js', import.meta.url), 'utf8');
+  return new Set([...src.matchAll(/t\.type === '([a-z_]+)'/g)].map((m) => m[1]));
+}
+
+/**
+ * Where the water is at time t, by the curve in `level.flood`.
+ *
+ * Mirrors the piecewise-linear read the server does: flat at `start` until
+ * `startsAt`, then straight lines between the `reaches` entries, then flat at
+ * `end`. Global level only — zones and penalties are the server's business.
+ */
+function waterAt(flood, t) {
+  if (!flood) return -Infinity;
+  if (t <= flood.startsAt) return flood.start;
+  let py = flood.start, pt = flood.startsAt;
+  for (const r of flood.reaches || []) {
+    if (t <= r.at) return py + (r.y - py) * ((t - pt) / (r.at - pt));
+    py = r.y; pt = r.at;
+  }
+  return flood.end;
+}
 
 // ---------------------------------------------------------------------------
 // routes
@@ -412,6 +429,67 @@ async function checkLevel(lvl) {
   ok('the site holds at least 1.6x the quota', ratio >= 1.6,
     `£${stock} of stock against a £${lvl.quota} quota (${ratio.toFixed(2)}x)`);
 
+  const unknownTasks = lvl.tasks.filter((t) => !SUPPORTED.has(t.type));
+  const gating = unknownTasks.filter((t) => !t.bonus);
+  ok('every task type is one room.js implements', unknownTasks.length === 0,
+    unknownTasks.length
+      ? `${unknownTasks.map((t) => `${t.id}:${t.type}`).join(', ')}`
+        + `${gating.length ? ` — ${gating.length} of them REQUIRED, so the job can never complete` : ''}`
+      : [...new Set(lvl.tasks.map((t) => t.type))].join(', '));
+
+  // --- 2b. does the flood leave a job behind? ------------------------------
+  // A prop whose origin goes under is written off after 900ms, so a level with
+  // rising water is really a schedule of disappearing money. Two things have to
+  // hold: nothing is already drowned when the crew walks in, and there is still
+  // more than the quota in reach for the whole first half of the job.
+  if (lvl.flood) {
+    const f = lvl.flood;
+    const lostBy = (t) => lvl.props.filter((p) => p.p[1] < waterAt(f, t));
+    const worth = (ps) => ps.reduce((n, p) => n + PROP_BY_ID[p.kind].value, 0);
+
+    const drowned = lostBy(0);
+    ok('nothing is under water before the job starts', drowned.length === 0,
+      drowned.length
+        ? `${drowned.length} props worth £${worth(drowned)} — the water starts at `
+          + `${f.start} and the lowest stock sits at `
+          + `${Math.min(...lvl.props.map((p) => p.p[1])).toFixed(2)}`
+        : `water starts at ${f.start}, lowest prop at `
+          + `${Math.min(...lvl.props.map((p) => p.p[1])).toFixed(2)}`);
+
+    const half = lvl.timeLimit / 2;
+    const left = stock - worth(lostBy(half));
+    ok('the quota is still comfortably in reach at half time', left >= lvl.quota * 1.6,
+      `£${left} above water at t=${half}s (${(left / lvl.quota).toFixed(2)}x quota)`);
+
+    // Every REQUIRED extract_kind needs at least one of its kind that the water
+    // cannot delete before the crew could plausibly have got to it.
+    for (const t of lvl.tasks.filter((x) => !x.bonus && x.type === 'extract_kind')) {
+      const survives = lvl.props
+        .filter((p) => p.kind === t.kind)
+        .map((p) => {
+          let s2 = lvl.timeLimit;
+          for (let u = 0; u <= lvl.timeLimit; u++) if (waterAt(f, u) > p.p[1]) { s2 = u; break; }
+          return s2;
+        })
+        .sort((a, b) => b - a);
+      const enough = survives.slice(0, t.count);
+      const worst = enough.length === t.count ? enough[enough.length - 1] : 0;
+      ok(`the water leaves time to satisfy "${t.title}"`, worst >= lvl.timeLimit * 0.35,
+        `${t.count} of ${survives.length} ${t.kind}(s) needed; the ${t.count}${
+          t.count === 1 ? 'st' : 'th'} longest-lived lasts ${worst}s of ${lvl.timeLimit}s`);
+    }
+
+    const zones = Object.entries(f.zones || {});
+    if (zones.length) {
+      const badRim = zones.filter(([, z]) => z.rim < f.end);
+      ok('every flood zone rims at or above the final level', badRim.length === 0,
+        badRim.length
+          ? `${badRim.map(([k]) => k).join(', ')} rim below end=${f.end}, so those tanks `
+            + 'stop rising while the sheet around them carries on'
+          : `${zones.length} zones, rim ${zones[0][1].rim} === end ${f.end}`);
+    }
+  }
+
   // Room resolves a level through LEVEL_BY_ID and silently falls back to the
   // default when it misses, so an unregistered level would otherwise boot as
   // the warehouse and pass every assertion below about the wrong building.
@@ -438,18 +516,20 @@ async function checkLevel(lvl) {
     }
   });
 
+  // No exemptions. There was one here — warehouse.js authored its piano 700mm
+  // above its rest height and shattered it on every load — and it is fixed, so
+  // the exemption is gone with it. A tolerated failure that outlives its cause
+  // is just a hole in the test.
   const broke = [...room.world.props.values()].filter((r) => r.broken);
-  const allowed = KNOWN_SETTLE_DEFECTS[lvl.id] || [];
-  const unexpected = broke.filter((r) => !allowed.includes(r.kind));
-  ok('nothing breaks while the level settles', unexpected.length === 0,
-    broke.length ? `${broke.length} broke: ${broke.map((r) => r.kind).join(', ')}` : '0 breakages');
-  for (const r of broke) {
-    if (!allowed.includes(r.kind)) continue;
-    const authored = lvl.props[r.id - 1];
-    warn(`${r.kind} shatters on load (known, ${lvl.id}.js is not this pass's file)`,
-      `authored y=${authored.p[1]}, impact ${peak.get(r.id).toFixed(2)}m/s vs fragile ${r.def.fragile}`
-      + `; needs y <= ${(r.def.fragile ** 2 / (2 * -GRAVITY * 1.12 ** 2)).toFixed(3)} above rest`);
-  }
+  ok('nothing breaks while the level settles', broke.length === 0,
+    broke.length
+      ? broke.map((r) => {
+        const authored = lvl.props[r.id - 1];
+        return `${r.kind} authored y=${authored.p[1]}, hit at ${peak.get(r.id).toFixed(2)}m/s `
+          + `vs fragile ${r.def.fragile} — needs to sit within `
+          + `${(r.def.fragile ** 2 / (2 * -GRAVITY * 1.12 ** 2)).toFixed(3)}m of its rest height`;
+      }).join('; ')
+      : '0 breakages');
 
   // Every prop authored at its resting height means every prop's worst impact
   // during the settle is under what would destroy it, with headroom. Same
@@ -462,7 +542,7 @@ async function checkLevel(lvl) {
     if (!rec.def.fragile) continue;
     const r = peak.get(rec.id) / rec.def.fragile;
     if (r > worst.ratio) worst = { ratio: r, kind: rec.kind, dv: peak.get(rec.id), f: rec.def.fragile };
-    if (r > 1 && !allowed.includes(rec.kind)) hot.push(rec.kind);
+    if (r > 1) hot.push(rec.kind);
   }
   ok('no prop takes an impact it would not survive', hot.length === 0,
     hot.length ? hot.join(', ')
@@ -631,6 +711,7 @@ async function findLevels() {
 }
 
 await initPhysics();
+const SUPPORTED = await supportedTaskTypes();
 const found = await findLevels();
 const unregistered = found.filter((f) => !f.registered);
 console.log(`level lint — ${found.length} level file${found.length === 1 ? '' : 's'}, `
