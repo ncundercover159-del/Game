@@ -5,11 +5,13 @@
 
 import { warehouse } from './warehouse.js';
 import { tower } from './tower.js';
+import { flooded } from './flooded.js';
 
-// flooded.js is present but NOT registered: it was cut off mid-write and
-// throws on import (BED_Y2 undefined), which broke every other agent's build.
-// The levels pass re-adds it once leveltest.js passes against it.
-export const LEVELS = [warehouse, tower];
+// A level joins this array only once `node shared/levels/leveltest.js` is green
+// against it. Everything imports this file — server, client, both harnesses —
+// so a level that throws on import stops the whole project, and the lint reads
+// the directory rather than this array precisely so that waiting costs nothing.
+export const LEVELS = [warehouse, tower, flooded];
 export const LEVEL_BY_ID = Object.fromEntries(LEVELS.map((l) => [l.id, l]));
 export const DEFAULT_LEVEL = warehouse.id;
 
