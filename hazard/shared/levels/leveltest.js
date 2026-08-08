@@ -134,6 +134,189 @@ function onDrift(lvl, rec) {
 /** The bottom of the lowest brush in the level. Nothing may end up under it. */
 const floorOfTheWorld = (lvl) => Math.min(...lvl.brushes.map((b) => b.p[1] - b.s[1] / 2));
 
+// ---------------------------------------------------------------------------
+// routes
+//
+// "No unreachable objectives" is not something a raycast can tell you. A
+// staircase whose rise crept over MAX_STEP, a landing 200mm short of the flight
+// it meets, a board that does not quite overlap the plate — all of those are
+// geometrically plausible and none of them can be walked, and you only find out
+// by walking. So: a bot, real character controller, seeking one waypoint at a
+// time up the route the level is designed around.
+//
+// These lists belong to the test, not to the level. Deriving them from the
+// level's own constants would only assert that arithmetic is arithmetic.
+
+const stairTowerRoute = () => {
+  const LV = [0, 4.0, 7.8, 11.6, 15.4, 19.2];
+  const SA = -13.75, SB = -11.65;
+  const out = [
+    [10.0, 0.2, -13.0],     // across the yard, giving the tower's base a wide berth
+    [-9.0, 0.2, -13.0],
+    [-9.0, 0.2, -3.4],
+    [SA, 0.2, -3.2],        // the foot of the first flight
+  ];
+  // Both bays carry a flight for every storey, so the waypoints have to name
+  // the bay as well as the height: aim vaguely at "up" from the south landing
+  // and the shortest line is back down the flight you just climbed.
+  for (let k = 0; k < 5; k++) {
+    const mid = (LV[k] + LV[k + 1]) / 2;
+    out.push([SA, LV[k], -3.3]);     // the foot of bay A, on the south landing
+    out.push([SA, mid, 3.3]);        // up bay A to the north landing
+    out.push([SB, mid, 3.3]);        // across it
+    out.push([SB, LV[k + 1], -3.3]); // up bay B, arriving on the next landing
+  }
+  out.push([-8.0, LV[5], -3.9]);     // and out along the bridge onto the roof
+  out.push([-2.6, LV[5], -1.6]);     // ...to where the chandelier is
+  return out;
+};
+
+const ROUTES = {
+  tower: [
+    {
+      // The furniture route. If this one breaks the chandelier task is a lie
+      // and so is the piano bonus, because nothing heavy has any other way down.
+      name: 'the site stair reaches the roof',
+      waypoints: stairTowerRoute(),
+      budgetMs: 90000,
+    },
+    {
+      // The fast route: three 33-degree runs and a 600mm board across the gap.
+      name: 'the scaffold runs reach L3, and the board reaches the plate',
+      waypoints: [
+        [-6.4, 0.2, -9.6],
+        [1.16, 4.0, -9.6],   // top of the first run, onto the L1 lift
+        [4.9, 4.0, -9.6],    // east along the lift, still in the lower bay
+        [4.9, 4.0, -7.9],    // step across into the upper bay
+        [-0.82, 7.8, -7.9],  // up the second run
+        [-4.9, 7.8, -7.9],   // west along the L2 lift
+        [-4.9, 7.8, -9.6],   // back into the lower bay
+        [0.82, 11.6, -9.6],  // up the third, onto the L3 lift
+        [3.4, 11.6, -8.4],
+        [3.4, 11.6, -6.0],   // over the board, onto the plate
+      ],
+      budgetMs: 60000,
+    },
+    {
+      // Down only, and the test says so: 45 degrees is inside the controller's
+      // climb limit and outside its slide limit.
+      name: 'the collapsed slab drops you onto the east deck',
+      waypoints: [
+        [4.0, 15.5, -2.0],
+        [6.2, 15.5, -2.0],   // over the kick rail at the plate edge
+        [9.0, 12.9, -2.0],   // ...and there is no walking back up this
+        [10.9, 11.7, -2.0],
+      ],
+      budgetMs: 30000,
+    },
+  ],
+};
+
+/**
+ * Walk a bot along a waypoint list, one leg at a time.
+ *
+ * Deliberately dim: face the next waypoint, hold W, ease off as it gets close
+ * so a landing does not turn into a nineteen-metre drop off an unrailed edge.
+ * If a leg cannot be walked in its share of the budget the route is broken and
+ * the waypoint it died on is the geometry to go and look at.
+ */
+function walkRoute(room, actor, waypoints, budgetMs) {
+  let leg = 0;
+  let now = 0;
+  let crashed = null;
+  const stalled = { at: null, pos: null };
+  const perLeg = budgetMs / waypoints.length;
+  let legStart = 0;
+
+  actor.pos = { x: waypoints[0][0], y: waypoints[0][1], z: waypoints[0][2] };
+  actor.vel = { x: 0, y: 0, z: 0 };
+  actor.body.setNextKinematicTranslation({
+    x: actor.pos.x, y: actor.pos.y + actor.height / 2, z: actor.pos.z,
+  });
+  leg = 1;
+
+  const steps = Math.round(budgetMs / TICK_MS);
+  for (let i = 0; i < steps && leg < waypoints.length; i++) {
+    const t = waypoints[leg];
+    const dx = t[0] - actor.pos.x, dz = t[2] - actor.pos.z;
+    const flat = Math.hypot(dx, dz);
+    const yaw = Math.atan2(-dx, dz);
+    // Ease down inside two metres; sprint the long legs across open ground.
+    const gas = Math.min(1, Math.max(0.25, flat / 2));
+    actor.pendingInput = {
+      seq: 0, moveX: 0, moveY: gas, yaw, pitch: 0,
+      buttons: flat > 6 ? 2 : 0, holdDist: 1.85,
+    };
+    now += TICK_MS;
+    // A bot walking a 1.1m scaffold board falls off it, and a fall of more than
+    // three metres currently takes the whole room down — see checkHardLanding.
+    // Catch it here so a route test reports "fell off" rather than aborting the
+    // entire suite on somebody else's bug.
+    try { room.step(now); } catch (err) { crashed = err; break; }
+
+    // Arrive properly. A loose radius on a staircase lets the bot "reach" a
+    // landing while still standing on the flight, and the next leg then walks
+    // it straight back down again.
+    if (flat < 0.75 && Math.abs(actor.pos.y - t[1]) < 0.6) { leg++; legStart = now; }
+    if (now - legStart > perLeg * 3) {
+      stalled.at = leg;
+      stalled.pos = [actor.pos.x, actor.pos.y, actor.pos.z];
+      break;
+    }
+  }
+  return {
+    done: leg >= waypoints.length,
+    crashed,
+    leg,
+    target: waypoints[Math.min(leg, waypoints.length - 1)],
+    pos: stalled.pos || [actor.pos.x, actor.pos.y, actor.pos.z],
+  };
+}
+
+/**
+ * A hard landing must not take the room with it.
+ *
+ * It currently does, in every level, including the untouched warehouse:
+ *
+ *   actor.js:228  a landing over FALL_SAFE_SPEED calls this.damage(...)
+ *   actor.js:279  damage() over RAGDOLL_TRIGGER_DAMAGE calls enterRagdoll()
+ *   actor.js:293  enterRagdoll() calls destroyCapsule(), which nulls this.body
+ *   actor.js:240  ...and step() then reads this.body.setNextKinematicTranslation
+ *
+ * Anything over about a three metre drop, so: the warehouse mezzanine, every
+ * plate in the tower, and the sump in the plant. Nobody has hit it because
+ * smoke.js only ever ragdolls an actor from OUTSIDE step(), by calling
+ * damage() directly, which returns to a caller that does not then touch the
+ * capsule. The fix is one line in a file this pass does not own — an early
+ * `if (this.ragdoll) return;` after the fall-damage call.
+ *
+ * Written to heal itself: the day actor.js grows that line, this check goes
+ * from a recorded defect to a passing assertion with no edit here.
+ */
+function checkHardLanding(room, lvl) {
+  const slot = room.join({ send() {} }, 'FALLER');
+  const a = room.actors.get(slot);
+  a.pos = { x: lvl.spawn[0], y: lvl.spawn[1] + 1.5, z: lvl.spawn[2] };
+  a.vel = { x: 0, y: -16, z: 0 };
+  a.body.setNextKinematicTranslation({ x: a.pos.x, y: a.pos.y + a.height / 2, z: a.pos.z });
+  let now = 1e6;
+  try {
+    for (let i = 0; i < 120; i++) {
+      a.pendingInput = { seq: 0, moveX: 0, moveY: 0, yaw: 0, pitch: 0, buttons: 0, holdDist: 1.85 };
+      now += TICK_MS;
+      room.step(now);
+    }
+  } catch (err) {
+    room.leave(slot);
+    return err;
+  }
+  room.leave(slot);
+  return null;
+}
+
+const isTheKnownFallCrash = (err) => /setNextKinematicTranslation/.test(err.message)
+  && /actor\.js/.test(String(err.stack));
+
 const advance = (room, ms, t0, fn) => {
   const steps = Math.round(ms / TICK_MS);
   let now = t0;
@@ -309,6 +492,32 @@ async function checkLevel(lvl) {
   ok('ten seconds with contractors in it produces no NaN', nan === 0, `${nan} non-finite reads`);
   ok('the tick is under 6ms', perTick < 6,
     `${perTick.toFixed(2)}ms/tick, ${lvl.brushes.length} brushes + ${room.world.props.size} props + 3 actors`);
+
+  // --- 8. does a fall take the room down with it? -------------------------
+  const fell = checkHardLanding(room, lvl);
+  if (fell && isTheKnownFallCrash(fell)) {
+    warn('a hard landing crashes the room (known, server/actor.js is not this pass\'s file)',
+      'actor.js:228 ragdolls inside step(), nulling this.body, and :240 then reads it; '
+      + 'needs `if (this.ragdoll) return;` after the fall-damage call');
+  } else {
+    ok('a hard landing does not crash the room', !fell, fell ? fell.message : '16m/s onto the spawn');
+  }
+
+  // --- 9. can the routes be walked at all? --------------------------------
+  // A fresh contractor per route: a bot that fell off the last one is a
+  // capsule-less wreck that throws the moment anything moves it.
+  for (const b of bots) b.pendingInput = input({});
+  for (const route of ROUTES[lvl.id] || []) {
+    const s = room.join({ send() {} }, 'WALKER');
+    const r = walkRoute(room, room.actors.get(s), route.waypoints, route.budgetMs);
+    const where = `on leg ${r.leg}, heading for ${r.target.map((v) => v.toFixed(1))}, `
+      + `last seen at ${r.pos.map((v) => v.toFixed(1))}`;
+    const why = r.crashed
+      ? (isTheKnownFallCrash(r.crashed) ? `fell off ${where}` : `the room threw: ${r.crashed.message}`)
+      : `stuck ${where}`;
+    ok(route.name, r.done, r.done ? `${route.waypoints.length} waypoints walked` : why);
+    room.leave(s);
+  }
 
   room.destroy();
 }

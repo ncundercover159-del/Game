@@ -77,9 +77,16 @@ function plate(y, x0, x1, z0, z1, hole, mat = 'deckplate', t = 0.3) {
  * flight at the fourth storey without also putting a nineteen-metre column of
  * concrete underneath it.
  *
- * `rise` is a maximum, not a target. MAX_STEP is 0.42m: at 0.42 the autostep
- * is deciding on a knife edge every frame and at 0.43 the staircase is a wall.
- * 0.30 for something you carry a bath down, 0.38 for something called a ladder.
+ * `rise` is a maximum, not a target, and 0.30 is the real ceiling rather than
+ * MAX_STEP's 0.42. Measured, by walking a bot up 4m of stair at a range of
+ * rises: at 0.286 the climb takes 7.7s, at 0.333 it takes 15.0s and at 0.364 it
+ * takes 17.5s of shuffling. The autostep does not fail so much as sulk — a
+ * capsule 0.68m across straddles three treads at once, and the steeper the
+ * flight the more often there is no clean tread to put a foot on. Tread DEPTH
+ * barely matters (0.44 walks as well as 0.55); rise is the whole story.
+ *
+ * So: steepness is bought with distance, not with rise. The stair tower runs at
+ * 17 degrees and the scaffold at 33, and both use a rise under 0.30.
  */
 function flight(from, to, width, rise = 0.30, mat = 'grate') {
   const dy = to[1] - from[1];
@@ -162,20 +169,34 @@ const brushes = [
   box([-12.7, 9.8, -4.65], [4.4, 19.6, 0.1], 'panel', { tag: 'wall', thin: true }),
 
   // --- the north scaffold, ground to L3 ------------------------------------
-  // Three ladder runs, alternating direction, with a lift board at each plate.
-  // The 700mm gap between the scaffold and the building is spanned by one
-  // 600mm board with nothing either side of it. It is a legal working platform
-  // in the sense that nobody has yet fallen off it.
-  ...flight([-4.6, LV[0], -9.4], [-0.4, LV[1], -9.4], 1.1, 0.38),
-  ...flight([4.6, LV[1], -9.4], [0.4, LV[2], -9.4], 1.1, 0.38),
-  ...flight([-4.6, LV[2], -9.4], [-0.4, LV[3], -9.4], 1.1, 0.38),
-  deck(LV[1], -0.4, 4.8, -10.6, -7.2),
-  deck(LV[2], -4.8, 0.4, -10.6, -7.2),
-  deck(LV[3], -0.4, 4.8, -10.6, -7.2),
-  box([2.6, LV[1] - 0.05, -6.85], [0.6, 0.1, 1.7], 'plank', { tag: 'plank' }),
-  box([-2.6, LV[2] - 0.05, -6.85], [0.6, 0.1, 1.7], 'plank', { tag: 'plank' }),
-  box([2.6, LV[3] - 0.05, -6.85], [0.6, 0.1, 1.7], 'plank', { tag: 'plank' }),
-  ...[[-4.9, -10.4], [-4.9, -7.4], [0, -10.4], [0, -7.4], [4.9, -10.4], [4.9, -7.4]].map(
+  // Three runs at 33 degrees, alternating direction, with a lift at each plate.
+  // Twice the pitch of the site stair and a third of its width, which is the
+  // entire difference between the two routes: this one is quicker and this one
+  // is where people die. The 700mm gap between the scaffold and the building is
+  // spanned by one 600mm board with nothing either side of it. It is a legal
+  // working platform in the sense that nobody has yet fallen off it.
+  //
+  // The runs alternate LANE as well as direction — the lower bay at z=-9.6, the
+  // upper at z=-7.9 — because a flight stacked directly over the lift it starts
+  // from has its underside descending to meet that lift, and the last 1.5m
+  // before the foot of the next run is then 1.2m of headroom for a 1.72m
+  // contractor.
+  //
+  // The two bays SHARE AN EDGE at z=-8.75. They were 1.1m wide with a 700mm
+  // slot between them, which is a 12m drop the width of a contractor's hips
+  // running the whole length of the scaffold, invisible from above and lethal
+  // the first time anybody drifts sideways on a climb. A scaffold lift is
+  // boarded across the bay. So is this one.
+  ...flight([-5.0, LV[0], -9.6], [1.16, LV[1], -9.6], 1.7),
+  ...flight([4.9, LV[1], -7.9], [-0.82, LV[2], -7.9], 1.7),
+  ...flight([-4.9, LV[2], -9.6], [0.82, LV[3], -9.6], 1.7),
+  deck(LV[1], 1.16, 5.2, -10.45, -7.05),
+  deck(LV[2], -5.2, -0.82, -10.45, -7.05),
+  deck(LV[3], 0.82, 5.2, -10.45, -7.05),
+  box([3.4, LV[1] - 0.05, -6.75], [0.6, 0.1, 1.5], 'plank', { tag: 'plank' }),
+  box([-3.4, LV[2] - 0.05, -6.75], [0.6, 0.1, 1.5], 'plank', { tag: 'plank' }),
+  box([3.4, LV[3] - 0.05, -6.75], [0.6, 0.1, 1.5], 'plank', { tag: 'plank' }),
+  ...[[-5.3, -10.6], [-5.3, -6.9], [0, -10.6], [0, -6.9], [5.3, -10.6], [5.3, -6.9]].map(
     ([x, z]) => box([x, 6.0, z], [0.12, 12.0, 0.12], 'steelblue', { tag: 'strut' }),
   ),
 

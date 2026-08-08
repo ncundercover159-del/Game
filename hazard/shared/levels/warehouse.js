@@ -69,7 +69,9 @@ export const warehouse = {
 
   env: {
     skyTop: '#20242c', skyBottom: '#3a3129',
-    fog: { color: '#2a2b30', near: 14, far: 74 },
+    // The unit is 46m across its diagonal; fog starting at 14m and ending at
+    // 74m never engages, so distance reads as flat.
+    fog: { color: '#23252b', near: 6, far: 42 },
     sun: { dir: [-0.35, -0.82, -0.45], color: '#ffd9a8', intensity: 1.5 },
     ambient: { sky: '#5b6472', ground: '#2b2521', intensity: 0.85 },
     exposure: 1.0,
