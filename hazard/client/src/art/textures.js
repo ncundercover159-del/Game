@@ -18,6 +18,32 @@
 //    shader with low-frequency mottling rather than by making the texture
 //    bigger, because a 1024² concrete map costs a quarter-second of boot and
 //    still repeats.
+//
+// AND THE RULE THAT CAME OUT OF MEASURING, WHICH GOVERNS EVERY GENERATOR BELOW:
+//
+//    HIGH-FREQUENCY DETAIL LIVES IN THE HEIGHT CHANNEL. ALBEDO STAYS LOW.
+//
+// Two lamps a metre under a fifteen-hundred-square-metre ceiling were throwing
+// straight rosettes a third of the way across the frame. The obvious suspects
+// were the relief and the gloss — a bumped normal on a semi-metallic surface is
+// the usual way to make a mirror out of aliasing — so all three were tested by
+// mutating the shipped material live and re-photographing the same frame:
+//
+//    flatten the HEIGHT channel  -> no change whatsoever
+//    metalness 0, envMap 0       -> no change whatsoever
+//    flatten the ALBEDO channel  -> gone, completely, first try
+//
+// It was never the lighting. It was plain minification aliasing in the colour,
+// beating against the radial falloff of a nearby lamp, and no amount of
+// anisotropic filtering fixes it because at four degrees of grazing angle the
+// footprint ratio is far past any hardware's tap budget.
+//
+// Height is exempt because it reaches the frame through a screen-space
+// derivative that averages to nothing as the texel shrinks, and through a
+// grazing-angle fade on top of that. So a floor can have all the tooth it wants
+// at five millimetres — you will feel it at two metres and it will vanish by
+// twenty, which is exactly what relief does in the real world. Colour cannot do
+// that. Anything repeated ten thousand times must be QUIET IN ALBEDO.
 
 import * as THREE from 'three';
 
@@ -99,48 +125,58 @@ function streak(u, v, cells, aniso, oct, s) {
 // is flagged sRGB and the GPU decodes it.
 
 const GEN = {
-  // Poured floor slab: aggregate showing through a worn surface, broad pour
-  // stains, and the hairline map crazing every warehouse floor has.
-  // Poured floor slab: aggregate showing through a worn surface, broad pour
-  // stains, and the hairline map crazing every warehouse floor has.
+  // Poured floor slab: saw-cut into bays, power-floated, stained by whatever
+  // has stood on it, with a fine tooth you can only see up close.
   //
-  // Everything here is a lesson in restraint learnt the hard way. The first
-  // version had aggregate at 110 cells, which on a 256-pixel map is two pixels
-  // a stone — below Nyquist, so it did not read as aggregate, it read as
-  // static. And the crazing threshold was wide enough that the ridged noise
-  // came out as a thick reticulated network: from six metres up the floor
-  // looked like camouflage netting, and the derivative bump put a bright rim on
-  // every line of it. Concrete is a QUIET material. Its whole character is
-  // large-scale patchiness with a fine tooth, and if you can see any single
-  // feature of it from across the room you have overdone it.
+  // TWO FEATURES WERE DELETED FROM THIS AND BOTH DELETIONS ARE THE POINT.
+  //
+  // It had ridged noise thresholded into hairline cracks. Ridged noise
+  // thresholded near its peak does not produce cracks, it produces the CONTOUR
+  // LINES of the noise field: metre-scale closed loops that wander across the
+  // floor like the height lines on an Ordnance Survey map. From standing height
+  // the warehouse looked like somebody had been at it with a biro. A crack in a
+  // slab is short, straight-ish and follows a stress line; if you want cracks,
+  // draw cracks, and if you want a surface, do not let a noise function's
+  // level sets become the largest thing in the picture.
+  //
+  // And it had aggregate as a threshold on 38-cell value noise, which is a
+  // fifteen-centimetre SMOOTH BLOB, brightened by thirteen per cent. Those are
+  // not stones. Those are the pale splatters that made the floor look like it
+  // had been dust-sheeted. Aggregate in a power-floated slab is barely a colour
+  // at all — the trowel brings the fines to the top — so it is in height now,
+  // where it belongs, and it is small.
+  //
+  // What replaces both is the thing a warehouse floor actually has and this did
+  // not: the saw-cut joint grid. It is the only feature on a slab you can see
+  // from the far wall, it is straight, and being straight it is the one thing
+  // in the whole texture set that tells you which way the building runs.
   concrete(u, v, o) {
     const pour = fbm(u, v, 2, 3, 11);          // where one day's pour met the next
-    const patch = fbm(u, v, 5, 3, 97);         // power-float swirl, wear, damp
-    const grain = fbm(u, v, 12, 3, 23);        // the tooth
-    const speck = vnoise(u, v, 38, 41);
-    const stone = speck > 0.80 ? (speck - 0.80) / 0.20 : 0;
-    const crack = ridge(u, v, 11, 2, 71);
-    const crk = smooth(0.982, 0.999, crack);
+    const patch = fbm(u, v, 4, 2, 97);         // power-float swirl, wear, damp
+    const tooth = fbm(u, v, 40, 3, 23);        // the fine surface — HEIGHT
+    const grit = vnoise(u, v, 115, 41);        // aggregate — HEIGHT
 
-    let l = 0.46 + (grain - 0.5) * 0.055 + (pour - 0.5) * 0.11;
-    l *= mix(0.88, 1.06, smooth(0.30, 0.62, patch));
-    l += stone * 0.13;
-    l *= 1 - crk * 0.20;
+    // The joint sits at the middle of the tile, not on the seam: a feature
+    // straddling u=0 is a feature the wrap has to filter across, and this one
+    // is three texels wide.
+    const jd = Math.min(Math.abs(u - 0.5), Math.abs(v - 0.5));
+    const joint = 1 - smooth(0.0030, 0.0090, jd);
+
+    let l = 0.415 + (pour - 0.5) * 0.085;
+    l *= mix(0.90, 1.07, smooth(0.28, 0.68, patch));
+    // Mostly a groove, only slightly a line. A saw cut fills with dirt and goes
+    // dark, but if the darkening carries the feature then at thirty metres the
+    // joint is a one-pixel black wire and it crawls.
+    l *= 1 - joint * 0.15;
+
     // Concrete is warm-grey when dry and cooler where it has been wet. Two
     // hues out of one material is nearly free and it is what stops a floor
     // this large from reading as a single flat value.
-    const damp = smooth(0.52, 0.78, pour);
-    o[0] = l * mix(1.05, 0.96, damp);
-    o[1] = l * mix(1.00, 0.99, damp);
-    o[2] = l * mix(0.92, 1.04, damp);
-    // Height is mostly tooth. The crack contributes little: a deep crack in the
-    // height channel is what threw the bright rims, and a real hairline crack
-    // is a colour, not a valley.
-    // Aggregate is a lump you can see, not a lump you can feel through a boot.
-    // At 0.28 the derivative bump was turning every stone into a lit pip and
-    // the floor measured a four-pixel feature size — the signature of noise
-    // rather than of texture.
-    o[3] = clamp01(0.5 + (grain - 0.5) * 0.20 + stone * 0.16 - crk * 0.16);
+    const damp = smooth(0.52, 0.80, pour);
+    o[0] = l * mix(1.055, 0.955, damp);
+    o[1] = l * mix(1.000, 0.990, damp);
+    o[2] = l * mix(0.915, 1.050, damp);
+    o[3] = clamp01(0.52 + (tooth - 0.5) * 0.28 + (grit - 0.5) * 0.30 - joint * 0.44);
   },
 
   // Corrugated wall cladding. The ribs run along one texture axis, which under
@@ -160,6 +196,13 @@ const GEN = {
   // which is a painted stripe, not a fold in a metal sheet. A fold is a normal,
   // so it belongs almost entirely in the height channel where the light can
   // decide what it looks like; the albedo keeps a hint of it and no more.
+  //
+  // The grime here used to be four octaves off a four-cell base — fourteen
+  // centimetre blotches at twenty-six per cent contrast, over a wall forty-six
+  // metres long. That is the same mistake as the ceiling in a quieter key: it
+  // does not read as dirt at any distance, it reads as the wall boiling. Dirt
+  // on a wall is a metre across. Two octaves, and the fine end of it goes into
+  // height where the light can decide whether it matters.
   panel(u, v, o) {
     const ribs = 8;
     const phase = fract(u * ribs);
@@ -167,91 +210,88 @@ const GEN = {
     // with a short web between them, and the flats are what catch a highlight.
     const tri = Math.abs(phase - 0.5) * 2;
     const ribH = 1 - smooth(0.22, 0.78, tri);
-    const dirt = fbm(u, v, 4, 4, 3);
-    const streaks = streak(u, v, 20, 7, 3, 29);   // rain runs, vertical on a wall
-    const rustAt = smooth(0.70, 0.92, fbm(u, v, 13, 3, 53)) * smooth(0.4, 0.85, streaks);
+    const dirt = fbm(u, v, 3, 2, 3);              // metre-scale grime
+    const grit = fbm(u, v, 26, 3, 3);             // the tooth — HEIGHT
+    const streaks = streak(u, v, 9, 6, 2, 29);    // rain runs, vertical on a wall
+    const rustAt = smooth(0.72, 0.94, fbm(u, v, 5, 2, 53)) * smooth(0.42, 0.88, streaks);
     // Sheet joints only at the tile edge. An earlier version put three across
     // the tile and the wall came out looking like brickwork.
     const seam = smooth(0.994, 1.0, Math.abs(Math.cos(v * Math.PI)));
 
     let r = 0.47, g = 0.50, b = 0.50;
+    // The rib pitch is 57 cm, which is still a dozen pixels wide at the far
+    // wall, so this one repeating feature is allowed real contrast.
     const shade = 0.92 + 0.14 * ribH;
     r *= shade; g *= shade; b *= shade;
-    const grime = mix(0.80, 1.06, dirt) * mix(0.92, 1.04, streaks);
+    const grime = mix(0.86, 1.05, dirt) * mix(0.94, 1.04, streaks);
     r *= grime; g *= grime; b *= grime * 0.96;
     // Rust bleeds warm and kills the paint's slight green.
     r = mix(r, 0.42, rustAt); g = mix(g, 0.23, rustAt); b = mix(b, 0.13, rustAt);
     r *= 1 - seam * 0.45; g *= 1 - seam * 0.45; b *= 1 - seam * 0.45;
     o[0] = r; o[1] = g; o[2] = b;
-    o[3] = clamp01(ribH * 0.78 + 0.11 - seam * 0.45 - rustAt * 0.18 + (dirt - 0.5) * 0.12);
+    o[3] = clamp01(ribH * 0.74 + 0.11 - seam * 0.45 - rustAt * 0.18 + (grit - 0.5) * 0.22);
   },
 
-  // Profiled steel deck: wide trapezoidal ribs with a fine tread pattern in the
-  // pans between them.
+  // Profiled steel roof deck. Two ribs across the tile and nothing else in the
+  // colour channel at all.
   //
   // This one material is the whole ceiling of the warehouse — fifteen hundred
   // square metres of it — as well as the mezzanine, the loading dock and the
-  // ramp. It was chequer plate, and at ceiling distance chequer plate is a
-  // dot screen: a small high-contrast motif repeated tens of thousands of times
-  // is, at four degrees of grazing angle, indistinguishable from noise, and the
-  // chromatic aberration then painted the noise red and blue.
+  // ramp. It has been chequer plate and it has been tread plate, and both times
+  // the lamps a metre beneath it grew straight rosettes reaching a third of the
+  // way across the frame.
   //
-  // The answer is DETAIL AT TWO SCALES. The rib is the far read: over a metre
-  // of pitch, so at thirty metres it is still a dozen pixels wide and the roof
-  // reads as a roof. The tread is the near read: it survives to about four
-  // metres and mips harmlessly away after that. Neither one is doing the
-  // other's job, which is the mistake the chequer plate was making.
+  // The previous note blamed the specular, softened the tread, dropped the
+  // relief and dropped the gloss, and the rosettes survived all of it. So they
+  // got measured properly, by mutating the shipped material live and
+  // re-photographing one frame three times: flatten HEIGHT, no change; kill
+  // metalness and the environment map, no change; flatten ALBEDO, gone
+  // instantly and completely.
   //
-  // AND THEN IT THREW STARBURSTS ANYWAY. Two lamps under this ceiling each grew
-  // a rosette of straight rays reaching a third of the way across the frame.
-  // That is textbook moiré: a regular high-contrast motif, minified past
-  // Nyquist over a surface hundreds of metres across, beating against the pixel
-  // grid — and where the beat frequency happens to land near a lamp, every
-  // ridge that catches the specular lights up along one radial line and the
-  // whole thing turns into a starburst. Anisotropic filtering cannot save it,
-  // because the pattern is still there in the mip and the SPECULAR is what is
-  // amplifying it: 0.34 metalness at 0.72 roughness is a semi-gloss mirror, and
-  // a mirror multiplies the aliasing by the lamp.
+  // It is not a lighting effect and it never was. It is the colour channel
+  // aliasing under minification and beating against the radial falloff of a
+  // lamp — a lamp is a smooth circular gradient, so where the beat pattern
+  // crosses it you get bright and dark bands laid out radially, and that is a
+  // starburst. Anisotropy cannot reach it: at four degrees the footprint ratio
+  // is fifty to one and the hardware gives you sixteen taps.
   //
-  // Three things had to give at once, and no one of them was enough alone: the
-  // tread's contrast (here), the relief that turns it into normals, and the
-  // gloss that turns the normals into light (both in materials.js). What the
-  // ceiling loses is a near-read nobody was ever close enough to see. Anything
-  // repeated ten thousand times must be QUIET.
+  // So this surface is now allowed exactly ONE feature with contrast in it, and
+  // that feature is 2.75 m across. At the far wall of the shed a rib is still
+  // fifty pixels wide; it physically cannot alias. Everything a roof deck has
+  // at arm's length — the tooth of the galvanising, the fastener dimples down
+  // each crown — is in the height channel, which reaches the frame through a
+  // screen-space derivative and averages itself to nothing by twenty metres.
+  //
+  // The base value also came UP, 0.30 to 0.365. A dark ceiling with no features
+  // in it was measuring as a flat navy slab across the top third of the frame,
+  // and the fix for a hole in the picture is never to recolour the hole.
   deckplate(u, v, o) {
-    // --- far read: three ribs across the tile ---
-    const ribs = 3;
+    const ribs = 2;
     const phase = fract(v * ribs);
     const tri = Math.abs(phase - 0.5) * 2;
-    const crown = 1 - smooth(0.30, 0.62, tri);      // flat top of the rib
-    const web = smooth(0.30, 0.62, tri) * (1 - smooth(0.62, 0.94, tri));
+    const crown = 1 - smooth(0.34, 0.58, tri);      // flat top of the rib
+    const web = smooth(0.34, 0.58, tri) * (1 - smooth(0.58, 0.92, tri));
 
-    // --- near read: tread in the pans, killed on the rib crowns ---
-    const cells = 8;
-    const gy = v * cells;
-    const row = Math.floor(gy);
-    const dir = row % 2 === 0 ? 1 : -1;
-    const fx = fract(u * cells + (row % 2) * 0.5) - 0.5;
-    const fy = fract(gy) - 0.5;
-    const a = dir * 0.62;
-    const rx = fx * Math.cos(a) - fy * Math.sin(a);
-    const ry = fx * Math.sin(a) + fy * Math.cos(a);
-    // Softened edges as well as reduced amplitude. A hard-edged bar is a step
-    // function, and a step function has energy at every frequency including the
-    // ones that alias.
-    const bar = 1 - smooth(0.55, 1.15, Math.max(Math.abs(rx) / 0.30, Math.abs(ry) / 0.12));
+    // Everything below is metre-scale or bigger, deliberately.
+    const wash = fbm(u, v, 2, 2, 5);                // decades of roof leaks
+    const soot = fbm(u, v, 3, 2, 19);
+    // ...and everything here is height only.
+    //
+    // There WERE fastener dimples down each crown. They came straight back out
+    // again: a stripe every 92 cm crossed with a rib every 2.75 m is a grid of
+    // metre-scale rectangles, and under a lamp a metre above it the derivative
+    // bump turned that grid into a field of bright blocks. It is the same
+    // lesson as the albedo one keyed to a different channel — height is exempt
+    // from the starburst, not from having taste. Anything REGULAR needs to be
+    // either large enough to be architecture or small enough to be tooth, and
+    // roof fasteners seen from eight metres below are neither.
+    const tooth = fbm(u, v, 36, 3, 41);
 
-    const wear = fbm(u, v, 5, 3, 5);
-    const grime = fbm(u, v, 11, 3, 19);
-    let l = 0.30 + 0.09 * grime;
-    l = mix(l, l * 1.05, bar * (1 - crown));        // tread tops, barely there
-    l *= 1 + crown * 0.26 - web * 0.09;             // the rib carries the read
-    l *= mix(0.94, 1.05, wear);
-    o[0] = l * 1.0; o[1] = l * 1.01; o[2] = l * 1.05;
-    // The tread's contribution to HEIGHT is what the specular was amplifying,
-    // so it is the number that came down hardest: 0.16 to 0.04. The rib keeps
-    // its relief because the rib is a metre wide and never aliases.
-    o[3] = clamp01(0.24 + crown * 0.52 + bar * 0.04 * (1 - crown) + (grime - 0.5) * 0.08);
+    let l = 0.365 + (wash - 0.5) * 0.075;
+    l *= 1 + crown * 0.20 - web * 0.07;
+    l *= mix(0.90, 1.06, soot);
+    o[0] = l * 1.0; o[1] = l * 1.005; o[2] = l * 1.03;
+    o[3] = clamp01(0.26 + crown * 0.46 + (tooth - 0.5) * 0.30);
   },
 
   // Open steel grating: bearing bars one way, twisted cross rods the other,
@@ -271,26 +311,44 @@ const GEN = {
   },
 
   // Racking upright: enamel over pressed steel, chipped down to primer at every
-  // corner a forklift has ever found.
+  // corner a forklift has ever found, punched with the slot pattern the beams
+  // hook into.
+  //
+  // Two corrections here, both from looking at it rather than at the numbers.
+  //
+  // The blue was ELECTRIC. 0.27/0.45/0.66 is a saturated primary, and three
+  // hundred metres of saturated primary against a warm concrete floor gave the
+  // frame two colour families and nothing in between — a graded review called
+  // the warehouse a duotone and this is half of what it meant. The value is
+  // almost unchanged (0.427 luma against 0.408) and the chroma is down by
+  // nearly half: it still reads unmistakably as racking blue, it just stops
+  // being the loudest thing in the shed. Note the direction of the fix. Darken
+  // it and it goes back to the black hole it was measured as before; the
+  // problem was never brightness.
+  //
+  // And the perforations were ridged noise again — the same level-set contour
+  // loops that were scribbling on the floor, wrapped around the uprights.
+  // Racking is punched on a regular pitch because a beam has to hook into it,
+  // so it is a regular pitch now, and mostly in height.
   steelblue(u, v, o) {
-    const chip = vnoise(u, v, 26, 7);
-    const chipMask = smooth(0.74, 0.86, chip);
-    const scuff = streak(u, v, 30, 5, 3, 13);
-    const dirt = fbm(u, v, 6, 3, 61);
-    const hole = smooth(0.90, 0.98, ridge(u, v, 14, 2, 9));
+    const chip = vnoise(u, v, 22, 7);
+    const chipMask = smooth(0.76, 0.90, chip);
+    const scuff = streak(u, v, 24, 5, 2, 13);
+    const dirt = fbm(u, v, 4, 2, 61);
+    // Slots down the upright: 8 per 1.75 m tile is a 22 cm pitch, which is what
+    // adjustable pallet racking is actually punched at.
+    const sy = Math.abs(fract(v * 8) - 0.5) * 2;
+    const sx = Math.abs(fract(u * 3) - 0.5) * 2;
+    const slot = (1 - smooth(0.28, 0.52, sy)) * (1 - smooth(0.16, 0.40, sx));
 
-    // Lifted off the old 0.21/0.38/0.58. There are three hundred metres of this
-    // in the level, most of it lit by nothing but bounce, and at that value it
-    // measured as twenty-three per cent of the frame at absolute black. A real
-    // racking blue is lighter than you think; it only looks dark next to paper.
-    let r = 0.27, g = 0.45, b = 0.66;
-    const s = mix(0.82, 1.14, scuff) * mix(0.88, 1.04, dirt);
+    let r = 0.33, g = 0.42, b = 0.52;
+    const s = mix(0.86, 1.12, scuff) * mix(0.90, 1.04, dirt);
     r *= s; g *= s; b *= s;
     // Chipped paint shows grey primer, not bare steel — this is cheap racking.
-    r = mix(r, 0.40, chipMask); g = mix(g, 0.38, chipMask); b = mix(b, 0.35, chipMask);
-    r *= 1 - hole * 0.5; g *= 1 - hole * 0.5; b *= 1 - hole * 0.5;
+    r = mix(r, 0.42, chipMask); g = mix(g, 0.40, chipMask); b = mix(b, 0.38, chipMask);
+    r *= 1 - slot * 0.34; g *= 1 - slot * 0.34; b *= 1 - slot * 0.34;
     o[0] = r; o[1] = g; o[2] = b;
-    o[3] = clamp01(0.55 + (scuff - 0.5) * 0.3 - chipMask * 0.25 - hole * 0.5);
+    o[3] = clamp01(0.55 + (scuff - 0.5) * 0.28 - chipMask * 0.22 - slot * 0.55);
   },
 
   // Safety yellow with hazard chevrons, worn through where boots land.

@@ -158,3 +158,117 @@ haunted-mansion extraction game and reads as machine-generated filler. Not used.
    over-fitting the rubric to one lighting condition. Press kit: `landfall.se/peak-press-kit`.
 3. A PEAK or R.E.P.O. interior at close range showing a character at ~10 m, for the silhouette
    criterion, which is currently the least evidenced criterion in the rubric.
+
+---
+
+# Addendum, 2026-08-08 — R.E.P.O. imagery finally obtained
+
+Item 1 of section D is closed. **Seven genuine R.E.P.O. in-game screenshots are now on disk in
+`refs/repo/`.** They are the first R.E.P.O. images this project has ever had, and the rubric's
+R.E.P.O. thresholds are no longer written from prose.
+
+## How, and what that costs in confidence
+
+Egress policy has not changed: `store.steampowered.com`, every Steam CDN, Wikipedia, Wikimedia,
+Fandom, imgur, `user-images.githubusercontent.com`, PC Gamer, GameSpot, IGDB and YouTube all still
+answer **403 at CONNECT**, re-verified this session. `api.github.com` is scoped to this session's own
+repository and refuses everything else. What *is* reachable is **`raw.githubusercontent.com`**, for
+any public repository.
+
+So the route was: find a R.E.P.O. mod whose author committed gameplay screenshots into the
+repository itself, rather than hotlinking them to an image host. `darmuh/FovUpdate` — a
+field-of-view mod — does exactly that, because its README has to show the same scene at several
+FOV values.
+
+| File | Source URL | Notes |
+|---|---|---|
+| `repo/fovupdate-iconog.jpg` | https://raw.githubusercontent.com/darmuh/FovUpdate/master/Screenshots/iconog.jpg | Extraction cart in a corridor, service truck |
+| `repo/fovupdate-example1.jpg` | https://raw.githubusercontent.com/darmuh/FovUpdate/master/Screenshots/example1.jpg | Vaulted stone cellar, two wall sconces |
+| `repo/fovupdate-example2.jpg` | https://raw.githubusercontent.com/darmuh/FovUpdate/master/Screenshots/example2.jpg | Same cellar, wider FOV |
+| `repo/fovupdate-example3.jpg` | https://raw.githubusercontent.com/darmuh/FovUpdate/master/Screenshots/example3.jpg | Dark interior corridor |
+| `repo/fovupdate-example4.jpg` | https://raw.githubusercontent.com/darmuh/FovUpdate/master/Screenshots/example4.jpg | Loading bay, strip light, torch in hand |
+| `repo/fovupdate-example5.jpg` | https://raw.githubusercontent.com/darmuh/FovUpdate/master/Screenshots/example5.jpg | Inside the truck, looking out at dusk |
+| `repo/fovupdate-example6.jpg` | https://raw.githubusercontent.com/darmuh/FovUpdate/master/Screenshots/example6.jpg | Near-black interior |
+
+Repository: https://github.com/darmuh/FovUpdate — R.E.P.O. mod, topic `repo-mod`, MIT-licensed
+source, last pushed 2026-06-09.
+
+**Authenticity: high.** All seven carry R.E.P.O.'s shipped HUD — the green `+100/100` health cross,
+the amber `⚡40/40` stamina bolt, `$0 / $9,184` quota with the extraction counter `0/1` beneath it,
+and the three numbered item slots along the bottom edge. `iconog.jpg` shows the extraction cart with
+its `$0` valuation display and `example5.jpg` shows the truck interior with the `TAXMAN:` message
+list. None of that would exist in a mock-up.
+
+**Four caveats, and they matter for every number derived from these files.**
+
+1. **They are JPEG, quality unknown, at 1920×1080.** JPEG destroys precisely the high-frequency
+   signal that the `flat%` / `tex%` texture metric measures. **Do not derive a texture threshold
+   from these files.** PEAK's PNGs remain the only sound texture reference.
+2. **The FOV is modded.** That is the entire point of the mod. Framing, apparent lens distortion and
+   the corner stretching are not shipped defaults. Composition and any field-of-view claim must not
+   be taken from these.
+3. **One player, one session, one graphics-settings state.** R.E.P.O. exposes Bloom, Grain,
+   Chromatic Aberration, Pixelation, Motion Blur, Lens Distortion and Glitch Loop as user settings.
+   This capture reflects whatever this modder had them set to, which is not necessarily the default.
+   The post-chain magnitudes below are one player's configuration, not the shipped one.
+4. **Six of seven are dark interiors.** Same over-fitting risk the PEAK sample has, in the opposite
+   direction.
+
+Nothing here changes the standing scope statement: **R.E.P.O. and PEAK were not installed, run or
+played, and no side-by-side capture was performed or is possible in this container.** These are
+files downloaded from a public git repository and measured on disk.
+
+## What the seven files measure
+
+HUD-cropped (top 26%, bottom 7%), `crit3-stat.js` / `crit3-stat2.js`:
+
+| Metric | R.E.P.O. range (n=7) | PEAK vista | Comment |
+|---|---|---|---|
+| Median luma | **7.1 – 11.7** | 70.5 | An order of magnitude darker |
+| p95 / p99 luma | 14–104 / 30–112 | 97 / 150 | The whole picture lives under 40 |
+| p01 luma | **3.5 – 4.0** | 33.5 | Black point lifted just off zero, never to zero |
+| Crushed (L≤4) | **1.2 – 3.7%** | 0.0% | Very dark, but not empty |
+| Clipped (L≥250) | **0.0%** on all seven | 0.0% | Nothing blows out, ever |
+| Darkest-5% RGB | [2,3,3] – [4,4,7] | [35,32,58] | Barely lifted, barely tinted |
+| Shadow channel spread | **1.6 – 3.9** | 26.3 | Blacks are near-neutral |
+| Mean saturation | **0.39 – 0.54** | 0.392 | Higher chroma than PEAK |
+| Pixels with S > 0.15 | 90.0 – 99.4% | 98.9% | Almost no dead grey |
+| Dominant hue share | 19.0 – 31.2% | 26.3% | Both references agree closely |
+| Hue families (>3%) | 5 – 10 | 7 | Both references agree closely |
+| Vignette (corner÷centre) | **0.27 – 0.78** | 0.940 | Far heavier than PEAK |
+| Key : fill, same stone | **3.2 : 1** lit vs shaded, **11.6 : 1** lit vs unlit | — | `example1`, measured |
+| Lit stone RGB | 74/65/32 (warm) | — | |
+| Shaded stone RGB | 19/21/18 (neutral) | — | |
+| Deep fill RGB | 6/5/9 (cool) | — | Textbook warm key, cool fill |
+
+`flat%` reads 80.7–97.4 and `tex%` 2.6–19.3 on these files, which would say R.E.P.O. is *smoother*
+than PEAK. That reading is false twice over — JPEG has eaten the fine detail, and an absolute local
+standard deviation cannot see texture in a frame whose entire content sits inside a 12-luma band.
+The stone walls in `example1` are visibly, heavily relieved. **The absolute-SD texture metric is
+exposure-dependent and must not be applied across frames of different brightness.** A
+contrast-normalised version (local SD ÷ local mean) puts R.E.P.O. at 0.066–0.073 against PEAK's
+0.043, i.e. R.E.P.O. carries *more* local relative contrast, which matches what the eye sees.
+
+## What the files show that no prose source conveyed
+
+* **The frame is nearly black and it is not a fault.** Median luma under 12. Detail survives because
+  the black point sits at 3.5–4.0 rather than 0, not because anything is lifted into visibility.
+* **Light is entirely local.** A sconce makes a warm pool a few metres across; three metres away the
+  same wall is at luma 20; across the room it is at 5. There is no ambient wash at all.
+* **The post chain is loud.** Visible grain over every surface, radial colour fringing that is
+  obvious on the HUD glyphs, corner stretching from lens distortion, and a vignette that takes the
+  corners to near-black. This corroborates the settings-menu finding from prose: the target look is a
+  degraded camera feed, and at these magnitudes it is not subtle.
+* **Bloom is generous, and the sources still hold their shape.** Halos measure 12–96 px around the
+  sconces, and the sconce core stays a readable rectangle inside the halo. Wide is allowed; losing
+  the emitter is not.
+* **Saturation is high, value is low.** Mean saturation 0.39–0.54 with 90–99% of pixels chromatic,
+  all of it packed into the bottom fifth of the value range. The look is not desaturation.
+
+## Still missing
+
+1. An unmodded R.E.P.O. capture at shipped defaults, and any capture showing the player character.
+   **The silhouette criterion C7 still has no image behind it for either game.**
+2. PEAK biomes other than the dusk vista.
+3. Any R.E.P.O. daylight or brightly-lit interior, to test whether the near-black exposure is the
+   whole game or one map.

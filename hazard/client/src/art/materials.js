@@ -100,10 +100,13 @@ const RECIPES = {
   concrete: { tex: 'concrete', tile: 5.6, rough: 0.94, metal: 0.0, bump: 1.05, roughVar: -0.20, ao: 0.42, mottle: 0.16, fill: 0.34 },
   panel: { tex: 'panel', tile: 4.6, rough: 0.80, metal: 0.10, bump: 2.1, roughVar: -0.20, ao: 0.46, mottle: 0.13, fill: 0.30, env: 0.45 },
   // Fifteen hundred square metres of ceiling, and every number here is set by
-  // that. See the note in textures.js: bright metal + fine relief + a point
-  // lamp is a moiré rosette generator, and it threw starbursts a third of the
-  // way across the screen. Dusty painted deck, barely metallic, barely bumped.
-  deckplate: { tex: 'deckplate', tile: 4.0, rough: 0.94, metal: 0.07, bump: 0.7, roughVar: -0.10, ao: 0.30, mottle: 0.11, fill: 0.30, env: 0.22 },
+  // that. The tile went 4.0 -> 5.5 so the deck's two ribs sit at a 2.75 m
+  // pitch: see textures.js, where an A/B against the shipped material proved
+  // the rosettes around the lamps were albedo minification and not, as three
+  // rounds of tuning had assumed, the specular. The relief can come back UP as
+  // a result — height was never the problem and a roof with no bump at all
+  // reads as painted card.
+  deckplate: { tex: 'deckplate', tile: 5.5, rough: 0.93, metal: 0.07, bump: 1.0, roughVar: -0.12, ao: 0.34, mottle: 0.10, fill: 0.36, env: 0.22 },
   grate: { tex: 'grate', tile: 0.88, rough: 0.62, metal: 0.60, bump: 2.2, roughVar: -0.22, ao: 0.55, mottle: 0.08, fill: 0.22, env: 0.7 },
   steelblue: { tex: 'steelblue', tile: 1.75, rough: 0.68, metal: 0.28, bump: 1.5, roughVar: -0.22, ao: 0.30, mottle: 0.11, fill: 0.34, env: 0.5 },
   railing: { tex: 'railing', tile: 1.05, rough: 0.62, metal: 0.22, bump: 1.8, roughVar: -0.20, ao: 0.26, mottle: 0.10, fill: 0.32 },

@@ -1,6 +1,9 @@
 # HAZARD PAY — visual rubric
 
-**Version 1.0** · 2026-08-07 · owner: visual critic
+**Version 1.1** · amended 2026-08-08 · owner: visual critic
+**v1.0** 2026-08-07. See "§3 — Amendments in v1.1" at the foot for the change list; v1.1 changes
+thresholds on C1, C4, C5 and C6, so grades against v1.0 and v1.1 are **not** directly comparable on
+those four criteria.
 
 A screenshot-gradeable standard for the look of HAZARD PAY, calibrated against R.E.P.O. and PEAK.
 Every criterion below has a stated measurement method and numeric thresholds, so that two agents
@@ -21,10 +24,23 @@ Read this before quoting any threshold as "matching the reference".
   authenticity is high-confidence, but their originating URLs were not recorded and all four are
   from **one lighting condition** (a dusk exterior) plus one interior menu. Thresholds derived from
   them are therefore calibrated on a narrow sample. Treat them as a floor, not gospel.
-* **R.E.P.O. contributes no images to this rubric.** Every attempt to fetch one was blocked by the
-  network egress proxy. R.E.P.O.'s influence here is from written sources only, and is confined to
-  criteria C5, C6 and C9, where it is labelled as such.
+* **R.E.P.O. now contributes seven real images** (v1.1, 2026-08-08). `refs/repo/fovupdate-*.jpg`,
+  pulled from `raw.githubusercontent.com/darmuh/FovUpdate/master/Screenshots/` — a R.E.P.O. FOV mod
+  whose author committed gameplay captures into the repo instead of hotlinking them, which is the
+  only image route the egress policy leaves open. They carry R.E.P.O.'s shipped HUD, so authenticity
+  is high. **But they are JPEG, the FOV is modded, and the graphics settings are one player's**, so
+  no texture threshold may be derived from them and no composition claim may rest on them. Details
+  and the full caveat list are in `refs/MANIFEST.md`.
 * Full sourcing, including the discounted low-quality sources, is in `refs/MANIFEST.md`.
+
+### The two references disagree, and the rubric must say which one applies
+
+PEAK is a bright outdoor climbing game. R.E.P.O. is a near-black interior horror game. Measured side
+by side they disagree by an order of magnitude on exposure and by 7× on shadow tint. A single band
+covering both would be so wide it asserted nothing. **HAZARD PAY is a lit industrial interior and
+sits between them**, so from v1.1 the exposure and post criteria carry two columns and the grader
+picks by scene type. Where both references agree — colour discipline, chroma coverage, nothing
+clipping — the band is narrow and binding.
 
 ### The one thing R.E.P.O. tells us that changes the brief
 
@@ -46,12 +62,22 @@ Capture with the existing harness so the framing is comparable run to run:
 
 ```
 cd /home/user/Game/hazard/client && npx vite build
-cd <scratchpad> && node hz.js        # hz-spawn/floor/racking/pit/dock.png
-cd <scratchpad> && node hz-fig.js    # hz-fig-5m/10m/20m.png, for C7
+cd <scratchpad> && HZ_PORT=<pick one> node hz.js        # hz-spawn/floor/racking/pit/dock.png
+cd <scratchpad> && HZ_PORT=<pick one> node hz-fig2.js   # hzf-idle/walk/haul/down/head/lineup, for C7
+cd <scratchpad> && HZ_PORT=<pick one> node hz-water.js  # hzw-t000/t130/t280/t370/under, flooded plant
 ```
+
+Pick a distinct `HZ_PORT` per run; several agents run these at once. `hz-fig.js` (the v1.0 figure
+harness) is superseded by `hz-fig2.js`, which shoots through the post chain — the older one called
+`renderer.render()` directly and produced captures with no AO, bloom, grade, vignette or CA in them.
+Do not grade C2 or C6 from `hz-fig-*.png`.
 
 Numeric criteria are measured with `imgstat.js` and `imgstat2.js` in the scratchpad. Both crop away
 HUD furniture (top 26%, bottom 7%) before measuring, so HUD text does not pollute the statistics.
+`crit3-stat.js` / `crit3-stat2.js` are the same tools with JPEG decoding added, for the reference
+files. `crit3-probe.js` adds three targeted probes the whole-frame statistics cannot do:
+`region` (is the bright part of a frame tinted like the light or like the surface?), `contact`
+(near ÷ far floor luma around a point, for C2) and `texscale` (contrast-normalised texture, for C4).
 
 Grade every criterion on every gameplay frame, then take the **worst** frame's score, not the mean.
 A game is judged by its bad angles.
@@ -81,6 +107,37 @@ checklist passes; the numbers exist to stop wishful grading, not to replace look
 The two most transferable findings: **PEAK crushes nothing to black and tints what shadow it has**,
 and **a third of the vista frame carries surface texture**.
 
+### R.E.P.O. reference values, measured for v1.1
+
+Seven files, `refs/repo/fovupdate-*.jpg`, HUD-cropped, same tooling. Read the caveats in
+`refs/MANIFEST.md` before quoting any of it.
+
+| Metric | R.E.P.O. (n=7) | PEAK vista | The disagreement |
+|---|---|---|---|
+| Median luma | **7.1 – 11.7** | 70.5 | 8× |
+| p95 / p99 luma | 14–104 / 30–112 | 97 / 150 | |
+| p01 luma | 3.5 – 4.0 | 33.5 | Both keep a floor above zero |
+| Crushed (L ≤ 4) | 1.2 – 3.7% | 0.0% | Both effectively nothing |
+| Clipped (L ≥ 250) | 0.0% on all seven | 0.0% | **Total agreement** |
+| Darkest-5% RGB | [2,3,3] – [4,4,7] | [35,32,58] | |
+| Shadow channel spread | 1.6 – 3.9 | 26.3 | 7× |
+| Mean saturation | 0.39 – 0.54 | 0.392 | **Agreement** |
+| Pixels with S > 0.15 | 90.0 – 99.4% | 98.9% | **Agreement** |
+| Dominant hue share | 19.0 – 31.2% | 26.3% | **Agreement** |
+| Hue families (> 3%) | 5 – 10 | 7 | **Agreement** |
+| Vignette (corner ÷ centre) | 0.27 – 0.78 | 0.940 | |
+| Bloom halo radius | 12 – 96 px @1080p | 8 px | |
+| Key : fill, same material | 3.2:1 lit vs shaded, **11.6:1** lit vs unlit | — | |
+
+The single most useful line in that table is the **key-to-fill**. In `example1`, one stone wall
+measures RGB 74/65/32 under a sconce, 19/21/18 three metres along the same wall, and 6/5/9 across
+the room. Warm key, neutral mid, cool fill, and an eleven-to-one range on one material. That is what
+"the lighting is designed" looks like as a number, and it is the number a flat build fails hardest.
+
+**What the two references agree on is as informative as where they differ.** Neither clips. Both put
+90%+ of pixels above S = 0.15. Both hold the dominant hue under a third with five or more families.
+Those four are therefore hard requirements in v1.1, not bands.
+
 ---
 
 ## C1 — Lighting structure and indirect/bounce
@@ -91,6 +148,17 @@ light has bounced — or whether it is a uniform wash with lamps stuck to the ce
 **Method.** Identify the brightest lit region and the darkest lit region *on the same material*
 (e.g. two patches of floor). Compute their luma ratio. Then check whether any surface facing *away*
 from every light source is lit by anything other than a constant.
+
+**v1.1 — neither sample may be inside a cast shadow.** Comparing open floor against shadowed floor
+measures the shadow map, not the light design, and it will report a completely flat room as passing.
+This is not hypothetical: the pass-2 grade of this project scored 2.1:1 that way and graded C1 at
+B−; re-measured correctly on two unshadowed patches of the same floor, the same build gives
+**1.1–1.3:1** and fails. Take both samples from surfaces that no object occludes, at different
+distances from the nearest lamp.
+
+**v1.1 reference values.** R.E.P.O. `example1`, one stone wall: **3.2:1** between the sconce pool
+and the same wall three metres away, **11.6:1** between the sconce pool and the far side of the
+room, and the hue rotates warm → neutral → cool across that range (74/65/32 → 19/21/18 → 6/5/9).
 
 * **FAILS.** Key-to-fill ratio on one material below 2:1 — the room is a wash. Or: surfaces facing
   away from all lights are lit by a single flat term with no directional or colour variation, so
@@ -178,6 +246,28 @@ anything. If `tex%` passes, the grader must confirm that the high-frequency deta
 surfaces* — it should be perspective-foreshortened on a receding floor and should differ between
 material types. Uniform screen-space noise scores this criterion **F** regardless of the number.
 
+**v1.1 — three limits on the metric, all of which were hit in practice.**
+
+1. **`flat%` / `tex%` are exposure-dependent and must not be compared across frames of different
+   brightness.** Local standard deviation is an absolute quantity: a surface whose whole content
+   sits inside a 12-luma band cannot exceed SD 2 however relieved it is. R.E.P.O.'s reference frames
+   measure `flat%` 80.7–97.4, which would rank them *smoother* than PEAK, and they are visibly
+   nothing of the sort. Where frames differ in exposure, use the contrast-normalised form: mean
+   local SD ÷ local mean. Reference values, `crit3-probe.js texscale`: **PEAK 0.043, R.E.P.O.
+   0.066–0.073.** Below 0.035 is flat; 0.04–0.08 is the reference band.
+2. **JPEG sources may not set a texture threshold.** Compression removes the exact signal being
+   measured. PEAK's PNGs are the only sound texture reference this project holds.
+3. **Feature size in pixels is not comparable across resolutions.** The references are 1920×1080 and
+   the harness shoots 1280×720; multiply harness feature sizes by 1.5 before comparing, or state
+   both and compare nothing.
+
+**v1.1 — and the thing the numbers cannot see.** A frame can hit `tex%` 30, `flat%` 60 and a
+correct feature size and still look like a jam build, because the *content* of the pattern is wrong.
+Wandering closed loops read as biro doodles, not concrete. Uniform bright specks read as snow or
+paint spatter. Fine sparkle on painted steel reads as glitter. If the grader cannot name the
+material from the pattern alone — "that is worn concrete", "that is galvanised steel" — the
+criterion is capped at **C** whatever the statistics say.
+
 ---
 
 ## C5 — Tonal range and exposure discipline
@@ -189,17 +279,37 @@ correctly exposed, and vice versa.
 **Method.** `imgstat.js` reports p01/p05/p50/p95/p99 luma, `clip%` (L ≥ 250) and `crush%` (L ≤ 4).
 `imgstat2.js` reports the mean RGB of the darkest 5% and its channel spread.
 
-* **FAILS.** `crush%` above 8 (large regions are pure black voids with no detail — R.E.P.O. is
-  described as very dark, but dark is not the same as *empty*, and detail must survive in the dark).
-  Or `clip%` above 1. Or median luma above 150 on an interior frame — a washed-out, milky frame.
-  Or the darkest 5% has a channel spread below 4, meaning blacks are dead neutral and ungraded.
-* **ACCEPTABLE.** `crush%` between 2 and 8, `clip%` between 0.2 and 1, median luma between 45 and
-  130. Blacks are close to neutral but not obviously so. Highlights roll off rather than snapping.
+**v1.1 — this criterion is now genre-conditioned, because the two references disagree by 8×.**
+PEAK sits at median luma 70; R.E.P.O. sits at 7–12. A single band spanning both would pass anything.
+HAZARD PAY is a lit industrial interior with working lamps, not a torch-lit horror map and not an
+alpine vista, so it is graded against the **interior** column. The R.E.P.O. column is stated so that
+anyone deliberately pushing the build darker knows what the target actually is, and so that "too
+dark" is never asserted without saying too dark *for what*.
+
+| | FAILS | ACCEPTABLE | MATCHES |
+|---|---|---|---|
+| **Median luma — lit interior** (this project) | > 150, or < 20 | 35–140 | **45–110** |
+| Median luma — torch-lit horror (R.E.P.O.) | > 40 | 12–40 | **7–15** |
+| Median luma — outdoor vista (PEAK) | — | — | 55–90 |
+
+The rest of the criterion is **not** genre-conditioned. Both references agree on all of it:
+
+* **FAILS.** `crush%` above 8 — large regions are pure black voids with no detail. Dark is not the
+  same as *empty*, and R.E.P.O. proves the distinction: it is eight times darker than PEAK and still
+  crushes only 1.2–3.7%, because its black point sits at p01 ≈ 3.5–4.0 rather than at zero. Or
+  `clip%` above 1. Or the darkest 5% has a channel spread below 1.5 with a mean below 2, i.e. the
+  black point is on the floor and untinted.
+* **ACCEPTABLE.** `crush%` between 2 and 8, `clip%` between 0.2 and 1. Blacks are lifted off zero
+  (p01 ≥ 3) whether or not they are tinted. Highlights roll off rather than snapping.
 * **MATCHES.** `crush%` below 2 and `clip%` below 0.2 — *nothing* is pure black and *nothing* is
-  pure white (PEAK's vista achieves 0.0 on both). Median luma between 55 and 110 on a working
-  interior. The darkest 5% has a channel spread of 10 or more and a deliberate hue (PEAK: RGB
-  35/32/58, a lifted blue-violet). The whole frame can live inside a 120-point band and still read
-  as high contrast, because contrast is *local*, not endpoint-to-endpoint.
+  pure white. Both references achieve `clip% = 0.0` on **every** frame measured, thirteen of
+  thirteen; treat any clipping at all as a defect to be explained. p01 at or above 3.
+  **Shadow tint is a preference, not a requirement**: PEAK lifts to [35,32,58] with spread 26.3,
+  R.E.P.O. sits at [3,3,6] with spread 1.6–3.9, and both look deliberate. A spread of 10+ scores
+  MATCHES; a spread under 4 also scores MATCHES *provided* p01 ≥ 3 and the frame's colour identity
+  is carried somewhere else. What fails is a black point *on zero*, in either style.
+  The whole frame can live inside a 40-point band and still read as high contrast, because contrast
+  is *local*, not endpoint-to-endpoint — R.E.P.O. does exactly that with p50 = 9 and p99 = 77.
 
 ---
 
@@ -214,8 +324,16 @@ is a bigger failure here than in a typical project.
 * FAILS: ratio ≥ 1.0 — corners as bright as or brighter than centre, actively pulling the eye off
   the subject.
 * ACCEPTABLE: 0.86–0.99.
-* MATCHES: 0.72–0.94 on gameplay frames (PEAK vista: 0.940); far lower is legitimate behind a
-  full-screen UI panel (PEAK menu: 0.336).
+* MATCHES (**widened in v1.1**): **0.27–0.94**. PEAK's vista is 0.940 and R.E.P.O.'s seven frames
+  run 0.27–0.78, so heavy vignetting is squarely within the reference space rather than an excess;
+  far lower is also legitimate behind a full-screen UI panel (PEAK menu: 0.336).
+
+**v1.1 — the metric is invalid when the frame's centre is genuinely dark.** Corner ÷ centre is a
+proxy for a radial falloff and it measures subject matter instead whenever a dark object sits in the
+middle: three frames of this project's own build return 2.2–3.2 with a visually present vignette.
+**A ratio above 1.0 is only a failure if the centre of the frame is not itself dark content.** Check
+by eye before scoring, and if the centre is dark, score the sub-check from the visual read alone and
+say so.
 
 **Ambient occlusion.** Sample luma at a wall–floor junction and 30 px along the floor from it.
 * FAILS: ratio ≥ 0.95 — junctions and creases are as bright as open surfaces, so nothing has corners.
@@ -240,11 +358,28 @@ push — rather than being the raw output of the lighting.
 * MATCHES: a designed relationship between light and shadow hue that is consistent across every
   frame in the set.
 
-**Camera-feed layer (R.E.P.O.-specific, written sources only).** Not required for a pass, but the
-strongest single lever available to this project — see §2. Grain, chromatic aberration at the frame
-edge, mild lens distortion, and a resolution/pixelation step, all player-toggleable. Judge as
-MATCHES only if the effects are *subtle enough to survive a still* and the settings to disable them
-exist.
+**Camera-feed layer.** Not required for a pass, but the strongest single lever available to this
+project — see §2. Grain, chromatic aberration at the frame edge, mild lens distortion, and a
+resolution/pixelation step, all player-toggleable.
+
+**v1.1 — now evidenced by image, and the correction goes against the previous grade.** The seven
+R.E.P.O. captures show the camera-feed layer running *loud*: grain visible over every surface,
+radial colour fringing plainly legible on the HUD glyphs, corner stretching from lens distortion,
+and corners taken to near-black. v1.0 asked for effects "subtle enough to survive a still"; the
+reference is not subtle, and pass 2 of this project's review docked chromatic aberration at 2.0–3.0
+px of edge misregistration as "2–4× a tasteful value". **Against the reference that judgement was
+wrong.** Revised band, measured as red/blue misregistration against green at the frame edge,
+normalised to 720p:
+
+* FAILS: 0 px — the layer is absent and the build is a clean render, which is the wrong target.
+  Or above 6 px, at which point text and thin geometry become unreadable.
+* ACCEPTABLE: 0.5–1.5 px, or above 4 px.
+* MATCHES: **1.5–4 px at the edge with under 1 px at centre**, radial, applied over detail coarse
+  enough that the fringe does not land on a high-frequency edge and speckle.
+
+The one thing that does not change: the effect must be gated so it never lands on a dot-screen. CA
+over texture finer than ~4 px produces rainbow noise rather than a lens, and that is a texture-scale
+defect showing up in the post chain, not a post defect.
 
 ---
 
@@ -380,3 +515,54 @@ An honest accounting, because effort spent on the wrong criterion is wasted.
 5. **Material response variety** (C3). Moderate.
 6. **Geometry density and authored detail.** Last. Lowest return, highest cost, and it is the one
    area where the gap cannot be closed anyway.
+
+---
+
+## 3. Amendments in v1.1 (2026-08-08)
+
+Driven by acquiring seven real R.E.P.O. screenshots (`refs/repo/`, sourcing in `refs/MANIFEST.md`),
+which replaced prose with measurement on the criteria R.E.P.O. was supposed to inform.
+
+| Criterion | Change | Why |
+|---|---|---|
+| §0 | R.E.P.O. now contributes images; two-reference split declared | Seven real captures obtained |
+| §1 | R.E.P.O. measured-values table added | |
+| C1 | Neither key nor fill sample may sit in a cast shadow; reference 3.2:1 / 11.6:1 added | The old method scored a flat room at 2.1:1 by measuring a shadow |
+| C4 | `flat%`/`tex%` declared exposure-dependent; contrast-normalised form added; JPEG and resolution barred from setting thresholds; new cap at **C** when the pattern does not name a material | The absolute-SD metric ranks R.E.P.O. as smoother than PEAK, which is false |
+| C5 | Median-luma band now genre-conditioned (three columns); shadow tint downgraded from requirement to preference; `clip%` hardened | The references disagree 8× on exposure and 7× on shadow tint |
+| C6 | Vignette MATCHES widened to 0.27–0.94; the corner÷centre metric declared invalid on dark-centred frames; camera-feed layer given a numeric CA band, and **the pass-2 verdict that CA was overdone is retracted** | R.E.P.O. runs the camera-feed layer loud |
+| C2, C3, C7, C8, C9 | **Unchanged.** | Both references agree, or no image evidence was gained |
+
+### What did *not* change, and should be trusted more than before
+
+C9's numbers held up under a second independent reference. R.E.P.O. measures 19–31% dominant hue
+across 5–10 families at mean saturation 0.39–0.54 with 90–99% of pixels chromatic; PEAK measures
+26.3% / 7 / 0.392 / 98.9%. Two games with nothing else in common land inside the same narrow band.
+**Colour discipline is the best-evidenced criterion in this document.** So is the requirement that
+nothing clips: 13 reference frames, 13 zeroes.
+
+---
+
+## 4. On trusting the instrument (v1.1)
+
+Added because the harness this rubric depends on was found to have been calibrated against a bug.
+
+The first-person camera was aimed 180° away from the server's grab ray for the whole of the project's
+life — a Three.js camera looks down its own −Z, so `rotateY(yaw)` points it at `(−sin, −cos)`, while
+the level data and every server raycast use `(+sin, +cos)`. Every shot angle in the screenshot
+harness had been chosen *by eye* against that. The harness therefore silently encoded the inversion,
+framed every shot to compensate, and would have resisted the correction: fixing the camera moved
+every named shot onto different geometry.
+
+Three consequences for anyone grading with this rubric:
+
+1. **A harness calibrated by eye inherits whatever was broken when it was calibrated.** Shot angles
+   must be derived from level data — spawn points, objective volumes, named landmarks — not chosen
+   until the picture looks right.
+2. **Frame-to-frame deltas across a convention change are not deltas.** `hz-spawn` before and after
+   the fix are different rooms. Say so rather than tabulating them as a regression.
+3. **Every metric in this document is a proxy, and three of them have now been caught measuring
+   something other than what they claim** — vignette measuring dark subject matter, `tex%` measuring
+   exposure, key-to-fill measuring a cast shadow. Where a number and the picture disagree, **the
+   picture wins and the number gets a caveat written next to it.** Never quote a threshold for a
+   frame you have not looked at.

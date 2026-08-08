@@ -225,30 +225,38 @@ export function makeFigure(slot) {
   headGroup.add(hat);
 
   // A beacon, because somebody in the crew has to be the one with the beacon.
+  // No shadow: it is 32mm across and emissive, so what it casts is noise.
   const beacon = new THREE.Mesh(
     new THREE.SphereGeometry(0.032, 8, 6),
     new THREE.MeshStandardMaterial({
       color: 0xff5a2a, emissive: 0xff4a18, emissiveIntensity: 2.4, roughness: 0.4,
     }),
   );
+  beacon.castShadow = false;
   beacon.position.set(0, 0.30 * HD, -0.02);
   beacon.visible = slot % 3 === 0;
   headGroup.add(beacon);
 
   // --- the pupils, which are the entire character ---------------------------
-  const pupilMat = new THREE.MeshStandardMaterial({ color: 0x0b0c10, roughness: 0.08 });
-  const pupilGeo = new THREE.SphereGeometry(build.eyes * HD * 0.46, 10, 8);
-  const eyes = [];
-  for (const side of [-1, 1]) {
-    const socket = new THREE.Group();
-    socket.position.set(side * EYE_AT[0], EYE_AT[1], EYE_AT[2]);
-    const pupil = new THREE.Mesh(pupilGeo, pupilMat);
-    // Sat on the surface of the eyeball and moved around it, not through it.
-    pupil.position.set(0, 0, build.eyes * HD * 0.66);
-    socket.add(pupil);
-    headGroup.add(socket);
-    eyes.push({ socket, pupil, r: build.eyes * HD * 0.66 });
-  }
+  //
+  // BOTH pupils in one mesh. They are driven by a single spring, so they always
+  // carry the same offset, so one node can move them both — the geometry holds
+  // a sphere at each eye and the mesh itself does the sliding. Two nodes would
+  // cost about four more draw calls per contractor for no visible difference.
+  //
+  // No shadow: they sit on the surface of an eyeball inside a hat brim, and the
+  // shadow they cast has never been visible in any frame.
+  const EYE_R = build.eyes * HD * 0.66;
+  const pupilGeo = mergeGeometries([-1, 1].map((side) => {
+    const g = new THREE.SphereGeometry(build.eyes * HD * 0.46, 10, 8);
+    g.translate(side * EYE_AT[0], 0, 0);
+    return g;
+  }), false);
+  const pupils = new THREE.Mesh(pupilGeo,
+    new THREE.MeshStandardMaterial({ color: 0x0b0c10, roughness: 0.08 }));
+  pupils.castShadow = false;
+  headGroup.add(pupils);
+  const eyes = [{ node: pupils, base: EYE_AT, r: EYE_R }];
 
   // --- arms: too short to be useful, ending in enormous gloves --------------
   const armLen = 0.30 * S;
@@ -307,13 +315,9 @@ export function makeFigure(slot) {
   const ragHat = hat.clone();
   ragHat.position.set(0, 0.04, 0);
   bones[2].add(ragHat);
-  const ragEyes = [];
-  for (const e of eyes) {
-    const s = e.socket.clone();
-    s.position.set(e.socket.position.x, e.socket.position.y - 0.02, 0.10);
-    bones[2].add(s);
-    ragEyes.push({ socket: s, pupil: s.children[0], r: e.r });
-  }
+  const ragPupils = pupils.clone();
+  bones[2].add(ragPupils);
+  const ragEyes = [{ node: ragPupils, base: [EYE_AT[0], EYE_AT[1] - 0.02, 0.10], r: EYE_R }];
   rig.visible = false;
 
   const fig = {
@@ -449,7 +453,10 @@ function place(e, x, y) {
   const k = len > 1 ? 1 / len : 1;
   const px = x * k, py = y * k;
   const pz = Math.sqrt(Math.max(0.05, 1 - px * px - py * py));
-  e.pupil.position.set(px * e.r, py * e.r, pz * e.r);
+  // The geometry already carries one sphere per eye at its own X, so the node
+  // only supplies the shared offset — X included, because both eyes look the
+  // same way at the same time.
+  e.node.position.set(px * e.r, e.base[1] + py * e.r, e.base[2] + pz * e.r);
 }
 
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }

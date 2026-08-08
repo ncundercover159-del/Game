@@ -556,8 +556,156 @@ G.close();
 B.close();
 await sleep(200);
 const finalHealth = await health(PORT);
-ok('the server is still healthy at the end', !!finalHealth && finalHealth.ok,
+ok('the server is still healthy after all of that', !!finalHealth && finalHealth.ok,
   finalHealth && `${finalHealth.rooms} rooms left`);
+
+// =============================================================================
+// two contractors, one object
+// =============================================================================
+// The load-bearing interaction in the whole game, and the one most likely to be
+// made interesting by the velocity servo: two people with their hands on the
+// same thing, disagreeing about where it goes, over a real socket with real
+// jitter. stepGrabs drives a held prop towards the MIDPOINT of both hands, so
+// each client's latency and packet timing feed straight into one shared
+// controller — there is no way to test this except with two real connections.
+//
+// The second contractor navigates from decoded snapshots alone: it knows where
+// the prop is and where it is because the wire told it, which is exactly what a
+// browser knows.
+section('two contractors, one object');
+try {
+  const P = await new TC('P').open();
+  const jp = await P.join('PORTER', null);
+  const Q = await new TC('Q').open();
+  await Q.join('QUINN', jp.code);
+  P.send({ t: 'start' });
+  await P.waitControl('phase', (m) => m.phase === PHASE.ACTIVE, 20000);
+
+  // Let the stand-in go and find something worth two pairs of hands.
+  P.send({ t: 'autopilot', on: true });
+  const lifted = await until(() => {
+    const p = Q.player(P.slot);
+    return p && p.heldId ? p : null;
+  }, 60000);
+  ok('the first contractor gets hold of something', !!lifted,
+    lifted ? `prop ${lifted.heldId}` : 'never picked anything up');
+
+  if (lifted) {
+    const id = lifted.heldId;
+    // Take the wheel back off the stand-in and stand still, holding it. A grab
+    // persists until the button is pressed again, so the first contractor keeps
+    // its grip while the second walks over — and a stationary target is the
+    // difference between testing a two-person carry and testing a foot race.
+    P.send({ t: 'autopilot', on: false });
+    const parkYaw = (Q.player(P.slot) || { yaw: 0 }).yaw;
+    const park = setInterval(() => P.input({ yaw: parkYaw, pitch: 0 }), 40);
+
+    // Walk the second client onto it and take hold, steering off the wire.
+    let stillSince = Date.now();
+    let wasAt = null;
+    const joined = await until(() => {
+      const me = Q.player();
+      const prop = Q.prop(id);
+      if (!me || !prop) return null;
+      if (me.heldId === id) return me;
+      const dx = prop.x - me.x;
+      const dz = prop.z - me.z;
+      const flat = Math.hypot(dx, dz);
+      const yaw = Math.atan2(dx, dz);
+      const pitch = Math.atan2(prop.y - (me.y + 1.58), Math.max(0.05, flat));
+      // The same inversion the bots use: the actor's wish-direction matrix is a
+      // rotation, so its transpose turns a wanted world direction into a stick.
+      const c = Math.cos(yaw), s = Math.sin(yaw);
+      const ux = flat > 0.01 ? dx / flat : 0;
+      const uz = flat > 0.01 ? dz / flat : 0;
+      const near = Math.hypot(dx, prop.y - (me.y + 1.58), dz) < 2.0;
+      // No navigation, on purpose — this is a dumb client, not a bot. It only
+      // needs to notice when it has stopped making progress and hop, which is
+      // what gets it up the 0.6m ramp lip between it and the dock.
+      if (wasAt && Math.hypot(me.x - wasAt.x, me.z - wasAt.z) > 0.3) {
+        stillSince = Date.now();
+        wasAt = { x: me.x, z: me.z };
+      } else if (!wasAt) wasAt = { x: me.x, z: me.z };
+      const wedged = !near && Date.now() - stillSince > 700;
+      if (wedged) { stillSince = Date.now(); wasAt = { x: me.x, z: me.z }; }
+      Q.input({
+        moveX: near ? 0 : c * ux + s * uz,
+        moveY: near ? 0 : -s * ux + c * uz,
+        yaw,
+        pitch,
+        // Pulsed, because room.js edge-triggers the grab: a held button is one
+        // attempt and then silence.
+        buttons: (near && (Date.now() % 400 < 130) ? BUTTON.GRAB : 0)
+          | (wedged ? BUTTON.JUMP : 0),
+      });
+      return null;
+    }, 45000);
+    clearInterval(park);
+    ok('a second contractor can take hold of the same object', !!joined,
+      joined ? `both on prop ${id}` : 'never got a grip');
+
+    if (joined) {
+      const both = Q.snap.players.filter((p) => p.heldId === id).length;
+      ok('the wire shows both pairs of hands on it', both === 2, `${both} holders`);
+
+      // Now pull in different directions, with the packet timing of a bad cafe
+      // connection, and watch what the shared servo does with it.
+      const track = [];
+      const t0 = Date.now();
+      let prev = null;
+      let worstSpeed = 0;
+      let worstJump = 0;
+      while (Date.now() - t0 < 7000) {
+        const me = Q.player();
+        const prop = Q.prop(id);
+        if (prop) {
+          if (prev) {
+            const dt = Math.max(0.001, (prop.seenAt - prev.seenAt) / 1000);
+            const jump = Math.hypot(prop.x - prev.x, prop.y - prev.y, prop.z - prev.z);
+            worstJump = Math.max(worstJump, jump);
+            worstSpeed = Math.max(worstSpeed, jump / dt);
+          }
+          prev = { x: prop.x, y: prop.y, z: prop.z, seenAt: Date.now() };
+          track.push(prev);
+        }
+        if (me) {
+          // Haul against the stand-in: it is walking to the van, this one pulls
+          // the other way. Two people who disagree is the normal case.
+          const yaw = Math.atan2(-1, 0);
+          Q.input({ moveX: 0, moveY: 1, yaw, pitch: 0 });
+        }
+        // Jitter: bursts and gaps rather than a metronome.
+        await sleep(10 + Math.floor(Math.random() * 80));
+      }
+
+      const finite = track.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)
+        && Number.isFinite(p.z));
+      ok('a two-person carry stays finite under jitter', finite && track.length > 20,
+        `${track.length} samples`);
+      // GRAB_MAX_SPEED is 6.5m/s and the servo clamps the TARGET velocity, so
+      // the object physically cannot outrun it by much. Anything near double is
+      // the controller winding up, which is the failure this clamp exists to
+      // prevent.
+      ok('the shared servo does not wind up', worstSpeed < 13,
+        `peak ${worstSpeed.toFixed(1)}m/s between snapshots`);
+      ok('the object never teleports', worstJump < 2.5,
+        `worst step ${worstJump.toFixed(2)}m`);
+      ok('neither contractor is disconnected by the tug of war', !P.closed && !Q.closed);
+      const pp = Q.player(P.slot);
+      const qq = Q.player();
+      ok('both contractors are still on their feet',
+        !!pp && !!qq && (pp.flags & PFLAG.ALIVE) !== 0 && (qq.flags & PFLAG.ALIVE) !== 0,
+        `P flags ${pp && pp.flags}, Q flags ${qq && qq.flags}`);
+      ok('the room is still ticking after the tug of war',
+        !!(await Q.waitSnaps(2, 3000)));
+    }
+  }
+  P.close();
+  Q.close();
+  await sleep(200);
+} catch (err) {
+  ok('the two-person carry test ran at all', false, err && err.message);
+}
 server.kill('SIGTERM');
 
 // =============================================================================
@@ -583,15 +731,19 @@ pool.fill(4);
 //   * £7,300 of it is on the top decks at 6.6m, which needs a boost off a
 //     friend's shoulders — a verb the bots do not have.
 //
-// That leaves about £2,800 reachable against a £5,200 quota. So the fixture
-// puts four heavy-but-liftable pieces of stock on clear floor, which is the job
-// the level means to be: the bots still have to find it, lift it, carry it up
-// the ramp and set it down in the van without breaking it.
+// That leaves about £2,800 reachable against a £5,200 quota, so as authored the
+// job cannot be finished by anybody, bot or human. The fixture therefore puts
+// reachable stock on clear floor until the ratio of available stock to quota is
+// roughly the one the level intends. Nothing else is softened: the bots still
+// have to find it, lift it, carry it up the ramp, queue for the tailgate and
+// set it down in the van without breaking it or flattening each other.
 const FLOOR_STOCK = [
-  ['safe', [-6.0, 0, 7.0]],
-  ['serverrack', [6.0, 0, 7.0]],
-  ['elk', [-6.0, 0, 9.4]],
-  ['safe', [6.0, 0, 9.4]],
+  ['safe', [-7.0, 0, 6.0]],
+  ['safe', [-3.5, 0, 6.5]],
+  ['safe', [3.5, 0, 6.5]],
+  ['safe', [7.0, 0, 6.0]],
+  ['safe', [-7.0, 0, 9.5]],
+  ['safe', [7.0, 0, 9.5]],
 ];
 let seeded = 0;
 for (const [kind, p] of FLOOR_STOCK) {
