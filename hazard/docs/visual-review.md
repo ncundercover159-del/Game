@@ -267,6 +267,17 @@ nothing else.
 
 ---
 
+## Addendum, 02:29 UTC — the build has already moved
+
+The art pass is working live. Between the capture graded above and this commit,
+`art/materials.js:62` gained `import { surfaceTexture } from './textures.js'` — **fix 3 is now in
+flight** and C4 may already be better than the F recorded here. I have not re-captured; doing so
+would grade a moving target and the numbers above would no longer match the frames they describe.
+
+Still absent as of this addendum: `scene.environment` (fix 4 — grep across `client/src/` returns
+nothing), and `art/post.js` is unchanged (fix 1). Everything else in this document stands. Re-run
+the harnesses for a current grade; do not treat the F as live once the art pass reports done.
+
 ## Re-grading
 
 Re-run the two harnesses and re-measure against rubric v1.0. The criteria most likely to move first
