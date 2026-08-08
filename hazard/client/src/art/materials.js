@@ -73,14 +73,22 @@ const cache = new Map();
 //           a corrugated wall look corrugated when the sun is behind you.
 // mottle:   large-scale albedo drift, to break the tile. Costs four sines and
 //           saves a 1024² texture.
+// TILE IS IN METRES AND IT IS THE MOST IMPORTANT NUMBER IN THIS FILE. The
+// projection is world-scaled, so `tile: 3.2` means one copy of the map covers
+// 3.2 m of any surface it lands on, everywhere, regardless of brush size. Get
+// it wrong small and every material turns into a fine screen of dots that reads
+// as noise at any distance; get it wrong large and a wall looks like a photo of
+// a wall pasted onto a wall. Two checks, both of which must pass: stand at 2 m
+// and the motif should be obviously the thing it is meant to be, and stand at
+// 20 m and it should still be resolvable rather than a grey wash.
 const RECIPES = {
-  concrete: { tex: 'concrete', tile: 3.1, rough: 0.94, metal: 0.0, bump: 1.7, roughVar: -0.20, ao: 0.42, mottle: 0.18 },
-  panel: { tex: 'panel', tile: 2.1, rough: 0.74, metal: 0.22, bump: 2.2, roughVar: -0.22, ao: 0.48, mottle: 0.14 },
-  deckplate: { tex: 'deckplate', tile: 1.35, rough: 0.74, metal: 0.30, bump: 2.0, roughVar: -0.26, ao: 0.38, mottle: 0.12 },
+  concrete: { tex: 'concrete', tile: 4.2, rough: 0.94, metal: 0.0, bump: 1.15, roughVar: -0.20, ao: 0.42, mottle: 0.16 },
+  panel: { tex: 'panel', tile: 3.6, rough: 0.74, metal: 0.22, bump: 2.4, roughVar: -0.22, ao: 0.48, mottle: 0.13 },
+  deckplate: { tex: 'deckplate', tile: 2.8, rough: 0.72, metal: 0.34, bump: 2.2, roughVar: -0.26, ao: 0.40, mottle: 0.11 },
   grate: { tex: 'grate', tile: 0.70, rough: 0.58, metal: 0.68, bump: 2.4, roughVar: -0.22, ao: 0.55, mottle: 0.08 },
-  steelblue: { tex: 'steelblue', tile: 1.10, rough: 0.52, metal: 0.55, bump: 2.2, roughVar: -0.26, ao: 0.30, mottle: 0.12 },
+  steelblue: { tex: 'steelblue', tile: 1.30, rough: 0.52, metal: 0.55, bump: 2.0, roughVar: -0.26, ao: 0.30, mottle: 0.11 },
   railing: { tex: 'railing', tile: 0.85, rough: 0.58, metal: 0.28, bump: 2.0, roughVar: -0.20, ao: 0.26, mottle: 0.10 },
-  plank: { tex: 'plank', tile: 1.20, rough: 0.90, metal: 0.0, bump: 2.4, roughVar: -0.16, ao: 0.34, mottle: 0.14 },
+  plank: { tex: 'plank', tile: 1.30, rough: 0.90, metal: 0.0, bump: 2.2, roughVar: -0.16, ao: 0.34, mottle: 0.13 },
   rubber: { tex: 'rubber', tile: 0.90, rough: 0.97, metal: 0.0, bump: 2.4, roughVar: -0.10, ao: 0.45, mottle: 0.08 },
 
   // Prop surfaces. These sit near white and let vertex colour carry the hue —
@@ -137,22 +145,33 @@ varying vec3 vTpN;
 // later by the bump and the occlusion.
 float tpHeight;
 
-vec4 tpFetch( vec3 p, vec3 n ) {
-  vec3 w = abs( n );
-  w = w * w; w = w * w;                     // ^4: a flat face picks one axis outright
-  w /= max( w.x + w.y + w.z, 1e-4 );
-  float s = tpTune.x;
-  return texture2D( tpMap, p.zy * s ) * w.x
-       + texture2D( tpMap, p.xz * s ) * w.y
-       + texture2D( tpMap, p.xy * s ) * w.z;
-}
-
 // Four sines of very low frequency. Not noise in any respectable sense, but
 // over a 46-metre shed it never visibly repeats, and it is what stops the
 // floor reading as graph paper.
 float tpDrift( vec3 p ) {
   return sin( p.x * 0.41 + p.z * 0.23 ) * sin( p.z * 0.37 - p.y * 0.19 )
        + sin( p.x * 0.113 - p.z * 0.157 ) * sin( p.y * 0.09 + p.x * 0.071 );
+}
+
+vec4 tpFetch( vec3 p, vec3 n ) {
+  vec3 w = abs( n );
+  w = w * w; w = w * w;                     // ^4: a flat face picks one axis outright
+  w /= max( w.x + w.y + w.z, 1e-4 );
+  float s = tpTune.x;
+
+  // Bend the tile lattice. A perfectly regular grid of repeats is the thing the
+  // eye is best in the world at spotting, and a forty-six metre wall showing
+  // fourteen copies of the same rust patch in a dead-straight line is the whole
+  // reason people think procedural texturing looks cheap. Displacing the sample
+  // by a very low-frequency offset — a fifth of a tile over about fifteen
+  // metres — leaves the texture undistorted at any scale you can perceive but
+  // puts the repeats out of step with each other, and the grid disappears.
+  // Two sine pairs, not a second texture fetch.
+  vec2 wob = vec2( tpDrift( p * 0.30 ), tpDrift( p * 0.27 + 9.0 ) ) * 0.22;
+
+  return texture2D( tpMap, p.zy * s + wob ) * w.x
+       + texture2D( tpMap, p.xz * s + wob ) * w.y
+       + texture2D( tpMap, p.xy * s + wob ) * w.z;
 }
 `;
 
@@ -161,7 +180,15 @@ const FRAG_MAP = /* glsl */`
 {
   vec4 tp = tpFetch( vTpP, normalize( vTpN ) );
   tpHeight = tp.a;
-  diffuseColor.rgb *= tp.rgb * ( 1.0 + tpMottle * tpDrift( vTpP ) );
+  // Value drift and HUE drift, at different frequencies. The value drift breaks
+  // the tile; the hue drift is doing something else entirely — a graded review
+  // counted two colour families in a frame and called it a duotone, and a warm
+  // patch of floor next to a cool one is the cheapest colour a scene can own.
+  // Both are low frequency by construction, so neither costs any of the smooth
+  // area the eye needs somewhere to rest.
+  float drift = tpDrift( vTpP );
+  vec3 warm = vec3( 1.0 ) + tpMottle * 0.85 * tpDrift( vTpP * 0.36 + 4.0 ) * vec3( 0.55, 0.02, -0.48 );
+  diffuseColor.rgb *= tp.rgb * ( 1.0 + tpMottle * drift ) * warm;
 }
 `;
 

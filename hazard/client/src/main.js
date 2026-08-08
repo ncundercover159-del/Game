@@ -79,6 +79,10 @@ async function boot(levelId = DEFAULT_LEVEL) {
     get room() { return room; },
     get view() { return view; },
     renderer, camera, controls,
+    // The post chain, so a harness can grade what the player actually sees.
+    // Without it a probe reads the raw scene and concludes that grounding
+    // failed when the AO doing the grounding lives in the chain.
+    get post() { return post; },
     stats: () => ({
       phase: room.phase,
       banked: room.banked,

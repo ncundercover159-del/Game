@@ -122,7 +122,7 @@ const GEN = {
     const crack = ridge(u, v, 11, 2, 71);
     const crk = smooth(0.982, 0.999, crack);
 
-    let l = 0.46 + (grain - 0.5) * 0.09 + (pour - 0.5) * 0.11;
+    let l = 0.46 + (grain - 0.5) * 0.055 + (pour - 0.5) * 0.11;
     l *= mix(0.88, 1.06, smooth(0.30, 0.62, patch));
     l += stone * 0.13;
     l *= 1 - crk * 0.20;
@@ -182,14 +182,31 @@ const GEN = {
     o[3] = clamp01(ribH * 0.78 + 0.11 - seam * 0.45 - rustAt * 0.18 + (dirt - 0.5) * 0.12);
   },
 
-  // Chequer plate. Two rows of raised lozenges at opposing angles, which is the
-  // one industrial texture everybody recognises without being told.
+  // Profiled steel deck: wide trapezoidal ribs with a fine tread pattern in the
+  // pans between them.
+  //
+  // This one material is the whole ceiling of the warehouse — fifteen hundred
+  // square metres of it — as well as the mezzanine, the loading dock and the
+  // ramp. It was chequer plate, and at ceiling distance chequer plate is a
+  // dot screen: a small high-contrast motif repeated tens of thousands of times
+  // is, at four degrees of grazing angle, indistinguishable from noise, and the
+  // chromatic aberration then painted the noise red and blue.
+  //
+  // The answer is DETAIL AT TWO SCALES. The rib is the far read: eighty
+  // centimetres of pitch, so at thirty metres it is still a dozen pixels wide
+  // and the roof reads as a roof. The tread is the near read: it survives to
+  // about four metres and mips harmlessly away after that. Neither one is doing
+  // the other's job, which is the mistake the chequer plate was making.
   deckplate(u, v, o) {
-    // Three rows of lozenges, not five. The ceiling of the warehouse is this
-    // material and it is forty metres of it seen at a grazing angle: any
-    // pattern near the Nyquist limit turns the whole roof into moiré, however
-    // good the mip chain is. Big and calm beats fine and correct here.
-    const cells = 3;
+    // --- far read: three ribs across the tile ---
+    const ribs = 3;
+    const phase = fract(v * ribs);
+    const tri = Math.abs(phase - 0.5) * 2;
+    const crown = 1 - smooth(0.30, 0.62, tri);      // flat top of the rib
+    const web = smooth(0.30, 0.62, tri) * (1 - smooth(0.62, 0.94, tri));
+
+    // --- near read: tread in the pans, killed on the rib crowns ---
+    const cells = 8;
     const gy = v * cells;
     const row = Math.floor(gy);
     const dir = row % 2 === 0 ? 1 : -1;
@@ -198,18 +215,19 @@ const GEN = {
     const a = dir * 0.62;
     const rx = fx * Math.cos(a) - fy * Math.sin(a);
     const ry = fx * Math.sin(a) + fy * Math.cos(a);
-    const d = Math.max(Math.abs(rx) / 0.28, Math.abs(ry) / 0.115);
-    const bar = 1 - smooth(0.70, 1.05, d);
+    const bar = 1 - smooth(0.70, 1.05, Math.max(Math.abs(rx) / 0.30, Math.abs(ry) / 0.12));
 
-    const wear = fbm(u, v, 7, 3, 5);
-    const grime = fbm(u, v, 22, 3, 19);
-    // Low contrast on purpose. Forty metres of ceiling is forty metres of
-    // minification, and contrast is what turns minification into moiré.
-    let l = 0.33 + 0.11 * grime;
-    l = mix(l, 0.43 + 0.11 * wear, bar);          // tread tops are polished
-    l *= mix(0.92, 1.04, wear);
-    o[0] = l * 1.0; o[1] = l * 1.01; o[2] = l * 1.05;
-    o[3] = clamp01(0.34 + bar * 0.46 + (grime - 0.5) * 0.16);
+    const wear = fbm(u, v, 6, 3, 5);
+    const grime = fbm(u, v, 18, 3, 19);
+    // Low contrast on purpose, and lower on the tread than on the rib. Contrast
+    // is what turns minification into moiré, and the tread is the part that
+    // gets minified.
+    let l = 0.30 + 0.09 * grime;
+    l = mix(l, l * 1.14, bar * (1 - crown));        // tread tops, polished
+    l *= 1 + crown * 0.30 - web * 0.10;             // the rib itself
+    l *= mix(0.94, 1.05, wear);
+    o[0] = l * 1.0; o[1] = l * 1.01; o[2] = l * 1.06;
+    o[3] = clamp01(0.24 + crown * 0.52 + bar * 0.16 * (1 - crown) + (grime - 0.5) * 0.10);
   },
 
   // Open steel grating: bearing bars one way, twisted cross rods the other,
@@ -237,12 +255,16 @@ const GEN = {
     const dirt = fbm(u, v, 6, 3, 61);
     const hole = smooth(0.90, 0.98, ridge(u, v, 14, 2, 9));
 
-    let r = 0.21, g = 0.38, b = 0.58;
-    const s = mix(0.80, 1.14, scuff) * mix(0.86, 1.04, dirt);
+    // Lifted off the old 0.21/0.38/0.58. There are three hundred metres of this
+    // in the level, most of it lit by nothing but bounce, and at that value it
+    // measured as twenty-three per cent of the frame at absolute black. A real
+    // racking blue is lighter than you think; it only looks dark next to paper.
+    let r = 0.27, g = 0.45, b = 0.66;
+    const s = mix(0.82, 1.14, scuff) * mix(0.88, 1.04, dirt);
     r *= s; g *= s; b *= s;
     // Chipped paint shows grey primer, not bare steel — this is cheap racking.
-    r = mix(r, 0.34, chipMask); g = mix(g, 0.32, chipMask); b = mix(b, 0.29, chipMask);
-    r *= 1 - hole * 0.7; g *= 1 - hole * 0.7; b *= 1 - hole * 0.7;
+    r = mix(r, 0.40, chipMask); g = mix(g, 0.38, chipMask); b = mix(b, 0.35, chipMask);
+    r *= 1 - hole * 0.5; g *= 1 - hole * 0.5; b *= 1 - hole * 0.5;
     o[0] = r; o[1] = g; o[2] = b;
     o[3] = clamp01(0.55 + (scuff - 0.5) * 0.3 - chipMask * 0.25 - hole * 0.5);
   },
@@ -299,8 +321,8 @@ const GEN = {
     const grease = fbm(u, v, 5, 3, 47);
     const scuff = streak(u, v, 24, 6, 2, 67);
 
-    let l = 0.085 + crumb * 0.05 + cleat * 0.035;
-    l *= mix(0.75, 1.35, grease * 0.6 + scuff * 0.4);
+    let l = 0.115 + crumb * 0.055 + cleat * 0.04;
+    l *= mix(0.78, 1.32, grease * 0.6 + scuff * 0.4);
     o[0] = l * 1.04; o[1] = l; o[2] = l * 0.96;
     o[3] = clamp01(0.35 + cleat * 0.45 + (crumb - 0.5) * 0.35);
   },

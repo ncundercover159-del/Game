@@ -447,7 +447,13 @@ class SitePass extends Pass {
       uAO: { value: 0.70 },
       uBloom: { value: 0.62 },
       uVignette: { value: 0.36 },
-      uGrain: { value: 0.045 },
+      // Grain is measured in display units, and this one is easy to overdo in a
+      // way that does not look like grain: at 0.045 the noise is ±6/255, which
+      // puts the local standard deviation of EVERY pixel in the frame above the
+      // threshold a reviewer uses to tell textured from smooth. The frame came
+      // back 93% textured against a reference that leaves 63% of itself
+      // deliberately plain. Grain must live under the detail, not on top of it.
+      uGrain: { value: 0.017 },
       // UV units, multiplied by radius squared, so the extreme corner sees a
       // quarter of this: 1.1 px at 1280 wide. See the note in the shader — the
       // failure mode of this effect is not "too subtle", it is "rainbow".
