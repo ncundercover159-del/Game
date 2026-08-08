@@ -138,6 +138,7 @@ const FRAG_PARS = /* glsl */`
 uniform sampler2D tpMap;
 uniform vec4 tpTune;   // x tiles/metre, y bump, z roughness variance, w cavity ao
 uniform float tpMottle;
+uniform float tpFill;
 varying vec3 vTpP;
 varying vec3 vTpN;
 

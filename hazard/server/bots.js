@@ -31,7 +31,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { membership, GROUPS } from './world.js';
 import { liftCapacity } from './grab.js';
 import {
-  BUTTON, GRAB_RANGE, EYE_HEIGHT, REVIVE_RADIUS, IMPACT_SAFE_MOMENTUM,
+  BUTTON, GRAB_RANGE, EYE_HEIGHT, REVIVE_RADIUS, IMPACT_SAFE_MOMENTUM, TICK_DT,
 } from '../shared/tune.js';
 
 const { GROUP_STATIC, GROUP_ACTOR } = GROUPS;
@@ -60,6 +60,30 @@ const STEP_UP = 0.30;
 // deliberately: those are the character controller's problem, not navigation's.
 const FEEL_AHEAD = 1.25;
 const FEEL_HEIGHT = 0.95;
+
+// How fast a bot may turn its head, in radians per second.
+//
+// This is not cosmetic. A carried object is dragged towards a point an arm's
+// length in front of the eyes, so the aim IS the hand: snap the yaw round in
+// one tick and the hand teleports through an arc, the servo chases it at its
+// full GRAB_MAX_SPEED of 6.5m/s, and a 126kg server rack becomes 818kg m/s of
+// momentum — which room.js reads as an instant knockout for every contractor
+// within a metre and a half. Bots that turn at a human speed simply stop
+// killing their own crew.
+const TURN_FREE = 7.0;
+const TURN_CARRY = 2.6;
+const LOOK_RATE = 3.2;
+// Room to leave around other people. Modest on purpose: every carried load is
+// already in the hazard list that everybody else steers around, so inflating
+// this as well double-counts and turns a shared ramp into a standoff where
+// nobody may approach anybody. A body on the floor gets less room still — it
+// cannot dodge, it is ankle height, and it has an unfortunate habit of coming
+// to rest exactly on the route to the van.
+const AVOID_ACTOR = 1.1;
+const AVOID_DOWNED = 0.6;
+// How long a mate lies there before somebody puts the takings down and goes to
+// get them. A crew that is all on the floor loses the job outright.
+const RESCUE_PATIENCE_MS = 6000;
 
 const AIM_TOLERANCE = 0.30;       // radians, before a bot bothers pressing grab
 const REACH = GRAB_RANGE * 0.72;  // stop short of the limit; the cast is fat
@@ -105,6 +129,21 @@ export class Bot {
     this.sidestepUntil = 0;
     this.grabPulseUntil = 0;
     this.grabRestUntil = 0;
+    this.yaw = null;            // where the head actually is, as opposed to wants to be
+    this.pitch = 0;
+  }
+
+  /**
+   * Turn the head towards where the decision wanted it, at a speed a wrist
+   * could manage. Everything that sends a yaw goes through here.
+   */
+  face(desiredYaw, desiredPitch, me, carrying) {
+    if (this.yaw === null) { this.yaw = me.yaw; this.pitch = me.pitch; }
+    const rate = (carrying ? TURN_CARRY : TURN_FREE) * TICK_DT;
+    this.yaw = wrapAngle(this.yaw + clamp(wrapAngle(desiredYaw - this.yaw), -rate, rate));
+    const prate = LOOK_RATE * TICK_DT;
+    this.pitch = clamp(this.pitch + clamp(desiredPitch - this.pitch, -prate, prate), -1.5, 1.5);
+    return this.yaw;
   }
 
   /**
@@ -119,29 +158,35 @@ export class Bot {
     if (!me.alive || me.ragdoll || me.downed) {
       this.movedAt = now;
       this.route = [];
+      this.yaw = me.yaw;
+      this.pitch = me.pitch;
       return this.idle(me);
     }
     if (!this.since) { this.since = now; this.movedAt = now; }
     this.trackProgress(me, now);
 
-    // Holding something overrides everything: finish the delivery.
-    if (me.held) {
+    // A crew that is all on the floor loses the job outright — room.js calls
+    // that a wipe — so picking a mate up eventually outranks any single crate.
+    // Somebody with their hands full waits a few seconds first, in case a free
+    // pair of hands takes it; if nobody does, they go anyway. Reviving does not
+    // need empty hands, only proximity and the USE button held down.
+    const casualty = this.pool.casualtyFor(room, me, this, now);
+    const urgent = casualty
+      && (!me.held || now - (casualty.downedAt || now) > RESCUE_PATIENCE_MS);
+
+    if (urgent) {
+      if (this.mode !== MODE.RESCUE || this.rescueSlot !== casualty.slot) {
+        this.enter(MODE.RESCUE, now);
+        this.rescueSlot = casualty.slot;
+      }
+    } else if (me.held) {
+      // Holding something otherwise overrides everything: finish the delivery.
       if (this.mode !== MODE.HAUL && this.mode !== MODE.DROP) this.enter(MODE.HAUL, now);
     } else if (this.mode === MODE.HAUL || this.mode === MODE.DROP) {
       // Dropped it, had it yanked away, or somebody's crate landed on it.
       this.enter(this.mode === MODE.DROP ? MODE.CLEAR : MODE.SEEK, now);
-    } else if (this.mode !== MODE.CLEAR) {
-      // A crew that is all on the floor loses the job outright — room.js calls
-      // that a wipe — so picking a mate up is worth more than any single crate.
-      const casualty = this.pool.casualtyFor(room, me, this, now);
-      if (casualty) {
-        if (this.mode !== MODE.RESCUE || this.rescueSlot !== casualty.slot) {
-          this.enter(MODE.RESCUE, now);
-          this.rescueSlot = casualty.slot;
-        }
-      } else if (this.mode === MODE.RESCUE) {
-        this.enter(MODE.SEEK, now);
-      }
+    } else if (this.mode === MODE.RESCUE) {
+      this.enter(MODE.SEEK, now);
     }
 
     switch (this.mode) {
@@ -276,7 +321,12 @@ export class Bot {
       // way so the load is already over the bed when the feet arrive.
       const input = here > 0.7
         ? this.walk(room, me, now, stand.x, stand.z, { aim, carrying: true })
-        : { ...ZERO, seq: this.seq++, yaw: aim.yaw, pitch: aim.pitch };
+        : {
+          ...ZERO,
+          seq: this.seq++,
+          yaw: this.face(aim.yaw, aim.pitch, me, true),
+          pitch: this.pitch,
+        };
       // Release on the object's own position, which is the test room.js
       // applies — and give up eventually rather than stand here all shift.
       if (insideExtract(e, p, 0.2) || now - this.since > 7000) {
@@ -316,8 +366,8 @@ export class Bot {
       // room.js picks the nearest downed contractor itself; standing close and
       // holding USE is the whole interaction.
       const input = this.idle(me);
-      input.yaw = aim.yaw;
-      input.pitch = aim.pitch;
+      input.yaw = this.face(aim.yaw, aim.pitch, me, !!me.held);
+      input.pitch = this.pitch;
       input.buttons |= BUTTON.USE;
       return input;
     }
@@ -360,10 +410,14 @@ export class Bot {
     const dx = tx - me.pos.x;
     const dz = tz - me.pos.z;
     const dist = Math.hypot(dx, dz);
+    const carrying = !!me.held;
     const input = { ...ZERO, seq: this.seq++, yaw: me.yaw, pitch: me.pitch };
 
     if (opts.arrive && dist < opts.arrive) {
-      if (opts.aim) { input.yaw = opts.aim.yaw; input.pitch = opts.aim.pitch; }
+      if (opts.aim) {
+        input.yaw = this.face(opts.aim.yaw, opts.aim.pitch, me, carrying);
+        input.pitch = this.pitch;
+      }
       return input;
     }
     if (dist < 1e-3) return input;
@@ -375,11 +429,14 @@ export class Bot {
     const dir = pick ? pick.dir : { x: -want.z, z: want.x };
 
     const yaw = Math.atan2(dir.x, dir.z);
-    input.yaw = opts.aim ? opts.aim.yaw : yaw;
-    input.pitch = opts.aim ? opts.aim.pitch : (opts.carrying ? -0.12 : 0);
+    input.yaw = this.face(opts.aim ? opts.aim.yaw : yaw,
+      opts.aim ? opts.aim.pitch : (carrying ? -0.12 : 0), me, carrying);
+    input.pitch = this.pitch;
 
     // Invert the actor's own wish-direction rotation to get the stick that
-    // produces `dir` in world space, whatever yaw we ended up facing.
+    // produces `dir` in world space, whatever yaw we ended up facing. Because
+    // this is derived from the yaw actually being SENT, a bot mid-turn still
+    // walks exactly where it meant to.
     const c = Math.cos(input.yaw), s = Math.sin(input.yaw);
     input.moveX = c * dir.x + s * dir.z;
     input.moveY = -s * dir.x + c * dir.z;
@@ -457,8 +514,9 @@ export class Bot {
     for (const other of room.actors.values()) {
       if (other === me || other.slot === this.rescueSlot) continue;
       if (Math.abs(other.pos.y - me.pos.y) > 2.2) continue;
+      const keep = other.downed || other.ragdoll ? AVOID_DOWNED : AVOID_ACTOR;
       const next = Math.hypot(other.pos.x - spotX, other.pos.z - spotZ);
-      if (next > 1.0) continue;
+      if (next > keep) continue;
       if (next < Math.hypot(other.pos.x - me.pos.x, other.pos.z - me.pos.z)) return NO;
     }
 
@@ -670,7 +728,7 @@ export class BotPool {
       const carried = rec.held !== null;
       if (!carried && momentum < IMPACT_SAFE_MOMENTUM * 0.5) continue;
       const p = rec.rb.translation();
-      this.hazards.push({ rec, x: p.x, y: p.y, z: p.z, keep: rec.radius + 1.15 });
+      this.hazards.push({ rec, x: p.x, y: p.y, z: p.z, keep: rec.radius + 1.6 });
     }
   }
 

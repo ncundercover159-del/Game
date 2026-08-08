@@ -136,7 +136,7 @@ const GEN = {
     // Height is mostly tooth. The crack contributes little: a deep crack in the
     // height channel is what threw the bright rims, and a real hairline crack
     // is a colour, not a valley.
-    o[3] = clamp01(0.5 + (grain - 0.5) * 0.34 + stone * 0.30 - crk * 0.16);
+    o[3] = clamp01(0.5 + (grain - 0.5) * 0.22 + stone * 0.28 - crk * 0.16);
   },
 
   // Corrugated wall cladding. The ribs run along one texture axis, which under
