@@ -164,51 +164,10 @@ async function checkLevel(lvl) {
   ok('the site holds at least 1.6x the quota', ratio >= 1.6,
     `£${stock} of stock against a £${lvl.quota} quota (${ratio.toFixed(2)}x)`);
 
-  const room = await Room.create(`T-${lvl.id.slice(0, 3).toUpperCase()}`);
-  ok('the room boots', room.level.id === lvl.id);
+  const room = await Room.create(`T-${lvl.id.slice(0, 3).toUpperCase()}`, lvl.id);
+  if (!ok('the room boots', room.level.id === lvl.id, `got "${room.level.id}"`)) return;
 
-  // --- 3. the spawn ring ---------------------------------------------------
-  // Room.spawnFor falls back to the author's own point when a ring position has
-  // no floor, so a level with a bad ring still "works" — by stacking eight
-  // contractors inside each other. Assert the ring itself, not the fallback.
-  const spread = lvl.spawnSpread || 1.8;
-  let ringBad = 0, firstBad = null;
-  for (let i = 0; i < 32; i++) {
-    const a = (i / 32) * Math.PI * 2;
-    const c = [lvl.spawn[0] + Math.cos(a) * spread, lvl.spawn[1], lvl.spawn[2] + Math.sin(a) * spread];
-    if (!groundUnder(room, c)) { ringBad++; if (!firstBad) firstBad = c; }
-  }
-  ok('the whole spawn ring has floor under it', ringBad === 0,
-    ringBad ? `${ringBad}/32 points over nothing, first at ${firstBad.map((v) => v.toFixed(1))}`
-      : `r=${spread}m, 32 points`);
-
-  // ...and every slot the room will actually hand out is clear of the walls.
-  let slotBlocked = 0;
-  for (let s = 0; s < MAX_PLAYERS; s++) {
-    const c = room.spawnFor(s);
-    let hit = false;
-    room.world.world.intersectionsWithShape(
-      { x: c[0], y: c[1] + 0.86, z: c[2] }, { x: 0, y: 0, z: 0, w: 1 },
-      new RAPIER.Capsule(0.5, 0.3),
-      () => { hit = true; return false; },
-      undefined, membership(GROUPS.GROUP_ACTOR, GROUPS.GROUP_STATIC),
-    );
-    if (hit) slotBlocked++;
-  }
-  ok('nobody spawns inside the building', slotBlocked === 0, `${slotBlocked}/${MAX_PLAYERS} slots blocked`);
-
-  // --- 4. the extract volume ----------------------------------------------
-  const e = lvl.extract;
-  const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]];
-  let noFloor = 0;
-  for (const [sx, sz] of corners) {
-    const c = [e.p[0] + sx * e.s[0] * 0.42, e.p[1] - e.s[1] / 2 + 0.1, e.p[2] + sz * e.s[2] * 0.42];
-    if (!groundUnder(room, c, 2.0)) noFloor++;
-  }
-  ok('the extract volume has floor under it', noFloor === 0,
-    noFloor ? `${noFloor}/5 probes found nothing within 2m` : 'all 5 probes landed');
-
-  // --- 5. the settle -------------------------------------------------------
+  // --- 3. the settle -------------------------------------------------------
   // Scoring is forced on from tick zero. The room would normally sit in LOBBY
   // and then brief for six seconds, and room.js refuses to break anything until
   // PHASE.ACTIVE precisely so that a settling level cannot destroy its own
@@ -239,16 +198,66 @@ async function checkLevel(lvl) {
   }
 
   // Every prop authored at its resting height means every prop's worst impact
-  // during the settle is under what would destroy it, with headroom.
-  let hot = 0, worst = { ratio: 0 };
+  // during the settle is under what would destroy it, with headroom. Same
+  // measurement as above, taken per prop rather than per breakage, so it still
+  // has something to say about a level whose fragile stock happens to land
+  // somewhere forgiving.
+  const hot = [];
+  let worst = { ratio: 0 };
   for (const rec of room.world.props.values()) {
     if (!rec.def.fragile) continue;
     const r = peak.get(rec.id) / rec.def.fragile;
     if (r > worst.ratio) worst = { ratio: r, kind: rec.kind, dv: peak.get(rec.id), f: rec.def.fragile };
-    if (r > 1) hot++;
+    if (r > 1 && !allowed.includes(rec.kind)) hot.push(rec.kind);
   }
-  ok('no prop takes an impact it would not survive', hot === allowed.length || hot === 0,
-    `worst is ${worst.kind} at ${worst.dv?.toFixed(2)}m/s of ${worst.f} (${(worst.ratio * 100).toFixed(0)}%)`);
+  ok('no prop takes an impact it would not survive', hot.length === 0,
+    hot.length ? hot.join(', ')
+      : `worst is ${worst.kind} at ${worst.dv?.toFixed(2)}m/s of ${worst.f} (${(worst.ratio * 100).toFixed(0)}%)`);
+
+  // --- 4. the spawn ring ---------------------------------------------------
+  // Rapier's query pipeline is built during step(), so every raycast below has
+  // to happen after the settle and not before it — cast into a world that has
+  // never ticked and everything reports empty space, including the floor.
+  //
+  // Room.spawnFor falls back to the author's own point when a ring position has
+  // no floor, so a level with a bad ring still "works" — by stacking eight
+  // contractors inside each other. Assert the ring itself, not the fallback.
+  const spread = lvl.spawnSpread || 1.8;
+  let ringBad = 0, firstBad = null;
+  for (let i = 0; i < 32; i++) {
+    const a = (i / 32) * Math.PI * 2;
+    const c = [lvl.spawn[0] + Math.cos(a) * spread, lvl.spawn[1], lvl.spawn[2] + Math.sin(a) * spread];
+    if (!groundUnder(room, c)) { ringBad++; if (!firstBad) firstBad = c; }
+  }
+  ok('the whole spawn ring has floor under it', ringBad === 0,
+    ringBad ? `${ringBad}/32 points over nothing, first at ${firstBad.map((v) => v.toFixed(1))}`
+      : `r=${spread}m, 32 points`);
+
+  // ...and every slot the room will actually hand out is clear of the walls.
+  let slotBlocked = 0;
+  for (let s = 0; s < MAX_PLAYERS; s++) {
+    const c = room.spawnFor(s);
+    let hit = false;
+    room.world.world.intersectionsWithShape(
+      { x: c[0], y: c[1] + 0.86, z: c[2] }, { x: 0, y: 0, z: 0, w: 1 },
+      new RAPIER.Capsule(0.5, 0.3),
+      () => { hit = true; return false; },
+      undefined, membership(GROUPS.GROUP_ACTOR, GROUPS.GROUP_STATIC),
+    );
+    if (hit) slotBlocked++;
+  }
+  ok('nobody spawns inside the building', slotBlocked === 0, `${slotBlocked}/${MAX_PLAYERS} slots blocked`);
+
+  // --- 5. the extract volume ----------------------------------------------
+  const e = lvl.extract;
+  const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]];
+  let noFloor = 0;
+  for (const [sx, sz] of corners) {
+    const c = [e.p[0] + sx * e.s[0] * 0.42, e.p[1] - e.s[1] / 2 + 0.1, e.p[2] + sz * e.s[2] * 0.42];
+    if (!groundUnder(room, c, 2.0)) noFloor++;
+  }
+  ok('the extract volume has floor under it', noFloor === 0,
+    noFloor ? `${noFloor}/5 probes found nothing within 2m` : 'all 5 probes landed');
 
   // --- 6. where everything ended up ---------------------------------------
   const bottom = floorOfTheWorld(lvl);
