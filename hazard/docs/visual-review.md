@@ -283,3 +283,211 @@ the harnesses for a current grade; do not treat the F as live once the art pass 
 Re-run the two harnesses and re-measure against rubric v1.0. The criteria most likely to move first
 are C5, C6 and C2; C4 follows as soon as `textures.js` is connected. C7 will improve automatically
 once C2 lands, since most of what is wrong with the contractor is that it has no shadow.
+
+---
+---
+
+# Second grading pass — 2026-08-08
+
+**Date:** 2026-08-08 (captures taken 07:52–08:04 UTC)
+**Graded against:** `docs/visual-rubric.md` **v1.0** — same criteria, same thresholds, so the two
+passes are directly comparable.
+**Build graded:** bundle `index-9ZxN5wL4.js` (2,150.98 kB) + `three-D8l_1uvJ.js` (486.55 kB), built
+by me from the working tree at commit `91a4613`.
+**Caution on staleness:** the tree moved under me again during this pass. By the time I wrote this,
+HEAD was `4d27e75` and someone had rebuilt to `index-DzFLXGSE.js`. This grade describes
+`index-9ZxN5wL4.js` and nothing later.
+
+**Honesty statement unchanged.** I did not run, install or play R.E.P.O. or PEAK. No side-by-side
+was performed. PEAK columns are measured from the four real screenshot files in `refs/peak/`;
+**R.E.P.O. still contributes no image** — `refs/repo/` is still empty, the egress proxy still
+refuses every source, and R.E.P.O. informs this grade by written description only.
+
+## Overall: **F → C−**
+
+Six outright failures have become zero. Nothing is above B−. This is now recognisably a game rather
+than a greybox, and the fixes landed where the first review said they would pay: post, grounding,
+texture. The remaining gap is no longer "nothing is implemented" but "several things are implemented
+at the wrong intensity" — which is a much better problem.
+
+| Criterion | Pass 1 | Pass 2 | |
+|---|---|---|---|
+| C1 Lighting / bounce | F | **B−** | ▲▲ |
+| C2 Contact shadows | F | **B−** | ▲▲▲ |
+| C3 Material variety | F | **C+** | ▲▲ |
+| C4 Texture presence | F | **C** | ▲▲ overshot |
+| C5 Tonal range | F | **D** | ▲ with a real regression |
+| C6 Post chain | F | **C** | ▲▲ overdone CA |
+| C7 Silhouette at 10 m | C | **C** | ▬ worse at 20 m |
+| C8 Composition / depth | F | **C** | ▲ |
+| C9 Colour discipline | F | **C−** | ▲ |
+
+### Measured delta
+
+| Metric | Target | Pass 1 range | Pass 2 range | PEAK |
+|---|---|---|---|---|
+| Draw calls / triangles | — | 6 / 1,092 | 116 / 11,661 | — |
+| Median luma | 55–110 | 62–182 | 24.6–133.8 | 70.5 |
+| **Crushed (L≤4)** | < 2% | **0.0–19.9%** | **4.1–23.1%** | 0.0% |
+| Clipped (L≥250) | < 0.2% | 0.0–0.4% | 0.0–0.6% | 0.0% |
+| Mean saturation | 0.25–0.55 | 0.185–0.435 | 0.282–0.518 | 0.392 |
+| Chromatic pixels | > 85% | 41–92% | 48.6–91.1% | 98.9% |
+| Dominant hue share | 25–45% | 39.8–55.9% | 32.7–49.0% | 26.3% |
+| Hue families | ≥ 5 | 2–6 | 5–8 | 7 |
+| **Flat pixels (SD<2)** | ≤ 70% | 84.8–97.1% | **7.1–18.9%** | 63.1% |
+| **Textured (SD 2–25)** | ≥ 25% | 2.2–11.6% | **79.7–90.2%** | 36.1% |
+| Shadow tint spread | ≥ 10 | 0.6–1.6 | 5.9–11.8 | 26.3 |
+| Contact near÷far | ≤ 0.75 | 1.07–1.37 | **0.465–0.743** | — |
+| Texture feature size | — | — | 4.3–5.4 px | 8.2–26.6 px |
+| CA edge / centre | — | 0 / 0 | 2.0–3.0 px / 0–1 px | — |
+
+## Two measurement caveats, stated before the grades rest on them
+
+**1. `hz-fig.js` bypasses the post chain.** My figure harness calls `renderer.render()` directly, so
+its captures contain no SSAO, bloom, grade, vignette or CA. Its contact readings (1.36–1.47) are
+therefore *not* evidence that grounding failed — they measure the raw scene. I graded C2 from
+targeted probes on the post-processed frames instead (`probe2.js`), which is the honest measurement.
+The figure shots remain useful as a pre-post control for geometry and texture, and I have used them
+only that way. The post chain is not exposed on `window.__hz`, and there is no client-side bot spawn,
+so I could not get a figure into a post-processed frame without touching game code, which I did not.
+
+**2. My vignette proxy is confounded when the frame's centre is dark.** `imgstat2` reports corner ÷
+centre: `hz-pit` 0.724 and `hz-floor` 0.425 are valid and in range. `hz-racking` 3.104 and `hz-dock`
+4.399 are **not** a regression — those frames now have genuinely dark central content (a foreground
+column, the pit), so the ratio is measuring subject matter. The vignette is visibly present in all
+four. I am not scoring those two numbers.
+
+## Criterion by criterion
+
+### C1 — Lighting and indirect/bounce — **F → B−**
+
+The fix worked. Lamps now pool on the **floor**, which was the whole complaint: `hz-dock` shows a
+clear lit pool beneath each ceiling fixture, and the pit reads as a lit volume rather than a green
+rectangle. The `RoomEnvironment` gives surfaces something to pick up, so there is a genuine indirect
+term. Key-to-fill on one material measures 2.1:1 (`hz-pit`: open floor 135.8 vs shadowed 63.2),
+inside the acceptable band and reaching further on `hz-dock`. Held below A because `SHADOW_LAMPS`
+is 1, so directionality comes from a single source and the rest of the room is ambient-lit.
+
+### C2 — Contact shadows and grounding — **F → B−** (biggest single win)
+
+Measured on post-processed frames:
+
+| Probe | near ÷ far | verdict |
+|---|---|---|
+| Dock platform cast shadow (`hz-pit`) | **0.465** | real cast shadow, shape follows object |
+| Floor at pit-rim base (`hz-dock`) | **0.582** | grounded |
+| Floor under a small prop (`hz-dock`) | **0.743** | grounded, just inside the ≤0.75 bar |
+
+From 1.07–1.37 *anti*-shadows to 0.465–0.743. Objects now sit on the floor, and — the part that
+usually gets skipped — **the hand-sized props are grounded too**, which is the class this game is
+about. Held at B− because one caster means single-direction shadowing, much of the grounding is SSAO
+rather than cast, and I could not verify the contractor is grounded (see caveat 1).
+
+### C3 — Material variety — **F → C+**
+
+`scene.environment` fixed the dead metals. There are now specular highlights — the van's
+checker-plate in `hz-pit` reads as metal, the corrugated cladding has a directional sheen, and the
+lamps are emissive. Four response classes, up from one. Held at C+ because materials are still
+uniform *within* a surface: no edge wear, no grime gradient in the lower third of walls, no traffic
+scuffing. The blue racking texture reads as glitter rather than painted steel.
+
+### C4 — Texture presence — **F → C** (passed the threshold, overshot the reference)
+
+`tex%` went 2.2–11.6 → **79.7–90.2**; `flat%` went 84.8–97.1 → **7.1–18.9**. That clears the ≥25 /
+≤70 bar by a mile — and lands nowhere near the reference, which is 36.1 / 63.1. **PEAK leaves 63% of
+its frame smooth.** This build now leaves 7–19%. There is no rest anywhere for the eye.
+
+Confirming the scale problem numerically: mean texture feature size is **4.3–5.4 px** on
+post-processed frames and 6.4–7.0 px pre-post, against PEAK's **8.2–26.6 px**. The ceiling is a
+dot-screen, exactly as reported. Note the compounding: post *reduces* apparent feature size from 6.4
+to 4.3 px, i.e. grain and CA are piling high-frequency noise onto texture that is already too fine.
+
+Grading C rather than higher is a deliberate reading of the rubric's anti-gaming clause — the
+threshold is met but the detail is not surface-appropriate. **UV scale wants to be 2–4× coarser**,
+and some materials should stay smooth.
+
+### C5 — Tonal range and exposure — **F → D**, and this is where the regression is
+
+Improvements are real: median luma is better placed (three of five frames now inside 55–110, against
+zero before), and shadow tint spread went 0.6–1.6 → 5.9–11.8, so the grade is doing something.
+
+But **crushing got worse across the board**:
+
+| Frame | Pass 1 crush% | Pass 2 crush% |
+|---|---|---|
+| hz-spawn | 0.0 | **4.1** |
+| hz-floor | 3.2 | **18.2** |
+| hz-racking | 19.9 | **23.1** |
+| hz-pit | 3.9 | **15.8** |
+| hz-dock | 4.7 | **15.4** |
+
+Every frame regressed. Four of five now exceed the 8% fail threshold, where before only one did.
+The darkest-5% mean is RGB **[0,0,8]** — a blue residue over a black point still sitting on zero, so
+R and G are fully clipped off the bottom. PEAK's is 35/32/58: *lifted* and tinted. The grade added a
+tint without adding a lift. `hz-racking` at median luma 24.6 is now simply too dark, and `hz-floor`
+clipped slightly worse too (0.4% → 0.6%).
+
+### C6 — Post chain — **F → C**
+
+It exists and it works: SSAO is measurably darkening contacts, bloom halos are present and gated,
+ACES is rolling off, vignette measures 0.425–0.724 where the metric is valid. That is a large jump
+from a no-op passthrough.
+
+Capped at C by the chromatic aberration, which the rubric explicitly says should cost points when
+overdone. Measured misregistration is **2.0–3.0 px at the frame edge against 0.0–1.0 px at centre**.
+Two observations for whoever tunes it: it is radial (good), but the magnitude is roughly 2–4× a
+tasteful value at 720p, and it is being applied over a dot-screen ceiling, so every fringe lands on
+a high-frequency edge and produces rainbow speckle across the whole upper frame. Halving the
+coefficient *and* coarsening the ceiling UVs will each fix about half the visible damage.
+
+I should be straight about one thing: I was told the CA was "roughly fifty times too strong". I
+cannot corroborate that figure from pixels — 2–3 px of edge misregistration is bad but it is not
+50× bad. If the 50× comes from reading a constant in the shader, that may well be right about the
+constant; it is not what the frame shows. Reporting what I measured.
+
+### C7 — Silhouette at 10 m — **C → C** (slightly worse at distance)
+
+Unchanged at close range and mildly regressed far out. Figure-vs-background ΔL: 163.7 at 5 m, 104.0
+at 10 m, **35.1 at 20 m — down from 58.0**. The background got brighter and much busier, so the
+contractor competes with texture noise it did not have to compete with before. Still near-white,
+still no rim or outline cue. (Pre-post measurement — see caveat 1.)
+
+### C8 — Composition and depth — **F → C**
+
+Fog at 6/42 is doing visible work; the far wall in `hz-dock` now sits back from the near floor
+instead of reading at equal presence. The bare-plane failure is also gone — the bottom of the frame
+is textured concrete rather than an empty gradient, so no single unbroken plane dominates. Held at C
+because most sightlines still have nothing in the near field to frame the shot, and `hz-racking`
+puts a large unreadable dark mass dead centre.
+
+### C9 — Colour discipline — **F → C−**
+
+Hue families 2–6 → **5–8** (all frames now clear the ≥5 bar), dominant share 39.8–55.9% → **32.7–49.0%**,
+mean saturation into the target band on every frame. The duotone problem is solved. Still failing on
+the worst frame: `hz-pit` carries chroma on only **48.6%** of pixels, under the 50% floor, so half
+that frame is dead grey.
+
+## Regressions, called out separately
+
+1. **Crushed blacks, every frame, roughly tripled** (see C5). The single thing to fix. The grade
+   tints the shadows but never lifts the black point off zero.
+2. **Silhouette separation at 20 m: ΔL 58.0 → 35.1** (C7), caused by the busier, brighter background.
+3. **`flat%` collapsed 84.8–97.1 → 7.1–18.9** (C4). An overshoot, not a failure by threshold, but
+   it is a swing straight past the reference: PEAK keeps 63% of the frame smooth and this keeps 7–19%.
+4. **Chromatic aberration introduced at 2–3 px edge misregistration** (C6) — a new artefact,
+   intended as a feature, currently overdone.
+5. Marginal: `hz-floor` clipping 0.4% → 0.6%.
+
+## Priority for a third pass
+
+1. **Lift the black point.** Target `crush%` < 2 on every frame and a darkest-5% around RGB 35/32/58
+   with spread ≥ 10 — currently [0,0,8]. Purely a grade constant; the cheapest fix in this list and
+   it clears the only remaining D.
+2. **Coarsen texture UVs 2–4×** and let some materials stay smooth. Target feature size 8–20 px and
+   `flat%` back up toward 40–60%. Fixes the dot-screen ceiling and half the CA damage.
+3. **Halve the CA coefficient**, or better, weight it so the centre 60% of frame is untouched.
+4. **Give the contractor a rim cue and a darker torso value.** ΔL at 20 m is 35 and falling as the
+   world gets busier; a near-white figure will vanish against the pale floors.
+5. **Raise `SHADOW_LAMPS` if the budget allows it** — at 116 draw calls there is headroom under the
+   150 cap for one more caster, which would give the room a second shadow direction. Measure first;
+   the ~65-draws-per-caster figure is the binding constraint, not the triangle count.
