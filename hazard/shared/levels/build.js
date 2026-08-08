@@ -84,12 +84,25 @@ export function stairs(from, to, width = 1.4, mat = 'grate') {
   return out;
 }
 
-/** A catwalk with kick rails, so falling off it takes commitment. */
+/**
+ * A catwalk with kick rails, so falling off it takes commitment.
+ *
+ * The rails go on the LONG sides. Railing a fixed pair of faces looks harmless
+ * until somebody authors a walkway that runs along Z, at which point the rails
+ * land across both ends and wall the gantry off completely — you cannot get on
+ * or off it, and nothing about the level data says so.
+ */
 export function catwalk(p, s, mat = 'grate') {
+  const alongX = s[0] >= s[2];
+  const rail = (dx, dz) => box(
+    [p[0] + dx, p[1] + 0.55, p[2] + dz],
+    alongX ? [s[0], 1.1, 0.06] : [0.06, 1.1, s[2]],
+    'railing', { tag: 'rail', thin: true },
+  );
   return [
     box(p, s, mat, { tag: 'catwalk' }),
-    box([p[0], p[1] + 0.55, p[2] - s[2] / 2], [s[0], 1.1, 0.06], 'railing', { tag: 'rail', thin: true }),
-    box([p[0], p[1] + 0.55, p[2] + s[2] / 2], [s[0], 1.1, 0.06], 'railing', { tag: 'rail', thin: true }),
+    alongX ? rail(0, -s[2] / 2) : rail(-s[0] / 2, 0),
+    alongX ? rail(0, s[2] / 2) : rail(s[0] / 2, 0),
   ];
 }
 

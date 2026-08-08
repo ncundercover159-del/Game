@@ -126,9 +126,13 @@ void main() {
 
   for ( int i = 0; i < SAMPLES; i ++ ) {
     float t = ( float( i ) + 0.5 ) / float( SAMPLES );
-    // sqrt keeps the samples uniform over the disc instead of piling them up
-    // at the centre, which otherwise makes the AO a thin dark outline.
-    float r = uRadius * sqrt( t );
+    // Two jobs from one loop. sqrt(t) spreads the samples evenly over the disc
+    // rather than piling them at the centre, and the extra ramp stretches the
+    // outer half of the spiral well past uRadius, so the same twelve taps give
+    // both the hard line where a crate meets the floor and the broad softening
+    // in the corner of a room. Two separate passes would cost twice as much for
+    // an effect nobody could point at in a still.
+    float r = uRadius * sqrt( t ) * mix( 0.42, 2.3, t );
     float a = ang + t * 25.13274;             // four turns of a spiral
     vec3 dir = vec3( cos( a ), sin( a ), 0.0 );
     vec3 s = normalize( dir + N * 0.7 );
@@ -207,14 +211,16 @@ void main() {
 `;
 
 // --- the grade ---------------------------------------------------------------
-// Everything lands here: occlusion, bloom, exposure, the film curve, the look,
-// and the sRGB encode. One read of the scene buffer, one write to the screen.
+// Everything lands here: edge antialiasing, occlusion, bloom, exposure, the film
+// curve, the look, and the sRGB encode. One read of the scene buffer, one write
+// to the screen.
 
 const GRADE_FRAG = /* glsl */`
 varying vec2 vUv;
 uniform sampler2D tScene;
 uniform sampler2D tAO;
 uniform sampler2D tBloom;
+uniform vec2 uTexel;
 uniform float uExposure;
 uniform float uAO;
 uniform float uBloom;
@@ -222,6 +228,10 @@ uniform float uVignette;
 uniform float uGrain;
 uniform float uAberration;
 uniform float uTime;
+uniform vec3 uLift;
+uniform vec3 uAerial;
+uniform float uAerialRate;
+${DEPTH_LIB}
 
 // Three's ACES fit, reproduced because the material-side tone mapping is
 // switched off the moment we render into a buffer instead of the canvas.
@@ -250,23 +260,74 @@ float hash12( vec2 p ) {
   return fract( ( p3.x + p3.y ) * p3.z );
 }
 
+const vec3 LUMA = vec3( 0.2126, 0.7152, 0.0722 );
+
+// Perceptual luma for edge detection. The buffer is linear HDR and a linear
+// luma finds no edge at all in the shadows, which is exactly where the stair
+// steps on a rack upright live. One divide and a sqrt buys the whole toe back.
+float flum( vec3 c ) {
+  float l = dot( c, LUMA );
+  return sqrt( l / ( 1.0 + l ) );
+}
+
+// FXAA, the console variant: four diagonal luma taps decide which way the edge
+// runs, then two bilinear taps smear across it. The scene renders into a
+// composer buffer, so the renderer's own MSAA never applies and every diagonal
+// in the level — ramp, stair, rack upright — is a raw staircase without this.
+// A 4x multisampled float target would be better and costs bandwidth this game
+// does not have spare.
+vec3 fxaa( vec2 uv, vec3 mid ) {
+  vec2 t = uTexel;
+  float lM = flum( mid );
+  float lNW = flum( texture2D( tScene, uv + vec2( -t.x, -t.y ) ).rgb );
+  float lNE = flum( texture2D( tScene, uv + vec2( t.x, -t.y ) ).rgb );
+  float lSW = flum( texture2D( tScene, uv + vec2( -t.x, t.y ) ).rgb );
+  float lSE = flum( texture2D( tScene, uv + vec2( t.x, t.y ) ).rgb );
+
+  float lMin = min( lM, min( min( lNW, lNE ), min( lSW, lSE ) ) );
+  float lMax = max( lM, max( max( lNW, lNE ), max( lSW, lSE ) ) );
+  // Flat neighbourhood: leave it alone. Skipping the four colour taps here is
+  // most of why this is affordable — on a textured floor the branch is taken
+  // for the large majority of the frame.
+  if ( lMax - lMin < max( 0.045, lMax * 0.17 ) ) return mid;
+
+  vec2 dir = vec2( -( ( lNW + lNE ) - ( lSW + lSE ) ), ( lNW + lSW ) - ( lNE + lSE ) );
+  float red = max( ( lNW + lNE + lSW + lSE ) * 0.03125, 0.0078 );
+  dir = clamp( dir / ( min( abs( dir.x ), abs( dir.y ) ) + red ), -8.0, 8.0 ) * t;
+
+  vec3 a = 0.5 * ( texture2D( tScene, uv + dir * -0.1667 ).rgb
+                 + texture2D( tScene, uv + dir * 0.1667 ).rgb );
+  vec3 b = a * 0.5 + 0.25 * ( texture2D( tScene, uv - dir * 0.5 ).rgb
+                            + texture2D( tScene, uv + dir * 0.5 ).rgb );
+  // The wide pair can reach past the edge onto something unrelated; if its luma
+  // has left the neighbourhood, fall back to the narrow one.
+  float lB = flum( b );
+  return ( lB < lMin || lB > lMax ) ? a : b;
+}
+
 void main() {
   vec2 d = vUv - 0.5;
   float r2 = dot( d, d );
 
-  // Lateral chromatic aberration: zero in the middle, growing with the square
-  // of the radius, exactly as a cheap lens does it. This is the one effect that
-  // most says "you are watching this through a camera bolted to a helmet".
+  vec3 mid = texture2D( tScene, vUv ).rgb;
+  vec3 col = fxaa( vUv, mid );
+
+  // Lateral chromatic aberration, applied as a DIFFERENCE on top of the
+  // antialiased colour rather than by resampling all three channels at three
+  // places. Sampling per channel throws the aliasing back in on red and blue,
+  // and at any magnitude you can actually see it that turns every thin bright
+  // edge — every rack upright, every ceiling rib — into a rainbow. That is what
+  // the first version of this did. A pixel and a bit at the extreme corner,
+  // tapering to nothing by the middle third, is a lens; anything more is a bug.
   vec2 off = d * r2 * uAberration;
-  vec3 col;
-  col.r = texture2D( tScene, vUv + off ).r;
-  col.g = texture2D( tScene, vUv ).g;
-  col.b = texture2D( tScene, vUv - off ).b;
+  col.r += texture2D( tScene, vUv + off ).r - mid.r;
+  col.b += texture2D( tScene, vUv - off ).b - mid.b;
 
   // Occlusion before the curve, so a contact shadow rolls off with everything
-  // else rather than punching a flat grey hole in the image.
+  // else rather than punching a flat grey hole in the image. Squared, because
+  // the raw cone estimate is far too polite about a crate sitting on a floor.
   float ao = texture2D( tAO, vUv ).r;
-  col *= mix( 1.0, ao, uAO );
+  col *= mix( 1.0, ao * ao, uAO );
 
   col += texture2D( tBloom, vUv ).rgb * uBloom;
 
@@ -275,14 +336,39 @@ void main() {
   // The look. A job site at dusk: shadows pulled towards cold blue, highlights
   // left warm, and enough saturation taken out that the hi-viz reads as the
   // brightest thing in the frame — which, on a real site, it is.
-  float l = dot( col, vec3( 0.2126, 0.7152, 0.0722 ) );
+  float l = dot( col, LUMA );
   col = mix( vec3( l ), col, 0.93 );
   col += vec3( -0.005, 0.0, 0.013 ) * ( 1.0 - l );
-  col = clamp( ( col - 0.5 ) * 1.06 + 0.5 + 0.016, 0.0, 1.0 );
+  col = clamp( ( col - 0.5 ) * 1.10 + 0.5 + 0.010, 0.0, 1.0 );
 
-  col *= 1.0 - uVignette * r2 * ( 1.0 + r2 );
+  float vig = 1.0 - uVignette * r2 * ( 1.0 + r2 );
+  col *= vig;
 
   col = srgb( col );
+
+  // THE TOE. Everything above this line can still reach RGB 0,0,0, and a frame
+  // with twenty per cent of its pixels at absolute zero is not dark, it is
+  // empty — a graded review measured exactly that here and it is the single
+  // cheapest thing to fix. Real footage has a floor: sensor bias, lens flare,
+  // and light that has bounced twice. PEAK's darkest five per cent sits around
+  // RGB 35/32/58, lifted and blue-violet, and that is the target.
+  //
+  // The far term is aerial perspective. Distance lifts and cools faster than
+  // the near field, which reads as depth for free and pulls the back half of
+  // the racking out of the black it was disappearing into. Fog can only wash
+  // towards its own colour and takes the highlights with it; a lift leaves
+  // anything already bright exactly where it was.
+  //
+  // The mask has to be TIGHT. A toe that reaches into the mid-tones does not
+  // read as a lifted black, it reads as milk poured over the whole frame — the
+  // first attempt used a half-luma ramp and turned a warehouse into fog.
+  // Squared, and done by a third of the way up, so it moves the empty pixels
+  // and leaves anything with detail in it alone.
+  float dist = min( -viewZ( vUv ), 70.0 );
+  float far = 1.0 - exp( -dist * uAerialRate );
+  float shadow = 1.0 - smoothstep( 0.0, 0.30, dot( col, LUMA ) );
+  shadow *= shadow;
+  col += ( uLift + uAerial * far ) * shadow * vig;
 
   // Grain last and in display space, because that is where a sensor's noise
   // actually lives, and weighted towards the shadows where you would see it.
@@ -352,19 +438,26 @@ class SitePass extends Pass {
       uDir: { value: new THREE.Vector2() },
     });
     this.gradeMat = shader(GRADE_FRAG, {
+      ...depthUniforms(),
       tScene: { value: null },
       tAO: { value: null },
       tBloom: { value: null },
+      uTexel: { value: new THREE.Vector2(1 / width, 1 / height) },
       uExposure: { value: 1 },
-      uAO: { value: 0.48 },
+      uAO: { value: 0.70 },
       uBloom: { value: 0.62 },
-      uVignette: { value: 0.34 },
-      uGrain: { value: 0.05 },
-      // In UV units, and it is multiplied by the radius squared, so the corner
-      // offset is a quarter of this. Three pixels at 720p. The first pass had
-      // this fifty times higher and the warehouse came out as a rainbow.
-      uAberration: { value: 0.013 },
+      uVignette: { value: 0.36 },
+      uGrain: { value: 0.045 },
+      // UV units, multiplied by radius squared, so the extreme corner sees a
+      // quarter of this: 1.1 px at 1280 wide. See the note in the shader — the
+      // failure mode of this effect is not "too subtle", it is "rainbow".
+      uAberration: { value: 0.0035 },
       uTime: { value: 0 },
+      // Display-space black floor and its far-field extra. 0.145 * 255 = 37, so
+      // an absolutely unlit pixel in the near field lands near 37/34/60.
+      uLift: { value: new THREE.Vector3(0.145, 0.134, 0.235) },
+      uAerial: { value: new THREE.Vector3(0.050, 0.058, 0.088) },
+      uAerialRate: { value: 0.030 },
     });
 
     this.quad = new FullScreenQuad();
@@ -379,6 +472,9 @@ class SitePass extends Pass {
     this.bloomA.setSize(w4, h4);
     this.bloomB.setSize(w4, h4);
     this.aoMat.uniforms.uTexel.value.set(1 / w2, 1 / h2);
+    // FXAA works at full resolution, so it wants the screen texel, not the
+    // half-res one the occlusion runs at.
+    this.gradeMat.uniforms.uTexel.value.set(1 / width, 1 / height);
     this._half = new THREE.Vector2(1 / w2, 1 / h2);
     this._quarter = new THREE.Vector2(1 / w4, 1 / h4);
   }
@@ -396,7 +492,7 @@ class SitePass extends Pass {
 
     // --- occlusion ---------------------------------------------------------
     if (depth) {
-      for (const m of [this.aoMat, this.aoBlurMat]) {
+      for (const m of [this.aoMat, this.aoBlurMat, this.gradeMat]) {
         m.uniforms.tDepth.value = depth;
         m.uniforms.uNear.value = cam.near;
         m.uniforms.uFar.value = cam.far;
@@ -436,7 +532,10 @@ class SitePass extends Pass {
     const g = this.gradeMat.uniforms;
     g.tScene.value = readBuffer.texture;
     g.tAO.value = depth ? this.aoA.texture : null;
-    g.uAO.value = depth ? 0.48 : 0;
+    g.uAO.value = depth ? 0.70 : 0;
+    // No depth means no aerial term either — viewZ would read an empty sampler
+    // and put a flat grey wash over the whole frame.
+    g.uAerialRate.value = depth ? 0.030 : 0;
     g.tBloom.value = this.bloomA.texture;
     g.uExposure.value = renderer.toneMappingExposure;
     g.uTime.value = this.time;

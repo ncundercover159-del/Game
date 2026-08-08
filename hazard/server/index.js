@@ -582,7 +582,13 @@ function onBinary(client, data) {
   };
   // The echo the client's predictor reconciles against.
   actor.lastInputSeq = seq;
-  client.autopilot = false;   // a real input takes the wheel back off the bot
+  // A real input takes the wheel back off the stand-in. Dropping the bot as
+  // well as the flag matters: leaving it in the pool means two authors writing
+  // pendingInput every tick and a contractor who fights their own player.
+  if (client.autopilot) {
+    client.autopilot = false;
+    session.bots.dispossess(client.slot);
+  }
   session.touch();
 }
 
@@ -672,7 +678,7 @@ function handle(client, msg) {
       if (!s) return;
       const actor = s.room.actors.get(client.slot);
       if (!actor) return;
-      actor.name = String(msg.name || actor.name).slice(0, 14).toUpperCase();
+      actor.name = cleanName(msg.name) || actor.name;
       client.name = actor.name;
       s.broadcastRoster();
       return;
@@ -704,7 +710,13 @@ function onJoin(client, msg) {
     if (!session) return fail(client, 'NO JOB WITH THAT CODE');
   }
 
-  const slot = session.admit(client, msg.name);
+  // Sanitise the name HERE, not downstream. room.js does
+  // `(name || default).slice(0, 14).toUpperCase()`, and an object has no
+  // .slice — so a join carrying `{name: {}}` throws from inside Room.join
+  // AFTER it has popped a slot off the free list and built a Rapier body for
+  // an actor it then never registers. That is a leaked body and a permanently
+  // lost slot, from one malformed frame.
+  const slot = session.admit(client, cleanName(msg.name));
   if (slot === null) return fail(client, 'THAT JOB IS FULL');
 
   const level = session.room.level;
@@ -748,6 +760,12 @@ function sendLevel(client, level) {
   frame[0] = MSG.LEVEL;
   body.copy(frame, 1);
   client.send(frame);
+}
+
+/** A name the room can print: printable ASCII, short, or nothing at all. */
+function cleanName(raw) {
+  if (typeof raw !== 'string') return '';
+  return raw.replace(/[^\x20-\x7e]/g, '').trim().slice(0, 14);
 }
 
 function clampFinite(v, lo, hi) {

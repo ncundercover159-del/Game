@@ -21,10 +21,15 @@
 
 import * as THREE from 'three';
 
-// 256 is the honest size. At the 2.4m tile concrete uses that is 107 px/m,
-// which at 1080p is roughly texel-per-pixel at three metres — past that the
-// mips take over and you are looking at the mottling, not the texels.
+// 256 is the honest size for a prop you see at arm's length for two seconds.
+// The four architectural surfaces are different: they cover essentially the
+// whole screen, they are read at a metre and at thirty, and at 256 over a
+// three-metre tile a texel is 1.2 cm — visibly soft the moment you stand next
+// to a wall. They get 512. Everything else would be paying boot time for detail
+// nobody looks at.
 const SIZE = 256;
+const BIG = new Set(['concrete', 'panel', 'deckplate', 'steelblue']);
+const sizeOf = (name) => (BIG.has(name) ? 512 : SIZE);
 
 // --- noise -------------------------------------------------------------------
 
@@ -96,48 +101,85 @@ function streak(u, v, cells, aniso, oct, s) {
 const GEN = {
   // Poured floor slab: aggregate showing through a worn surface, broad pour
   // stains, and the hairline map crazing every warehouse floor has.
+  // Poured floor slab: aggregate showing through a worn surface, broad pour
+  // stains, and the hairline map crazing every warehouse floor has.
+  //
+  // Everything here is a lesson in restraint learnt the hard way. The first
+  // version had aggregate at 110 cells, which on a 256-pixel map is two pixels
+  // a stone — below Nyquist, so it did not read as aggregate, it read as
+  // static. And the crazing threshold was wide enough that the ridged noise
+  // came out as a thick reticulated network: from six metres up the floor
+  // looked like camouflage netting, and the derivative bump put a bright rim on
+  // every line of it. Concrete is a QUIET material. Its whole character is
+  // large-scale patchiness with a fine tooth, and if you can see any single
+  // feature of it from across the room you have overdone it.
   concrete(u, v, o) {
-    const big = fbm(u, v, 3, 3, 11);
-    const grain = fbm(u, v, 40, 3, 23);
-    const speck = vnoise(u, v, 110, 41);
-    const stone = speck > 0.79 ? (speck - 0.79) / 0.21 : 0;
-    // Map crazing, not a dry riverbed. The frequency has to be high and the
-    // threshold narrow or the ridged noise reads as camouflage from ten metres
-    // up — which is exactly what it did on the first pass.
-    const crack = ridge(u, v, 16, 3, 71);
-    const crk = smooth(0.955, 0.998, crack);
+    const pour = fbm(u, v, 2, 3, 11);          // where one day's pour met the next
+    const patch = fbm(u, v, 5, 3, 97);         // power-float swirl, wear, damp
+    const grain = fbm(u, v, 14, 3, 23);        // the tooth
+    const speck = vnoise(u, v, 56, 41);
+    const stone = speck > 0.80 ? (speck - 0.80) / 0.20 : 0;
+    const crack = ridge(u, v, 11, 2, 71);
+    const crk = smooth(0.982, 0.999, crack);
 
-    let l = 0.44 + (grain - 0.5) * 0.13 + (big - 0.5) * 0.10;
-    l *= mix(0.82, 1.05, smooth(0.34, 0.58, big));
-    l += stone * 0.20;
-    l *= 1 - crk * 0.28;
-    o[0] = l * 1.03; o[1] = l * 1.0; o[2] = l * 0.94;
-    o[3] = clamp01(0.5 + (grain - 0.5) * 0.45 + stone * 0.4 - crk * 0.40);
+    let l = 0.46 + (grain - 0.5) * 0.09 + (pour - 0.5) * 0.11;
+    l *= mix(0.88, 1.06, smooth(0.30, 0.62, patch));
+    l += stone * 0.13;
+    l *= 1 - crk * 0.20;
+    // Concrete is warm-grey when dry and cooler where it has been wet. Two
+    // hues out of one material is nearly free and it is what stops a floor
+    // this large from reading as a single flat value.
+    const damp = smooth(0.52, 0.78, pour);
+    o[0] = l * mix(1.05, 0.96, damp);
+    o[1] = l * mix(1.00, 0.99, damp);
+    o[2] = l * mix(0.92, 1.04, damp);
+    // Height is mostly tooth. The crack contributes little: a deep crack in the
+    // height channel is what threw the bright rims, and a real hairline crack
+    // is a colour, not a valley.
+    o[3] = clamp01(0.5 + (grain - 0.5) * 0.34 + stone * 0.30 - crk * 0.16);
   },
 
   // Corrugated wall cladding. The ribs run along one texture axis, which under
   // box projection means they stand vertically on every wall — which is how
   // cladding is actually hung.
+  // Corrugated wall cladding. The ribs run along one texture axis, which under
+  // box projection means they stand vertically on every wall — which is how
+  // cladding is actually hung.
+  //
+  // Eight ribs across a 3.2 m tile is a 40 cm pitch, which is real. The count
+  // and the tile have to be chosen together: the tile also sets how often the
+  // whole sheet repeats along a forty-six metre wall, and at the old four ribs
+  // per 2.1 m the wall showed twenty-two copies of the same rust patch in a
+  // dead-straight grid. Fewer, wider repeats plus quieter blemishes.
+  //
+  // The rib SHADING is the other half. It used to swing the albedo by half,
+  // which is a painted stripe, not a fold in a metal sheet. A fold is a normal,
+  // so it belongs almost entirely in the height channel where the light can
+  // decide what it looks like; the albedo keeps a hint of it and no more.
   panel(u, v, o) {
-    const rib = Math.cos(u * Math.PI * 2 * 4);
-    const ribH = rib * 0.5 + 0.5;
+    const ribs = 8;
+    const phase = fract(u * ribs);
+    // Trapezoidal, not sinusoidal: cladding has a flat crown and a flat valley
+    // with a short web between them, and the flats are what catch a highlight.
+    const tri = Math.abs(phase - 0.5) * 2;
+    const ribH = 1 - smooth(0.22, 0.78, tri);
+    const dirt = fbm(u, v, 4, 4, 3);
+    const streaks = streak(u, v, 20, 7, 3, 29);   // rain runs, vertical on a wall
+    const rustAt = smooth(0.70, 0.92, fbm(u, v, 13, 3, 53)) * smooth(0.4, 0.85, streaks);
     // Sheet joints only at the tile edge. An earlier version put three across
     // the tile and the wall came out looking like brickwork.
-    const seam = smooth(0.995, 1.0, Math.abs(Math.cos(v * Math.PI)));
-    const dirt = fbm(u, v, 5, 4, 3);
-    const spots = vnoise(u, v, 60, 17);
-    const rustAt = smooth(0.62, 0.80, fbm(u, v, 9, 3, 53)) * smooth(0.55, 0.9, spots);
+    const seam = smooth(0.994, 1.0, Math.abs(Math.cos(v * Math.PI)));
 
-    let r = 0.44, g = 0.47, b = 0.47;
-    const shade = 0.72 + 0.38 * ribH;
+    let r = 0.47, g = 0.50, b = 0.50;
+    const shade = 0.92 + 0.14 * ribH;
     r *= shade; g *= shade; b *= shade;
-    const grime = mix(0.82, 1.05, dirt);
-    r *= grime; g *= grime; b *= grime * 0.97;
+    const grime = mix(0.80, 1.06, dirt) * mix(0.92, 1.04, streaks);
+    r *= grime; g *= grime; b *= grime * 0.96;
     // Rust bleeds warm and kills the paint's slight green.
-    r = mix(r, 0.40, rustAt); g = mix(g, 0.21, rustAt); b = mix(b, 0.11, rustAt);
-    r *= 1 - seam * 0.5; g *= 1 - seam * 0.5; b *= 1 - seam * 0.5;
+    r = mix(r, 0.42, rustAt); g = mix(g, 0.23, rustAt); b = mix(b, 0.13, rustAt);
+    r *= 1 - seam * 0.45; g *= 1 - seam * 0.45; b *= 1 - seam * 0.45;
     o[0] = r; o[1] = g; o[2] = b;
-    o[3] = clamp01(ribH * 0.8 + 0.1 - seam * 0.4 - rustAt * 0.2 + (dirt - 0.5) * 0.15);
+    o[3] = clamp01(ribH * 0.78 + 0.11 - seam * 0.45 - rustAt * 0.18 + (dirt - 0.5) * 0.12);
   },
 
   // Chequer plate. Two rows of raised lozenges at opposing angles, which is the
@@ -412,13 +454,14 @@ const cache = new Map();
 
 function build(name) {
   const gen = GEN[name] || GEN.unknown;
-  const data = new Uint8Array(SIZE * SIZE * 4);
+  const n = sizeOf(name);
+  const data = new Uint8Array(n * n * 4);
   const o = [0, 0, 0, 0];
-  for (let y = 0; y < SIZE; y++) {
-    const v = (y + 0.5) / SIZE;
-    for (let x = 0; x < SIZE; x++) {
-      gen((x + 0.5) / SIZE, v, o);
-      const i = (y * SIZE + x) * 4;
+  for (let y = 0; y < n; y++) {
+    const v = (y + 0.5) / n;
+    for (let x = 0; x < n; x++) {
+      gen((x + 0.5) / n, v, o);
+      const i = (y * n + x) * 4;
       data[i] = clamp01(o[0]) * 255;
       data[i + 1] = clamp01(o[1]) * 255;
       data[i + 2] = clamp01(o[2]) * 255;
@@ -426,7 +469,7 @@ function build(name) {
     }
   }
 
-  const tex = new THREE.DataTexture(data, SIZE, SIZE, THREE.RGBAFormat);
+  const tex = new THREE.DataTexture(data, n, n, THREE.RGBAFormat);
   // sRGB on an RGBA8 texture decodes RGB in hardware and leaves ALPHA linear,
   // which is exactly what we want: colour in display space, height in linear.
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -434,7 +477,12 @@ function build(name) {
   tex.magFilter = THREE.LinearFilter;
   tex.minFilter = THREE.LinearMipmapLinearFilter;
   tex.generateMipmaps = true;
-  tex.anisotropy = 4;  // floors are seen at a grazing angle almost constantly
+  // The ceiling of this warehouse is fifteen hundred square metres of metal
+  // deck seen at four degrees. Trilinear alone picks a mip for the WORST axis
+  // and turns it to porridge; anisotropic filtering is the only thing that
+  // keeps a receding floor from either shimmering or dissolving. Three clamps
+  // this to whatever the hardware will do.
+  tex.anisotropy = 16;
   tex.name = `tex:${name}`;
   tex.needsUpdate = true;
   return tex;

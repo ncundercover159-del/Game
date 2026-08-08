@@ -39,6 +39,7 @@ export class Room {
     this.banked = 0;
     this.breakages = 0;
     this.extractedKinds = new Map();
+    this.intactKinds = new Map();
     this.events = [];              // gameplay events for the wire
     this.taskState = this.level.tasks.map((t) => ({ id: t.id, done: false, progress: 0 }));
 
@@ -283,6 +284,9 @@ export class Room {
       const paid = rec.broken ? Math.round(rec.def.value * 0.1) : rec.def.value;
       this.banked += paid;
       this.extractedKinds.set(rec.kind, (this.extractedKinds.get(rec.kind) || 0) + 1);
+      if (!rec.broken) {
+        this.intactKinds.set(rec.kind, (this.intactKinds.get(rec.kind) || 0) + 1);
+      }
       this.emit('extract', { id: rec.id, kind: rec.kind, value: paid, broken: rec.broken });
     }
   }
@@ -312,7 +316,9 @@ export class Room {
         st.progress = Math.min(1, this.breakages / (t.limit + 1));
         st.done = this.breakages <= t.limit;
       } else if (t.type === 'extract_kind') {
-        const n = this.extractedKinds.get(t.kind) || 0;
+        // `intact` matters: without it "deliver the piano" is satisfied by
+        // delivering the wreckage of a piano, which is not the same job.
+        const n = (t.intact ? this.intactKinds : this.extractedKinds).get(t.kind) || 0;
         st.progress = Math.min(1, n / t.count);
         st.done = n >= t.count;
       }

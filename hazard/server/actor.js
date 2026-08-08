@@ -226,6 +226,11 @@ export class Actor {
         const speed = -wasFalling;
         if (speed > FALL_SAFE_SPEED) {
           this.damage((speed - FALL_SAFE_SPEED) * FALL_DAMAGE_PER_MS, now, 'fall');
+          // damage() can ragdoll, and ragdolling destroys the capsule and nulls
+          // this.body. Everything below this point assumes a capsule, so a hard
+          // landing would dereference null and take the whole room down with it.
+          // Once you are furniture there is nothing left in this function to do.
+          if (this.ragdoll) return;
         }
       }
     } else if (mv.y > -1e-6 && this.vel.y < 0) {

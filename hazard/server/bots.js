@@ -86,6 +86,10 @@ export class Bot {
   constructor(slot, pool) {
     this.slot = slot;
     this.pool = pool;
+    // A lane of their own. Eight contractors funnelling up one ramp on exactly
+    // the same line spend the shift shoving each other off it, and the loading
+    // dock is six metres wide precisely so they do not have to.
+    this.lane = ((slot % 4) - 1.5) * 0.9;
     this.mode = MODE.SEEK;
     this.targetId = 0;
     this.rescueSlot = -1;
@@ -205,9 +209,6 @@ export class Bot {
 
     if (dist < REACH) {
       const input = this.goTo(room, me, now, p.x, p.y, p.z, { arrive: 0.85, aim });
-      input.yaw = aim.yaw;
-      input.pitch = aim.pitch;
-      input.holdDist = clamp(dist, HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX);
       // The grab is edge-triggered in room.js: a held button is one attempt and
       // then silence. Pulse it, so a refused grab is retried.
       if (Math.abs(wrapAngle(aim.yaw - me.yaw)) < AIM_TOLERANCE) {
@@ -216,11 +217,13 @@ export class Bot {
       return input;
     }
 
-    const input = this.goTo(room, me, now, p.x, p.y, p.z, { arrive: 0.6 });
     // Line the aim up on the way in, so the grab can fire the moment it is in
-    // range rather than a turn later.
-    if (dist < GRAB_RANGE * 1.8) { input.yaw = aim.yaw; input.pitch = aim.pitch; }
-    return input;
+    // range rather than a turn later. It has to go through `aim` rather than be
+    // patched onto the returned packet: the movement stick is derived FROM the
+    // yaw in the packet, so overwriting the yaw afterwards silently rotates
+    // every step the bot takes away from where it meant to go.
+    return this.goTo(room, me, now, p.x, p.y, p.z,
+      { arrive: 0.6, aim: dist < GRAB_RANGE * 1.8 ? aim : null });
   }
 
   /** Is this still a sensible thing to be walking towards? */
@@ -253,35 +256,43 @@ export class Bot {
     const rec = me.held;
     if (!rec) return this.idle(me);
     const e = room.level.extract;
-    const stand = this.pool.dropStand();
+    const stand = this.pool.dropStand(this.lane);
     const p = rec.rb.translation();
     const here = Math.hypot(me.pos.x - stand.x, me.pos.z - stand.z);
 
-    if (this.mode === MODE.DROP || here < 1.6) {
+    if (this.mode === MODE.DROP || here < 1.2) {
       if (this.mode !== MODE.DROP) { this.mode = MODE.DROP; this.since = now; }
-      // Hold it out over the middle of the van bed and let go. Aiming at the
-      // spot rather than walking onto it keeps the bot's own capsule out of the
-      // volume, so it cannot kick the thing back out while it settles.
+      // Hold it out over the van bed and let go. Aiming rather than walking in
+      // keeps the bot's own capsule out of the volume, so it cannot kick the
+      // takings back out while they settle — room.js only pays for things that
+      // have stopped moving.
       //
-      // Height is per-object and as low as the object allows: gravity here is
-      // -22, so a 0.5m release is already 4.7m/s and a mug shatters at 3.2. Set
-      // it down, do not post it.
+      // The height is per-object and as low as the object allows: gravity is
+      // -22 here, so a half-metre release is already 4.7m/s and a mug shatters
+      // at 3.2. Set it down; do not post it.
       const aimY = stand.y + clamp(rec.radius, 0.12, 0.9) + 0.08;
-      const input = this.aimedAt(me, stand.aim.x, aimY, stand.aim.z);
-      const eye = { x: me.pos.x, y: me.pos.y + EYE_HEIGHT, z: me.pos.z };
-      input.holdDist = clamp(
-        Math.hypot(stand.aim.x - eye.x, aimY - eye.y, stand.aim.z - eye.z),
-        HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX,
-      );
-      // Release on the object's own position, exactly the test room.js applies
-      // — and give up after a while rather than standing there for ever.
-      if (insideExtract(e, p, 0.2) || now - this.since > 5000) {
+      const aim = aimAt({ x: me.pos.x, y: me.pos.y + EYE_HEIGHT, z: me.pos.z },
+        { x: stand.aim.x, y: aimY, z: stand.aim.z });
+      // Still short of the spot: keep walking in, but face the van the whole
+      // way so the load is already over the bed when the feet arrive.
+      const input = here > 0.7
+        ? this.walk(room, me, now, stand.x, stand.z, { aim, carrying: true })
+        : { ...ZERO, seq: this.seq++, yaw: aim.yaw, pitch: aim.pitch };
+      // Release on the object's own position, which is the test room.js
+      // applies — and give up eventually rather than stand here all shift.
+      if (insideExtract(e, p, 0.2) || now - this.since > 7000) {
         input.buttons |= this.pulseGrab(now);
       }
       return input;
     }
 
-    return this.goTo(room, me, now, stand.x, stand.y, stand.z, { arrive: 0, carrying: true });
+    const input = this.goTo(room, me, now, stand.x, stand.y, stand.z,
+      { arrive: 0, carrying: true });
+    // Reel the load in against the chest. A long hold swings into door frames
+    // and into other people, and the wire's holdDist field cannot do this —
+    // the server never reads it (see the report), so PULL is the only lever.
+    if (me.holdDist > 1.45) input.buttons |= BUTTON.PULL;
+    return input;
   }
 
   /** Just dropped something in the van: get out of the way so it can settle. */
@@ -343,7 +354,7 @@ export class Bot {
     if (key === this.routeKey && now - this.routeAt < REPLAN_MS) return;
     this.routeKey = key;
     this.routeAt = now;
-    this.route = planRoute(room, me, ty);
+    this.route = planRoute(room, me, ty, this.lane);
   }
 
   walk(room, me, now, tx, tz, opts = {}) {
@@ -426,6 +437,31 @@ export class Bot {
   probe(room, me, dir) {
     const w = room.world.world;
     const filter = membership(GROUP_ACTOR, GROUP_STATIC);
+    const spotX = me.pos.x + dir.x * PROBE_AHEAD;
+    const spotZ = me.pos.z + dir.z * PROBE_AHEAD;
+
+    // Anything heavy and moving is the most dangerous object in the building,
+    // and it is dangerous to BYSTANDERS specifically: room.js scores a prop's
+    // absolute momentum against everyone standing near it except whoever is
+    // carrying it, so a mate walking past with a 132kg safe is 185kg m/s and an
+    // instant knockout. Bots that give the load a wide berth stay on their feet
+    // — and staying on their feet is worth more than any shortcut.
+    for (const h of this.pool.hazards) {
+      if (h.rec === me.held) continue;
+      if (Math.abs(h.y - me.pos.y) > 2.2) continue;
+      const next = Math.hypot(h.x - spotX, h.z - spotZ);
+      if (next > h.keep) continue;
+      // Only refuse headings that make it worse, or a bot already inside the
+      // radius would find every direction blocked and stand there to be hit.
+      if (next < Math.hypot(h.x - me.pos.x, h.z - me.pos.z)) return NO;
+    }
+    for (const other of room.actors.values()) {
+      if (other === me || other.slot === this.rescueSlot) continue;
+      if (Math.abs(other.pos.y - me.pos.y) > 2.2) continue;
+      const next = Math.hypot(other.pos.x - spotX, other.pos.z - spotZ);
+      if (next > 1.0) continue;
+      if (next < Math.hypot(other.pos.x - me.pos.x, other.pos.z - me.pos.z)) return NO;
+    }
 
     // Chest feeler: a wall, a rack upright, a railing.
     const chest = { x: me.pos.x, y: me.pos.y + FEEL_HEIGHT, z: me.pos.z };
@@ -435,11 +471,7 @@ export class Bot {
     // Foot probe: is there still a floor a stride ahead, and is it a step or a
     // fall? Start above the tallest autostep, so a low kerb reads as ground at
     // the higher level rather than as an obstacle.
-    const probe = {
-      x: me.pos.x + dir.x * PROBE_AHEAD,
-      y: me.pos.y + 0.6,
-      z: me.pos.z + dir.z * PROBE_AHEAD,
-    };
+    const probe = { x: spotX, y: me.pos.y + 0.6, z: spotZ };
     const hit = w.castRay(new RAPIER.Ray(probe, { x: 0, y: -1, z: 0 }),
       0.6 + LEDGE_MAX_DROP, true, undefined, filter);
     if (!hit) return NO;
@@ -472,6 +504,11 @@ export class BotPool {
     this.bots = new Map();        // slot -> Bot
     this.claims = new Map();      // propId -> { slot, until }
     this.rescues = new Map();     // downed slot -> { slot, until }
+    this.stands = new Map();      // lane -> where to stand at the van
+    // Everything heavy and moving, rebuilt once a tick and read by every bot's
+    // steering. Rebuilding it per bot per candidate heading would be forty
+    // props times nine headings times eight bots, for one answer.
+    this.hazards = [];
     this.hired = 0;
   }
 
@@ -562,10 +599,11 @@ export class BotPool {
 
   claimRescue(downed, slot, now) { this.rescues.set(downed, { slot, until: now + CLAIM_MS }); }
 
-  /** Cached: it is derived from level geometry, which does not move. */
-  dropStand() {
-    if (!this.stand) this.stand = dropStand(this.room);
-    return this.stand;
+  /** Cached per lane: it is derived from level geometry, which does not move. */
+  dropStand(lane = 0) {
+    let s = this.stands.get(lane);
+    if (!s) { s = dropStand(this.room, lane); this.stands.set(lane, s); }
+    return s;
   }
 
   /** Is this thing too heavy for the hands already on it? */
@@ -645,7 +683,7 @@ export class BotPool {
  * brush tagged `ramp` is the way onto a brush tagged `dock`. A level with
  * neither gets an empty route, which is right for a job on flat ground.
  */
-function planRoute(room, me, targetY) {
+function planRoute(room, me, targetY, lane = 0) {
   const level = room.level;
   const dock = level.brushes.find((b) => b.tag === 'dock');
   const ramp = level.brushes.find((b) => b.tag === 'ramp');
@@ -662,10 +700,13 @@ function planRoute(room, me, targetY) {
   const alen = Math.hypot(ax, az) || 1;
   const ux = ax / alen, uz = az / alen;
   const reach = Math.max(ramp.s[0], ramp.s[2]) / 2 + 1.7;
+  // Sideways along the ramp, so each contractor has their own line up it.
+  const px = -uz * lane, pz = ux * lane;
+  const back = dock.s[2] / 2 - 1.0;
 
-  const approach = { x: ramp.p[0] + ux * reach, z: ramp.p[2] + uz * reach, r: 1.2 };
-  const onRamp = { x: ramp.p[0], z: ramp.p[2], r: 0.9 };
-  const onDock = { x: dock.p[0] + ux * (dock.s[2] / 2 - 1.0), z: dock.p[2] + uz * (dock.s[2] / 2 - 1.0), r: 1.4 };
+  const approach = { x: ramp.p[0] + ux * reach + px, z: ramp.p[2] + uz * reach + pz, r: 1.2 };
+  const onRamp = { x: ramp.p[0] + px, z: ramp.p[2] + pz, r: 0.9 };
+  const onDock = { x: dock.p[0] + ux * back + px, z: dock.p[2] + uz * back + pz, r: 1.4 };
   return toUp ? [approach, onRamp, onDock] : [onDock, onRamp, approach];
 }
 
@@ -676,7 +717,7 @@ function planRoute(room, me, targetY) {
  * the van is a contractor who kicks the takings back out onto the dock while
  * they settle, and room.js only pays for things that have stopped moving.
  */
-function dropStand(room) {
+function dropStand(room, lane = 0) {
   const e = room.level.extract;
   const dock = room.level.brushes.find((b) => b.tag === 'dock');
   const ramp = room.level.brushes.find((b) => b.tag === 'ramp');
@@ -688,14 +729,17 @@ function dropStand(room) {
     const alen = Math.hypot(ax, az) || 1;
     ux = ax / alen; uz = az / alen;
   }
+  // Spread the drop points across the width of the van, both so two bots do
+  // not stand in each other and so the load does not land on the last one.
+  const lim = Math.max(0, e.s[0] / 2 - 1.2);
+  const off = clamp(lane * 1.5, -lim, lim);
+  const px = -uz * off, pz = ux * off;
   const back = e.s[2] / 2 + 0.5;
   return {
-    x: e.p[0] + ux * back,
+    x: e.p[0] + ux * back + px,
     y: deck,
-    z: e.p[2] + uz * back,
-    // Aim low in the volume so the fall to the deck is short and the thing
-    // stops moving quickly. EXTRACT_DWELL_MS only starts once it is at rest.
-    aim: { x: e.p[0], y: e.p[1] - e.s[1] / 2 + 0.55, z: e.p[2] },
+    z: e.p[2] + uz * back + pz,
+    aim: { x: e.p[0] + px, y: e.p[1] - e.s[1] / 2 + 0.55, z: e.p[2] + pz },
   };
 }
 

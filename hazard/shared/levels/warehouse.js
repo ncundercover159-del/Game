@@ -117,7 +117,9 @@ export const warehouse = {
     prop('cheque', [14.0, 4.4, 11], [0, 0.4, 0]),
 
     // floor: the two-person problems
-    prop('piano', [-7.5, 0.7, -2.5], [0, 0.3, 0]),
+    // y must stay under 0.548: gravity is -22, so a 700mm drop lands at
+    // 6.22m/s against this piano's 5.5m/s fragility and it shatters on load.
+    prop('piano', [-7.5, 0.52, -2.5], [0, 0.3, 0]),
     prop('bathtub', [8.0, 0.6, 6.5], [0, -0.5, 0]),
     prop('generator', [6.5, 0.6, -12.0]),
 
@@ -150,7 +152,7 @@ export const warehouse = {
       bonus: 600,
     },
     {
-      id: 'piano', type: 'extract_kind', kind: 'piano', count: 1,
+      id: 'piano', type: 'extract_kind', kind: 'piano', count: 1, intact: true,
       title: 'THE PIANO',
       detail: 'It weighs 220kg. It is not going to move itself.',
       bonus: 900,
