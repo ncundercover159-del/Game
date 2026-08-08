@@ -229,13 +229,13 @@ export const flooded = {
 
   // On the lorry platform, which is the one surface on this job that is dry at
   // the end of it. The ring at 1.6m is all deckplate.
-  spawn: [19.5, 2.35, -9.6],
+  spawn: [19.5, 2.35, -10.4],
   spawnYaw: 1.75,
   spawnSpread: 1.6,
 
   // The flatbed. You stand on it to load it, so a fishbowl can be crouched down
   // onto the deck rather than dropped the 200mm that destroys it.
-  extract: { p: [19.5, 3.1, -13.2], s: [8.4, 1.7, 3.6] },
+  extract: { p: [19.5, 3.05, -13.2], s: [8.4, 1.8, 3.6] },
 
   quota: 6900,
   timeLimit: 400,
@@ -262,23 +262,23 @@ export const flooded = {
   props: [
     // --- the main sump, -4.4: the payday and the drowning risk -------------
     prop('generator', [-1.0, -3.92, 1.2]),            // THE PUMP MOTOR
-    prop('safe', [-4.6, -4.07, -2.8]),
-    prop('serverrack', [2.6, -3.41, 3.2], [0, 0.3, 0]),
+    prop('safe', [-4.6, -4.07, -2.6]),
+    prop('serverrack', [3.2, -3.41, 0.4], [0, 0.3, 0]),
     prop('fishbowl', [1.4, -4.19, -3.6]),
-    prop('crt', [-3.0, -4.17, 3.4]),
+    prop('crt', [-3.0, -4.17, -1.4]),
     prop('crt', [3.6, -4.17, -1.2]),
-    prop('extinguisher', [-5.6, -4.12, 0.4]),
-    ...scatter('mug', [0, -4.345, -2.0], [7, 0.1, 4], 4, 5),
-    ...scatter('stapler', [1.0, -4.355, 2.4], [6, 0.1, 3], 3, 9),
+    prop('extinguisher', [-5.6, -4.12, 0.6]),
+    ...scatter('mug', [0, -4.345, -1.2], [7, 0.1, 3], 4, 5),
+    ...scatter('stapler', [-4.0, -4.355, -1.0], [3, 0.1, 2.4], 3, 9),
 
     // --- the filter bed, -2.0: heavy, and the only tank with a ramp --------
-    prop('bathtub', [-17.6, -1.96, 1.6], [0, 0.5, 0]),
+    prop('bathtub', [-16.8, -1.96, 1.6], [0, 0.5, 0]),
     prop('vending', [-14.2, -1.05, -2.2]),
     prop('elk', [-16.2, -1.67, 3.4], [0, 1.2, 0]),
     prop('printer', [-13.0, -1.84, 2.6]),
     prop('crt', [-18.6, -1.77, -3.0]),
     prop('extinguisher', [-12.8, -1.72, -1.0]),
-    prop('extinguisher', [-19.4, -1.72, 0.2]),
+    prop('extinguisher', [-19.4, -1.72, -3.4]),
 
     // --- the sludge tank, -2.8: one way in, one way out -------------------
     prop('officechair', [11.4, -2.765, 1.6]),
@@ -287,28 +287,28 @@ export const flooded = {
     prop('fishbowl', [15.4, -2.59, 2.6]),
     prop('printer', [10.4, -2.64, -2.6]),
     prop('crt', [15.8, -2.57, 0.6]),
-    prop('ladder', [13.2, -2.55, -3.8], [0, 0, Math.PI / 2]),
+    prop('ladder', [13.2, -2.55, -4.4], [0, 0, Math.PI / 2]),
     ...scatter('mug', [13.0, -2.745, 0], [5, 0.1, 4], 4, 13),
 
     // --- the plant deck ----------------------------------------------------
     prop('piano', [-9.6, 0.02, -9.2], [0, 0.2, 0]),
-    prop('vending', [7.0, 0.95, 8.6]),
+    prop('vending', [6.6, 0.95, 11.4]),
     prop('officechair', [-2.0, 0.035, 11.0]),
     prop('extinguisher', [-24.2, 0.28, -2.0]),
     prop('extinguisher', [6.6, 0.28, -13.4]),
     prop('extinguisher', [23.0, 0.28, 8.0]),
     prop('crt', [-11.0, 0.23, 12.6]),
     ...scatter('mug', [0, 0.055, -11.0], [16, 0.1, 6], 5, 3),
-    ...scatter('stapler', [-16.0, 0.045, -11.0], [12, 0.1, 6], 4, 17),
+    ...scatter('stapler', [-15.0, 0.045, -11.0], [10, 0.1, 6], 4, 17),
 
-    // --- the control room, 4.6 --------------------------------------------
-    prop('safe', [-21.4, 4.91, 10.8]),
-    prop('serverrack', [-19.2, 5.57, 12.2]),
-    prop('cheque', [-23.6, 4.93, 8.0], [Math.PI / 2, 0, 0]),
-    prop('printer', [-18.0, 5.04, 7.6]),
-    prop('mug', [-22.0, 4.955, 7.2]),
-    prop('mug', [-21.4, 4.955, 7.8]),
-    prop('stapler', [-19.6, 4.945, 9.4]),
+    // --- the control room, floor at 4.6 -----------------------------------
+    prop('safe', [-21.4, 4.93, 10.8]),
+    prop('serverrack', [-19.2, 5.59, 12.2]),
+    prop('cheque', [-23.6, 4.65, 8.0], [Math.PI / 2, 0, 0]),
+    prop('printer', [-18.0, 4.76, 7.6]),
+    prop('mug', [-22.0, 4.675, 7.2]),
+    prop('mug', [-21.4, 4.675, 7.8]),
+    prop('stapler', [-19.6, 4.665, 9.4]),
   ],
 
   // Sequence data. The server does not read this yet; README.md says what it
@@ -316,7 +316,7 @@ export const flooded = {
   sequence: {
     id: 'shutdown',
     valves: [
-      { id: 'V1', order: 1, label: 'INTAKE', p: [-21.0, 5.175, 1.2], floods: 'bed' },
+      { id: 'V1', order: 1, label: 'INTAKE', p: [-21.0, 5.175, -0.9], floods: 'bed' },
       { id: 'V2', order: 2, label: 'FILTER BYPASS', p: [3.2, 0.575, 6.0], floods: 'sump' },
       { id: 'V3', order: 3, label: 'SLUDGE RETURN', p: [13.0, 0.575, 6.0], floods: 'sludge' },
     ],
@@ -370,5 +370,3 @@ export const flooded = {
     },
   ],
 };
-
-void BED_Y2;

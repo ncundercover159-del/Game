@@ -17,9 +17,10 @@
 // numbers worth asserting on are the ones the server will actually produce.
 
 import RAPIER from '@dimforge/rapier3d-compat';
+import { readdir } from 'node:fs/promises';
 import { Room } from '../../server/room.js';
 import { initPhysics, membership, GROUPS } from '../../server/world.js';
-import { LEVELS, validateLevel } from './index.js';
+import { LEVELS, LEVEL_BY_ID, validateLevel } from './index.js';
 import { PROP_BY_ID } from '../props.js';
 import { TICK_MS, PHASE, MAX_PLAYERS, GRAVITY } from '../tune.js';
 
@@ -210,6 +211,68 @@ const ROUTES = {
       budgetMs: 30000,
     },
   ],
+
+  // Every tank on this job is a hole with exactly one or two ways out, and the
+  // whole level is the claim that a 260kg motor can come UP one of them. So
+  // each route is walked down AND back, which is the half that actually
+  // matters: a descent that works is not evidence of anything.
+  flooded: [
+    {
+      name: 'the sump stair goes down 4.4m and back up',
+      waypoints: [
+        [-9.0, 0.2, 3.6],
+        [4.0, -4.4, 3.6],    // fifteen treads to the floor of the deep one
+        [-1.0, -4.4, -0.4],  // alongside the pump motor, not into it: walk a
+                             // capsule at a 260kg box and the solver settles
+                             // the argument by putting the capsule in the floor
+        [4.0, -4.4, 3.6],
+        [-9.0, 0.2, 3.6],    // ...and out again, which is the whole job
+      ],
+      budgetMs: 60000,
+    },
+    {
+      name: 'the filter bed ramp goes down and back up',
+      waypoints: [
+        [-19.5, 0.2, 6.5],
+        [-19.5, -2.0, -0.6],
+        [-16.0, -2.0, 0.4],
+        [-19.5, -2.0, -0.6],
+        [-19.5, 0.2, 6.5],
+      ],
+      budgetMs: 45000,
+    },
+    {
+      name: 'the sludge companionway goes down and back up',
+      waypoints: [
+        [18.5, 0.2, -3.4],
+        [11.8, -2.8, -3.4],
+        [13.0, -2.8, 0.4],
+        [11.8, -2.8, -3.4],  // back to the foot of the steps, squarely
+        [14.0, -1.4, -3.4],  // ...and up them
+        [18.5, 0.2, -3.4],
+      ],
+      budgetMs: 45000,
+    },
+    {
+      name: 'the gantry stair reaches the control room',
+      waypoints: [
+        [-23.5, 0.2, -13.0],
+        [-23.5, 4.6, -4.0],
+        [-23.5, 4.6, 5.0],
+        [-21.4, 4.6, 10.0],
+      ],
+      budgetMs: 45000,
+    },
+    {
+      name: 'the deck reaches the flatbed',
+      waypoints: [
+        [8.0, 0.2, -11.7],
+        [14.6, 2.2, -11.7],
+        [19.5, 2.2, -12.6],
+      ],
+      budgetMs: 30000,
+    },
+  ],
 };
 
 /**
@@ -254,10 +317,12 @@ function walkRoute(room, actor, waypoints, budgetMs) {
     // entire suite on somebody else's bug.
     try { room.step(now); } catch (err) { crashed = err; break; }
 
-    // Arrive properly. A loose radius on a staircase lets the bot "reach" a
-    // landing while still standing on the flight, and the next leg then walks
-    // it straight back down again.
-    if (flat < 0.75 && Math.abs(actor.pos.y - t[1]) < 0.6) { leg++; legStart = now; }
+    // Arrive properly, and tightly. A loose radius on a staircase lets the bot
+    // "reach" a landing while still standing on the flight, and the next leg
+    // then walks it straight back down again; on a 1.0m companionway a 0.75m
+    // radius lets it arrive beside the steps rather than on them, after which
+    // the straight line to the next waypoint goes underneath the whole flight.
+    if (flat < 0.45 && Math.abs(actor.pos.y - t[1]) < 0.6) { leg++; legStart = now; }
     if (now - legStart > perLeg * 3) {
       stalled.at = leg;
       stalled.pos = [actor.pos.x, actor.pos.y, actor.pos.z];
@@ -347,8 +412,14 @@ async function checkLevel(lvl) {
   ok('the site holds at least 1.6x the quota', ratio >= 1.6,
     `£${stock} of stock against a £${lvl.quota} quota (${ratio.toFixed(2)}x)`);
 
+  // Room resolves a level through LEVEL_BY_ID and silently falls back to the
+  // default when it misses, so an unregistered level would otherwise boot as
+  // the warehouse and pass every assertion below about the wrong building.
+  // Registering it here, in this process only, is what lets a level be proved
+  // before index.js — which the whole project imports — is touched at all.
+  LEVEL_BY_ID[lvl.id] = lvl;
   const room = await Room.create(`T-${lvl.id.slice(0, 3).toUpperCase()}`, lvl.id);
-  if (!ok('the room boots', room.level.id === lvl.id, `got "${room.level.id}"`)) return;
+  if (!ok('the room boots', room.level === lvl, `got "${room.level.id}"`)) return;
 
   // --- 3. the settle -------------------------------------------------------
   // Scoring is forced on from tick zero. The room would normally sit in LOBBY
@@ -523,9 +594,53 @@ async function checkLevel(lvl) {
 }
 
 // ---------------------------------------------------------------------------
+/**
+ * Every level in this directory, registered or not.
+ *
+ * A level must be proved BEFORE it goes in the LEVELS array, never after:
+ * index.js is imported by the server, the client and every harness in the
+ * project, so a level file that throws on import stops all of them at once.
+ * That ordering only works if an unregistered level can still be tested, so
+ * the lint reads the directory rather than the array — and then says which
+ * files are not registered yet, instead of quietly skipping them.
+ */
+async function findLevels() {
+  const skip = new Set(['build.js', 'index.js', 'leveltest.js']);
+  const files = (await readdir(new URL('.', import.meta.url)))
+    .filter((f) => f.endsWith('.js') && !skip.has(f)).sort();
+  const out = [];
+  for (const f of files) {
+    let mod;
+    try {
+      mod = await import(`./${f}`);
+    } catch (err) {
+      fails++;
+      console.log(`\n=== ${f} ===\n  FAIL the file does not even import — ${err.message}`);
+      continue;
+    }
+    const found = Object.values(mod).filter(
+      (v) => v && typeof v === 'object' && v.id && Array.isArray(v.brushes) && Array.isArray(v.tasks),
+    );
+    if (!found.length) {
+      fails++;
+      console.log(`\n=== ${f} ===\n  FAIL exports nothing that looks like a level`);
+    }
+    for (const l of found) out.push({ lvl: l, file: f, registered: LEVEL_BY_ID[l.id] === l });
+  }
+  return out;
+}
+
 await initPhysics();
-console.log(`level lint — ${LEVELS.length} level${LEVELS.length === 1 ? '' : 's'}`);
-for (const lvl of LEVELS) {
+const found = await findLevels();
+const unregistered = found.filter((f) => !f.registered);
+console.log(`level lint — ${found.length} level file${found.length === 1 ? '' : 's'}, `
+  + `${LEVELS.length} registered in index.js`);
+for (const f of unregistered) {
+  console.log(`  note: ${f.file} exports "${f.lvl.id}" and is NOT in LEVELS — `
+    + 'nothing loads it yet. Register it once this run is green.');
+}
+
+for (const { lvl } of found) {
   try {
     await checkLevel(lvl);
   } catch (err) {
