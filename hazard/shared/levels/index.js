@@ -6,6 +6,9 @@
 import { warehouse } from './warehouse.js';
 import { tower } from './tower.js';
 
+// flooded.js is present but NOT registered: it was cut off mid-write and
+// throws on import (BED_Y2 undefined), which broke every other agent's build.
+// The levels pass re-adds it once leveltest.js passes against it.
 export const LEVELS = [warehouse, tower];
 export const LEVEL_BY_ID = Object.fromEntries(LEVELS.map((l) => [l.id, l]));
 export const DEFAULT_LEVEL = warehouse.id;

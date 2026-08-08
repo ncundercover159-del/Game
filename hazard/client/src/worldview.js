@@ -12,6 +12,7 @@
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { PROP_BY_ID } from '../../shared/props.js';
 import { PFLAG, OFLAG } from '../../shared/protocol.js';
 import { PLAYER_RADIUS, PLAYER_HEIGHT, INTERP_DELAY_MS } from '../../shared/tune.js';
@@ -25,17 +26,21 @@ const _q = new THREE.Quaternion();
 // Candela per unit of a level's lamp "intensity". See buildEnvironment.
 const LIGHT_GAIN = 11;
 
+// How many lamps are allowed to cast. Six shadow faces each, so this is a
+// budget, not a preference.
+const SHADOW_LAMPS = 1;
+
 // Hemisphere and sun are already in sensible units, but a job site wants to
 // read as gloomy-but-legible rather than actually unlit: you have to be able to
-// see the crate you are about to trip over.
-// Tuned against the harness's mean-luma probe, which asserts a band rather than
-// a floor: a scene can fail by being washed out just as easily as by being
-// black, and "brighten it until the test passes" walks straight into the first.
+// see the crate you are about to trip over. Tuned against the harness's
+// mean-luma probe, which asserts a band rather than a floor — a scene fails by
+// being washed out just as readily as by being black, and "brighten it until
+// the test passes" walks straight into the first.
 const AMBIENT_GAIN = 0.62;
 const SUN_GAIN = 0.8;
 
 export class WorldView {
-  constructor(level) {
+  constructor(level, renderer) {
     this.level = level;
     this.scene = new THREE.Scene();
     this.props = new Map();     // wire id -> { obj, def, from, to }
@@ -43,6 +48,7 @@ export class WorldView {
     this.stats = { staticDraws: 0, tris: 0 };
 
     this.buildEnvironment();
+    this.buildEnvironmentMap(renderer);
     this.buildStatic();
     this.buildProps();
     this.buildExtractZone();
@@ -87,13 +93,59 @@ export class WorldView {
     // human-readable numbers a level author writes ("34") land at a fraction of
     // a lux by the time they reach the floor eight metres below. Rather than
     // make every level file carry four-digit magic numbers, convert here once.
+    // Which lamps cast. This is not a nicety: the only other caster is an
+    // exterior sun that the roof completely occludes, so without it NOTHING
+    // indoors casts a shadow and every object floats a few centimetres above
+    // wherever it is standing. A review measured the floor directly beneath a
+    // contractor as *brighter* than the floor beside them — an anti-shadow.
+    //
+    // A point light costs six shadow faces, so this cannot be all of them.
+    // Brightest first, capped, is a good proxy for "the ones you would notice".
+    const casters = [...(this.level.lights || [])]
+      .map((l, i) => ({ l, i }))
+      .sort((a, b) => b.l.intensity - a.l.intensity)
+      .slice(0, SHADOW_LAMPS)
+      .reduce((set, e) => set.add(e.i), new Set());
+
     this.lamps = [];
-    for (const l of this.level.lights || []) {
+    (this.level.lights || []).forEach((l, i) => {
       const p = new THREE.PointLight(new THREE.Color(l.color), l.intensity * LIGHT_GAIN, l.range, 2);
       p.position.set(l.p[0], l.p[1], l.p[2]);
+      if (casters.has(i)) {
+        p.castShadow = true;
+        p.shadow.mapSize.set(512, 512);
+        p.shadow.camera.near = 0.35;
+        p.shadow.camera.far = Math.max(6, l.range);
+        p.shadow.bias = -0.004;
+        p.shadow.normalBias = 0.04;
+      }
       this.scene.add(p);
       if (l.flicker) this.lamps.push({ light: p, base: l.intensity, amount: l.flicker });
-    }
+    });
+  }
+
+  /**
+   * A cheap image-based environment.
+   *
+   * Without scene.environment every metalness value in the material set is
+   * inert — metal has nothing to reflect, so it renders as flat dark grey and
+   * there is not a single specular highlight anywhere in the frame. RoomEnvironment
+   * is a handful of emissive boxes prefiltered into a cubemap: it costs one
+   * render at boot and buys back every metallic surface in the game.
+   */
+  buildEnvironmentMap(renderer) {
+    if (!renderer) return;
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    const room = new RoomEnvironment();
+    const rt = pmrem.fromScene(room, 0.04);
+    this.scene.environment = rt.texture;
+    // A dim interior should not be lit by a bright studio; the map is here for
+    // reflections, not illumination.
+    this.scene.environmentIntensity = 0.35;
+    this.envRT = rt;
+    room.dispose?.();
+    pmrem.dispose();
   }
 
   // --- the building ---------------------------------------------------------
@@ -279,6 +331,7 @@ export class WorldView {
     this.scene.traverse((o) => {
       if (o.geometry) o.geometry.dispose();
     });
+    if (this.envRT) this.envRT.dispose();
   }
 }
 

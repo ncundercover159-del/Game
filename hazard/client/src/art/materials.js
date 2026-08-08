@@ -76,7 +76,7 @@ const cache = new Map();
 const RECIPES = {
   concrete: { tex: 'concrete', tile: 3.1, rough: 0.94, metal: 0.0, bump: 1.7, roughVar: -0.20, ao: 0.42, mottle: 0.18 },
   panel: { tex: 'panel', tile: 2.1, rough: 0.74, metal: 0.22, bump: 2.2, roughVar: -0.22, ao: 0.48, mottle: 0.14 },
-  deckplate: { tex: 'deckplate', tile: 0.95, rough: 0.60, metal: 0.62, bump: 2.2, roughVar: -0.34, ao: 0.40, mottle: 0.12 },
+  deckplate: { tex: 'deckplate', tile: 1.35, rough: 0.74, metal: 0.30, bump: 2.0, roughVar: -0.26, ao: 0.38, mottle: 0.12 },
   grate: { tex: 'grate', tile: 0.70, rough: 0.58, metal: 0.68, bump: 2.4, roughVar: -0.22, ao: 0.55, mottle: 0.08 },
   steelblue: { tex: 'steelblue', tile: 1.10, rough: 0.52, metal: 0.55, bump: 2.2, roughVar: -0.26, ao: 0.30, mottle: 0.12 },
   railing: { tex: 'railing', tile: 0.85, rough: 0.58, metal: 0.28, bump: 2.0, roughVar: -0.20, ao: 0.26, mottle: 0.10 },
@@ -201,6 +201,15 @@ if ( tpTune.y > 0.0 ) {
   // The floor on det matters for the same reason: at a grazing angle the two
   // screen derivatives go parallel and the determinant collapses.
   normal = normalize( max( abs( det ), 0.25 ) * normal - grad );
+
+  // Specular anti-aliasing. Half this level is painted steel with a metalness
+  // over a half, and a bumped normal that swings hard inside one pixel throws a
+  // highlight for a single frame and then loses it — white confetti along every
+  // rack upright. A normal that varies fast across a pixel IS a rougher surface
+  // at that scale, so say so.
+  vec3 dnx = dFdx( normal ), dny = dFdy( normal );
+  float wobble = max( dot( dnx, dnx ), dot( dny, dny ) );
+  roughnessFactor = min( 1.0, sqrt( roughnessFactor * roughnessFactor + wobble * 0.7 ) );
 }
 `;
 

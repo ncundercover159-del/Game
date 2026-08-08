@@ -60,7 +60,7 @@ async function boot(levelId = DEFAULT_LEVEL) {
 
   mySlot = room.join({ send() {} }, 'YOU');
 
-  view = new WorldView(level);
+  view = new WorldView(level, renderer);
   controls = new Controls(canvas);
   controls.yaw = level.spawnYaw ?? Math.PI;
   hud = new HUD(level);

@@ -161,9 +161,11 @@ const GEN = {
 
     const wear = fbm(u, v, 7, 3, 5);
     const grime = fbm(u, v, 22, 3, 19);
-    let l = 0.32 + 0.13 * grime;
-    l = mix(l, 0.46 + 0.13 * wear, bar);          // tread tops are polished
-    l *= mix(0.90, 1.05, wear);
+    // Low contrast on purpose. Forty metres of ceiling is forty metres of
+    // minification, and contrast is what turns minification into moiré.
+    let l = 0.33 + 0.11 * grime;
+    l = mix(l, 0.43 + 0.11 * wear, bar);          // tread tops are polished
+    l *= mix(0.92, 1.04, wear);
     o[0] = l * 1.0; o[1] = l * 1.01; o[2] = l * 1.05;
     o[3] = clamp01(0.34 + bar * 0.46 + (grime - 0.5) * 0.16);
   },
