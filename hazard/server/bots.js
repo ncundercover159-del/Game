@@ -84,6 +84,8 @@ const AVOID_DOWNED = 0.6;
 // How long a mate lies there before somebody puts the takings down and goes to
 // get them. A crew that is all on the floor loses the job outright.
 const RESCUE_PATIENCE_MS = 6000;
+// And how long a bot bangs its head against one waypoint before writing it off.
+const WAYPOINT_PATIENCE_MS = 5000;
 
 const AIM_TOLERANCE = 0.30;       // radians, before a bot bothers pressing grab
 const REACH = GRAB_RANGE * 0.72;  // stop short of the limit; the cast is fat
@@ -122,6 +124,7 @@ export class Bot {
     this.route = [];
     this.routeAt = 0;
     this.routeKey = '';
+    this.wpAt = 0;
     this.lastPos = { x: 0, z: 0 };
     this.movedAt = 0;
     this.jumpUntil = 0;
@@ -205,6 +208,8 @@ export class Bot {
     this.sidestepUntil = 0;
     this.route = [];
     this.routeKey = '';
+    this.wpAt = 0;
+    this.wpAt = 0;
     if (mode !== MODE.RESCUE) this.rescueSlot = -1;
   }
 
@@ -391,9 +396,17 @@ export class Bot {
     while (this.route.length) {
       const wp = this.route[0];
       if (Math.hypot(me.pos.x - wp.x, me.pos.z - wp.z) > wp.r) {
-        return this.walk(room, me, now, wp.x, wp.z, { ...opts, arrive: 0 });
+        // A waypoint that cannot be reached must not be able to seal the route.
+        // Something as ordinary as a colleague lying unconscious across the
+        // bottom of the ramp will otherwise strand every carrier behind it,
+        // circling a spot they are not allowed to enter, for the whole shift.
+        if (!this.wpAt) this.wpAt = now;
+        if (now - this.wpAt < WAYPOINT_PATIENCE_MS) {
+          return this.walk(room, me, now, wp.x, wp.z, { ...opts, arrive: 0 });
+        }
       }
       this.route.shift();
+      this.wpAt = 0;
     }
     return this.walk(room, me, now, tx, tz, opts);
   }
