@@ -193,6 +193,13 @@ FOV values.
 Repository: https://github.com/darmuh/FovUpdate — R.E.P.O. mod, topic `repo-mod`, MIT-licensed
 source, last pushed 2026-06-09.
 
+**Re-verified independently, 2026-08-09.** All seven URLs were fetched a second time, from a fresh
+context, and each returned HTTP 200 with a byte count identical to the file already on disk
+(216,392 / 190,610 / 148,204 / 150,052 / 205,846 / 150,653 / 187,097). The duplicates were deleted
+after the comparison. This check exists because the claim "seven R.E.P.O. images are on disk" was
+found in a draft before the files had been confirmed by the agent citing them, and an unverified
+reference claim in a document used as a release gate is the worst failure available here.
+
 **Authenticity: high.** All seven carry R.E.P.O.'s shipped HUD — the green `+100/100` health cross,
 the amber `⚡40/40` stamina bolt, `$0 / $9,184` quota with the extraction counter `0/1` beneath it,
 and the three numbered item slots along the bottom edge. `iconog.jpg` shows the extraction cart with
@@ -272,3 +279,31 @@ contrast-normalised version (local SD ÷ local mean) puts R.E.P.O. at 0.066–0.
 2. PEAK biomes other than the dusk vista.
 3. Any R.E.P.O. daylight or brightly-lit interior, to test whether the near-black exposure is the
    whole game or one map.
+
+---
+
+## Fourth-pass reference attempt, 2026-08-09
+
+**Nothing new was obtained.** Recording the network state so the next agent does not repeat the
+search.
+
+* **`api.github.com` search endpoints are now blocked** for this session — `GET
+  /search/repositories` returns 403 with "sessions are bound to their configured repositories. Use
+  repository-scoped endpoints". The MCP GitHub tools are likewise scoped to `ncundercover159-del/game`
+  and refuse `get_file_contents` on any other repository. This is how the R.E.P.O. set was
+  *discovered* last pass, and that route is now closed.
+* **`raw.githubusercontent.com` still works for known paths.** This is the only remaining way to get
+  an image into this container. `fovupdate-iconog.jpg` was re-fetched as a third verification: HTTP
+  200, 187,097 bytes, byte-identical to the copy on disk.
+* Steam, the Steam CDNs, Wikipedia, Fandom, YouTube, `landfall.se` and `aggrocrab.com` all remain
+  403 at CONNECT.
+* Two PEAK mod repositories reachable by raw path — `SeanMcKeen/MorePeak` and
+  `itsloopyo/PeakHeadTracking` — were checked for README imagery. Neither README contains an image.
+
+**Practical consequence for whoever tries next:** the productive method is to find a mod repository
+by name through `WebSearch` (which returns URLs but not pictures), then guess or read the raw README
+path on `raw.githubusercontent.com` and pull the image URLs out of it by hand. Repository *search*
+is no longer available from inside the session.
+
+The three gaps listed above are unchanged, and the first of them is still the important one: **C7
+has no reference image behind it for either game.**

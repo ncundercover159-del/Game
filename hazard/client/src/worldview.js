@@ -24,20 +24,75 @@ import { makeFigure } from './art/figure.js';
 const _q = new THREE.Quaternion();
 
 // Candela per unit of a level's lamp "intensity". See buildEnvironment.
-const LIGHT_GAIN = 11;
+const LIGHT_GAIN = 17;
+
+// How far a lamp's pool actually reaches, as a fraction of the range the level
+// asked for.
+//
+// This is the number that turned out to control the lighting design, and it is
+// not gain. The warehouse has seven lamps about 14m apart with ranges of 20–22
+// in a room 46m across, so every point on the floor is inside four of them at
+// once and there is no such thing as being between the lights. Raising the key
+// raised the fill by the same amount and the ratio sat at 1.5:1 through a
+// halving of the ambient and a threefold cut to the environment map — because
+// the fill was never ambient, it was the other four lamps.
+//
+// ...and then it turned out not to be reach at all. Pulling the pools in did
+// raise the ratio — to 133:1, with the floor between the lamps at 0.006 and a
+// player unable to see a crate two metres away, which is the failure the
+// assertion's UPPER bound exists to catch. The fix was LAMP_DROP below, and
+// with the fixtures off the ceiling the level-authored ranges are correct.
+//
+// Left at 1.0 and kept as a named constant because the reasoning above is the
+// thing worth keeping: the fill was never ambient, and the sweep that settled
+// it is scratchpad/hz-light.js, which mutates the lights live and measures nine
+// candidates against one identical build instead of rebuilding between each.
+const LAMP_REACH = 1.0;
+
+// How far a fixture hangs below the point the level hung it at.
+//
+// The warehouse lamps sit at y=8.4 under a 9.5m roof, so they are 1.1m from the
+// ceiling and 8.4m from the floor — and with inverse-square falloff that makes
+// the ceiling roughly sixty times brighter than the concrete. A review put it
+// exactly: the pools land ON THE CEILING and nothing identifiable reaches the
+// floor. No amount of gain fixes that, because gain scales both ends together.
+//
+// A pendant on a chain is what a warehouse actually has, and it is also the
+// only cheap way to make the pool land where the player is walking.
+const LAMP_DROP = 1.6;
 
 // How many lamps are allowed to cast. Six shadow faces each, so this is a
 // budget, not a preference.
 const SHADOW_LAMPS = 1;
 
-// Hemisphere and sun are already in sensible units, but a job site wants to
-// read as gloomy-but-legible rather than actually unlit: you have to be able to
-// see the crate you are about to trip over. Tuned against the harness's
-// mean-luma probe, which asserts a band rather than a floor — a scene fails by
-// being washed out just as readily as by being black, and "brighten it until
-// the test passes" walks straight into the first.
-const AMBIENT_GAIN = 0.62;
-const SUN_GAIN = 0.8;
+// KEY TO FILL. These three numbers are a lighting design, not three brightness
+// knobs, and getting them wrong is upstream of every other visual complaint.
+//
+// A measured review put key-to-fill on unshadowed same-material floor at
+// 1.19–1.33 to 1, against a 2:1 floor for anything that wants to read as lit
+// and 3.2–11.6 to 1 in the reference game. At 1.2:1 there is no such thing as
+// shade: the lamps are barely brighter than the air, so nothing has a lit side
+// and an unlit side, every surface reads at the same value, and the room
+// flattens into a painted backdrop no matter how good the textures on it are.
+//
+// So the fill comes down hard and the key goes up to compensate. The trap on
+// the way is that a ratio can also be hit by turning the fill down until the
+// room is unreadable, which is the same failure as brightening until a luma
+// floor passes — the harness asserts a BAND in both directions and the shadows
+// still have to have something in them.
+const AMBIENT_GAIN = 0.31;
+const SUN_GAIN = 0.55;
+
+// A cold kick from behind, casting nothing.
+//
+// Two directional lights and a hemisphere is the cheapest thing that reads as
+// designed rather than as ambient-plus-lamps: the sun warms the side facing it,
+// this cools the opposite edge, and a contractor standing in front of a wall
+// the same value as their overalls gets a rim that separates them from it. It
+// is deliberately not a shadow caster — it is there to draw an edge, and a
+// second shadow map would cost more than the edge is worth.
+const RIM_GAIN = 0.50;
+const RIM_COLOUR = '#7fa8d8';
 
 export class WorldView {
   constructor(level, renderer) {
@@ -89,6 +144,12 @@ export class WorldView {
       d.shadow.normalBias = 0.035;
       this.scene.add(d);
       this.sun = d;
+
+      // The rim, opposite the key and a little above the horizon.
+      const rim = new THREE.DirectionalLight(new THREE.Color(env.rim || RIM_COLOUR), RIM_GAIN);
+      rim.position.set(dir[0] * 30, Math.abs(dir[1]) * 12, dir[2] * 30);
+      this.scene.add(rim);
+      this.rim = rim;
     }
 
     // Three.js has used physical light units since r155: a point light's
@@ -112,13 +173,13 @@ export class WorldView {
 
     this.lamps = [];
     (this.level.lights || []).forEach((l, i) => {
-      const p = new THREE.PointLight(new THREE.Color(l.color), l.intensity * LIGHT_GAIN, l.range, 2);
-      p.position.set(l.p[0], l.p[1], l.p[2]);
+      const p = new THREE.PointLight(new THREE.Color(l.color), l.intensity * LIGHT_GAIN, l.range * LAMP_REACH, 2);
+      p.position.set(l.p[0], l.p[1] - LAMP_DROP, l.p[2]);
       if (casters.has(i)) {
         p.castShadow = true;
         p.shadow.mapSize.set(512, 512);
         p.shadow.camera.near = 0.35;
-        p.shadow.camera.far = Math.max(6, l.range);
+        p.shadow.camera.far = Math.max(6, l.range * LAMP_REACH);
         p.shadow.bias = -0.004;
         p.shadow.normalBias = 0.04;
       }
@@ -144,8 +205,11 @@ export class WorldView {
     const rt = pmrem.fromScene(room, 0.04);
     this.scene.environment = rt.texture;
     // A dim interior should not be lit by a bright studio; the map is here for
-    // reflections, not illumination.
-    this.scene.environmentIntensity = 0.35;
+    // reflections, not illumination. 0.35 was still illumination — a prefiltered
+    // room applies to every surface from every direction at once, which is the
+    // textbook definition of fill, and it was quietly holding the key-to-fill
+    // ratio down while looking like a reflection setting.
+    this.scene.environmentIntensity = 0.12;
     this.envRT = rt;
     room.dispose?.();
     pmrem.dispose();
@@ -480,7 +544,7 @@ export class WorldView {
       l.light.intensity = l.base * LIGHT_GAIN * (1 - l.amount * Math.max(0, n) ** 3);
     }
 
-    if (this.water) this.water.mat.uniforms.uTime.value = renderNow * 0.001;
+    if (this.water) this.water.mat.userData.uTime.value = renderNow * 0.001;
   }
 
   /** Which prop is nearest the crosshair, for the grab reticle. */
@@ -534,148 +598,119 @@ function brushBounds(brushes) {
  * whole thing is fogged with the scene's own fog, because a surface that stays
  * crisp at forty metres while the wall behind it fades reads as a decal.
  */
-const WATER_LAMPS = 4;
-
+/**
+ * Water, as a physical material rather than a hand-rolled one.
+ *
+ * The previous version reimplemented specular from scratch against the level's
+ * four brightest lamps, and a measured review found the surface completely
+ * inert: a smooth teal band at SD 11.9 with no reflected image of the lamp, the
+ * walls or the rig anywhere along it. The one neutral highlight in the frame
+ * turned out to be a submerged lamp and its bloom showing THROUGH the water,
+ * which would have been there if the surface reflected nothing at all.
+ *
+ * The arithmetic says why, and it is worth keeping: the tight lobe was
+ * pow(n·h, 700), which needs the half vector aligned inside about two degrees,
+ * while the fine chop only tilts the normal by three — so with the lamps
+ * fifteen metres up and attenuating to nine percent, essentially no fragment on
+ * that plane ever satisfied it. Reimplementing lighting to get a reflection was
+ * the wrong instinct twice over: it did not work, and the renderer already has
+ * a correct implementation with the scene's real point lights and a prefiltered
+ * environment map behind it.
+ *
+ * So: a low-roughness physical material, with the waves INJECTED into the
+ * standard shader rather than replacing it. Reflections, fog, tone mapping and
+ * shadow all come out right by construction, and the only custom code is the
+ * displacement and the normal it implies.
+ */
 function waterMaterial(level) {
   const env = level.env || {};
   const deep = new THREE.Color(env.waterDeep || '#0b1f22');
   const shallow = new THREE.Color(env.waterShallow || '#6fb9ae');
 
-  // The four brightest lamps, as actual reflections.
-  //
-  // The obvious cheap version — one fixed overhead light direction — does not
-  // work and fails in a way that looks like a different bug entirely. Looking
-  // down at your feet, the half vector is aligned with a near-vertical normal
-  // EVERYWHERE, so the highlight fires across the whole surface at once and the
-  // water renders as a flat blown-out sheet with no detail in it. A reflection
-  // has to be localised to be read as a reflection, and localising it means
-  // knowing where the lamps actually are.
-  const lamps = [...(level.lights || [])]
-    .sort((a, b) => b.intensity - a.intensity)
-    .slice(0, WATER_LAMPS);
-  const pos = [], col = [];
-  for (let i = 0; i < WATER_LAMPS; i++) {
-    const l = lamps[i];
-    pos.push(l ? new THREE.Vector3(l.p[0], l.p[1], l.p[2]) : new THREE.Vector3());
-    const c = new THREE.Color(l ? l.color : '#000');
-    col.push(c.multiplyScalar(l ? Math.min(1.6, l.intensity / 26) : 0));
-  }
-
-  return new THREE.ShaderMaterial({
-    fog: true,
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: deep,
+    // Low, but not zero. A mirror-flat surface reflects the room as a hard
+    // double image and reads as glass; a little roughness is what turns a
+    // reflection into a sheen.
+    roughness: 0.075,
+    metalness: 0.0,
+    // Water is dielectric: the reflection is a Fresnel effect on a surface with
+    // an index of refraction near 1.33, which is what these two numbers say.
+    ior: 1.33,
+    reflectivity: 0.6,
+    envMapIntensity: 2.4,
     transparent: true,
-    depthWrite: false,
+    opacity: 0.86,
     side: THREE.DoubleSide,
-    uniforms: THREE.UniformsUtils.merge([
-      THREE.UniformsLib.fog,
-      {
-        uTime: { value: 0 },
-        uDeep: { value: deep },
-        uShallow: { value: shallow },
-        uLampPos: { value: pos },
-        uLampCol: { value: col },
-      },
-    ]),
-    vertexShader: `
-      #include <common>
-      #include <fog_pars_vertex>
-      uniform float uTime;
-      varying vec3 vWorld;
-      varying vec2 vWave;
-      varying vec2 vRipple;
-      void main() {
-        vec3 p = position;
+    depthWrite: false,
+  });
+
+  const uTime = { value: 0 };
+  mat.userData.uTime = uTime;
+
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = uTime;
+    shader.uniforms.uDeep = { value: deep };
+    shader.uniforms.uShallow = { value: shallow };
+
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+        uniform float uTime;
+        varying vec2 vWave;
+        varying vec2 vRipple;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
         // Two trains at an angle to each other, at different rates. Parallel
         // ones beat against each other and read as a moire; crossed ones read
         // as chop.
-        float a = p.x * 0.42 + uTime * 0.9;
-        float b = p.z * 0.31 - uTime * 0.62 + p.x * 0.11;
-        p.y += sin(a) * 0.028 + sin(b) * 0.021;
-        vWave = vec2(a, b);
+        float wa = transformed.x * 0.42 + uTime * 0.9;
+        float wb = transformed.z * 0.31 - uTime * 0.62 + transformed.x * 0.11;
+        transformed.y += sin(wa) * 0.028 + sin(wb) * 0.021;
+        vWave = vec2(wa, wb);
         // A third, much finer train, carried to the fragment stage for the
-        // highlight only. Without it the specular is one smooth blob sliding
-        // about; chop is what breaks a reflection into glitter, and glitter is
-        // most of what makes a surface read as water rather than as jade.
-        vRipple = vec2(p.x * 3.1 + uTime * 2.2, p.z * 2.7 - uTime * 1.7);
-        vec4 world = modelMatrix * vec4(p, 1.0);
-        vWorld = world.xyz;
-        // Named mvPosition, not because it reads well but because
-        // <fog_vertex> is a text include that references that exact
-        // identifier. Call it anything else and the shader fails to compile
-        // at runtime, which shows up as an invisible surface rather than as
-        // an error anybody notices.
-        vec4 mvPosition = viewMatrix * world;
-        gl_Position = projectionMatrix * mvPosition;
-        #include <fog_vertex>
-      }
-    `,
-    fragmentShader: `
-      #include <common>
-      #include <fog_pars_fragment>
-      #define LAMPS ${WATER_LAMPS}
-      uniform vec3 uDeep;
-      uniform vec3 uShallow;
-      uniform vec3 uLampPos[LAMPS];
-      uniform vec3 uLampCol[LAMPS];
-      varying vec3 vWorld;
-      varying vec2 vWave;
-      varying vec2 vRipple;
-      void main() {
-        // d/dx and d/dz of the displacement above, by hand, plus the fine train
-        // folded into the normal at a much smaller amplitude.
-        // The fine train contributes almost nothing to the silhouette and a
-        // great deal to the normal — 50mm/m of slope. That ratio is the point:
-        // chop you can see the shape of looks like corrugated iron, chop you
-        // can only see the highlights of looks like water.
-        float nx = cos(vWave.x) * 0.028 * 0.42 + cos(vWave.y) * 0.021 * 0.11
-                 + cos(vRipple.x) * 0.050;
-        float nz = cos(vWave.y) * 0.021 * 0.31 + cos(vRipple.y) * 0.044;
-        vec3 N = normalize(vec3(-nx, 1.0, -nz));
-        vec3 V = normalize(cameraPosition - vWorld);
+        // normal only. It contributes almost nothing to the silhouette and a
+        // great deal to what the surface reflects: chop you can see the shape
+        // of looks like corrugated iron, chop you can only see the reflections
+        // of looks like water.
+        vRipple = vec2(transformed.x * 3.1 + uTime * 2.2, transformed.z * 2.7 - uTime * 1.7);`);
 
-        float f = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 3.0);
-        vec3 col = mix(uDeep, uShallow, f * 0.85 + 0.06);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        uniform vec3 uDeep;
+        uniform vec3 uShallow;
+        varying vec2 vWave;
+        varying vec2 vRipple;`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        {
+          // d/dx and d/dz of the displacement above, by hand.
+          float nx = cos(vWave.x) * 0.028 * 0.42 + cos(vWave.y) * 0.021 * 0.11
+                   + cos(vRipple.x) * 0.050;
+          float nz = cos(vWave.y) * 0.021 * 0.31 + cos(vRipple.y) * 0.044;
+          // The plane's world normal is +Y, so the perturbed normal is built in
+          // WORLD space and then taken to view space — which is the space the
+          // rest of the shader works in. Writing a world-space normal straight
+          // into \`normal\` lights the water as though the camera never moved.
+          vec3 wN = normalize(vec3(-nx, 1.0, -nz));
+          normal = normalize((viewMatrix * vec4(wN, 0.0)).xyz);
+          // Deliberately NOT also assigning the flat-normal variable that sits
+          // alongside this one. It was called geometryNormal until three r167
+          // and nonPerturbedNormal after, so naming it at all is a shader that
+          // compiles against one version of the library and fails against the
+          // next — which is exactly what happened: the whole material threw at
+          // link time and the plant rendered with no water at any clock value,
+          // silently, because a material that fails to compile does not stop
+          // the frame. Only the perturbed normal matters to the lighting here.
 
-        // One highlight per lamp, placed where that lamp actually is, and TIGHT.
-        //
-        // The previous exponents (60 and 700) were measured against the surface
-        // alone and produced a specular that touched 23% of the water and added
-        // three luma to it. That is not a reflection, it is a uniform wash, and
-        // a review looking at the same frame called the surface "smooth, with
-        // no reflected image of anything" — correctly, while a whole-frame
-        // highlight metric passed the shot on the strength of a submerged lamp
-        // showing THROUGH the water.
-        //
-        // A reflection is a small number of very bright pixels. So: the broad
-        // lobe is much tighter and much weaker, the sharp lobe is far tighter
-        // and far stronger, and the fine chop — 50mm/m of slope, invisible in
-        // the silhouette — is what shatters the sharp one into a glitter path
-        // instead of a disc. Values well over 1.0 are intended; the post chain
-        // rolls them off, and a highlight that cannot clip is not a highlight.
-        vec3 spec = vec3(0.0);
-        for (int i = 0; i < LAMPS; i++) {
-          vec3 d = uLampPos[i] - vWorld;
-          float dist = length(d);
-          if (dist < 0.001) continue;
-          vec3 H = normalize(d / dist + V);
-          float nh = max(dot(N, H), 0.0);
-          // Gentler falloff than before: a ceiling lamp is eight metres up and
-          // the old inverse-square-ish term had already thrown it away.
-          float atten = 1.0 / (1.0 + dist * dist * 0.018);
-          spec += uLampCol[i] * (pow(nh, 240.0) * 0.22 + pow(nh, 2600.0) * 6.0) * atten;
-        }
-        col += spec;
-
-        // A highlight is reflected light, so it does not care what is behind
-        // the surface: where the glint is strong the water must go opaque, or
-        // alpha blending drags every white sparkle back down towards the teal
-        // underneath it and the frame ends up with no neutral highlight at all.
-        float alpha = max(mix(0.62, 0.93, f), clamp(max(spec.r, max(spec.g, spec.b)), 0.0, 1.0));
-        gl_FragColor = vec4(col, alpha);
-        #include <fog_fragment>
-      }
-    `,
-  });
+          // Fresnel drives colour and opacity together: straight down you see
+          // through it, across it you see the room in it. That single cue is
+          // most of what reads as liquid rather than as green glass.
+          float fres = pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 3.0);
+          diffuseColor.rgb = mix(uDeep, uShallow, fres * 0.85 + 0.06);
+          diffuseColor.a *= mix(0.72, 0.97, fres);
+        }`);
+  };
+  // Two materials that compile differently must not share a program.
+  mat.customProgramCacheKey = () => `hazard-water-${level.id}`;
+  return mat;
 }
 
 function shadeBox(geo, jitter) {

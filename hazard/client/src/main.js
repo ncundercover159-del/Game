@@ -97,11 +97,23 @@ async function boot(levelId = DEFAULT_LEVEL) {
       room.startedAt = performance.now() - seconds * 1000;
       room.phaseEndsAt = performance.now() + 1e9;
     },
-    /** Drop the camera somewhere for a screenshot. */
+    /**
+     * Drop the camera somewhere for a screenshot.
+     *
+     * Stands the contractor back up first. Ragdolling destroys the capsule and
+     * nulls `body`, so a harness that walks around before it starts taking
+     * measurements will eventually trip over something, fall, and then crash on
+     * the next `look()` with "cannot read properties of null" — a full run
+     * thrown away for a reason that has nothing to do with what it was testing.
+     */
     look(x, y, z, yaw, pitch) {
       const me = room.actors.get(mySlot);
+      if (!me) return;
+      if (me.ragdoll) { me.downed = false; me.exitRagdoll(); }
+      me.health = Math.max(me.health, 60);
       me.pos.x = x; me.pos.y = y; me.pos.z = z;
-      me.body.setNextKinematicTranslation({ x, y: y + me.height / 2, z });
+      me.vel.x = 0; me.vel.y = 0; me.vel.z = 0;
+      me.body?.setNextKinematicTranslation({ x, y: y + me.height / 2, z });
       controls.yaw = yaw; controls.pitch = pitch ?? 0;
     },
   };

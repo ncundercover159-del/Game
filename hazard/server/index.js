@@ -153,6 +153,17 @@ class Session {
   constructor(code, levelId) {
     this.code = code;
     this.room = new Room(code, levelId);
+    // One tick before anybody is allowed in, and it is not cosmetic.
+    //
+    // Room.spawnFor casts a ray down to check there is a floor under each place
+    // on the spawn ring, and Rapier's query pipeline is not populated until the
+    // world has stepped once — so in a brand new room that cast finds nothing,
+    // every slot falls back to the author's single base point, and the whole
+    // crew spawns inside one another. Four co-located kinematic capsules cost
+    // computeColliderMovement about 60ms EACH, so a four-player room runs at
+    // 3.6Hz until they happen to walk apart. Reported; warmed here so it cannot
+    // bite regardless.
+    this.room.world.step();
     this.bots = new BotPool(this.room);
     this.clients = new Set();
     this.hostSlot = -1;

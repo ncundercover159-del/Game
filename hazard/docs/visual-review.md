@@ -1148,3 +1148,425 @@ surface band only, require the top 1% by luma to be within 20% of neutral *and* 
 ~40 px. That check fails today, correctly, and it cannot be satisfied by an emitter somewhere else
 in the frame. Keep the whole-frame cast printed, blocking on dry levels where a cast is a bug and
 non-blocking on flooded ones where it is the subject.
+
+---
+
+# Fourth grading pass — 2026-08-09
+
+**Date:** 2026-08-09, captures 12:49–13:05 UTC.
+**Graded against:** `docs/visual-rubric.md` **v1.1** — same version as pass 3, so pass 3, pass 3b
+and this pass are directly comparable throughout.
+**Build graded:** HEAD `bdf209a` plus uncommitted changes to `art/materials.js`, `art/post.js`,
+`art/figure.js`, `worldview.js` and `main.js`; bundle **`index-qEebbyCl.js`** (2,198.90 kB) +
+`three-Db8soB1n.js` (491.20 kB), built by me at 12:48 UTC.
+**Staleness, as usual:** by 13:07 the tree had been rebuilt to `index-DdbG-IWd.js`. This grade
+describes `index-qEebbyCl.js` and nothing later.
+**Frames:** `crit4/hz-{spawn,floor,racking,pit,dock}.png`, `crit4/hzf-{idle,walk,haul,down,head,lineup}.png`,
+`crit4/hzw-{t000,t130,t280,t370,under}.png`, on ports 4231/4232/4233. Every shot was copied into
+`crit4/` the instant it was taken, because three of us were running harnesses against the same
+output filenames and half of what was on disk when I started belonged to somebody else.
+
+**Honesty statement unchanged and still binding.** I have not installed, run or played R.E.P.O. or
+PEAK, and no side-by-side capture was performed or is possible in this container. The R.E.P.O.
+column is measured from the seven `refs/repo/fovupdate-*.jpg` files downloaded from a public git
+repository; the PEAK column from the four `refs/peak/*.png` files. I re-fetched
+`fovupdate-iconog.jpg` this pass as a third independent verification — HTTP 200, 187,097 bytes,
+byte-identical to the copy on disk. I also looked at `fovupdate-example1.jpg` and
+`fovupdate-example4.jpg` directly this pass rather than quoting the table, because a number I have
+not re-seen is a number I should not be leaning on.
+
+**No new reference material could be obtained.** `api.github.com` search endpoints are now blocked
+for this session (403, "sessions are bound to their configured repositories"), and Steam, Wikipedia,
+Fandom, YouTube and the publishers' own sites remain blocked at CONNECT. `raw.githubusercontent.com`
+still works for known paths, which is the only reason the R.E.P.O. set exists at all. Two candidate
+PEAK mod repositories were checked for README imagery and had none.
+
+## Overall: **D+ → D+**
+
+The letter has not moved, and that is the wrong summary of what happened. Two of pass 3's five fixes
+landed properly and one of them is the biggest single art improvement in the project so far. Against
+that, the plant's water has stopped rendering entirely, the bloom clip got worse for the third pass
+running, and the frames have gone brighter and greyer. It is a build that is being improved in one
+place and broken in another at roughly the same rate.
+
+| Criterion | P1 | P2 | P3 | **P4** | |
+|---|---|---|---|---|---|
+| C1 Lighting / bounce | F | B− ✗ | D− | **D** | ▲ 1.40 → 1.55:1, still under the 2:1 floor |
+| C2 Contact shadows | F | B− | C | **C** | ▬ grounded, but the shadows are the wrong colour |
+| C3 Material variety | F | C+ | C | **C+** | ▲ and would be higher if the water compiled |
+| C4 Texture presence | F | C | C | **B−** | ▲▲ the one unambiguous win |
+| C5 Tonal range | F | D | C− | **C−** | ▬ crush stays fixed, clip gets worse |
+| C6 Post chain | F | C | D+ | **D** | ▼ bloom worse again |
+| C7 Silhouette at 10 m | C | C | C− | **C** | ▲ hat identity landed |
+| C8 Composition / depth | F | C | C− | **C−** | ▬ |
+| C9 Colour discipline | F | C− | D+ | **D** | ▼ |
+
+✗ = a grade I later found to be wrong. Pass 2's C1 B− rested on a 2.1:1 key-to-fill taken by
+sampling a cast shadow as the fill patch. C1 has never been above D on an honest measurement.
+
+## Three notes on the instrument before any grade rests on it
+
+**1. I got a measurement wrong again this pass, and caught it.** I tried to establish the
+key-to-fill from a screenshot by placing rectangles on what I took to be shadow streaks and lit gaps
+in `hzf-lineup`. The results were self-contradictory — a "shadow" at luma 163.9 next to a "gap" at
+131.1 — which means I could not reliably tell one from the other by eye at full size. **That
+measurement is retracted in full.** The key-to-fill quoted below is the harness's own top-down
+`floorPatch` probe, which places its samples by world coordinate and photographs each one. This is
+the fifth proxy in this document caught measuring something other than what it claims.
+
+**2. So I built `crit4-crop.js`.** It crops a rectangle, magnifies it with nearest-neighbour, writes
+it as a PNG and prints the mean of exactly the pixels it just wrote. Any region quoted in this pass
+was looked at before its number was believed. `crit4/zoom-crew.png` and `crit4/zoom-floor.png` are
+the two that mattered.
+
+**3. The vignette proxy is confounded on three of five frames, again.** `corner ÷ centre` reads
+4.042 on `hz-spawn`, 2.784 on `hz-racking` and 1.907 on `hz-dock`. Those frames have dark subject
+matter dead centre and lit walls in the corners; the number is measuring composition. Only
+`hz-floor` (0.478) and `hz-pit` (0.842) are valid. I am not scoring the other three numerically, and
+I say what I saw instead.
+
+## Measured, this build against both references
+
+| Metric | v1.1 target | P3 range | **P4 range** | R.E.P.O. | PEAK |
+|---|---|---|---|---|---|
+| Draws / triangles | — | — | 137–165 / 48.1k–55.0k | — | — |
+| Median luma | 55–110 | 29.6–126.3 | **45.5–141.9** | 7.1–11.7 | 70.5 |
+| Crushed (L ≤ 4) | < 2% | 0.0 | **0.0–0.1** | 1.2–3.7 | 0.0 |
+| **Clipped (L ≥ 250)** | **0.0%** | 0.0–0.7 | **0.0–1.3** | 0.0 | 0.0 |
+| Darkest-5% RGB | lifted, tinted | — | [5,4,8] – [23,21,38] | [2,3,3]–[4,4,7] | [35,32,58] |
+| Shadow channel spread | — | — | 3.9–16.4 | 1.6–3.9 | 26.3 |
+| Mean saturation | 0.25–0.55 | — | **0.140–0.410** | 0.39–0.54 | 0.392 |
+| **Chromatic (S > 0.15)** | **≥ 90%** | 48.4–95.3 | **25.4–94.1** | 90.0–99.4 | 98.9 |
+| **Dominant hue share** | **< 33%** | 42.1–58.1 | **29.0–50.7** | 19.0–31.2 | 26.3 |
+| **Hue families (> 3%)** | **≥ 5** | 3–5 | **4–11** | 5–10 | 7 |
+| Flat (SD < 2) | ≤ 70% | — | **44.0–80.4** | — | 63.1 |
+| Textured (SD 2–25) | ≥ 25% | — | **18.7–47.0** | — | 36.1 |
+| Texture feature size | — | — | 2.2–2.7 px @720p | 3.15 px @1080p | 2.05 px @768p |
+| Local relative contrast | — | — | 0.076–0.093 | 0.073 | 0.043 |
+| Key : fill, same material | ≥ 2:1 | 1.01–1.40 | **1.55:1** | 3.2:1 / 11.6:1 | — |
+
+All four of v1.1's hard requirements still fail on at least one frame: clipping on three frames,
+chroma below 90% on six, dominant hue above a third on nine, and fewer than five hue families on
+three.
+
+## Criterion by criterion
+
+### C1 — Lighting and indirect/bounce — D− → **D**
+
+Key-to-fill is **1.55:1**, from the harness's own world-placed top-down probe (key 0.6121 under the
+north-west lamp, fill 0.3960 on open floor 14 m from any lamp, both linearised). It has moved from
+1.01–1.40 and it is still under the 2:1 rubric floor and a long way under R.E.P.O.'s 3.2:1 on one
+stone wall.
+
+**The specific question I was asked — does it read as a lighting design, or just as more contrast?**
+Neither, yet. It reads as a wash with one blown source in it, and I can point at why rather than
+just assert it:
+
+* In `hz-racking` and `hz-spawn` the ceiling lamps produce large soft pools **on the ceiling**, and
+  nothing identifiable on the floor beneath them. That is the fail mode C1 names by name: light
+  landing on the emitter's own surface and not on the surface it is meant to illuminate.
+* There is exactly one source with authority in the whole level — the cool dock lamp — and it is
+  clipped, so it contributes a white hole rather than a key.
+* There is nothing doing the work of a rim. No figure in any of the six figure frames has a lit
+  edge, and against the near-white dock wall in `hzf-lineup` the pale hats lose their outline
+  entirely.
+
+For comparison, and this is a frame I opened and looked at this pass rather than a row in a table:
+`refs/repo/fovupdate-example1.jpg` puts two warm sconces on a vaulted stone wall, and you can see
+the design in one glance — a bright pool immediately around each sconce, a fast falloff along the
+same wall, the arch soffits in deep shadow, a lit wedge of floor running to the far door, and the
+right-hand third of the frame at essentially zero. Warm key, cold near-black fill, and the eye is
+led to the objective by light alone. Nothing in HAZARD PAY's ten frames does any of that.
+
+**The trap in the ratio, since you named it.** You are right that 4:1 can be reached by turning the
+fill down until the room is unreadable, and that would be the same failure as brightening until a
+luma floor passes. Two guards: the frames must keep `crush%` under 2 (they are at 0.0–0.1 now, so
+there is a great deal of room to take the fill down before anything goes empty), and the *lit pools
+must land on the floor*. A room where the gaps are dark and every lamp throws a legible ellipse on
+the concrete under it is a design. A room that is uniformly darker is not, and the ratio cannot tell
+them apart — which is why the ceiling-pool observation above is the check that matters, not the
+number.
+
+### C2 — Contact shadows and grounding — C → **C**
+
+Grounding is real and holds: every figure in `hzf-idle`, `hzf-head`, `hzf-down` and `hzf-lineup`
+has a dark contact pool under the boots, and the ragdoll keeps one while lying at 45°. Small props
+— the mug, the floor cans in `hz-dock` — are grounded too, which is the class this game is about.
+
+Held at C, and the reason is new: **the shadows are the wrong colour and the wrong shape.** On the
+verified crop `crit4/zoom-floor.png` (600×150 of the near floor in `hzf-lineup`, mean RGB
+129/136/125, green-dominant) the shadowed concrete reads khaki. Concrete with a warm key removed
+should fall towards the cool ambient; instead it falls to olive, and at full frame the near floor
+reads as a football pitch. The same crop shows the shadow boundaries are hard straight cuts with
+essentially no penumbra, from the single 512×512 point-light caster, while elsewhere the frames
+carry large soft dark blobs with no caster in shot that read as stains rather than as shadows.
+
+### C3 — Material variety — C → **C+**
+
+Four response classes are present and legible: matte concrete, semi-gloss on the hat shell, metal
+on the racking uprights and the plant's grating stair treads, and emissive on the lamps. The
+galvanised perforated stair treads in `hzw-under` are the best-read material in the build.
+
+It would be higher if the one genuinely reflective surface in the game rendered — see the water
+finding below. As it stands the build still has no visible reflection of the scene in anything, and
+materials remain uniform within a surface, with the honourable exception of the plant's tank walls,
+which carry large-scale damp blotching and are the closest thing here to authored wear.
+
+### C4 — Texture presence — C → **B−**
+
+The one unambiguous win, and it is a large one.
+
+| | P2 | P3/3b | **P4** | PEAK | R.E.P.O. |
+|---|---|---|---|---|---|
+| Flat (SD < 2) | 7.1–18.9% | — | **44.0–72.7%** | 63.1% | — |
+| Textured (SD 2–25) | 79.7–90.2% | — | **24.7–47.0%** | 36.1% | — |
+| Feature size | 4.3–5.4 px | — | **2.2–2.7 px** | 2.05 px @768p | 3.15 px @1080p |
+| Local relative contrast | — | — | **0.076–0.093** | 0.043 | 0.073 |
+
+The warehouse now straddles PEAK's flat/textured split instead of sitting an order of magnitude the
+wrong side of it, and the local relative contrast sits on R.E.P.O.'s value rather than PEAK's, which
+is the right reference to be near for an interior. Slab joints and bay markings are present and
+legible. This is what pass 1's third priority asked for, arrived at properly.
+
+**Close the "texture scale 2–4× too fine" item. The metric no longer supports it.** Normalised for
+frame width, the references sit at roughly 1.9 px (PEAK) and 2.1 px (R.E.P.O.) against this build's
+2.2–2.7. If anything the build is now marginally the *coarser* of the three. Whoever is about to
+coarsen UVs on the strength of that line should stop; the remaining texture complaints are pattern
+and artefact, not scale.
+
+Held at B− by three things, none of them scale: the ceiling starbursts (below), the aliasing on the
+fine vertical wall corrugation at grazing angles, and — still present in the plant, though gone from
+the warehouse — the wandering closed-loop squiggles, clearly visible in red on the dark prop at the
+bottom of `hzw-under`. Pass 3b's "fixed" applies to the warehouse concrete only.
+
+### C5 — Tonal range and exposure — C− → **C−**
+
+The black point stays fixed: `crush%` is **0.0–0.1** across all five warehouse frames, holding pass
+3's gain, and the darkest 5% on `hz-spawn` and `hz-dock` reads [23,21,38] and [21,19,35] at channel
+spreads of 16.4 and 15.7 — lifted and blue-violet, the closest this build has ever been to PEAK's
+[35,32,58] at 26.3. That is a genuinely good grade in the shadows.
+
+Everything else went the wrong way. **Clipping is now on three frames** — `hz-floor` 1.1%,
+`hzf-head` 1.3%, `hzf-lineup` 0.8% — against 0.7% in pass 3 and 0.8% in pass 3b, and against
+**0.0% on every one of the eleven reference files**. Neither reference clips a single pixel, ever;
+this is the one place where the two of them agree completely and the build disagrees with both.
+Median luma has risen to 45.5–141.9, so `hz-dock` at 118.9 and `hzf-head` at 141.9 now sit above the
+55–110 band, and `hz-racking` alone did not get the shadow lift (darkest-5% [5,4,8], spread 3.9).
+Net: one failure mode traded for its opposite, and the grade stands still.
+
+### C6 — Post chain — D+ → **D**
+
+**Bloom is the problem and it is worse for the third pass running.** The halo probe returns 96 px —
+its own search cap — on `hz-spawn`, `hz-floor` and `hz-dock`, and the visual is unambiguous: in
+`hz-floor` the dock lamp is a pure-white core with no shape inside a halo that spans a quarter of
+the frame width, and the corrugated wall behind it is washed to blank paper across its full width.
+`hzf-head` and `hzf-lineup` show the same lamp doing the same thing.
+
+Against the reference, and this is a verified crop rather than an impression —
+`crit4/zoom-sconce.png`, a 200×150 region of `example1` around the left sconce at 3×. The emitter is
+a green fluorescent tube about 12 × 60 px. **It keeps a hard rectangular edge and a distinctly green
+core; it does not go white.** Its mounting bracket is a fully readable dark silhouette immediately
+beneath it. There is a warm glow on the stone reaching perhaps 60–70 px, but the masonry relief
+stays legible right up to within about 10 px of the tube: that is *light landing on a textured
+surface*, not a screen-space ball. And the frame clips 0.0%. R.E.P.O. bloom does not destroy what is
+behind it. This one is not subtle and it has now been the smallest, highest-value item in three
+consecutive passes.
+
+**Correction, filed rather than quietly amended.** The first draft of this paragraph put R.E.P.O.'s
+halo at "roughly 15–25 px at 1920" from memory of the frame. That was an unverified eyeball figure
+and it is too small — the glow reaches two to three times that. It also contradicted v1.1's own
+R.E.P.O. table, which reports 12–96 px, and the contradiction is what prompted the crop. **The
+comparison that survives is qualitative and it is the one that matters: the source keeps its shape
+and its hue, and the surface behind it keeps its texture.**
+
+While there: the halo probe locates the brightest pixel in the *whole* frame and measures downward
+from it. On these R.E.P.O. captures the brightest pixel is the HUD's green `+100`, not a sconce, so
+the 12–96 px range in the v1.1 table is at least partly measuring HUD glow. Treat that row as
+unreliable for both games until the probe is given a region to search within. That is a sixth proxy
+caught pointing at the wrong thing.
+
+Vignette: valid readings are 0.478 (`hz-floor`) and 0.842 (`hz-pit`), both in band. The three
+confounded frames are not scored, but what I can say by eye is that the top corners of `hz-spawn`
+and `hz-dock` are *brighter* than the frame centre, and R.E.P.O. runs 0.27–0.78 with corners at
+essentially zero. The vignette is present but weak, and it is not holding the eye in.
+
+AO and grade are both doing visible work and are not what is holding this criterion down.
+
+### C7 — Silhouette at 10 m — C− → **C**
+
+**Pass 3's fix #4 landed and it works.** `crit4/hzf-lineup.png` puts five contractors at roughly
+8–12 m with five clearly distinguishable hat hues — purple, sage, magenta, teal, green — and at that
+distance the hat is doing exactly the job it was moved there to do. Identity now reads.
+
+**And the face works.** `hzf-head` finally caught the model looking at the camera, and the eyes are
+the best piece of art in the build: two large white spheres with heavy dark pupils and a clean
+specular, unambiguous, and squarely in the R.E.P.O. idiom of big features on a simple body. They
+need nothing.
+
+What is holding this at C is visible in the verified magnification `crit4/zoom-crew.png`:
+
+* **The hats do not read as hard hats.** Flat-disc brims where there is a brim at all, no crown rib,
+  no peak, a matte speckled finish that reads as felt or icing, and they sit high and far back so a
+  large bare tan skull shows all round. At 10 m the crew reads as garden gnomes in hi-vis.
+* **The vest front is incoherent.** In `hzf-head` the chest is a jumble of pale rectangles, an empty
+  red-outlined badge and black panels with no hierarchy. From behind it is fine — orange field, two
+  bands — which is what the front should also be.
+* **Trousers introduce a second saturated identity colour** (strong green on some builds) that
+  competes with the hat, directly against the intent recorded in `figure.js`'s own header comment.
+* **Still no rim or edge cue**, so against the near-white dock the pale hats lose their outline.
+* The eight builds differ on paper but at 10 m all five silhouettes are the same egg-on-a-post.
+
+### C8 — Composition and depth — C− → **C−**
+
+Fog is doing real work and the three depth bands are distinguishable in every warehouse frame.
+Against that: `hzw-t370` gives over a third of the frame to a featureless grey deck slab with no
+detail and nothing occluding, which is the rubric's single-plane failure in all but the last few
+per cent; `hz-spawn` does something similar with the near floor. Near-field framing elements remain
+absent from every standard angle except `hz-racking`, where the piano provides one — and the piano
+is a black wedge with no surface detail at all, so it frames the shot as a hole rather than an
+object. `hz-spawn` also carries a pale cloud-like band across the top of frame above the ceiling
+line, which breaks the interior read completely.
+
+### C9 — Colour discipline — D+ → **D**
+
+Chroma is the failure. Six of the ten frames carry chroma on under 90% of pixels and four are under
+50%: `hzw-t000` and `hzw-t370` at **25.4%**, `hz-pit` at 38.4%, `hz-floor` and `hzf-head` at 44.8%.
+The references sit at 90.0–99.4% (R.E.P.O.) and 98.9% (PEAK) — they agree with each other and the
+build agrees with neither. Mean saturation runs 0.140–0.410 against 0.39–0.54 and 0.392. This build
+is markedly greyer than both of its references, and pass 2's warning applies exactly: chasing the
+look by desaturating lands on grey mush.
+
+Dominant hue share is 29.0–50.7% against a reference band of 19.0–31.2%, and three frames carry
+fewer than five hue families. The unintended khaki in the floor shadows (C2) is a hue nobody chose.
+Hazard yellow-and-black is used well and sparingly, and is the one piece of colour discipline in
+the build that is working.
+
+## The plant: the water does not render at all
+
+This is the largest single finding of the pass and it is a regression against a fix.
+
+`waterMaterial()`'s `MeshPhysicalMaterial` **fails to compile**. Both program variants throw in the
+fragment shader:
+
+```
+THREE.WebGLProgram: Shader Error 0 — VALIDATE_STATUS false
+Material Type: MeshPhysicalMaterial
+Program Info Log: Fragment shader is not compiled.
+FRAGMENT   ERROR: 0:1583: 'geometr…
+```
+
+The consequence is total: **there is no water in the flooded level at any point on the curve.**
+`hzw-t000` (sump dry, water y = −4.40) and `hzw-t370` (water y = +0.35, nominally over the deck)
+are identical to within 0.1 in every statistic I measure — p50 129.9 vs 129.8, saturation 0.140 vs
+0.140, 11 hue families each — and the harness's own `the water is visible in the frame` assertion
+fails with a channel delta of **0.0** between a dry sump and a full one. Looking at `hzw-t370`
+directly: the tank is visibly dry. You can see the concrete tank floor, the stairs running down into
+it, a crate standing on the bottom, and the damp blotching on the walls. There is no surface, no
+waterline and no submersion.
+
+So the answer to last pass's arbitration has been overtaken. You were right to fix the surface
+rather than the threshold, and the diagnosis of `pow(nh, 700)` was almost certainly correct — but
+the replacement does not compile, and the shader injection is referencing a symbol that is not in
+scope at that point in the physical material's fragment chain. **Until it compiles there is nothing
+to grade, and the new surface-band check will fail for a second, different reason than the one it
+was written to catch.** That is worth knowing before the check's failure is read as evidence about
+the water's appearance.
+
+The underwater wash does still work, and it is thin: `hzw-under` is a uniformly milky sage-green
+frame with 80.4% of pixels flat, chroma on 82.6% and everything compressed into a narrow bright
+band. It reads as a smoke-filled room, not as being underwater. No caustics, no particulate, no
+surface overhead, no shafts.
+
+Separately, and to its credit: the plant's tank interior is the strongest environment art in the
+project. Large pale concrete panels with damp blotching at a believable scale, galvanised perforated
+stair treads that read as galvanised perforated stair treads, and hazard-striped and green-piped
+accents in the upper frame. If the warehouse looked like the inside of that tank the overall grade
+would be a full letter higher.
+
+## Confirmations, corrections and things that have not moved
+
+**Confirmed still present:** the deck-rib starbursts, which own the upper third of `hz-racking` and
+`hz-dock` as fans of smeared brown streaking; the navy mass in the upper corners of `hz-spawn`,
+`hz-dock` and `hzf-down`; aliasing on the fine vertical wall corrugation at grazing angles; the
+squiggly-loop pattern, in the plant only.
+
+**One diagnostic offered on the starbursts**, since they have survived three passes. They are
+*radial about each lamp*, not uniform across the deck. That pattern is what a high-frequency relief
+term does when a point light sits almost in the plane of the surface it is lighting: every fragment
+picks a different specular answer and the noise fans out from the source. If that is right, the
+lever is the ceiling's relief strength or the lamp's height off the deck plane, not the tiling — and
+`materials.js` already carries `deckplate.bump: 1.5` and a comment about fading relief edge-on, so
+the fade may simply not be aggressive enough. Offered as a hypothesis; I did not test it, and I do
+not modify game code.
+
+**The extraction volume still reads as a swimming pool, and it is now unmistakable.** In `hz-spawn`,
+`hz-dock` and `hz-racking` it is a lit mint-green basin with a kerb and a pale plank across it, and
+in two of those frames it is the brightest large object in shot. Pass 3b called this; nothing has
+changed except that it has become more confidently rendered. This is the volume the entire game loop
+is about and it currently looks like a paddling pool.
+
+**Harness note, offered rather than fixed.** `hz-fig2.js` cannot hold the figure's facing. Its
+`YAWTRACE` shows `actorYaw` following `pendingInput.yaw` one sample later on every tick, so the
+`b.yaw = Math.PI` set immediately before the head shot is overwritten within a tick or two. This
+pass the shot happened to catch the model face-on; last pass it did not, and three of pass 3's
+figure frames were the back of the head. The face is where the whole design lives and whether it
+gets photographed is currently luck. Freeze or overwrite `pendingInput` for the duration of the
+posed shots.
+
+## Top five fixes for a fifth pass, in priority order
+
+### 1. Make the water compile.
+
+`worldview.js` `waterMaterial()` — the `MeshPhysicalMaterial` fragment shader fails to compile with
+`ERROR: 0:1582/1583: 'geometr…'` on both program variants, and the flooded level therefore renders
+with no water at any clock value. `hzw-t000` and `hzw-t370` are identical to 0.1 in every channel
+and the harness's own visibility assertion fails at a channel delta of 0.0. The injection is
+referring to a symbol that is not in scope at that chunk in three's physical chain. Nothing about
+the flood — surface, reflection, waterline, the new surface-band check — means anything until this
+builds.
+
+### 2. Gate and tighten the bloom. Third pass of asking, and it got worse again.
+
+`hz-floor` clips 1.1% of its pixels (0.7% → 0.8% → 1.1% across three passes) and the halo probe
+saturates at its 96 px cap on three frames. The dock lamp arrives at the composite as a shapeless
+white ball and takes the wall behind it with it. Raise the threshold so only the emitter clears it,
+cut the radius substantially, and clamp the emissive so the core keeps its hue. **Target, stated as
+a picture rather than a number because the halo probe is not trustworthy** (see C6): `clip%` 0.0 on
+every frame; the fixture still has a recognisable shape and a colour other than white inside its own
+glow; and the wall behind it still shows its texture. `crit4/zoom-sconce.png` is what that looks
+like in the reference.
+
+### 3. Take the fill down; make the lamps land on the floor.
+
+Key-to-fill is 1.55:1 against a 2:1 floor. Do it by reducing `AMBIENT_GAIN` and the hemisphere
+intensity, not by raising `LIGHT_GAIN`: median luma is already 45.5–141.9 against R.E.P.O.'s 7.1–11.7
+and `crush%` is at 0.0–0.1, so there is a great deal of headroom to darken before anything empties
+out. Then fix what the ratio cannot see — the ceiling lamps currently pool on the ceiling and put
+nothing identifiable on the floor. Drop the fixtures below the deck plane or give them a downward
+cone so each one throws a legible ellipse on the concrete. **Grade this by looking at whether the
+pools land, not by the ratio**; the ratio can be hit by turning the room off.
+
+### 4. Fix the shadow colour, then the shadow edge.
+
+Verified on `crit4/zoom-floor.png`: shadowed concrete reads khaki-green at RGB 129/136/125, with
+hard straight boundaries and no penumbra. Concrete out of a warm key should fall to the cool
+ambient. Check the hemisphere ground colour `#2b2521` against the concrete albedo — a warm-brown
+bounce over a slightly green-grey slab is the obvious candidate — and either raise the point light's
+shadow map above 512² or blur it, so the edge stops being a straight cut across the floor.
+
+### 5. Make the hat a hard hat; make the vest front one shape.
+
+Verified on `crit4/zoom-crew.png`. Add a crown rib and a shaped peak, seat the hat lower so less
+skull shows, and drop the speckle so it reads as moulded plastic rather than felt. On the front,
+replace the jumble of pale rectangles and the empty red-outlined badge with one hi-vis field and two
+bands — the back of the same figure already does this and reads correctly. Remove the second
+saturated identity colour from the trousers. Add a rim or edge cue, which is still the only thing
+that will hold a contractor off the near-white dock wall. **Do not touch the eyes.**
+
+### Also worth doing, below the line
+
+* The extraction volume (fix 5 of pass 3, unactioned): it is a mint paddling pool with a plank
+  across it, and it is the most important object in the game.
+* Chroma: six of ten frames sit under 90% chromatic and four under 50%, against 90–99% on both
+  references. The build is greyer than either reference, not more disciplined than them.
+* `hz-spawn` carries a pale cloud band across the top of frame above the ceiling line.

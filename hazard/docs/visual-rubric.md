@@ -1,6 +1,6 @@
 # HAZARD PAY — visual rubric
 
-**Version 1.1** · amended 2026-08-08 · owner: visual critic
+**Version 1.1** · amended 2026-08-08, addendum to §4 on 2026-08-09 · owner: visual critic
 **v1.0** 2026-08-07. See "§3 — Amendments in v1.1" at the foot for the change list; v1.1 changes
 thresholds on C1, C4, C5 and C6, so grades against v1.0 and v1.1 are **not** directly comparable on
 those four criteria.
@@ -566,3 +566,36 @@ Three consequences for anyone grading with this rubric:
    exposure, key-to-fill measuring a cast shadow. Where a number and the picture disagree, **the
    picture wins and the number gets a caveat written next to it.** Never quote a threshold for a
    frame you have not looked at.
+
+### Addendum, 2026-08-09 — the count is six, and one rule follows from it
+
+Two more proxies have since been caught measuring something other than what they claim, both by the
+grader who was relying on them:
+
+4. **A ceiling luma sample that had spanned the HUD's quota readout**, reporting the grazing ceiling
+   at 158.2 and "brighter than the floor" when it is 98.4 and darker. Wrong in *direction*, not
+   merely in magnitude.
+5. **A lit-floor-versus-shadowed-floor comparison placed by eye** on a full-size screenshot, which
+   returned a "shadow" brighter than the "gap" beside it. The rectangles were simply not where the
+   grader thought they were.
+
+The rule that follows, and it is not optional: **look at the rectangle before quoting the number
+that came out of it.** `crit4-crop.js` in the scratchpad exists for this — it crops a region,
+magnifies it nearest-neighbour, writes it as a PNG, and prints the mean of exactly the pixels it
+just wrote, so the sample and its statistic cannot disagree. A region-derived figure in a review
+should either be accompanied by the crop it came from or not be there.
+
+Corollary for whole-frame metrics, which are not exempt: a metric whose value depends on the frame's
+exposure, on its subject matter, or on where the HUD sits cannot be compared across frames that
+differ in those things. Vignette (`corner ÷ centre`), absolute-SD `tex%`, and any whole-frame colour
+cast on a level whose art direction is a single dominant hue are all in this class. Print them,
+caveat them, and score them only where the confound is absent.
+
+6. **The bloom-halo probe searches the whole frame for its brightest pixel.** On the R.E.P.O.
+   captures that pixel is the HUD's green `+100`, not a light fixture, so the "12–96 px @1080p"
+   figure in the R.E.P.O. table above is at least partly measuring HUD glow. **Do not grade bloom
+   against that row.** Grade it against the picture: does the emitter keep a recognisable shape and
+   a colour other than white inside its own glow, and does the surface behind it keep its texture?
+   `crit4/zoom-sconce.png` — a 3× crop of a sconce in `fovupdate-example1.jpg` — is the reference
+   for that judgement. The probe should be given an explicit region before its numbers are used
+   again.

@@ -219,6 +219,8 @@ uniform sampler2D tpMap;
 uniform vec4 tpTune;   // x tiles/metre, y bump, z roughness variance, w cavity ao
 uniform float tpMottle;
 uniform float tpFill;
+uniform float tpDark;  // bounce left in a corner no lamp reaches
+uniform float tpKnee;  // how fast the bounce saturates with direct light
 varying vec3 vTpP;
 varying vec3 vTpN;
 
@@ -344,6 +346,28 @@ if ( tpTune.y > 0.0 ) {
 // and that alone gives every box in the dark a top, a side and a bottom. The
 // world normal is recovered by multiplying the view normal through viewMatrix
 // from the left, which for a rotation is its inverse and costs no uniform.
+//
+// AND IT IS COUPLED TO THE DIRECT LIGHT, WHICH IS THE WHOLE LIGHTING DESIGN.
+//
+// The version above was a constant, and a constant is not a bounce — it is an
+// ambient term wearing a bounce's clothes. Measured with every light in the
+// scene switched off, the open floor still read 0.29 while the four bay lamps
+// were only worth 0.14 of it: this term was twice the entire lighting rig, and
+// it was strongest precisely where it should be weakest, so key-to-fill on
+// same-material floor came out at 1.6:1 against a 2:1 rubric floor.
+//
+// Second-bounce light is proportional to first-bounce light. A corner no lamp
+// reaches has nothing to bounce and should stay dark; the floor under a lamp
+// is throwing light at everything near it and should get the full term. So the
+// bounce is now gated on the direct diffuse this fragment already received —
+// available here for free because three runs lights_fragment_end before
+// aomap_fragment, so the accumulation is complete by the time we read it.
+//
+// The gate keeps a FLOOR of tpDark, and that floor is the thing that must not
+// go to zero. The failure being avoided has never been darkness, it is
+// emptiness: what this puts into the dark is textured, tinted, cavity-shaded
+// concrete, so an unlit crate still shows a top, a side and its own grain
+// rather than becoming a hole for the grade to paint navy over.
 const FRAG_AO = /* glsl */`
 #include <aomap_fragment>
 float tpCav = 1.0 - tpTune.w * ( 1.0 - tpHeight );
@@ -351,9 +375,29 @@ reflectedLight.indirectDiffuse *= tpCav;
 if ( tpFill > 0.0 ) {
   vec3 tpW = normalize( ( vec4( normal, 0.0 ) * viewMatrix ).xyz );
   float tpUp = abs( tpW.y );
-  reflectedLight.indirectDiffuse += diffuseColor.rgb * tpFill * mix( 0.62, 1.30, tpUp ) * tpCav;
+  // Saturating, not linear: the response has to flatten out or the floor
+  // directly beneath a 1156 cd lamp gets a second sun stacked on top of it.
+  float tpLit = dot( reflectedLight.directDiffuse, vec3( 0.2126, 0.7152, 0.0722 ) );
+  float tpGate = mix( tpDark, 1.0, 1.0 - exp( -tpLit * tpKnee ) );
+  reflectedLight.indirectDiffuse += diffuseColor.rgb * tpFill * tpGate * mix( 0.62, 1.30, tpUp ) * tpCav;
 }
 `;
+
+// The two bounce-gate knobs are ONE pair of uniform objects shared by every
+// material in the level, not a copy each. Two reasons: the gate is a property
+// of the room's lighting rather than of any one surface, and a harness that
+// wants to sweep it can assign into `BOUNCE.dark.value` once instead of walking
+// the scene graph — which is how these were tuned, in a single browser session
+// rather than one four-minute rebuild per candidate value.
+// Swept live against key-to-fill and against the pictures. dark 0.30 measured
+// beautifully — 12:1, deep inside the reference band — and looked like a black
+// void with one lit box in it, which is the same lesson the luma band teaches
+// in the other direction. 0.80 keeps material in the unlit half of the room
+// and still leaves the lamps a job to do.
+export const BOUNCE = {
+  dark: { value: 0.80 },
+  knee: { value: 2.5 },
+};
 
 function patch(shader) {
   const tp = this.userData.tp;
@@ -361,6 +405,8 @@ function patch(shader) {
   shader.uniforms.tpTune = tp.tune;
   shader.uniforms.tpMottle = tp.mottle;
   shader.uniforms.tpFill = tp.fill;
+  shader.uniforms.tpDark = BOUNCE.dark;
+  shader.uniforms.tpKnee = BOUNCE.knee;
 
   shader.vertexShader = VERT_PARS + shader.vertexShader
     .replace('#include <beginnormal_vertex>', VERT_HOOK);
@@ -391,6 +437,10 @@ export function applyTriplanar(mat, texName, over = {}) {
     tune: { value: new THREE.Vector4(1 / r.tile, r.bump, r.roughVar, r.ao) },
     mottle: { value: r.mottle },
     fill: { value: r.fill },
+    // The shared pair, by reference, so a probe that reaches any one material
+    // through the scene graph can move the gate for the whole level at once.
+    dark: BOUNCE.dark,
+    knee: BOUNCE.knee,
   };
   mat.envMapIntensity = r.env;
   mat.onBeforeCompile = patch;

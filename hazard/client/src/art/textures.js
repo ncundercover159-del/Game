@@ -197,7 +197,15 @@ const GEN = {
     // Spills. Thresholded low-frequency noise, so the edges are definite the
     // way a puddle of gear oil is definite, rather than a soft gradient.
     // Roughly a 1.9 m feature — unmissable at the far wall, unable to alias.
-    const spill = smooth(0.545, 0.655, fbm(u, v, 3, 3, 71));
+    //
+    // THINNED, because it was reading as holes in the floor. At a 0.545
+    // threshold on three octaves these covered most of a bay, and mixing 80%
+    // of the way to a 0.13 grey took a 0.415 slab down past anything that could
+    // still be called concrete — a shot of the racking aisle came back with
+    // three-metre black amoebas across the floor that no reasonable viewer
+    // reads as oil. Higher threshold for less of it, and see below: what makes
+    // a spill legible is not that it is dark, it is that it is WET.
+    const spill = smooth(0.600, 0.700, fbm(u, v, 3, 3, 71));
     // ...and the pale opposite: dust, plaster, efflorescence out of the slab.
     const bloom = smooth(0.60, 0.80, fbm(u, v, 2, 2, 137));
 
@@ -219,12 +227,18 @@ const GEN = {
     let b = l * mix(0.915, 1.050, damp);
     // Oil is warm-black and it kills the slab's blue before it kills its red,
     // which is why a stain reads as a stain and not as a shadow.
-    r = mix(r, 0.150, spill * 0.80);
-    g = mix(g, 0.126, spill * 0.80);
-    b = mix(b, 0.108, spill * 0.80);
+    r = mix(r, 0.235, spill * 0.52);
+    g = mix(g, 0.205, spill * 0.52);
+    b = mix(b, 0.178, spill * 0.52);
     o[0] = r; o[1] = g; o[2] = b;
+    // The spill's real tell is in the height channel, not the colour one.
+    // roughVar is negative on concrete, so raising height here makes the patch
+    // SMOOTHER than the slab around it, and a smooth patch on a matte floor
+    // picks up a lamp as a soft sheen. That is what an oil stain looks like
+    // from six metres; a dark blob is what a hole looks like. Tripled from the
+    // 0.06 it was, which was too small to survive the roughness clamp.
     o[3] = clamp01(0.52 + (tooth - 0.5) * 0.30 + (grit - 0.5) * 0.15
-      - joint * 0.50 + spill * 0.06);
+      - joint * 0.50 + spill * 0.20);
   },
 
   // Corrugated wall cladding. The ribs run along one texture axis, which under
@@ -273,7 +287,14 @@ const GEN = {
     // reference band of 19-31%, and the cheapest way to spend that down is to
     // stop painting the biggest surfaces with it. Industrial cladding fades
     // towards cream, so this is also just what it looks like.
-    let r = 0.505, g = 0.497, b = 0.462;
+    // ...and then DOWN by a sixth, because of where this material actually
+    // gets its brightest reading. Cladding lines the van, and the van has a
+    // 1360 cd lamp in a 2.4 m box: a 0.50 albedo panel a metre from that lamp
+    // returns far more radiance than the tone curve has anywhere to put, so
+    // every shot into the van came back as a white card with no ribs in it.
+    // Painted steel that has been in a yard for a decade is not a 0.50 surface
+    // anyway. The shoulder in post.js is the other half of this fix.
+    let r = 0.424, g = 0.418, b = 0.388;
     // The rib pitch is 57 cm, which is still a dozen pixels wide at the far
     // wall, so this one repeating feature is allowed real contrast.
     const shade = 0.92 + 0.14 * ribH;

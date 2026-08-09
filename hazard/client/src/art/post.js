@@ -248,6 +248,15 @@ uniform float uTime;
 uniform vec3 uLift;
 uniform vec3 uAerial;
 uniform float uAerialRate;
+// Contrast about a pivot ABOVE mid-grey. A pivot at 0.5 pushes the shadows
+// down and the highlights up equally; this room's problem is that its mid-tones
+// all sit in a narrow band just under half, so a high pivot spreads that band
+// downwards — which is what separates lit floor from unlit floor — without
+// blowing the lamps, which are already at the top of the ACES roll-off.
+uniform float uContrast;
+uniform float uPivot;
+uniform float uShoulderAt;  // scene-linear value where highlight recovery starts
+uniform float uShoulderK;   // how much range the shoulder folds into itself
 ${DEPTH_LIB}
 
 // Three's ACES fit, reproduced because the material-side tone mapping is
@@ -348,15 +357,52 @@ void main() {
 
   col += texture2D( tBloom, vUv ).rgb * uBloom;
 
+  // HIGHLIGHT RECOVERY, AHEAD OF THE CURVE.
+  //
+  // ACES has run out of slope by about 8 in scene-linear: everything above that
+  // lands within a per cent of white and the differences between them are gone.
+  // The van's interior lamp is 1360 cd in a 2.4 m box, which puts the panel a
+  // metre from it somewhere near 60 — so the whole inside of the van clipped to
+  // a flat white card, ribs, floor, crates and all, and it did so in the one
+  // place in the level every player walks into on every run.
+  //
+  // A log shoulder above a threshold is the cheap fix. Below uShoulderAt it is
+  // exactly the identity, so nothing in the normal range moves at all; above
+  // it, ratios are preserved logarithmically instead of being flattened, and
+  // 60-vs-90 comes out of the curve still 60-vs-90 rather than white-vs-white.
+  // Applied on the maximum channel and reapplied as a scale, so a highlight
+  // keeps its hue instead of desaturating towards white one channel at a time.
+  float peak = max( col.r, max( col.g, col.b ) );
+  if ( peak > uShoulderAt ) {
+    float over = peak - uShoulderAt;
+    float rolled = uShoulderAt + uShoulderK * log( 1.0 + over / uShoulderK );
+    col *= rolled / peak;
+  }
+
   col = aces( col * uExposure );
 
-  // The look. A job site at dusk: shadows pulled towards cold blue, highlights
-  // left warm, and enough saturation taken out that the hi-viz reads as the
-  // brightest thing in the frame — which, on a real site, it is.
+  // The look. A job site at dusk: enough saturation taken out that the hi-viz
+  // reads as the brightest thing in the frame — which, on a real site, it is.
+  //
+  // The shadow tint used to be ( -0.005, 0, +0.013 ), one more cool source on a
+  // scene that already had a cool hemisphere and a cool rim, and taking it out
+  // is most of what killed the navy. Swinging it warm instead overshot in the
+  // other direction — with #ffe2b4 lamps on cream cladding, the frame measured
+  // R54 G44 B32, a 1.69 channel spread where the rubric wants under 1.5, and an
+  // amber cast is no more a grade than an indigo one was. So it is nearly
+  // neutral now: a whisper warm, because the lamps are tungsten and the shadows
+  // in a room lit by tungsten are the only place a cool note can come from
+  // without contradicting them.
+  //
+  // The saturation pull does the rest of the work. It came down from 0.93 to
+  // 0.88 for the same reason: when every large surface in the frame is being
+  // lit by the same warm source, the cheapest way to stop that reading as a
+  // filter over the lens is to take some of the chroma out of all of it and let
+  // the hi-vis and the hazard stripes keep theirs by being brighter.
   float l = dot( col, LUMA );
-  col = mix( vec3( l ), col, 0.93 );
-  col += vec3( -0.005, 0.0, 0.013 ) * ( 1.0 - l );
-  col = clamp( ( col - 0.5 ) * 1.10 + 0.5 + 0.010, 0.0, 1.0 );
+  col = mix( vec3( l ), col, 0.88 );
+  col += vec3( 0.003, 0.001, -0.001 ) * ( 1.0 - l );
+  col = clamp( ( col - uPivot ) * uContrast + uPivot + 0.006, 0.0, 1.0 );
 
   float vig = 1.0 - uVignette * r2 * ( 1.0 + r2 );
   col *= vig;
@@ -492,6 +538,10 @@ class SitePass extends Pass {
       uExposure: { value: 1 },
       uAO: { value: 0.70 },
       uBloom: { value: 0.55 },
+      uContrast: { value: 1.08 },
+      uPivot: { value: 0.52 },
+      uShoulderAt: { value: 1.6 },
+      uShoulderK: { value: 2.2 },
       uVignette: { value: 0.36 },
       // Grain is measured in display units, and this one is easy to overdo in a
       // way that does not look like grain: at 0.045 the noise is ±6/255, which
@@ -522,8 +572,23 @@ class SitePass extends Pass {
       // only has to do what a black point is for: keep absolute zero off the
       // screen. Anything more and it starts tinting things that already have a
       // colour of their own.
-      uLift: { value: new THREE.Vector3(0.098, 0.090, 0.156) },
-      uAerial: { value: new THREE.Vector3(0.030, 0.034, 0.055) },
+      //
+      // AND THEN THE BLUE CAME OUT OF THEM, WHICH IS THE NAVY.
+      //
+      // 0.098/0.090/0.156 is a blue:red ratio of 1.6, and it was landing on top
+      // of a scene already lit blue twice over — a #5b6472 hemisphere and a
+      // #7fa8d8 rim at 0.42 that reaches every surface in the level. Three cool
+      // sources stacked is not a cool grade, it is a colour cast, and every
+      // wide shot came back with navy walls, navy racking and a navy roof.
+      //
+      // A black point is allowed a tint; it is not allowed to be the loudest
+      // hue in the frame. What is left is a hair cool and essentially neutral,
+      // so the warm lamps stay the only strong colour in a shot and the hi-vis
+      // stays the only strong colour on a contractor. The aerial term keeps
+      // slightly more of its blue than the near lift does, because that one is
+      // standing in for actual air and actual air is actually blue.
+      uLift: { value: new THREE.Vector3(0.086, 0.084, 0.098) },
+      uAerial: { value: new THREE.Vector3(0.030, 0.033, 0.044) },
       uAerialRate: { value: 0.030 },
     });
 
@@ -655,6 +720,12 @@ export function installPost(renderer, scene, camera) {
     renderer.info.autoReset = false;
 
     return {
+      // Additive to the interface and read-only in practice: main.js uses
+      // render/setSize/dispose and nothing else, but a grading probe that
+      // cannot reach the uniforms has to rebuild the bundle for every candidate
+      // value, and at four minutes a build that is the difference between
+      // sweeping a curve and guessing at it.
+      get grade() { return site.gradeMat.uniforms; },
       render(dt) {
         renderer.info.reset();
         site.time += dt || 0.016;
