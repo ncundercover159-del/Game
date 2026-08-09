@@ -636,9 +636,22 @@ function waterMaterial(level) {
         float f = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 3.0);
         vec3 col = mix(uDeep, uShallow, f * 0.85 + 0.06);
 
-        // One highlight per lamp, placed where that lamp actually is. Two lobes
-        // each: a broad sheen that pools under the fitting, and a tight one
-        // that the fine chop shatters into glitter.
+        // One highlight per lamp, placed where that lamp actually is, and TIGHT.
+        //
+        // The previous exponents (60 and 700) were measured against the surface
+        // alone and produced a specular that touched 23% of the water and added
+        // three luma to it. That is not a reflection, it is a uniform wash, and
+        // a review looking at the same frame called the surface "smooth, with
+        // no reflected image of anything" — correctly, while a whole-frame
+        // highlight metric passed the shot on the strength of a submerged lamp
+        // showing THROUGH the water.
+        //
+        // A reflection is a small number of very bright pixels. So: the broad
+        // lobe is much tighter and much weaker, the sharp lobe is far tighter
+        // and far stronger, and the fine chop — 50mm/m of slope, invisible in
+        // the silhouette — is what shatters the sharp one into a glitter path
+        // instead of a disc. Values well over 1.0 are intended; the post chain
+        // rolls them off, and a highlight that cannot clip is not a highlight.
         vec3 spec = vec3(0.0);
         for (int i = 0; i < LAMPS; i++) {
           vec3 d = uLampPos[i] - vWorld;
@@ -646,8 +659,10 @@ function waterMaterial(level) {
           if (dist < 0.001) continue;
           vec3 H = normalize(d / dist + V);
           float nh = max(dot(N, H), 0.0);
-          float atten = 1.0 / (1.0 + dist * dist * 0.045);
-          spec += uLampCol[i] * (pow(nh, 60.0) * 0.9 + pow(nh, 700.0) * 2.6) * atten;
+          // Gentler falloff than before: a ceiling lamp is eight metres up and
+          // the old inverse-square-ish term had already thrown it away.
+          float atten = 1.0 / (1.0 + dist * dist * 0.018);
+          spec += uLampCol[i] * (pow(nh, 240.0) * 0.22 + pow(nh, 2600.0) * 6.0) * atten;
         }
         col += spec;
 

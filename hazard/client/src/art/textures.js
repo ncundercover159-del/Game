@@ -150,33 +150,81 @@ const GEN = {
   // not: the saw-cut joint grid. It is the only feature on a slab you can see
   // from the far wall, it is straight, and being straight it is the one thing
   // in the whole texture set that tells you which way the building runs.
+  // AND THE THIRD DELETION, WHICH IS A LESSON ABOUT THE OTHER TWO.
+  //
+  // With the biro doodles and the snow-splatter gone, the floor measured a
+  // standard deviation of 3.0 out of 255 and a review called it dirty lino.
+  // Both earlier notes were right about WHAT to remove and wrong about what
+  // to leave: taking out the two loud wrong features left nothing behind but
+  // eight per cent of pour drift and seven per cent of float swirl, and a
+  // surface with no contrast in it is not restrained, it is blank.
+  //
+  // The rule is not "albedo stays quiet". It is:
+  //
+  //     ALBEDO CONTRAST IS FINE. ALBEDO FREQUENCY IS WHAT ALIASES.
+  //
+  // A two-metre oil stain at twenty-five per cent can be seen from the far
+  // wall and cannot alias at any distance, because at thirty metres it is
+  // still forty pixels across. A five-centimetre pale speck at thirteen per
+  // cent is invisible at two metres and a screen of crawling dots at twenty.
+  // Everything added below is metre-scale and carries real contrast;
+  // everything already here that was centimetre-scale has come down.
+  //
+  // What a working warehouse floor actually has, in order of how far away you
+  // can see it: saw-cut bay joints, then spills, then dust. So it has those.
   concrete(u, v, o) {
     const pour = fbm(u, v, 2, 3, 11);          // where one day's pour met the next
     const patch = fbm(u, v, 4, 2, 97);         // power-float swirl, wear, damp
     const tooth = fbm(u, v, 40, 3, 23);        // the fine surface — HEIGHT
-    const grit = vnoise(u, v, 115, 41);        // aggregate — HEIGHT
+    // Aggregate. Finer and much weaker than it was: at 115 cells over a 5.6 m
+    // tile these were 5 cm blobs driving a 0.42 cavity-occlusion term, which is
+    // a five-centimetre dark dot every five centimetres over fifteen hundred
+    // square metres. That is the "uniform white speckle" a review read as snow;
+    // it was in height rather than colour, but a strong enough cavity term
+    // turns height into colour and the channel rule does not save you.
+    const grit = vnoise(u, v, 170, 41);
 
     // The joint sits at the middle of the tile, not on the seam: a feature
     // straddling u=0 is a feature the wrap has to filter across, and this one
     // is three texels wide.
     const jd = Math.min(Math.abs(u - 0.5), Math.abs(v - 0.5));
-    const joint = 1 - smooth(0.0030, 0.0090, jd);
+    const joint = 1 - smooth(0.0030, 0.0110, jd);
+    // Concrete either side of a cut is the part that gets chipped and swept,
+    // so it is paler than the field. A joint with a bright shoulder reads at
+    // three times the distance of a joint without one.
+    const shoulder = (1 - smooth(0.011, 0.055, jd)) * (1 - joint);
 
-    let l = 0.415 + (pour - 0.5) * 0.085;
-    l *= mix(0.90, 1.07, smooth(0.28, 0.68, patch));
+    // Spills. Thresholded low-frequency noise, so the edges are definite the
+    // way a puddle of gear oil is definite, rather than a soft gradient.
+    // Roughly a 1.9 m feature — unmissable at the far wall, unable to alias.
+    const spill = smooth(0.545, 0.655, fbm(u, v, 3, 3, 71));
+    // ...and the pale opposite: dust, plaster, efflorescence out of the slab.
+    const bloom = smooth(0.60, 0.80, fbm(u, v, 2, 2, 137));
+
+    let l = 0.415 + (pour - 0.5) * 0.095;
+    l *= mix(0.89, 1.08, smooth(0.28, 0.68, patch));
     // Mostly a groove, only slightly a line. A saw cut fills with dirt and goes
     // dark, but if the darkening carries the feature then at thirty metres the
     // joint is a one-pixel black wire and it crawls.
-    l *= 1 - joint * 0.15;
+    l *= 1 - joint * 0.24;
+    l *= 1 + shoulder * 0.10;
+    l *= 1 + bloom * 0.13;
 
     // Concrete is warm-grey when dry and cooler where it has been wet. Two
     // hues out of one material is nearly free and it is what stops a floor
     // this large from reading as a single flat value.
     const damp = smooth(0.52, 0.80, pour);
-    o[0] = l * mix(1.055, 0.955, damp);
-    o[1] = l * mix(1.000, 0.990, damp);
-    o[2] = l * mix(0.915, 1.050, damp);
-    o[3] = clamp01(0.52 + (tooth - 0.5) * 0.28 + (grit - 0.5) * 0.30 - joint * 0.44);
+    let r = l * mix(1.055, 0.955, damp);
+    let g = l * mix(1.000, 0.990, damp);
+    let b = l * mix(0.915, 1.050, damp);
+    // Oil is warm-black and it kills the slab's blue before it kills its red,
+    // which is why a stain reads as a stain and not as a shadow.
+    r = mix(r, 0.150, spill * 0.80);
+    g = mix(g, 0.126, spill * 0.80);
+    b = mix(b, 0.108, spill * 0.80);
+    o[0] = r; o[1] = g; o[2] = b;
+    o[3] = clamp01(0.52 + (tooth - 0.5) * 0.30 + (grit - 0.5) * 0.15
+      - joint * 0.50 + spill * 0.06);
   },
 
   // Corrugated wall cladding. The ribs run along one texture axis, which under
@@ -218,7 +266,14 @@ const GEN = {
     // the tile and the wall came out looking like brickwork.
     const seam = smooth(0.994, 1.0, Math.abs(Math.cos(v * Math.PI)));
 
-    let r = 0.47, g = 0.50, b = 0.50;
+    // A FADED WARM GREY, NOT A COOL ONE. Cladding is the second largest area in
+    // the level after the roof deck and it was mixed 0.47/0.50/0.50 — neutral
+    // tipping green-blue. Between it, the roof and the racking, a review
+    // measured a single hue family covering 39.6-58.2% of the frame against a
+    // reference band of 19-31%, and the cheapest way to spend that down is to
+    // stop painting the biggest surfaces with it. Industrial cladding fades
+    // towards cream, so this is also just what it looks like.
+    let r = 0.505, g = 0.497, b = 0.462;
     // The rib pitch is 57 cm, which is still a dozen pixels wide at the far
     // wall, so this one repeating feature is allowed real contrast.
     const shade = 0.92 + 0.14 * ribH;
