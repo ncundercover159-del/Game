@@ -265,12 +265,39 @@ const GEN = {
   // The base value also came UP, 0.30 to 0.365. A dark ceiling with no features
   // in it was measuring as a flat navy slab across the top third of the frame,
   // and the fix for a hole in the picture is never to recolour the hole.
+  // AND THE SECOND PROBLEM WITH IT, WHICH IS THE OPPOSITE OF THE FIRST.
+  //
+  // Everything above is about the ceiling, twenty metres away and seen at four
+  // degrees. But this same material is also the loading dock, the ramp and the
+  // mezzanine — surfaces you stand ON, two metres from the lens, filling the
+  // bottom third of the frame. At a 5.5 m tile a 2.2 m ramp gets four tenths of
+  // one tile, which is four fifths of a single rib, and photographs of the dock
+  // showed exactly that: a large flat pale slab with a faint gradient on it and
+  // no other information anywhere. The closest surface in two of five standard
+  // shots had less detail in it than the far wall.
+  //
+  // Both requirements are satisfiable at once, and the channel rule is what
+  // makes them so. The ALBEDO stays exactly as coarse as the ceiling needs. The
+  // near-field detail all goes in HEIGHT, where it reaches the frame through a
+  // screen-space derivative that averages to nothing under minification — so it
+  // is simply not present by the time the surface is far enough away to alias.
+  //
+  // Two additions. A stiffening flute rolled into each pan, which real profiled
+  // deck has and which runs PARALLEL to the main ribs — parallel, because a
+  // second family of lines crossing the first is the metre-scale grid that got
+  // the fastener dimples deleted, and lines that share a direction never form
+  // one. And a second, much finer octave of tooth at four centimetres, which is
+  // the spangle on galvanising and is what your eye actually reads at two
+  // metres.
   deckplate(u, v, o) {
     const ribs = 2;
     const phase = fract(v * ribs);
     const tri = Math.abs(phase - 0.5) * 2;
     const crown = 1 - smooth(0.34, 0.58, tri);      // flat top of the rib
     const web = smooth(0.34, 0.58, tri) * (1 - smooth(0.58, 0.92, tri));
+    // The pan between the crowns, which is where a flute is rolled.
+    const pan = smooth(0.62, 0.80, tri);
+    const flute = pan * (1 - smooth(0.30, 0.70, Math.abs(fract(v * 12) - 0.5) * 2));
 
     // Everything below is metre-scale or bigger, deliberately.
     const wash = fbm(u, v, 2, 2, 5);                // decades of roof leaks
@@ -286,12 +313,24 @@ const GEN = {
     // either large enough to be architecture or small enough to be tooth, and
     // roof fasteners seen from eight metres below are neither.
     const tooth = fbm(u, v, 36, 3, 41);
+    const spangle = fbm(u, v, 150, 2, 7);
 
     let l = 0.365 + (wash - 0.5) * 0.075;
     l *= 1 + crown * 0.20 - web * 0.07;
     l *= mix(0.90, 1.06, soot);
-    o[0] = l * 1.0; o[1] = l * 1.005; o[2] = l * 1.03;
-    o[3] = clamp01(0.26 + crown * 0.46 + (tooth - 0.5) * 0.30);
+    // WARM, not cool. This one material is the ceiling, the dock, the ramp and
+    // the mezzanine — comfortably the largest painted area in the game — and it
+    // was tinted 3% blue. Every up-facing part of it then also caught the
+    // hemisphere's sky colour, which is a desaturated blue by design, and the
+    // dock came back as pale denim while the ceiling read as an overcast sky
+    // rather than as a roof. A graded review measured the dominant hue share at
+    // 42-58% of frame against a reference band of 19-31% and this surface is
+    // the single biggest contributor to it. Galvanising thirty years into a
+    // working shed is a warm grey; saying so here costs nothing and takes the
+    // largest blue field in the level out of the count.
+    o[0] = l * 1.030; o[1] = l * 1.000; o[2] = l * 0.955;
+    o[3] = clamp01(0.24 + crown * 0.42 + flute * 0.16
+      + (tooth - 0.5) * 0.26 + (spangle - 0.5) * 0.20);
   },
 
   // Open steel grating: bearing bars one way, twisted cross rods the other,

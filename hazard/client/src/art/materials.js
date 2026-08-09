@@ -97,8 +97,31 @@ const RECIPES = {
   // that runs 8-27 is not "detailed", it is a screen of dots, and post makes it
   // worse because every pass in the chain is another low-pass filter that the
   // eye reads as more noise rather than less.
-  concrete: { tex: 'concrete', tile: 5.6, rough: 0.94, metal: 0.0, bump: 1.05, roughVar: -0.20, ao: 0.42, mottle: 0.16, fill: 0.34 },
-  panel: { tex: 'panel', tile: 4.6, rough: 0.80, metal: 0.10, bump: 2.1, roughVar: -0.20, ao: 0.46, mottle: 0.13, fill: 0.30, env: 0.45 },
+  // AND THEN EVERY ARCHITECTURAL FILL CAME DOWN BY A THIRD, WHICH IS THE
+  // LIGHTING DESIGN.
+  //
+  // Worth doing the arithmetic, because it is not close. On concrete the bounce
+  // floor was contributing 0.062 to reflected diffuse while the level's own
+  // hemisphere light contributed 0.010 — this term was not supplementing the
+  // ambient, it WAS the ambient, at six times the strength of the one the level
+  // author wrote. A lamp directly overhead adds 0.226 and a patch of floor
+  // fourteen metres from any lamp adds 0.033, so the ratio between lit floor and
+  // unlit floor was 3.0:1 before the tone curve and about 1.3:1 after it. A
+  // review measured 1.01-1.40:1 against a rubric floor of 2:1 and R.E.P.O.
+  // running 3.2:1 to 11.6:1, and called it the reason the build does not look
+  // like the references. It was right, and this file is where it came from.
+  //
+  // At a third less the same pair goes to about 3.9:1 linear. That is still not
+  // R.E.P.O. — the lamps would have to get brighter and further apart for that,
+  // and lamp intensity is level data, not mine — but it is the difference
+  // between a room with light in it and a room with an exposure setting.
+  //
+  // The floor stays deliberately non-zero and the reason is one line further
+  // down the file: what this puts back into the dark is TEXTURED and TINTED, so
+  // a crate in an unlit corner still shows a top, a side and its own grain. The
+  // failure mode being avoided is not darkness, it is emptiness.
+  concrete: { tex: 'concrete', tile: 5.6, rough: 0.94, metal: 0.0, bump: 1.05, roughVar: -0.20, ao: 0.42, mottle: 0.16, fill: 0.235 },
+  panel: { tex: 'panel', tile: 4.6, rough: 0.80, metal: 0.10, bump: 2.1, roughVar: -0.20, ao: 0.46, mottle: 0.13, fill: 0.205, env: 0.35 },
   // Fifteen hundred square metres of ceiling, and every number here is set by
   // that. The tile went 4.0 -> 5.5 so the deck's two ribs sit at a 2.75 m
   // pitch: see textures.js, where an A/B against the shipped material proved
@@ -112,12 +135,28 @@ const RECIPES = {
   // brighter than the floor it is supposedly bouncing off. A ceiling is allowed
   // to be the dimmest large surface in a shed; it is not allowed to be empty,
   // and the ribs are what stop it being empty now.
-  deckplate: { tex: 'deckplate', tile: 5.5, rough: 0.93, metal: 0.07, bump: 1.0, roughVar: -0.12, ao: 0.34, mottle: 0.10, fill: 0.24, env: 0.22 },
-  grate: { tex: 'grate', tile: 0.88, rough: 0.62, metal: 0.60, bump: 2.2, roughVar: -0.22, ao: 0.55, mottle: 0.08, fill: 0.22, env: 0.7 },
-  steelblue: { tex: 'steelblue', tile: 1.75, rough: 0.68, metal: 0.28, bump: 1.5, roughVar: -0.22, ao: 0.30, mottle: 0.11, fill: 0.34, env: 0.5 },
-  railing: { tex: 'railing', tile: 1.05, rough: 0.62, metal: 0.22, bump: 1.8, roughVar: -0.20, ao: 0.26, mottle: 0.10, fill: 0.32 },
-  plank: { tex: 'plank', tile: 1.55, rough: 0.90, metal: 0.0, bump: 2.0, roughVar: -0.16, ao: 0.34, mottle: 0.13, fill: 0.32 },
-  rubber: { tex: 'rubber', tile: 1.15, rough: 0.97, metal: 0.0, bump: 2.2, roughVar: -0.10, ao: 0.45, mottle: 0.08, fill: 0.20 },
+  // env comes DOWN to almost nothing. The environment map is a bright studio
+  // room, so any surface that reflects it at all reflects a pale blue-white
+  // that is not in the level — and this surface is the ceiling, which is where
+  // a review found "an overcast sky" in a shed with no windows. A sooty roof
+  // deck reflects essentially nothing. bump comes UP to carry the flutes and
+  // the spangle that textures.js now puts in the height channel for the ramp
+  // and the dock; at four degrees the graze fade removes all of it anyway, so
+  // this number is paid by the near field and not by the ceiling.
+  deckplate: { tex: 'deckplate', tile: 5.5, rough: 0.93, metal: 0.05, bump: 1.5, roughVar: -0.14, ao: 0.38, mottle: 0.10, fill: 0.175, env: 0.08 },
+  grate: { tex: 'grate', tile: 0.88, rough: 0.62, metal: 0.60, bump: 2.2, roughVar: -0.22, ao: 0.55, mottle: 0.08, fill: 0.155, env: 0.55 },
+  // env DOWN from 0.5. Three hundred metres of rack upright is the second
+  // largest painted area in the game and a review found it reading as glitter
+  // rather than as painted steel. That is not the texture — the chips and
+  // scuffs in it are all centimetre-scale or larger — it is a 12 cm box section
+  // at twenty metres catching a prefiltered studio reflection on a bumped
+  // normal, which is a specular that changes completely from one pixel to the
+  // next. Enamel over pressed steel is nearly matte; the highlight it is
+  // entitled to comes from the lamps, not from a room that is not there.
+  steelblue: { tex: 'steelblue', tile: 1.75, rough: 0.72, metal: 0.22, bump: 1.5, roughVar: -0.22, ao: 0.30, mottle: 0.11, fill: 0.235, env: 0.22 },
+  railing: { tex: 'railing', tile: 1.05, rough: 0.62, metal: 0.22, bump: 1.8, roughVar: -0.20, ao: 0.26, mottle: 0.10, fill: 0.225 },
+  plank: { tex: 'plank', tile: 1.55, rough: 0.90, metal: 0.0, bump: 2.0, roughVar: -0.16, ao: 0.34, mottle: 0.13, fill: 0.225 },
+  rubber: { tex: 'rubber', tile: 1.15, rough: 0.97, metal: 0.0, bump: 2.2, roughVar: -0.10, ao: 0.45, mottle: 0.08, fill: 0.14 },
 
   // Prop surfaces. These sit near white and let vertex colour carry the hue —
   // see props.js. Seventeen kinds of object, ten materials, and a novelty
@@ -129,7 +168,17 @@ const RECIPES = {
   fabric: { tex: 'fabric', tile: 0.34, rough: 0.98, metal: 0.0, bump: 1.8, roughVar: 0.10, ao: 0.34, mottle: 0, fill: 0.30 },
   fur: { tex: 'fur', tile: 0.28, rough: 0.94, metal: 0.0, bump: 2.4, roughVar: 0.12, ao: 0.36, mottle: 0, fill: 0.30 },
   card: { tex: 'card', tile: 0.60, rough: 0.86, metal: 0.0, bump: 1.0, roughVar: 0.08, ao: 0.16, mottle: 0, fill: 0.30 },
-  lacquer: { tex: 'lacquer', tile: 0.80, rough: 0.20, metal: 0.12, bump: 0.9, roughVar: -0.10, ao: 0.12, mottle: 0, fill: 0.55, env: 1.3 },
+  // THE OTHER HALF OF THE NAVY MONOLITH FIX; see the note in post.js.
+  //
+  // env 1.3 on a near-black surface at roughness 0.20 is a mirror, and what it
+  // was mirroring was a prefiltered studio room — pale, blue and nowhere in
+  // this level. The piano is only ever seen in a dim shed, so what it should
+  // return is a tight highlight off the lamp that is actually there, not a
+  // broad blue-grey sheen off one that is not. Roughness up a touch as well:
+  // 0.20 is a concert grand under gallery lights, and this thing has been in a
+  // warehouse in Crayford. fill down from 0.55 — the highest figure in the file
+  // and plainly wrong for black lacquer, which bounces nothing.
+  lacquer: { tex: 'lacquer', tile: 0.80, rough: 0.28, metal: 0.10, bump: 0.9, roughVar: -0.10, ao: 0.12, mottle: 0, fill: 0.26, env: 0.45 },
   enamel: { tex: 'enamel', tile: 0.85, rough: 0.26, metal: 0.06, bump: 1.4, roughVar: -0.38, ao: 0.20, mottle: 0, fill: 0.30, env: 1.1 },
   rust: { tex: 'rust', tile: 0.85, rough: 0.88, metal: 0.38, bump: 2.6, roughVar: -0.16, ao: 0.38, mottle: 0.08, fill: 0.28 },
 

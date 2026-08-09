@@ -210,25 +210,70 @@ export class WorldView {
     }
   }
 
-  /** The van: a wireframe volume so you can see where money has to end up. */
+  /**
+   * The van: where money has to end up, marked on the floor.
+   *
+   * This was a translucent green box with a wireframe around it, and a review
+   * called the current version "a swimming pool" — worse than the wireframe it
+   * replaced, on the grounds that a wireframe reads as unfinished while a
+   * filled volume reads as finished and wrong. Both were the same mistake:
+   * putting a debug gizmo in the shipping frame and tinting the air inside a
+   * space you have to look through to aim.
+   *
+   * A real loading bay marks its floor, not its air. Hazard-striped decal on
+   * the deck, four corner brackets standing proud of it, nothing at all between
+   * you and the thing you are trying to put down. It reads as signage rather
+   * than as a rendering artefact, and the fog gets to do its job through the
+   * volume instead of fighting a green wash.
+   */
   buildExtractZone() {
     const e = this.level.extract;
-    const box = new THREE.Mesh(
-      new THREE.BoxGeometry(e.s[0], e.s[1], e.s[2]),
-      new THREE.MeshBasicMaterial({
-        color: 0x4fd08a, transparent: true, opacity: 0.07,
-        depthWrite: false, side: THREE.BackSide,
-      }),
-    );
-    box.position.set(e.p[0], e.p[1], e.p[2]);
-    this.scene.add(box);
+    const [w, h, d] = e.s;
+    const floor = e.p[1] - h / 2 + 0.012;
+    const marks = [];
 
-    const edges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(e.s[0], e.s[1], e.s[2])),
-      new THREE.LineBasicMaterial({ color: 0x6bf0a8, transparent: true, opacity: 0.5 }),
-    );
-    edges.position.copy(box.position);
-    this.scene.add(edges);
+    // The striped deck. Alternating slabs rather than a texture: it costs one
+    // merged geometry, it never moires at a grazing angle, and the stripe size
+    // is authored in metres so it reads the same in every level.
+    const STRIPE = 0.34;
+    for (let x = -w / 2; x < w / 2 - 0.02; x += STRIPE * 2) {
+      const seg = Math.min(STRIPE, w / 2 - x);
+      const g = new THREE.BoxGeometry(seg, 0.02, d - 0.1);
+      g.translate(e.p[0] + x + seg / 2, floor, e.p[2]);
+      marks.push(g);
+    }
+    const deck = new THREE.Mesh(mergeGeometries(marks, false),
+      new THREE.MeshStandardMaterial({
+        color: 0xe8b53a, roughness: 0.72, metalness: 0.0,
+        emissive: 0x3a2a06, emissiveIntensity: 0.4,
+      }));
+    deck.receiveShadow = true;
+    this.scene.add(deck);
+
+    // Corner brackets: two short bars per corner, at knee height, so the volume
+    // is legible from inside it as well as from across the room.
+    const bars = [];
+    const L = Math.min(0.5, w / 4);
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        const cx = e.p[0] + sx * (w / 2 - 0.05);
+        const cz = e.p[2] + sz * (d / 2 - 0.05);
+        const a = new THREE.BoxGeometry(L, 0.06, 0.06);
+        a.translate(cx - sx * L / 2, floor + 0.42, cz);
+        const b = new THREE.BoxGeometry(0.06, 0.06, L);
+        b.translate(cx, floor + 0.42, cz - sz * L / 2);
+        const post = new THREE.BoxGeometry(0.06, 0.44, 0.06);
+        post.translate(cx, floor + 0.22, cz);
+        bars.push(a, b, post);
+      }
+    }
+    const frame = new THREE.Mesh(mergeGeometries(bars, false),
+      new THREE.MeshStandardMaterial({
+        color: 0x9fe8bd, roughness: 0.4, metalness: 0.1,
+        emissive: 0x1d5c3a, emissiveIntensity: 0.9,
+      }));
+    frame.castShadow = true;
+    this.scene.add(frame);
   }
 
   // --- water ------------------------------------------------------------------

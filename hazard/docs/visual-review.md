@@ -992,3 +992,159 @@ foreground framing elements between them.
   cannot be graded from the shot named after them. Cycle the build across the solo shots and
   actually frame the head.
 * 252 draws with six figures against a 175 budget. Eleven uninstanced meshes per contractor.
+
+---
+
+## Pass 3b — re-shoot against a newer build, 2026-08-09
+
+Written because two of pass 3's confirmations were reported fixed while the pass was being written,
+and a confirmation that is stale is worse than no confirmation at all. This section re-tests only
+what a newer build could have changed. **It does not re-grade the criteria**; where the statistics
+are unchanged, the pass-3 letters stand and are not restated.
+
+**Build:** HEAD `c255141` plus uncommitted changes to `art/materials.js`, `art/props.js`,
+`server/world.js` and `server/nettest.js`; bundle `index-DlLLoYOk.js` (2,193.91 kB) +
+`three-jfAxEz14.js`, built by me. **Frames:** `p3b-{spawn,floor,racking,pit,dock,ceiling,groundtex}.png`
+and `p3bw-deck-t*.png`, captured with `crit3b.js` on ports 4762/4763.
+
+**Two harness notes before the findings.**
+
+The warehouse went from **13,533 to 53,681 triangles** — 4× — and at that load a 1280×720 readback
+under swiftshader exceeds Playwright's 30 s default. `hz.js` and `hz-water.js` now both die on
+`page.screenshot: Timeout 30000ms exceeded` after passing all their assertions, so the suite reports
+a failure while the build is fine. `crit3b.js` is a capture-only copy with the timeout raised to
+180 s; the shot angles are copied verbatim rather than re-aimed, for the reason set out in rubric §4.
+
+`p3b-groundtex.png` is mislabelled by me and should be ignored as a concrete sample: at that pitch
+the camera is looking into the extraction volume, not at the floor. The pale green expanse in it is
+the objective marker.
+
+### The two claimed fixes: both real, both confirmed by eye
+
+**Squiggly-loop concrete pattern — fixed.** Verified on a 3× nearest-neighbour magnification of the
+near floor in `p3b-dock` (`crop-floor.png`), not on a statistic. The wandering closed contours are
+gone. They are still visible in `hzw-t370.png`, which was shot before the fix; disregard that part of
+pass 3's C4 note and of the water section.
+
+What replaced them does not yet name its material. The near-centre dock floor measures a local
+standard deviation of **3.0** over a 300×65 patch — close to flat — and the magnified crop reads as a
+soft blotchy wash with faint diagonal streaking, i.e. dirty lino rather than concrete. Elsewhere the
+floor is better: slab joints and bay markings are present in `p3b-spawn` and `p3b-racking` and are
+the best texture work in the build. **C4's cap at C was for pattern content, not for scale, and it
+stands** — but the specific instruction in pass 3's fix #3(a) is discharged.
+
+**Ceiling deckplate moiré — fixed, and it has left two new problems behind.** The hard interference
+pattern is gone at both angles I could find it at. In its place:
+
+| | Luma | RGB | Local SD |
+|---|---|---|---|
+| Ceiling looking straight up (`p3b-ceiling`) | 26.2 | 26 / 25 / 42 | **1.0** |
+| Ceiling at grazing angle (`p3b-spawn`, top band, HUD-free) | 98.4 | 82 / 102 / 117 | 37.2 |
+| Floor, near camera, same frame | 156.7 | 150 / 158 / 168 | 17.3 |
+
+Straight up, the ceiling is now a **dead flat navy field** — SD 1.0 is as featureless as a surface
+can measure, and it is the largest single surface in that frame. At a grazing angle it is soft
+blue-grey streaking, cool in hue (blue leads red by 35) and busier than the floor it faces, so the
+top 15% of `p3b-spawn` reads as overcast sky rather than as a roof. Trading a moiré for a sky is a
+good trade; neither endpoint is finished.
+
+**A correction against myself, made before this section was filed.** The first version of that table
+put the grazing ceiling at luma 158.2 and called it brighter than the floor. It is not: my sample
+rectangle spanned the quota readout, and I had measured the HUD's white text. Clear of the HUD the
+same band reads 98.4, i.e. **darker** than the floor at 156.7. The claim was wrong in its direction,
+not merely its magnitude. Rubric §4 says every metric here is a proxy and three had already been
+caught measuring something other than what they claim; this is the fourth, it is mine, and it was
+caught only because the number looked surprising enough to re-sample. Sample rectangles must be
+checked against the HUD overlay before their contents are believed.
+
+### Still present, re-confirmed on the new build
+
+* **The navy mass in `p3b-racking`** — luma **25.3**, RGB 26/24/40, still a featureless slab across
+  the lower centre running off the bottom edge. Darker than pass 3 measured it, not better.
+* **The deck-rib starbursts** — the ceiling lamp fans in `p3b-racking` measure luma 112.4 at local
+  SD **46.7** against a ceiling of 67.3. Still owning the upper third, still reading as smeared
+  radiating streaks.
+* **The bloom clip** — the van lamp core measures a **mean** of 239.6 (`p3b-pit`) and 242.3
+  (`p3b-floor`) over an 80×90 box, and `p3b-floor` clips **0.8%** of its pixels, marginally worse
+  than pass 3's 0.7%. The emitter still has no shape inside its halo. This remains the smallest,
+  highest-value fix in the document.
+* **The green wireframe extraction gizmo** — still drawn, clearly visible inside the van in
+  `p3b-pit`, `p3b-floor` and `p3b-ceiling`.
+
+### New, and it did not exist in pass 3's frames
+
+**The extraction volume now reads as a swimming pool.** Where pass 3 saw a green wireframe cuboid,
+there is now also a filled green basin on the warehouse floor — bright (luma **176.9**, RGB
+165/184/146), kerbed, with a pale plank laid across it — and in `p3b-dock` and `p3b-spawn` it is the
+brightest large object in frame. It is confidently rendered and it is the wrong object: a lit green
+basin with a board over it is a paddling pool, in a dry warehouse, and it is the volume the entire
+game loop is about. This is not an improvement on the wireframe. A wireframe reads as unfinished; this
+reads as finished and wrong, which is harder to see and worse to ship.
+
+**The dock pile-up bug could not be observed.** Every frame in this set sits at £0 of £5,200 with
+nothing extracted, so no delivered stock exists to pile up. Neither confirmed nor denied — and it
+has since been fixed in `b574c94`, "Paid-for stock stops being furniture", which landed while this
+section was being written. A frame that shows a part-filled van remains ungraded by anyone; the
+harness never plays far enough into a job to produce one, which is a gap in the capture set rather
+than in the build.
+
+### The statistics did not move, so the pass-3 letters stand
+
+| Metric | Pass 3 range | Pass 3b range | Verdict |
+|---|---|---|---|
+| Median luma | 29.6–126.3 | 29.6–121.4 | unchanged |
+| Crushed (L≤4) | 0.0 | 0.0 | unchanged |
+| Clipped (L≥250) | 0.0–0.7 | 0.0–**0.8** | marginally worse |
+| Chromatic (S>0.15) | 48.4–95.3 | **48.8**–95.4 | unchanged |
+| Dominant hue share | 42.1–58.1 | 39.6–**58.2** | unchanged |
+| Hue families | 3–5 | **3**–6 | unchanged |
+| flat% | 54.3–72.4 | 56.7–75.0 | unchanged |
+| tex% | 25.6–43.2 | 23.1–40.7 | unchanged |
+
+**C1 re-measured on the new build**, two unshadowed patches of the same concrete per frame, per
+rubric v1.1:
+
+| Frame | Bright | Dark | Ratio |
+|---|---|---|---|
+| `p3b-dock`, floor near vs right mid | 110.2 | 92.4 | **1.19 : 1** |
+| `p3b-pit`, floor near vs left | 147.9 | 122.3 | **1.21 : 1** |
+| `p3b-spawn`, floor near vs left mid | 156.7 | 118.0 | **1.33 : 1** |
+| `p3b-spawn`, floor near vs far wall | 156.7 | 68.8 | *2.28 : 1, confounded by fog* |
+
+Only the last clears the 2:1 floor and it does so by measuring aerial perspective rather than
+lighting, which is precisely the class of error rubric §4 was written about. **C1 remains F and it
+remains the top fix.** Nothing in this re-shoot changes the priority order; fix #3 is now
+approximately one-third discharged.
+
+### The `hzw-t370` arbitration, verified by eye and re-measured
+
+You asked whether that frame contains a specular highlight or is just teal, and said a metric could
+not answer it. Agreed, so I looked at the file, and then measured what I had looked at.
+
+| Region of `hzw-t370.png` | RGB | Luma | Local SD |
+|---|---|---|---|
+| Water body, bulk | 40 / 92 / 90 | 80.6 | 27.1 |
+| Water **surface band** (y 240–268) | 51 / 119 / 113 | 103.8 | **11.9** |
+| Compact bright core at ~(640, 435) | **162 / 163 / 161** | 162.4 | 26.2 |
+| Water 40 px to the left of that core | 77 / 103 / 101 | 97.1 | 31.9 |
+
+**The answer is: the frame is not just teal, and it does not have a specular highlight on the water.**
+Both halves matter.
+
+There is a genuine compact near-neutral bright feature in it — RGB 162/163/161 is neutral to within
+two levels, sitting 65 luma above the water 40 px beside it. Against a body that is strongly teal
+(red at 43% of green) that is exactly what a specular signature looks like to a metric, and your
+highlight-neutrality check is passing for a real reason rather than a rounding one. But looking at
+the frame, that neutral core is a submerged light and its bloom sitting on the tank floor behind a
+red-topped crate. It is an emitter. It would be in that frame whether or not water reflected
+anything at all.
+
+The surface itself — the horizontal plane the metric is nominally about — is teal at 51/119/113 and
+smooth at SD **11.9**, with no reflected image of the lamp, the walls or the rig anywhere along it.
+
+So the metric is sound and the thing you hoped it protected is absent. **Do not nudge the 1.45
+threshold; it is not the problem.** Add a check that is actually about the surface: inside the
+surface band only, require the top 1% by luma to be within 20% of neutral *and* clustered inside
+~40 px. That check fails today, correctly, and it cannot be satisfied by an emitter somewhere else
+in the frame. Keep the whole-frame cast printed, blocking on dry levels where a cast is a bug and
+non-blocking on flooded ones where it is the subject.

@@ -393,7 +393,24 @@ void main() {
   float far = 1.0 - exp( -dist * uAerialRate );
   float shadow = 1.0 - smoothstep( 0.0, 0.24, dot( col, LUMA ) );
   shadow *= shadow;
-  col += ( uLift + uAerial * far ) * shadow * vig;
+  // AND THE LIFT IS GATED BY DISTANCE, BECAUSE AT TWO METRES THERE IS NO AIR.
+  //
+  // This is the fix for the navy monolith. An upright piano finished in black
+  // lacquer, standing 1.5 m from the lens and filling 14% of the frame, has a
+  // luma of about 0.03 — so the shadow mask is 1.0 across every pixel of it and
+  // the flat lift landed on the whole object at full strength. RGB 25/23/40
+  // is not a black piano, it is a navy slab, and three separate reviews called
+  // it exactly that while the black-point statistic it exists to serve passed
+  // clean. A black point is a property of the ATMOSPHERE between you and a
+  // surface. The far racking has thirty metres of dusty air in front of it and
+  // should lift; a piano you could touch has none and should stay black.
+  //
+  // Not to zero, though. Killing the near-field lift outright is how the build
+  // got its crushed blacks the first time — the floor of 0.22 is what keeps a
+  // shadowed boot from reaching absolute zero, and absolute zero is a hole in
+  // the picture whatever colour it is.
+  float air = mix( 0.22, 1.0, smoothstep( 0.8, 11.0, dist ) );
+  col += ( uLift * air + uAerial * far ) * shadow * vig;
 
   // Grain last and in display space, because that is where a sensor's noise
   // actually lives, and weighted towards the shadows where you would see it.
