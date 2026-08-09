@@ -659,13 +659,18 @@ try {
         const me = Q.player();
         const prop = Q.prop(id);
         if (prop) {
-          if (prev) {
-            const dt = Math.max(0.001, (prop.seenAt - prev.seenAt) / 1000);
+          const seenAt = Date.now();
+          if (prev && seenAt > prev.seenAt) {
+            const dt = Math.max(0.001, (seenAt - prev.seenAt) / 1000);
             const jump = Math.hypot(prop.x - prev.x, prop.y - prev.y, prop.z - prev.z);
             worstJump = Math.max(worstJump, jump);
-            worstSpeed = Math.max(worstSpeed, jump / dt);
+            // Only rate a gap that actually contains new data: sampling the
+            // same snapshot twice is a zero-distance, near-zero-time step, and
+            // dividing one by the other is how a stable object reports a
+            // spectacular speed.
+            if (jump > 0) worstSpeed = Math.max(worstSpeed, jump / dt);
           }
-          prev = { x: prop.x, y: prop.y, z: prop.z, seenAt: Date.now() };
+          prev = { x: prop.x, y: prop.y, z: prop.z, seenAt };
           track.push(prev);
         }
         if (me) {
@@ -686,7 +691,8 @@ try {
       // the object physically cannot outrun it by much. Anything near double is
       // the controller winding up, which is the failure this clamp exists to
       // prevent.
-      ok('the shared servo does not wind up', worstSpeed < 13,
+      ok('the shared servo does not wind up',
+        Number.isFinite(worstSpeed) && worstSpeed > 0 && worstSpeed < 13,
         `peak ${worstSpeed.toFixed(1)}m/s between snapshots`);
       ok('the object never teleports', worstJump < 2.5,
         `worst step ${worstJump.toFixed(2)}m`);
@@ -737,6 +743,12 @@ pool.fill(4);
 // roughly the one the level intends. Nothing else is softened: the bots still
 // have to find it, lift it, carry it up the ramp, queue for the tailgate and
 // set it down in the van without breaking it or flattening each other.
+// Six rather than four on purpose. Extracted stock used to keep its collider,
+// so the van filled with what had already been paid for and the fifth delivery
+// bounced off the fourth — a physical capacity nobody designed, found by the
+// bots because they are the only thing patient enough to deliver a dozen
+// things in a row. World.retireProp fixes it, and a fixture that seeds more
+// stock than the van floor can hold is what keeps it fixed.
 const FLOOR_STOCK = [
   ['safe', [-7.0, 0, 6.0]],
   ['safe', [-3.5, 0, 6.5]],

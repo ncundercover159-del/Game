@@ -487,6 +487,9 @@ export class Room {
 
       rec.extracted = true;
       rec.dirty = true;
+      // Paid for means out of the way. See World.retireProp — leaving the
+      // collider up turns the van into a wall after four deliveries.
+      this.world.retireProp(rec);
       const paid = rec.broken ? Math.round(rec.def.value * 0.1) : rec.def.value;
       this.banked += paid;
       this.extractedKinds.set(rec.kind, (this.extractedKinds.get(rec.kind) || 0) + 1);

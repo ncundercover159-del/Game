@@ -182,6 +182,7 @@ const BRIGHT_FRAG = /* glsl */`
 varying vec2 vUv;
 uniform sampler2D tScene;
 uniform float uThreshold;
+uniform float uClamp;
 
 void main() {
   vec3 c = texture2D( tScene, vUv ).rgb;
@@ -189,7 +190,23 @@ void main() {
   // Soft knee. A hard threshold makes the bloom pop on and off as a lamp
   // crosses it, which reads as a bug rather than as a lamp.
   float k = clamp( ( l - uThreshold ) / max( uThreshold, 1e-3 ), 0.0, 1.0 );
-  gl_FragColor = vec4( c * k * k, 1.0 );
+  c *= k * k;
+
+  // AND THEN CLAMP IT, WHICH IS THE WHOLE POINT OF THIS PASS.
+  //
+  // The dock lamp sits 600 mm from the wall it is bolted to. Inverse square on
+  // 440 candela over 0.6 m arrives at roughly 1200× white, so the unclamped
+  // bright pass handed the blur a source twelve hundred units tall, the blur
+  // spread it over a 190 px disc, and every pixel of that disc was still far
+  // past 1.0 after the ACES roll-off. A measured frame had 2,700 pixels at luma
+  // 253+ and no lamp SHAPE anywhere in it — the emitter had been eaten by its
+  // own halo.
+  //
+  // A bloom is a lens artefact and a lens scatters a FRACTION of what enters
+  // it. Clamping the source says exactly that: past a point, more light does not
+  // buy more veil, it only buys a brighter core — which the tone curve then
+  // handles, and which is what keeps a lamp reading as an object with an edge.
+  gl_FragColor = vec4( min( c, vec3( uClamp ) ), 1.0 );
 }
 `;
 
@@ -440,6 +457,10 @@ class SitePass extends Pass {
     this.brightMat = shader(BRIGHT_FRAG, {
       tScene: { value: null },
       uThreshold: { value: 1.62 },
+      // Four stops of veil above the threshold and no more. Low enough that the
+      // dock lamp keeps a core; high enough that a hi-viz vest under a lamp
+      // still glows rather than going matte.
+      uClamp: { value: 6.5 },
     });
     this.blurMat = shader(BLUR_FRAG, {
       tSrc: { value: null },

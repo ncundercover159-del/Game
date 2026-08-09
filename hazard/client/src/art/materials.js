@@ -106,7 +106,13 @@ const RECIPES = {
   // rounds of tuning had assumed, the specular. The relief can come back UP as
   // a result — height was never the problem and a roof with no bump at all
   // reads as painted card.
-  deckplate: { tex: 'deckplate', tile: 5.5, rough: 0.93, metal: 0.07, bump: 1.0, roughVar: -0.12, ao: 0.34, mottle: 0.10, fill: 0.36, env: 0.22 },
+  // fill stays LOW here despite the ceiling being the thing it was meant to
+  // rescue. The bounce term weights down-facing surfaces at 1.30, so a ceiling
+  // gets the most of it of anything in the level, and at 0.36 the roof came out
+  // brighter than the floor it is supposedly bouncing off. A ceiling is allowed
+  // to be the dimmest large surface in a shed; it is not allowed to be empty,
+  // and the ribs are what stop it being empty now.
+  deckplate: { tex: 'deckplate', tile: 5.5, rough: 0.93, metal: 0.07, bump: 1.0, roughVar: -0.12, ao: 0.34, mottle: 0.10, fill: 0.24, env: 0.22 },
   grate: { tex: 'grate', tile: 0.88, rough: 0.62, metal: 0.60, bump: 2.2, roughVar: -0.22, ao: 0.55, mottle: 0.08, fill: 0.22, env: 0.7 },
   steelblue: { tex: 'steelblue', tile: 1.75, rough: 0.68, metal: 0.28, bump: 1.5, roughVar: -0.22, ao: 0.30, mottle: 0.11, fill: 0.34, env: 0.5 },
   railing: { tex: 'railing', tile: 1.05, rough: 0.62, metal: 0.22, bump: 1.8, roughVar: -0.20, ao: 0.26, mottle: 0.10, fill: 0.32 },

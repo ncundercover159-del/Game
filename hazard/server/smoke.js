@@ -144,6 +144,39 @@ advance(2500);
 ok('a prop resting in the van pays out', room.banked > bankedBefore,
   `£${bankedBefore} -> £${room.banked}`);
 
+// --- the van does not fill up ------------------------------------------------
+// Found by bots, because bots are the only thing patient enough to deliver a
+// dozen items in a row. An extracted prop used to keep its collider, so paid-for
+// stock stayed solid in the van: the second delivery bounced off the first and
+// by the fourth the van was a wall. The van had a physical capacity nobody
+// designed, and every game got quietly harder towards the end of it.
+//
+// Same coordinates every time, deliberately. Spread out they would each find
+// their own corner and the bug would take a dozen deliveries to show; stacked on
+// one spot, a live collider is an immediate interpenetration and the test fails
+// on the second item.
+{
+  const before = room.banked;
+  let delivered = 0;
+  for (let i = 0; i < 6; i++) {
+    const r = room.world.spawnProp('stapler', [e.p[0], e.p[1], e.p[2]]);
+    r.rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    advance(1600);
+    if (r.extracted) delivered++;
+  }
+  ok('the van takes delivery after delivery', delivered === 6,
+    `${delivered} of 6 banked, £${before} -> £${room.banked}`);
+
+  // ...and check the mechanism, not a symptom. "Nothing is moving" was the
+  // first version of this and it passed with the bug still in — retired props
+  // settle and go quiet whether or not they are solid, so it asserted nothing.
+  // Collision groups are the thing that actually changed.
+  const retired = [...room.world.props.values()].filter((r) => r.extracted);
+  const solid = retired.filter((r) => r.cols.some((c) => c.collisionGroups() !== 0));
+  ok('paid-for stock collides with nothing', solid.length === 0,
+    `${solid.length} of ${retired.length} extracted props still solid`);
+}
+
 // --- the wire ---------------------------------------------------------------
 const snap = room.snapshot(now);
 const r = new Reader(snap);

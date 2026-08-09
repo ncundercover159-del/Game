@@ -171,6 +171,29 @@ export class World {
     return true;
   }
 
+  /**
+   * Stock that has been paid for stops being furniture.
+   *
+   * Marking a prop `extracted` used to bank the money, hide the mesh, and leave
+   * a fully solid rigid body sitting in the van. Deliver a safe and the next
+   * thing you deliver bounces off it; deliver four and the van is a wall you
+   * cannot get the fifth past. The van had a physical capacity nobody designed,
+   * every game got quietly harder towards the end, and on the plant — small
+   * flatbed, 260kg pump motor — the last delivery may simply not have fit.
+   *
+   * Kept in `props` rather than removed, because the record is what carries the
+   * EXTRACTED flag to clients, and a prop that vanishes from the map stops
+   * being told about. Inert, asleep and colliding with nothing is the state we
+   * actually want: invisible to physics, still present on the wire.
+   */
+  retireProp(rec) {
+    for (const c of rec.cols) c.setCollisionGroups(membership(0, 0));
+    rec.rb.setGravityScale(0, true);
+    rec.rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    rec.rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    rec.rb.sleep();
+  }
+
   removeProp(rec) {
     for (const c of rec.cols) this.byHandle.delete(c.handle);
     this.world.removeRigidBody(rec.rb);
