@@ -553,6 +553,7 @@ if (withBots) {
 
 // --- rooms expire ------------------------------------------------------------
 section('rooms expire');
+const roomsBefore = ((await health(PORT)) || { rooms: 0 }).rooms;
 const E = await new TC('E').open();
 const joinedE = await E.join('ECHO');
 ok('a fresh room for the expiry test', !!joinedE, joinedE && joinedE.code);
@@ -562,14 +563,24 @@ E.close();
 // contractor leaves. Poll for it rather than sleeping for a guessed interval
 // and racing the sweep — a refused join leaves the socket usable, which is
 // asserted above, so the same client can simply keep asking.
-const G = await new TC('G').open();
-const expired = await until(async () => {
-  G.send({ t: 'join', name: 'GONE', code: joinedE.code });
-  await sleep(700);
-  return G.last('error') && /NO JOB/i.test(G.last('error').message) ? G.last('error') : null;
-}, 15000);
-ok('an abandoned room is reaped', !!expired, expired && expired.message);
-G.close();
+// Watch from outside over HTTP, and do not poll by trying to join.
+//
+// Polling with a join is self-defeating in a way that took a while to see: if
+// the room is still there the attempt SUCCEEDS, which puts a connected human
+// back in it — and a connected human is precisely what holds the reaper off.
+// Every 600ms attempt reset the three-second timer it was waiting on, so the
+// room was immortal for exactly as long as the test watched it.
+const reaped = await until(async () => {
+  const h = await health(PORT);
+  return h && h.rooms <= roomsBefore ? h : null;
+}, 20000);
+ok('an abandoned room is reaped', !!reaped,
+  reaped ? `back to ${reaped.rooms} rooms` : 'still live after 20s');
+const g = await new TC('G').open();
+g.send({ t: 'join', name: 'GONE', code: joinedE.code });
+const expired = await g.waitControl('error', (m) => /NO JOB/i.test(m.message), 4000);
+ok('and its code stops working', !!expired, expired && expired.message);
+g.close();
 B.close();
 await sleep(200);
 const finalHealth = await health(PORT);
@@ -706,23 +717,34 @@ try {
       // The mechanism does not depend on which object it is. Let the stand-in
       // fetch something itself — it has navigation, this client does not — and
       // then walk the second contractor onto whatever that turned out to be.
-      P.send({ t: 'autopilot', on: true });
-      const lifted = await until(() => {
-        const pl = Q.player(P.slot);
-        return pl && pl.heldId ? pl : null;
-      }, 60000);
-      if (lifted) {
+      //
+      // Retried, because the SETUP is what is unreliable, not the thing being
+      // tested: the stand-in tends to come back with a scatter prop weighing
+      // under a kilogram, and a 72kg capsule walking up to one can knock it out
+      // of its hands before the second pair arrives. Retrying the approach is
+      // not a weaker assertion, it is a fixture that stops flaking.
+      for (let attempt = 0; attempt < 3 && !bothOn; attempt++) {
+        P.send({ t: 'autopilot', on: true });
+        const lifted = await until(() => {
+          const pl = Q.player(P.slot);
+          return pl && pl.heldId ? pl : null;
+        }, 45000);
+        if (!lifted) break;
         carried = lifted.heldId;
         // Park the stand-in so the second contractor has a stationary target.
         P.send({ t: 'autopilot', on: false });
         const parkYaw = (Q.player(P.slot) || { yaw: 0 }).yaw;
         const park = setInterval(() => P.input({ yaw: parkYaw, pitch: 0 }), 40);
         bothOn = await until(() => {
+          const pl = Q.player(P.slot);
+          // The stand-in dropped it before we arrived; go round again.
+          if (!pl || pl.heldId !== carried) return 'lost';
           nav(Q, sq, carried);
           watch();
           return maxHolders >= 2 ? true : null;
-        }, 45000);
+        }, 30000);
         clearInterval(park);
+        if (bothOn === 'lost') bothOn = false;
       }
       ok('two contractors get their hands on the same object', !!bothOn,
         `${maxHolders} holders at once on prop ${carried}`);
