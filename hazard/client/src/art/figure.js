@@ -119,12 +119,25 @@ const SLOT_HUES = [0.06, 0.55, 0.33, 0.86, 0.13, 0.71, 0.45, 0.95];
 // tenths of the skull radius that stops being possible on a sphere. Size went
 // down and the pupils went up as a fraction, which is where the expression
 // actually lives.
+//
+// AND THE HAT IS A THIRD SILHOUETTE NOW, NOT TWO.
+//
+// The claim this list has to satisfy is not "eight builds exist", it is that
+// eight of them are TELLABLE APART in a dim shed at twenty metres. At twenty
+// metres a contractor is about forty pixels tall and the hat is eight of them:
+// height and girth have almost stopped mattering, hue is being eaten by a warm
+// lamp, and the only thing with any resolution left is the outline of the shell.
+// With two hat types that outline had one bit of information in it and four
+// builds shared each value. Three types plus wide/narrow is the cheapest way to
+// buy the second bit — dome (peripheral brim), cap (peak at the front only) and
+// fullbrim (a flat disc all the way round, which is a real hard hat and reads
+// completely differently in silhouette from either).
 const BUILDS = [
-  { name: 'THE FOREMAN', h: 1.00, girth: 1.00, head: 1.00, eyes: 0.078, gap: 0.85, hat: 'dome', snout: 0.00 },
+  { name: 'THE FOREMAN', h: 1.00, girth: 1.00, head: 1.00, eyes: 0.078, gap: 0.85, hat: 'fullbrim', snout: 0.00 },
   { name: 'THE TALL ONE', h: 1.14, girth: 0.80, head: 0.84, eyes: 0.068, gap: 0.70, hat: 'cap', snout: 0.05 },
   { name: 'THE UNIT', h: 0.86, girth: 1.34, head: 1.16, eyes: 0.086, gap: 1.05, hat: 'dome', snout: 0.00 },
-  { name: 'THE APPRENTICE', h: 0.82, girth: 0.92, head: 1.28, eyes: 0.092, gap: 1.15, hat: 'dome', snout: 0.00 },
-  { name: 'THE LIFER', h: 0.96, girth: 1.12, head: 0.92, eyes: 0.066, gap: 0.75, hat: 'cap', snout: 0.09 },
+  { name: 'THE APPRENTICE', h: 0.82, girth: 0.92, head: 1.28, eyes: 0.092, gap: 1.15, hat: 'cap', snout: 0.00 },
+  { name: 'THE LIFER', h: 0.96, girth: 1.12, head: 0.92, eyes: 0.066, gap: 0.75, hat: 'fullbrim', snout: 0.09 },
   { name: 'THE NEW START', h: 1.06, girth: 0.88, head: 1.04, eyes: 0.080, gap: 0.95, hat: 'dome', snout: 0.03 },
   { name: 'THE SUBCONTRACTOR', h: 0.90, girth: 1.20, head: 1.10, eyes: 0.074, gap: 0.90, hat: 'cap', snout: 0.07 },
   { name: 'THE AGENCY LAD', h: 1.09, girth: 0.96, head: 0.96, eyes: 0.088, gap: 1.00, hat: 'dome', snout: 0.00 },
@@ -337,22 +350,56 @@ export function makeFigure(slot) {
     .cyl(0.038, 0.038, 0.17, RUBBER, BI.hips, RF.hips, [0.21 * G, 0.01, 0.02], [0.25, 0, 0]);
 
   // Torso: a barrel in a vest that does not fit.
+  //
+  // WHAT WAS WRONG WITH THE CHEST WAS DEPTH, NOT COUNT.
+  //
+  // A review called it a jumble and the reason is one number. The vest is a
+  // cylinder of radius 0.248·G, and the two vertical braces, the pocket and the
+  // badge were all placed as flat BOXES at z = 0.215–0.245 — that is, INSIDE
+  // the vest's own surface. A box buried in a cylinder emerges only where the
+  // cylinder curves away from it, so each of those four pieces showed up as a
+  // pair of disconnected slivers either side of the centreline. Four features,
+  // eight slivers, none of them the shape they were meant to be.
+  //
+  // A curved surface wants curved trim. Every band on this vest is now an open
+  // cylinder SECTOR at a radius a few millimetres proud of it — the same
+  // primitive the horizontal bands always used, which is why those were the
+  // only part of the chest that read. And the count comes down: a hi-vis reads
+  // from across a yard because it is four big shapes, not because it is
+  // detailed. Two rings, two braces, one zip.
+  const VEST_R = 0.250 * G;      // the vest's own radius at the chest
+  const TRIM_R = VEST_R + 0.008; // ...and where trim sits on top of it
+  /** An open strip of cylinder, hugging the vest. `mid` is radians off front. */
+  const strip = (mid, width, h, y, colour, r = TRIM_R) => body.add(
+    new THREE.CylinderGeometry(r, r, h, 7, 1, true, mid - width / 2, width),
+    colour, BI.torso, RF.torso, [0, y, 0],
+  );
   body
     .add(new THREE.CylinderGeometry(0.23 * G, 0.20 * G, 0.44 * S, 12), CLOTH, BI.torso, RF.torso)
     // The vest: a slightly larger shell, open at the front, hanging low.
-    .add(new THREE.CylinderGeometry(0.248 * G, 0.238 * G, 0.36 * S, 12, 1, true), HIVIZ,
+    .add(new THREE.CylinderGeometry(VEST_R, 0.240 * G, 0.36 * S, 14, 1, true), HIVIZ,
       BI.torso, RF.torso, [0, -0.03 * S, 0])
     // Bands, not plates. A box laid across a round torso meets it at four
     // corners and reads as a slab bolted on; the figure ends up looking like a
     // stack of trays. A shallow cylinder a few millimetres proud of the vest
     // wraps it the way a reflective band actually does.
-    .cyl(0.256 * G, 0.256 * G, 0.058, TAPE, BI.torso, RF.torso, [0, 0.05 * S, 0], null, 12)
-    .cyl(0.260 * G, 0.260 * G, 0.058, TAPE, BI.torso, RF.torso, [0, -0.10 * S, 0], null, 12)
-    // Braces over the shoulders, closing the vest's silhouette at the top.
-    .box(0.072, 0.34 * S, 0.055, TAPE, BI.torso, RF.torso, [-0.125 * G, -0.01 * S, 0.215 * G])
-    .box(0.072, 0.34 * S, 0.055, TAPE, BI.torso, RF.torso, [0.125 * G, -0.01 * S, 0.215 * G])
-    .box(0.15, 0.10, 0.04, HIVIZ_DEEP, BI.torso, RF.torso, [0.125 * G, 0.115 * S, 0.225 * G])
-    .box(0.105, 0.065, 0.02, badge, BI.torso, RF.torso, [0.125 * G, 0.115 * S, 0.245 * G])
+    .cyl(TRIM_R, TRIM_R, 0.050, TAPE, BI.torso, RF.torso, [0, 0.055 * S, 0], null, 14)
+    .cyl(TRIM_R + 0.003, TRIM_R + 0.003, 0.050, TAPE, BI.torso, RF.torso, [0, -0.095 * S, 0], null, 14);
+  // Braces over both shoulders, front and back, closing the vest's silhouette
+  // at the top and giving the back view the same read as the front — which
+  // matters, because for most of a job you are looking at your crew's backs.
+  for (const s of [-1, 1]) {
+    strip(s * 0.42, 0.30, 0.30 * S, -0.01 * S, TAPE);
+    strip(Math.PI + s * 0.42, 0.30, 0.30 * S, -0.01 * S, TAPE);
+  }
+  // The zip, dead centre front, dark against the orange. One line, and it is
+  // what stops the vest reading as a barrel that happens to be orange.
+  strip(0, 0.13, 0.34 * S, -0.02 * S, HIVIZ_DEEP, TRIM_R + 0.001);
+  body
+    // One badge, high on the chest, in the slot's own colour. Small on purpose:
+    // it is a grace note at two metres and must not compete with the hat at ten.
+    .add(new THREE.CylinderGeometry(TRIM_R + 0.004, TRIM_R + 0.004, 0.052, 5, 1, true, 0.60, 0.34),
+      badge, BI.torso, RF.torso, [0, 0.125 * S, 0])
     // Shoulders, so the arms have somewhere to be.
     .ball(0.118 * G, HIVIZ, BI.torso, RF.torso, [-0.235 * G, 0.165 * S, 0])
     .ball(0.118 * G, HIVIZ, BI.torso, RF.torso, [0.235 * G, 0.165 * S, 0]);
@@ -416,22 +463,84 @@ export function makeFigure(slot) {
   // the way round. The cap is a bump cap: a lower, flatter crown and a PEAK at
   // the front only. The previous 'bucket' was a flat-topped cylinder with a
   // flat brim, which from any distance reads as a bowler.
+  // AND THE THING THEY ALL HAVE TO STOP BEING IS A MUSHROOM.
+  //
+  // The previous dome was a true hemisphere of radius 0.212·HD sitting on a
+  // 0.300·HD disc with a 0.170·HD fin down the middle. Photographed front-on
+  // that is a stalk-and-cap, and the review used exactly that word. Three
+  // things were wrong and all three are geometric rather than a matter of
+  // taste:
+  //
+  //  * A HARD HAT IS NOT A HEMISPHERE. Its shell is about two thirds as tall as
+  //    it is wide. A half-sphere has its widest point at the very bottom, which
+  //    is where a mushroom is widest and where a hat is not — a hat's shell
+  //    tucks back IN towards the headband. Squashing the sphere and seating it
+  //    on a slightly narrower collar does both jobs at once.
+  //  * THE FIN. 0.170·HD of comb on a 0.212·HD crown is four fifths of the
+  //    shell's own height standing on top of it. Real ribs are a couple of
+  //    millimetres of stiffening. Three low ones read as a hard hat; one tall
+  //    one reads as a centurion helmet, and at range as a stalk.
+  //  * NO SHADOW LINE. Crown and brim were the same colour with no break
+  //    between them, so the two merged into one blob. A dark headband in the
+  //    gap costs one cylinder and is what tells the eye where the hat stops and
+  //    the head starts.
   const CROWN = 0.135 * HD;      // seat height — clear of the eyes at 0.015·HD
+  // The shell, common to all three: a squashed dome with a rolled lower edge.
+  const shell = (r, squashY, seat) => {
+    head.add(squash(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+      [1.0, squashY, 1.06]), hatCol, BI.hat, RF.hat, [0, seat, 0]);
+    // The roll. A short taper under the dome's rim, narrowing downwards, which
+    // is the tuck a real shell has where it meets the headband.
+    head.cyl(r * 1.005, r * 0.90, 0.030 * HD + 0.010, hatCol, BI.hat, RF.hat,
+      [0, seat - 0.014 * HD, 0], null, 14);
+  };
+  // Three stiffening ribs front-to-back, low and close together.
+  const ribs = (r, seat, squashY) => {
+    for (const [dx, len, hgt] of [[0, 1.00, 0.052], [-0.34, 0.86, 0.040], [0.34, 0.86, 0.040]]) {
+      head.box(0.030 * HD + 0.008, hgt * HD, r * 1.55 * len, hatDark, BI.hat, RF.hat,
+        [dx * r, seat + r * squashY - 0.018 * HD, 0]);
+    }
+  };
+  // The headband, in the shadow under the shell. Dark, and proud enough of the
+  // skull to draw a line rather than to be a coincidence of shading.
+  const band = (r, seat) => head.cyl(r * 0.93, r * 0.93, 0.036 * HD + 0.006, hatDark,
+    BI.hat, RF.hat, [0, seat - 0.030 * HD - 0.004, 0], null, 14);
+
   if (build.hat === 'cap') {
-    head.add(squash(new THREE.SphereGeometry(0.215 * HD, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2),
-      [1.0, 0.80, 1.04]), hatCol, BI.hat, RF.hat, [0, CROWN, 0]);
-    // Short. The first peak was 0.20·HD deep sitting 0.215·HD forward, which
-    // put its leading edge a full head-radius past the face — photographed, it
-    // read as a diving board bolted to a skull rather than as the brim of a cap.
-    head.box(0.30 * HD, 0.024, 0.15 * HD, hatCol, BI.hat, RF.hat,
-      [0, CROWN + 0.012, 0.185 * HD], [-0.10, 0, 0]);
-    head.cyl(0.216 * HD, 0.216 * HD, 0.030, hatDark, BI.hat, RF.hat,
-      [0, CROWN + 0.012, 0], null, 14);
+    // A bump cap. Lowest and smallest crown of the three, no brim at the sides
+    // at all, and a long curved peak — which is the whole silhouette. A half
+    // disc rather than a box: a rectangular peak reads as a plank from any
+    // angle off-axis, and the curve is one parameter on the same primitive.
+    const r = 0.196 * HD;
+    shell(r, 0.72, CROWN);
+    band(r, CROWN);
+    head.add(
+      squash(new THREE.CylinderGeometry(r * 1.34, r * 1.34, 0.020 * HD + 0.006, 14, 1,
+        false, -Math.PI / 2, Math.PI), [1.0, 1.0, 1.14]),
+      hatCol, BI.hat, RF.hat, [0, CROWN - 0.014 * HD, 0.014 * HD], [-0.13, 0, 0],
+    );
+  } else if (build.hat === 'fullbrim') {
+    // The full-brim hard hat: a wide flat disc all the way round, and the crown
+    // sits well back inside it. In outline this is unmistakably not the other
+    // two even when it is eight pixels of hat on forty pixels of person.
+    const r = 0.205 * HD;
+    shell(r, 0.80, CROWN);
+    ribs(r, CROWN, 0.80);
+    band(r, CROWN);
+    head.cyl(0.355 * HD, 0.330 * HD, 0.024 * HD + 0.006, hatCol, BI.hat, RF.hat,
+      [0, CROWN - 0.020 * HD, 0], null, 16);
   } else {
-    head.dome(0.212 * HD, hatCol, BI.hat, RF.hat, [0, CROWN, 0], 14);
-    head.cyl(0.300 * HD, 0.300 * HD, 0.026, hatCol, BI.hat, RF.hat,
-      [0, CROWN + 0.008, 0.022 * HD], null, 14);
-    head.box(0.048, 0.170 * HD, 0.31 * HD, hatDark, BI.hat, RF.hat, [0, CROWN + 0.095 * HD, 0]);
+    // The standard shell: a peripheral brim, wider front and back than at the
+    // sides, which is what a Centurion or an MSA actually looks like from above.
+    const r = 0.215 * HD;
+    shell(r, 0.78, CROWN);
+    ribs(r, CROWN, 0.78);
+    band(r, CROWN);
+    head.add(
+      squash(new THREE.CylinderGeometry(0.272 * HD, 0.252 * HD, 0.022 * HD + 0.006, 16),
+        [1.0, 1.0, 1.22]),
+      hatCol, BI.hat, RF.hat, [0, CROWN - 0.018 * HD, 0.020 * HD],
+    );
   }
 
   // THE EYES, WHICH ARE NOW MUCH FURTHER FORWARD THAN THEY WERE.

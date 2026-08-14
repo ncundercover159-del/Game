@@ -320,7 +320,13 @@ function walkRoute(room, actor, waypoints, budgetMs) {
     const t = waypoints[leg];
     const dx = t[0] - actor.pos.x, dz = t[2] - actor.pos.z;
     const flat = Math.hypot(dx, dz);
-    const yaw = Math.atan2(-dx, dz);
+    // atan2(dx, dz), NOT atan2(-dx, dz). Forward is (sin yaw, cos yaw) — the
+    // one convention the whole project now shares, since actor.js's movement
+    // was found to be mirrored against its own aim. This walker had the old
+    // mirrored form baked in, so the moment movement was corrected it drove
+    // every route backwards and eight geometry tests failed as though the
+    // levels had changed.
+    const yaw = Math.atan2(dx, dz);
     // Ease down inside two metres; sprint the long legs across open ground.
     const gas = Math.min(1, Math.max(0.25, flat / 2));
     actor.pendingInput = {

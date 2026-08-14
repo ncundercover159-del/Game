@@ -153,11 +153,36 @@ export class Room {
     return this.groundUnder(cand) ? cand : [...base];
   }
 
+  /**
+   * Is there floor under this spawn candidate?
+   *
+   * Answered from the level's brushes, NOT with a raycast, and the difference
+   * was costing 98% of the server's throughput.
+   *
+   * Rapier's query pipeline is empty until the world has stepped at least once,
+   * and every actor joins before the first step — so the raycast this used to
+   * do returned false for every slot in the ring, every time, and `spawnFor`
+   * fell back to the level's single spawn point for everybody. The whole crew
+   * arrived inside one another. Four co-located kinematic capsules make
+   * `computeColliderMovement` cost about 60ms EACH, so a four-player room ran
+   * at 3.6Hz: 277ms per tick against 2.2ms once they are a metre apart.
+   *
+   * Nothing announced any of this. The spawn ring silently did not exist, and
+   * the symptom was "the server is slow", which points nowhere near it.
+   *
+   * Brushes are axis-aligned boxes, so the test is exact, needs no physics, and
+   * cannot depend on when it is called.
+   */
   groundUnder(p) {
-    const ray = new RAPIER.Ray({ x: p[0], y: p[1] + 0.4, z: p[2] }, { x: 0, y: -1, z: 0 });
-    const hit = this.world.world.castRay(ray, 6, true, undefined,
-      membership(GROUPS.GROUP_ACTOR, GROUPS.GROUP_STATIC));
-    return !!hit;
+    const [x, y, z] = p;
+    for (const b of this.level.brushes) {
+      if (b.thin) continue;                       // railings are not floors
+      if (Math.abs(x - b.p[0]) > b.s[0] / 2) continue;
+      if (Math.abs(z - b.p[2]) > b.s[2] / 2) continue;
+      const top = b.p[1] + b.s[1] / 2;
+      if (top <= y + 0.4 && top >= y - 2.5) return true;
+    }
+    return false;
   }
 
   emit(type, detail) { this.events.push({ type, detail }); }
@@ -262,6 +287,11 @@ export class Room {
     if (!best) { actor.reviving = null; return false; }
     if (actor.reviving !== best.slot) { actor.reviving = best.slot; actor.reviveStart = now; }
     if (now - actor.reviveStart >= REVIVE_SECONDS * 1000) {
+      // alive as well as downed. Bleedout clears `alive`, and a revive that
+      // restored only `downed` left Actor.step returning early for ever: a
+      // permanent heap on the floor that the snapshot reported as neither alive
+      // nor downed, and that no amount of further reviving could fix.
+      best.alive = true;
       best.downed = false;
       best.ragdollUntil = now;
       best.health = HEALTH_MAX * 0.4;
@@ -371,12 +401,21 @@ export class Room {
     for (const rec of this.world.props.values()) {
       if (rec.rb.isSleeping() || rec.extracted) continue;
       const v = rec.rb.linvel();
-      const speed = Math.hypot(v.x, v.y, v.z);
-      const momentum = speed * rec.def.mass;
-      if (momentum < IMPACT_SAFE_MOMENTUM) continue;
       const p = rec.rb.translation();
       for (const actor of this.actors.values()) {
         if (!actor.alive || actor.held === rec) continue;
+        // RELATIVE velocity, not absolute. A safe weighs 132kg, so at a walking
+        // 1.4m/s its absolute momentum is 185 against a safe threshold of 26 —
+        // 143 damage and an instant knockout for any teammate within a metre
+        // and a half of the person carrying it. Co-op hauling was structurally
+        // self-defeating: the correct play was to make everyone else stand well
+        // clear, which is the opposite of the game.
+        //
+        // What hurts is being hit, and being hit is about the speed difference.
+        // Walk alongside a carried safe and there is none.
+        const rvx = v.x - actor.vel.x, rvy = v.y - actor.vel.y, rvz = v.z - actor.vel.z;
+        const momentum = Math.hypot(rvx, rvy, rvz) * rec.def.mass;
+        if (momentum < IMPACT_SAFE_MOMENTUM) continue;
         const dx = p.x - actor.pos.x, dz = p.z - actor.pos.z;
         const dy = p.y - (actor.pos.y + 0.9);
         const reach = rec.radius + 0.5;

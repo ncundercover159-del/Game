@@ -83,7 +83,16 @@ export const GRAB_SPRING = 620;         // N per metre of error
 export const GRAB_DAMPING = 42;
 export const GRAB_TORQUE_SPRING = 42;
 export const GRAB_TORQUE_DAMPING = 7.5;
-export const GRAB_MAX_FORCE = 5200;     // beyond this the object wins and drops
+// What one pair of hands can push with, in newtons. This is GRAB_MAX_MASS
+// times gravity and that is not a coincidence — it is the same statement twice.
+// A contractor can hold up 140kg; 140kg weighs 140 * 22 = 3080N; so 3080N is
+// what the hands are worth, and the two constants can no longer disagree.
+//
+// They did disagree, at 5200N, which is 236kg of lift — comfortably more than
+// the piano's 220. So one contractor could raise a piano over their head while
+// the catalogue insisted 140kg was the limit, and the entire two-person carry
+// was decorative.
+export const GRAB_MAX_FORCE = 3080;
 // Three limits, and each governs a different thing. Getting them confused is
 // how a hold turns into a catapult:
 //   MAX_SPEED  — how fast a carried object may move. The binding constraint.

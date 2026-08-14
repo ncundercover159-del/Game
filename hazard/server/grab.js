@@ -20,7 +20,7 @@ import {
   THROW_IMPULSE, BUTTON, TICK_DT,
 } from '../shared/tune.js';
 
-const { GROUP_STATIC, GROUP_PROP, GROUP_ACTOR } = GROUPS;
+const { GROUP_STATIC, GROUP_PROP, GROUP_ACTOR, GROUP_RAGDOLL } = GROUPS;
 
 export function lookDir(actor) {
   const cp = Math.cos(actor.pitch), sp = Math.sin(actor.pitch);
@@ -90,9 +90,21 @@ export function tryGrab(world, actor, holders) {
 
   const current = holders.get(rec.id) || [];
   if (current.includes(actor)) return null;
-  // You can always join a lift already in progress, even if you could not have
-  // started it — that is the entire cooperative move.
-  if (current.length === 0 && rec.def.mass > liftCapacity(1) * 1.35) return null;
+
+  // NO MASS REFUSAL. There used to be one here — the first pair of hands was
+  // turned away above liftCapacity(1) * 1.35, i.e. 189kg — and since a lift can
+  // only be JOINED once it exists, nobody could ever start one. The piano at
+  // 220kg, the bathtub at 190 and the generator at 260 could not be picked up
+  // by any number of contractors, which deletes the cooperative carry the whole
+  // game is built around and takes £6,600 of the warehouse's £5,200 quota with
+  // it. The level was unwinnable and the reason was one line.
+  //
+  // Nothing needs to replace it, because the servo below already models this
+  // properly and always did: `strength` is 1/overload, so one pair of hands on
+  // a piano supports 64% of its weight and can drag and tilt it but never lift
+  // it, while the acceleration and force ceilings scale with the number of
+  // holders so a second pair genuinely doubles what the hands can do. Refusing
+  // the grab outright replaced a physical answer with an arbitrary one.
 
   rec.rb.wakeUp();
   const p = rec.rb.translation();
@@ -217,28 +229,36 @@ export function stepGrabs(world, holders, actorsBySlot) {
     let ay = (wy - v.y) / TICK_DT;
     let az = (wz - v.z) / TICK_DT;
 
+    // Control effort is limited by how briskly hands can move a thing...
     const am = Math.hypot(ax, ay, az);
-    const maxA = Math.min(
-      GRAB_MAX_ACCEL * list.length,
-      (GRAB_MAX_FORCE * list.length) / rec.def.mass,
-    );
+    const maxA = GRAB_MAX_ACCEL * list.length;
     if (am > maxA) { const s = maxA / am; ax *= s; ay *= s; az *= s; }
 
-    // Weight support goes on AFTER the clamp, never inside it. Holding a thing
-    // up is not control effort, it is a standing cost — fold it into the vector
-    // being clamped and the moment the servo saturates you silently stop
-    // supporting the object, so it free-falls *and* fights the servo, which
-    // oscillates it to 20m/s and fires it through the floor.
-    // `strength` is the one dial that belongs here: overloaded hands support
-    // only part of the weight, and the thing visibly sags out of your grip.
+    // ...then full weight support goes on top, and the TOTAL is what the hands
+    // are strong enough to deliver.
+    //
+    // The support used to be scaled by `strength` and left outside the clamp,
+    // on the reasoning that folding it in makes a saturated servo stop holding
+    // the object. That reasoning was about the SPRING this used to be, where
+    // saturation killed the damping term and the thing oscillated to 20m/s. A
+    // velocity servo cannot wind up — the clamp is on the target velocity — so
+    // the honest physics is available: work out the total force the hands want,
+    // and if it is more than they have, they do not get it.
+    //
+    // That single change is what makes the cooperative carry real. One pair
+    // wanting 4,840N to hold a piano gets 3,080 and the piano sinks and drags;
+    // a second pair makes it 6,160 and it comes up. Before, the support term
+    // was free and unclamped, so one contractor could lift anything at all.
     const g = world.world.gravity;
-    ax -= g.x * strength;
-    ay -= g.y * strength;
-    az -= g.z * strength;
+    ax -= g.x;
+    ay -= g.y;
+    az -= g.z;
 
-    rec.rb.addForce({
-      x: ax * rec.def.mass, y: ay * rec.def.mass, z: az * rec.def.mass,
-    }, true);
+    let fx = ax * rec.def.mass, fy = ay * rec.def.mass, fz = az * rec.def.mass;
+    const fm = Math.hypot(fx, fy, fz);
+    const maxF = GRAB_MAX_FORCE * list.length;
+    if (fm > maxF) { const s = maxF / fm; fx *= s; fy *= s; fz *= s; }
+    rec.rb.addForce({ x: fx, y: fy, z: fz }, true);
 
     // Angular: damp the spin so it stops helicoptering, and nudge toward level.
     // Scaled by INERTIA, not mass — see the note where inertia is computed.

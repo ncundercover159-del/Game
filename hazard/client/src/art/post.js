@@ -257,6 +257,9 @@ uniform float uContrast;
 uniform float uPivot;
 uniform float uShoulderAt;  // scene-linear value where highlight recovery starts
 uniform float uShoulderK;   // how much range the shoulder folds into itself
+uniform vec3 uBalance;      // scene-linear white balance, applied before the curve
+uniform float uTopAt;       // display value where the output gate starts bending
+uniform float uCeil;        // ...and the value it may approach but never reach
 ${DEPTH_LIB}
 
 // Three's ACES fit, reproduced because the material-side tone mapping is
@@ -379,6 +382,26 @@ void main() {
     col *= rolled / peak;
   }
 
+  // WHITE BALANCE, IN SCENE LINEAR, WHICH IS WHERE A CAMERA DOES IT.
+  //
+  // Every light in this warehouse is warm by level data: the lamps are #ffe2b4
+  // and #ffd9a0, the sun is #ffd9a8, and concrete's own albedo is a warm grey on
+  // top of that. Multiply those together and the illuminant arrives at the film
+  // at about 1.6 red-to-blue before the grade touches it, which is not a warm
+  // scene, it is an orange filter over the lens — three reviews called the floor
+  // khaki and they were describing this number.
+  //
+  // The previous attempt fought it in display space with a shadow tint, which
+  // cannot work: a tint is an ADDITION and the cast is a MULTIPLICATION, so it
+  // over-corrects the blacks while leaving every lit surface exactly as orange
+  // as it was. A gain does the right thing everywhere at once.
+  //
+  // Deliberately a PARTIAL correction. Balance the tungsten out completely and
+  // the lamps stop reading as tungsten — the whole point of a warm key is that
+  // it is warm against something. This takes roughly half of it out, which
+  // leaves the pools golden and stops the shadows between them being golden too.
+  col *= uBalance;
+
   col = aces( col * uExposure );
 
   // The look. A job site at dusk: enough saturation taken out that the hi-viz
@@ -399,10 +422,23 @@ void main() {
   // lit by the same warm source, the cheapest way to stop that reading as a
   // filter over the lens is to take some of the chroma out of all of it and let
   // the hi-vis and the hazard stripes keep theirs by being brighter.
+  //
+  // The shadow tint is a SPLIT now rather than a global nudge. With the balance
+  // above doing the heavy lifting the frame no longer needs rescuing from its
+  // own illuminant, so this can go back to the only job a tint is good at:
+  // putting a different hue in the shadows from the one in the lights, which is
+  // colour contrast rather than a colour cast. Cool in the dark, a whisper warm
+  // in the light, and both small enough to be felt rather than seen.
   float l = dot( col, LUMA );
   col = mix( vec3( l ), col, 0.88 );
-  col += vec3( 0.003, 0.001, -0.001 ) * ( 1.0 - l );
-  col = clamp( ( col - uPivot ) * uContrast + uPivot + 0.006, 0.0, 1.0 );
+  float sh = ( 1.0 - l ) * ( 1.0 - l );
+  col += vec3( -0.006, 0.000, 0.012 ) * sh + vec3( 0.008, 0.002, -0.006 ) * ( 1.0 - sh );
+  // NO UPPER CLAMP HERE ANY MORE — see the gate at the bottom of the shader.
+  // Contrast about a pivot multiplies the top of the range as well as spreading
+  // the middle, so a clamp at this line is where a lamp stopped being a lamp:
+  // everything above ACES 0.959 came out of it at exactly 1.0 and the whole
+  // upper half of the tone curve was thrown away one line before it was needed.
+  col = max( ( col - uPivot ) * uContrast + uPivot + 0.006, 0.0 );
 
   float vig = 1.0 - uVignette * r2 * ( 1.0 + r2 );
   col *= vig;
@@ -463,7 +499,37 @@ void main() {
   float n = hash12( vUv * 1024.0 + fract( uTime ) * 91.7 ) - 0.5;
   col += n * uGrain * ( 1.0 - 0.7 * dot( col, vec3( 0.333 ) ) );
 
-  gl_FragColor = vec4( col, 1.0 );
+  // THE OUTPUT GATE. Nothing above this line is allowed to reach white, and
+  // this is the line that guarantees it rather than hoping.
+  //
+  // Asked three separate times to stop the lamps clipping, this build went 0.7%
+  // -> 0.8% -> 1.1% of the frame pinned at 250+ luma, getting worse every time
+  // somebody tuned a threshold. Both reference games clip 0.00% on every frame
+  // measured. The reason tuning kept failing is that clipping was not being
+  // caused by any one term: a lamp core, plus its bloom, plus the contrast
+  // multiply, plus the black lift, each individually reasonable, arrived at the
+  // clamp together — and a clamp is where information goes to die silently.
+  // A budget that four independent knobs can each spend is not a budget.
+  //
+  // So the top of the range gets an asymptote instead of a wall. Above uTopAt
+  // the curve bends and approaches uCeil without ever touching it, which makes
+  // "this frame does not clip" a property of the shader rather than of the
+  // current values of five other uniforms. It also means a lamp KEEPS ITS
+  // GRADIENT: the reference crop that this is measured against is a sconce
+  // whose core stays a hard saturated green with legible masonry ten pixels
+  // away, and you only get that if the brightest 5% of the image still has a
+  // slope in it.
+  //
+  // Applied to the peak channel and re-applied as a scale, so a hot tungsten
+  // lamp compresses towards a dimmer version of its own colour rather than
+  // losing red last and turning white at the core.
+  float pk = max( col.r, max( col.g, col.b ) );
+  if ( pk > uTopAt ) {
+    float head = max( uCeil - uTopAt, 1e-3 );
+    col *= ( uTopAt + head * ( 1.0 - exp( -( pk - uTopAt ) / head ) ) ) / pk;
+  }
+
+  gl_FragColor = vec4( clamp( col, 0.0, 1.0 ), 1.0 );
 }
 `;
 
@@ -520,10 +586,20 @@ class SitePass extends Pass {
     this.brightMat = shader(BRIGHT_FRAG, {
       tScene: { value: null },
       uThreshold: { value: 1.62 },
-      // Four stops of veil above the threshold and no more. Low enough that the
-      // dock lamp keeps a core; high enough that a hi-viz vest under a lamp
-      // still glows rather than going matte.
-      uClamp: { value: 6.5 },
+      // ONE STOP OF VEIL, DOWN FROM FOUR.
+      //
+      // 6.5 sounded conservative and was not: multiplied by the 0.55 mix it put
+      // 3.6 units of scene-linear light on top of whatever was already there,
+      // over a disc sixty pixels across, and 3.6 is past the top of the tone
+      // curve on its own. The result photographs as a hard-edged white plate
+      // with a lamp somewhere inside it — the shot into the van was one
+      // continuous blown disc from the roof rib to the floor.
+      //
+      // A bloom is scattered light and scattered light is a small fraction of
+      // the beam. What makes a lamp read as bright is the CONTRAST between its
+      // core and the room, not the area of the smear, and the smear is the
+      // thing that destroys the contrast by lifting the room.
+      uClamp: { value: 2.2 },
     });
     this.blurMat = shader(BLUR_FRAG, {
       tSrc: { value: null },
@@ -540,8 +616,27 @@ class SitePass extends Pass {
       uBloom: { value: 0.55 },
       uContrast: { value: 1.08 },
       uPivot: { value: 0.52 },
-      uShoulderAt: { value: 1.6 },
-      uShoulderK: { value: 2.2 },
+      // The shoulder starts far lower and folds far harder than it did.
+      //
+      // At 1.6/2.2 the recovery was arithmetically real and visually absent:
+      // scene-linear 60 (the van panel) came out at 8.9, scene-linear 30 came
+      // out at 7.6, and ACES maps both of those to within three thousandths of
+      // white. Recovering a range into a part of the curve that has no slope
+      // left is not recovering it. At 0.9/0.55 the same pair lands at 3.48 and
+      // 3.09, which ACES still separates, and the gate at the bottom of the
+      // shader keeps that separation instead of clamping it away.
+      uShoulderAt: { value: 0.9 },
+      uShoulderK: { value: 0.55 },
+      // Half a correction towards D65 off a tungsten key. See the shader.
+      uBalance: { value: new THREE.Vector3(0.945, 1.0, 1.115) },
+      // The gate. uCeil is the hard promise — no pixel leaves this shader
+      // above it — and 0.955 in display space is 243/255, which puts the whole
+      // frame under the 250 that a clipping test counts, with room for the
+      // grain on top. uTopAt is where the bend starts; low enough that the van
+      // interior has somewhere to be compressed INTO, high enough that nothing
+      // a player would call a mid-tone is touched by it.
+      uTopAt: { value: 0.72 },
+      uCeil: { value: 0.955 },
       uVignette: { value: 0.36 },
       // Grain is measured in display units, and this one is easy to overdo in a
       // way that does not look like grain: at 0.045 the noise is ±6/255, which
@@ -591,6 +686,11 @@ class SitePass extends Pass {
       uAerial: { value: new THREE.Vector3(0.030, 0.033, 0.044) },
       uAerialRate: { value: 0.030 },
     });
+
+    // Stride multiplier for the second blur pair, in quarter-res texels. 2.6
+    // reached about 54 screen pixels from the core, which is five times the
+    // radius at which the reference sconce still has legible masonry beside it.
+    this.wide = 1.5;
 
     this.quad = new FullScreenQuad();
     this.setSize(width, height);
@@ -647,13 +747,17 @@ class SitePass extends Pass {
     this.draw(renderer, this.brightMat, this.bloomA);
 
     // Two blur passes at two strides: the second, wider one is what turns a
-    // tight halo into the soft bloom a dusty warehouse actually has.
+    // tight halo into the soft bloom a dusty warehouse actually has. `wide` is
+    // a field rather than a constant so a probe can sweep the halo radius
+    // against the reference crop in one browser session; every previous attempt
+    // at this number cost a four-minute rebuild and was therefore guessed at.
     const q = this._quarter;
+    const wide = this.wide;
     for (const [sx, sy, src, dst] of [
       [q.x, 0, this.bloomA, this.bloomB],
       [0, q.y, this.bloomB, this.bloomA],
-      [q.x * 2.6, 0, this.bloomA, this.bloomB],
-      [0, q.y * 2.6, this.bloomB, this.bloomA],
+      [q.x * wide, 0, this.bloomA, this.bloomB],
+      [0, q.y * wide, this.bloomB, this.bloomA],
     ]) {
       this.blurMat.uniforms.tSrc.value = src.texture;
       this.blurMat.uniforms.uDir.value.set(sx, sy);
@@ -726,6 +830,8 @@ export function installPost(renderer, scene, camera) {
       // value, and at four minutes a build that is the difference between
       // sweeping a curve and guessing at it.
       get grade() { return site.gradeMat.uniforms; },
+      get bright() { return site.brightMat.uniforms; },
+      get site() { return site; },
       render(dt) {
         renderer.info.reset();
         site.time += dt || 0.016;

@@ -19,7 +19,7 @@ import {
   STAMINA_MAX, STAMINA_SPRINT, STAMINA_REGEN, STAMINA_REGEN_DELAY_MS,
   STAMINA_HAUL_PER_KG, HAUL_FREE_KG, HEALTH_MAX, FALL_SAFE_SPEED, FALL_DAMAGE_PER_MS,
   RAGDOLL_TRIGGER_DAMAGE, RAGDOLL_MIN_MS, RAGDOLL_SETTLE_SPEED, BUTTON, TICK_DT,
-  WATER_SPEED_SCALE, WATER_WADE_DEPTH,
+  WATER_SPEED_SCALE, WATER_WADE_DEPTH, HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX,
 } from '../shared/tune.js';
 
 const { GROUP_STATIC, GROUP_PROP, GROUP_ACTOR, GROUP_RAGDOLL } = GROUPS;
@@ -150,6 +150,13 @@ export class Actor {
     if (this.ragdoll) { this.stepRagdoll(now); return; }
     if (!this.alive) return;
 
+    // The scroll wheel reels a carried object in and out. It is sent 30 times a
+    // second and was read by nothing at all, so the control simply did not work.
+    if (Number.isFinite(input.holdDist)) {
+      this.holdDist = Math.max(HOLD_DISTANCE_MIN,
+        Math.min(HOLD_DISTANCE_MAX, input.holdDist));
+    }
+
     const wantCrouch = (input.buttons & BUTTON.CROUCH) !== 0;
     this.setCrouch(wantCrouch);
 
@@ -183,9 +190,16 @@ export class Actor {
       * fatigue * loadPenalty * wade;
 
     // --- wish direction in world space ---
+    //
+    // Forward is (sin yaw, cos yaw) — the SAME vector lookDir() builds for the
+    // grab ray and the camera now uses. It did not used to be: the X term was
+    // negated, so movement and aim agreed only along Z and walking forward
+    // while facing east went west. Both conventions were self-consistent, which
+    // is why every headless test passed; nothing compared one against the other
+    // until a bot did. Right-hand strafe is forward x up = (-cos, 0, sin).
     const s = Math.sin(this.yaw), c = Math.cos(this.yaw);
-    let wx = input.moveX * c - input.moveY * s;
-    let wz = input.moveX * s + input.moveY * c;
+    let wx = input.moveY * s - input.moveX * c;
+    let wz = input.moveY * c + input.moveX * s;
     const wl = Math.hypot(wx, wz);
     if (wl > 1) { wx /= wl; wz /= wl; }
 
@@ -219,7 +233,25 @@ export class Actor {
     const desired = {
       x: this.vel.x * TICK_DT, y: this.vel.y * TICK_DT, z: this.vel.z * TICK_DT,
     };
-    this.ctrl.computeColliderMovement(this.collider, desired, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS);
+    // Ignore whatever this contractor is carrying.
+    //
+    // The character controller applies impulses to dynamic bodies at 72kg —
+    // that is what lets a sprinting contractor bowl a stack of crates over —
+    // and while you hold something light your capsule and the object are
+    // permanently in contact. The capsule wins: a held mug was measured at p90
+    // 9.8m/s with peaks near 20, straight through a servo whose entire job is
+    // to cap it at 6.5. Not servo wind-up, just a fight the servo was not in.
+    //
+    // Excluded HERE, in this one query, rather than by editing the prop's
+    // collision groups. Taking it out of the actor group globally also takes it
+    // out of the grab raycast, which uses the same group — so a held object
+    // becomes impossible to aim at, and nobody can join a lift. Which deletes
+    // the two-person carry a second time, by a different route.
+    const heldCols = this.held ? this.held.cols : null;
+    this.ctrl.computeColliderMovement(
+      this.collider, desired, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS, undefined,
+      heldCols ? (c) => !heldCols.includes(c) : undefined,
+    );
     const mv = this.ctrl.computedMovement();
 
     this.pos.x += mv.x; this.pos.y += mv.y; this.pos.z += mv.z;

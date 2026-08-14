@@ -59,7 +59,17 @@ const LAMP_REACH = 1.0;
 //
 // A pendant on a chain is what a warehouse actually has, and it is also the
 // only cheap way to make the pool land where the player is walking.
+//
+// But it CANNOT be a blanket drop, and shipping it as one was a regression.
+// Levels put lamps at the bottom of things as well as the top: the plant hangs
+// three down inside its tanks, whose floors are at -2.0, -2.8 and -4.4, and
+// dropping those by a flat 1.6m buried two of them in concrete where they lit
+// precisely nothing. A height threshold would paper over it and would be wrong
+// again the first time somebody built a low ceiling, so the drop is measured
+// against the surface actually underneath each lamp.
 const LAMP_DROP = 1.6;
+// ...and never closer than this to whatever it is hanging over.
+const LAMP_CLEARANCE = 0.6;
 
 // How many lamps are allowed to cast. Six shadow faces each, so this is a
 // budget, not a preference.
@@ -174,7 +184,7 @@ export class WorldView {
     this.lamps = [];
     (this.level.lights || []).forEach((l, i) => {
       const p = new THREE.PointLight(new THREE.Color(l.color), l.intensity * LIGHT_GAIN, l.range * LAMP_REACH, 2);
-      p.position.set(l.p[0], l.p[1] - LAMP_DROP, l.p[2]);
+      p.position.set(l.p[0], this.hangHeight(l), l.p[2]);
       if (casters.has(i)) {
         p.castShadow = true;
         p.shadow.mapSize.set(512, 512);
@@ -186,6 +196,26 @@ export class WorldView {
       this.scene.add(p);
       if (l.flicker) this.lamps.push({ light: p, base: l.intensity, amount: l.flicker });
     });
+  }
+
+  /**
+   * Where a fixture actually hangs, once the floor under it has a say.
+   *
+   * Finds the highest brush surface below the lamp whose footprint contains it,
+   * and refuses to drop the lamp within LAMP_CLEARANCE of that surface. A lamp
+   * over open floor gets the full pendant drop; one hanging inside a tank three
+   * metres deep gets whatever the tank allows.
+   */
+  hangHeight(l) {
+    const [x, y, z] = l.p;
+    let below = -Infinity;
+    for (const b of this.level.brushes) {
+      if (Math.abs(x - b.p[0]) > b.s[0] / 2 || Math.abs(z - b.p[2]) > b.s[2] / 2) continue;
+      const top = b.p[1] + b.s[1] / 2;
+      if (top <= y && top > below) below = top;
+    }
+    const room = Number.isFinite(below) ? y - below - LAMP_CLEARANCE : Infinity;
+    return y - Math.max(0, Math.min(LAMP_DROP, room));
   }
 
   /**
