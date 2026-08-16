@@ -14,7 +14,7 @@ import { membership, GROUPS } from './world.js';
 import {
   GRAB_RANGE, GRAB_RADIUS, HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX,
   GRAB_TORQUE_SPRING, GRAB_TORQUE_DAMPING,
-  GRAB_MAX_FORCE, GRAB_MAX_ACCEL, GRAB_TARGET_SPEED,
+  GRAB_MAX_FORCE, GRAB_MAX_ACCEL, GRAB_TRACK_ACCEL, GRAB_TARGET_SPEED,
   GRAB_RESPOND, GRAB_MAX_SPEED,
   GRAB_BREAK_DISTANCE, GRAB_MAX_MASS, COOP_GRAB_BONUS,
   THROW_IMPULSE, BUTTON, TICK_DT,
@@ -99,11 +99,11 @@ export function tryGrab(world, actor, holders) {
   // game is built around and takes £6,600 of the warehouse's £5,200 quota with
   // it. The level was unwinnable and the reason was one line.
   //
-  // Nothing needs to replace it, because the servo below already models this
-  // properly and always did: `strength` is 1/overload, so one pair of hands on
-  // a piano supports 64% of its weight and can drag and tilt it but never lift
-  // it, while the acceleration and force ceilings scale with the number of
-  // holders so a second pair genuinely doubles what the hands can do. Refusing
+  // Nothing needs to replace it, because the servo below models it physically:
+  // the hands have a force budget, holding the thing up is paid out of it
+  // first, and only the remainder can be spent moving it. One pair on a piano
+  // can support 79% of its weight and has nothing left to steer with, so it
+  // sags and drags; a second pair doubles the budget and it comes up. Refusing
   // the grab outright replaced a physical answer with an arbitrary one.
 
   rec.rb.wakeUp();
@@ -132,6 +132,12 @@ export function release(actor, holders, impulse) {
   } else {
     rec.held = null;
   }
+  // Everything below touches the rigid body, which may already have been freed
+  // — a prop can be removed from the world while somebody is still holding it,
+  // and the links are only cleaned up here. Drop the references and leave the
+  // physics alone.
+  if (rec.removed) { actor.held = null; return; }
+
   if (impulse) {
     const d = lookDir(actor);
     const j = THROW_IMPULSE * Math.min(rec.def.mass, 40);
@@ -157,15 +163,18 @@ export function release(actor, holders, impulse) {
 export function stepGrabs(world, holders, actorsBySlot) {
   for (const [propId, list] of holders) {
     const rec = world.props.get(propId);
-    if (!rec || rec.broken || rec.extracted || list.length === 0) {
+    if (!rec || rec.removed || rec.broken || rec.extracted || list.length === 0) {
       if (rec) rec.held = null;
       holders.delete(propId);
       for (const a of list) if (a.held === rec) a.held = null;
       continue;
     }
 
-    const capacity = liftCapacity(list.length);
-    const overload = rec.def.mass / capacity;
+    // What the hands are worth, what holding it costs, and what is left.
+    const budget = GRAB_MAX_FORCE * list.length;
+    const hold = rec.def.mass * 22;          // |GRAVITY|; see tune.js
+    const strength = Math.min(1, budget / hold);
+    const spare = Math.max(0, budget - hold);
 
     // Average hand position, and average intended facing.
     let tx = 0, ty = 0, tz = 0;
@@ -216,7 +225,6 @@ export function stepGrabs(world, holders, actorsBySlot) {
     // on the target velocity rather than on the output force, there is nothing
     // for the controller to wind up: the object physically cannot exceed
     // GRAB_MAX_SPEED, however hard you swing the camera.
-    const strength = Math.min(1, 1 / Math.max(1, overload));
     let wx = ex * GRAB_RESPOND, wy = ey * GRAB_RESPOND, wz = ez * GRAB_RESPOND;
     const wm = Math.hypot(wx, wy, wz);
     if (wm > GRAB_MAX_SPEED) {
@@ -229,36 +237,43 @@ export function stepGrabs(world, holders, actorsBySlot) {
     let ay = (wy - v.y) / TICK_DT;
     let az = (wz - v.z) / TICK_DT;
 
-    // Control effort is limited by how briskly hands can move a thing...
-    const am = Math.hypot(ax, ay, az);
-    const maxA = GRAB_MAX_ACCEL * list.length;
-    if (am > maxA) { const s = maxA / am; ax *= s; ay *= s; az *= s; }
+    // Control effort is limited by how briskly hands can move a thing, by what
+    // is left after holding it up — and differently on each axis, because
+    // dragging something is not lifting it.
+    const ceiling = GRAB_MAX_ACCEL * list.length;
+    const left = spare / rec.def.mass;
+    const maxUp = Math.min(ceiling, left);
+    const maxFlat = Math.min(ceiling, Math.max(left, GRAB_TRACK_ACCEL * list.length));
 
-    // ...then full weight support goes on top, and the TOTAL is what the hands
-    // are strong enough to deliver.
+    const flat = Math.hypot(ax, az);
+    if (flat > maxFlat) { const s = maxFlat / flat; ax *= s; az *= s; }
+    if (Math.abs(ay) > maxUp) ay = Math.sign(ay) * maxUp;
+
+    // ...then weight support goes on, OUTSIDE the clamp, and that placement is
+    // the whole difference between a carry and a catastrophe.
     //
-    // The support used to be scaled by `strength` and left outside the clamp,
-    // on the reasoning that folding it in makes a saturated servo stop holding
-    // the object. That reasoning was about the SPRING this used to be, where
-    // saturation killed the damping term and the thing oscillated to 20m/s. A
-    // velocity servo cannot wind up — the clamp is on the target velocity — so
-    // the honest physics is available: work out the total force the hands want,
-    // and if it is more than they have, they do not get it.
+    // I moved it inside the clamp to make the co-operative lift real, and it
+    // did — one pair could no longer raise a piano. It also reintroduced the
+    // exact failure the comment I deleted was warning about. Clamping the
+    // combined vector scales the SUPPORT down whenever control effort
+    // saturates, so a 38kg elk with a generous control budget had its support
+    // cut to a quarter, fell, fought the servo on the way, and arrived as
+    // pieces: a bot shift delivered six of six broken and put three of four
+    // contractors on the floor. Support is a standing cost with a fixed
+    // direction; scaling it by how hard somebody is steering is not physics.
     //
-    // That single change is what makes the cooperative carry real. One pair
-    // wanting 4,840N to hold a piano gets 3,080 and the piano sinks and drags;
-    // a second pair makes it 6,160 and it comes up. Before, the support term
-    // was free and unclamped, so one contractor could lift anything at all.
+    // So the budget is divided instead of shared. Holding it up is paid first,
+    // and only what is left over can be spent on moving it — which is both what
+    // a person is actually like and stable, because the support term is now
+    // constant and cannot be modulated by the controller at all.
     const g = world.world.gravity;
-    ax -= g.x;
-    ay -= g.y;
-    az -= g.z;
+    ax -= g.x * strength;
+    ay -= g.y * strength;
+    az -= g.z * strength;
 
-    let fx = ax * rec.def.mass, fy = ay * rec.def.mass, fz = az * rec.def.mass;
-    const fm = Math.hypot(fx, fy, fz);
-    const maxF = GRAB_MAX_FORCE * list.length;
-    if (fm > maxF) { const s = maxF / fm; fx *= s; fy *= s; fz *= s; }
-    rec.rb.addForce({ x: fx, y: fy, z: fz }, true);
+    rec.rb.addForce({
+      x: ax * rec.def.mass, y: ay * rec.def.mass, z: az * rec.def.mass,
+    }, true);
 
     // Angular: damp the spin so it stops helicoptering, and nudge toward level.
     // Scaled by INERTIA, not mass — see the note where inertia is computed.

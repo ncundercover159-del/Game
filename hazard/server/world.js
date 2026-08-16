@@ -195,6 +195,12 @@ export class World {
   }
 
   removeProp(rec) {
+    // Mark it BEFORE freeing anything. A contractor may still be holding this
+    // prop, and `release` reaches into the rigid body to clear the carry force
+    // — on a body Rapier has already freed that is not a null check away, it is
+    // an unreachable in wasm that takes the whole room down with no JavaScript
+    // stack worth reading. The flag is how everything downstream knows to stop.
+    rec.removed = true;
     for (const c of rec.cols) this.byHandle.delete(c.handle);
     this.world.removeRigidBody(rec.rb);
     this.props.delete(rec.id);

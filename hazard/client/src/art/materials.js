@@ -221,8 +221,26 @@ uniform float tpMottle;
 uniform float tpFill;
 uniform float tpDark;  // bounce left in a corner no lamp reaches
 uniform float tpKnee;  // how fast the bounce saturates with direct light
+uniform vec2 tpPenumbra; // shadow filter radius in texels: x plane maps, y cube
 varying vec3 vTpP;
 varying vec3 vTpN;
+
+// A twelve-point sunflower disc, radius 1, used by both shadow filters below.
+// Unrolled at the call site rather than looped over a const array: three
+// rewrites these shaders on the way to GLSL ES 3.00 and the fewer language
+// features that rewrite has to survive, the better.
+#define HZ_DISC_0  vec2(  0.2041,  0.0000 )
+#define HZ_DISC_1  vec2( -0.2607,  0.2389 )
+#define HZ_DISC_2  vec2(  0.0399, -0.4547 )
+#define HZ_DISC_3  vec2(  0.3288,  0.4285 )
+#define HZ_DISC_4  vec2( -0.6030, -0.1067 )
+#define HZ_DISC_5  vec2(  0.5712, -0.3634 )
+#define HZ_DISC_6  vec2( -0.1911,  0.7108 )
+#define HZ_DISC_7  vec2( -0.3633, -0.7022 )
+#define HZ_DISC_8  vec2(  0.7904,  0.2891 )
+#define HZ_DISC_9  vec2( -0.8230,  0.3381 )
+#define HZ_DISC_10 vec2(  0.3964, -0.8473 )
+#define HZ_DISC_11 vec2(  0.2885,  0.9355 )
 
 // Height for this fragment, filled in at map_fragment and read three chunks
 // later by the bump and the occlusion.
@@ -383,6 +401,85 @@ if ( tpFill > 0.0 ) {
 }
 `;
 
+// --- the penumbra ------------------------------------------------------------
+//
+// THREE'S "PCF SOFT" IS A ONE-TEXEL TENT, AND A ONE-TEXEL TENT IS NOT A SHADOW.
+//
+// A review called the shadows in this build hard-edged with no penumbra and it
+// was describing the filter, not the maps. Both stock paths sample a fixed
+// neighbourhood one texel across: the plane path a 3x3 bilinear tent, the cube
+// path the eight corners of a unit cube around the sample direction. On the one
+// lamp in this level that casts — a 512 cube over a 20 m reach, so about eight
+// centimetres a texel at the far edge — that is a transition roughly one
+// centimetre wide. Nothing in a warehouse casts a shadow one centimetre wide.
+// A four-metre bay lamp two metres from a crate throws a penumbra you can put
+// your hand in, and the absence of one is most of why the props read as stuck
+// onto the floor rather than standing on it.
+//
+// So both paths get a twelve-tap sunflower disc instead, at a radius set in
+// texels. The tap count barely moves — twelve against nine and seventeen — and
+// the disc is what buys the gradient: a tent over one texel can only produce as
+// many distinct values as it has taps within one texel of the edge, which is
+// why the stock filter reads as a hard line with a single grey pixel on it.
+//
+// The cube path also gets a real tangent basis. The stock offsets are the
+// corners of an axis-aligned cube added to the sample DIRECTION, so their
+// effective radius depends on which way the fragment happens to lie from the
+// lamp — a filter that is wider in some directions than others, which is a
+// second reason the same shadow can look hard on one wall and soft on the next.
+// One cross product and a normalize fixes it and nobody will find the cost.
+//
+// This is done by rewriting three's own chunk rather than by hand-rolling the
+// whole shadow path, because everything else in that chunk — the cube face
+// mapping, the bias handling, the intensity mix — is fiddly, version-specific
+// and correct. If either marker ever stops matching, the const below comes back
+// null and patch() leaves the include alone: the shadows go back to being hard,
+// which is a regression in the art and not a black screen.
+const SOFT_SHADOW = (() => {
+  const src = THREE.ShaderChunk.shadowmap_pars_fragment;
+  if (typeof src !== 'string') return null;
+
+  const disc = (fn) => Array.from({ length: 12 }, (_, i) => fn(`HZ_DISC_${i}`)).join(' +\n\t\t\t\t');
+
+  // --- plane maps: directional and spot ---
+  const planeAt = src.indexOf('#elif defined( SHADOWMAP_TYPE_PCF_SOFT )');
+  const planeEnd = src.indexOf('#elif defined( SHADOWMAP_TYPE_VSM )', planeAt);
+  if (planeAt < 0 || planeEnd < 0) return null;
+  const plane = `#elif defined( SHADOWMAP_TYPE_PCF_SOFT )
+
+			vec2 hzStep = tpPenumbra.x / shadowMapSize;
+			shadow = (
+				${disc((d) => `texture2DCompare( shadowMap, shadowCoord.xy + ${d} * hzStep, shadowCoord.z )`)}
+			) * ( 1.0 / 12.0 );
+
+		`;
+
+  const withPlane = src.slice(0, planeAt) + plane + src.slice(planeEnd);
+
+  // --- cube maps: point lights ---
+  // The whole stock nine-tap expression, start to terminator, replaced in one
+  // piece. Matching on both ends rather than editing the offset line means a
+  // three release that reshapes this block fails the match and falls back
+  // instead of splicing a disc into an expression that no longer expects one.
+  const cubeAt = withPlane.indexOf('vec2 offset = vec2( - 1, 1 ) * shadowRadius * texelSize.y;');
+  const tail = ') * ( 1.0 / 9.0 );';
+  const cubeEnd = withPlane.indexOf(tail, cubeAt);
+  if (cubeAt < 0 || cubeEnd < 0) return null;
+  // A basis perpendicular to the sample direction. Straight up is the
+  // degenerate axis for a lamp directly overhead, which in a warehouse is every
+  // lamp, so the fallback matters rather than being defensive boilerplate.
+  const cube = `vec3 hzUp = abs( bd3D.y ) < 0.99 ? vec3( 0.0, 1.0, 0.0 ) : vec3( 1.0, 0.0, 0.0 );
+				vec3 hzU = normalize( cross( bd3D, hzUp ) );
+				vec3 hzV = cross( bd3D, hzU );
+				float hzR = shadowRadius * texelSize.y * tpPenumbra.y;
+
+				shadow = (
+					${disc((d) => `texture2DCompare( shadowMap, cubeToUV( bd3D + ( hzU * ${d}.x + hzV * ${d}.y ) * hzR, texelSize.y ), dp )`)}
+				) * ( 1.0 / 12.0 );`;
+
+  return withPlane.slice(0, cubeAt) + cube + withPlane.slice(cubeEnd + tail.length);
+})();
+
 // The two bounce-gate knobs are ONE pair of uniform objects shared by every
 // material in the level, not a copy each. Two reasons: the gate is a property
 // of the room's lighting rather than of any one surface, and a harness that
@@ -399,6 +496,21 @@ export const BOUNCE = {
   knee: { value: 2.5 },
 };
 
+// Penumbra radius in shadow texels — x for plane maps, y for cube maps. Shared
+// by reference for the same reason BOUNCE is: it is a property of the room's
+// lighting, and a probe that can only reach one material still needs to move
+// all of them.
+//
+// The two numbers are different because the maps are. The sun's 2048 map covers
+// a 60 m frustum, so a texel is under three centimetres and 2.2 of them is a
+// 6 cm softening — deliberately restrained, because a wide filter on a plane map
+// walks straight past the 3.5 cm normal bias and comes back as acne on anything
+// lit at a slant. The casting lamp's 512 cube spans its whole 20 m reach, so a
+// texel out at the floor is nearer eight centimetres and four of them is a
+// third of a metre of penumbra under a crate, which is about what a four-metre
+// bay lamp actually throws.
+export const PENUMBRA = { value: new THREE.Vector2(2.2, 4.0) };
+
 function patch(shader) {
   const tp = this.userData.tp;
   shader.uniforms.tpMap = tp.map;
@@ -407,6 +519,7 @@ function patch(shader) {
   shader.uniforms.tpFill = tp.fill;
   shader.uniforms.tpDark = BOUNCE.dark;
   shader.uniforms.tpKnee = BOUNCE.knee;
+  shader.uniforms.tpPenumbra = PENUMBRA;
 
   shader.vertexShader = VERT_PARS + shader.vertexShader
     .replace('#include <beginnormal_vertex>', VERT_HOOK);
@@ -416,6 +529,15 @@ function patch(shader) {
     .replace('#include <roughnessmap_fragment>', FRAG_ROUGH)
     .replace('#include <normal_fragment_maps>', FRAG_NORMAL)
     .replace('#include <aomap_fragment>', FRAG_AO);
+
+  // The shadow filter, if the surgery above found its landmarks. Substituting
+  // the resolved chunk for its own include is safe: three resolves includes
+  // AFTER onBeforeCompile, and recursively, so text that has already been
+  // resolved simply passes through.
+  if (SOFT_SHADOW) {
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <shadowmap_pars_fragment>', SOFT_SHADOW);
+  }
 }
 
 /**
@@ -437,10 +559,11 @@ export function applyTriplanar(mat, texName, over = {}) {
     tune: { value: new THREE.Vector4(1 / r.tile, r.bump, r.roughVar, r.ao) },
     mottle: { value: r.mottle },
     fill: { value: r.fill },
-    // The shared pair, by reference, so a probe that reaches any one material
-    // through the scene graph can move the gate for the whole level at once.
+    // The shared knobs, by reference, so a probe that reaches any one material
+    // through the scene graph can move them for the whole level at once.
     dark: BOUNCE.dark,
     knee: BOUNCE.knee,
+    penumbra: PENUMBRA,
   };
   mat.envMapIntensity = r.env;
   mat.onBeforeCompile = patch;

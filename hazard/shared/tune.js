@@ -83,16 +83,21 @@ export const GRAB_SPRING = 620;         // N per metre of error
 export const GRAB_DAMPING = 42;
 export const GRAB_TORQUE_SPRING = 42;
 export const GRAB_TORQUE_DAMPING = 7.5;
-// What one pair of hands can push with, in newtons. This is GRAB_MAX_MASS
-// times gravity and that is not a coincidence — it is the same statement twice.
-// A contractor can hold up 140kg; 140kg weighs 140 * 22 = 3080N; so 3080N is
-// what the hands are worth, and the two constants can no longer disagree.
+// What one pair of hands can push with, in newtons — TOTAL, including whatever
+// is being spent holding the thing up.
 //
-// They did disagree, at 5200N, which is 236kg of lift — comfortably more than
-// the piano's 220. So one contractor could raise a piano over their head while
-// the catalogue insisted 140kg was the limit, and the entire two-person carry
-// was decorative.
-export const GRAB_MAX_FORCE = 3080;
+// It was 5200, which is 236kg of lift against a stated limit of 140, so one
+// contractor could raise a piano over their head and the co-operative carry was
+// decorative. Then it was 3080 — exactly 140kg of weight — and that was too
+// tight in a way that only showed up over a whole haul: a 132kg safe spends
+// 2904N of it merely hovering and has 176N left to be steered with, which is
+// 1.3m/s² and not enough to walk it up a ramp. A bot shift banked £0.
+//
+// 3800 leaves real headroom at the top of the solo range: the safe keeps 896N
+// to move with, or 6.8m/s². The ceiling it implies is 173kg of solo lift, and
+// the catalogue has a clean gap between the safe at 132 and the bathtub at 190,
+// so everything still needs the number of people it was designed to need.
+export const GRAB_MAX_FORCE = 3800;
 // Three limits, and each governs a different thing. Getting them confused is
 // how a hold turns into a catapult:
 //   MAX_SPEED  — how fast a carried object may move. The binding constraint.
@@ -101,6 +106,21 @@ export const GRAB_MAX_FORCE = 3080;
 //                controller into a bang-bang one that oscillates to 40m/s.
 //   MAX_FORCE  — absolute strength, i.e. what you cannot lift at all.
 export const GRAB_MAX_ACCEL = 260;
+// The floor under HORIZONTAL control effort, and only horizontal.
+//
+// Paying for weight support first is right, but at the top of the solo range it
+// leaves almost nothing over: a 132kg safe keeps 896N, and the load trailed 2.9m
+// behind a walking contractor against a 3.9m break distance — you could pick a
+// safe up and not get it anywhere, which is what a bot shift banking £0 looks
+// like from the inside.
+//
+// Dragging is not lifting, though, and the two deserve separate budgets. You can
+// shove a piano across a floor with your shoulder and you cannot raise it an
+// inch, so the vertical axis stays limited by what is left after holding the
+// thing up, and the horizontal axis gets a floor. That keeps the heavy props
+// unliftable alone while making them exactly what the top of this file always
+// claimed they were: things that physically drag behind you.
+export const GRAB_TRACK_ACCEL = 9.0;
 // The hold is a velocity servo, not a spring. A spring plus a force cap looks
 // equivalent and is not: the moment the cap bites, the damping term is scaled
 // down with everything else, the damper stops damping, and the whole thing

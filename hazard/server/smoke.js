@@ -54,6 +54,49 @@ const input = (o = {}) => ({
   seq: 0, moveX: 0, moveY: 0, yaw: 0, pitch: 0, buttons: 0, holdDist: 1.85, ...o,
 });
 
+/**
+ * Put a contractor back on their feet, empty-handed and unhurt.
+ *
+ * This file is one long chain of stateful blocks, and each was inheriting the
+ * previous one's wreckage: a 260kg generator lifted three metres in one test
+ * lands on somebody in the next, and a ragdolled actor then fails an assertion
+ * about reviving, or about climbing out of a pit, for reasons that have nothing
+ * to do with either. Four separate fixtures grew their own ad-hoc version of
+ * this before it was worth naming.
+ */
+const stand = (actor, at) => {
+  resume();
+  if (actor.ragdoll) { actor.downed = false; actor.exitRagdoll(); }
+  actor.alive = true;
+  actor.downed = false;
+  actor.health = 100;
+  actor.stamina = 100;
+  release(actor, room.holders, false);
+  actor.vel.x = 0; actor.vel.y = 0; actor.vel.z = 0;
+  if (at) {
+    actor.pos.x = at[0]; actor.pos.y = at[1]; actor.pos.z = at[2];
+  }
+  actor.body?.setNextKinematicTranslation({
+    x: actor.pos.x, y: actor.pos.y + actor.height / 2, z: actor.pos.z,
+  });
+  actor.pendingInput = { seq: 0, moveX: 0, moveY: 0, yaw: actor.yaw, pitch: 0, buttons: 0, holdDist: 1.85 };
+};
+
+/**
+ * Put the job back on the clock.
+ *
+ * The co-operative fixtures deliberately hoist 220-260kg three metres into the
+ * air and then let go, so they land on people — and a job whose entire crew is
+ * unconscious correctly ends. That is the game working; it is the fixture
+ * causing it. Everything downstream then failed for the same invisible reason:
+ * no extraction, no revive, no movement, because none of it runs outside
+ * PHASE.ACTIVE. Five assertions, one cause, and none of them said so.
+ */
+const resume = () => {
+  room.phase = PHASE.ACTIVE;
+  room.phaseEndsAt = now + room.level.timeLimit * 1000;
+};
+
 let now = 0;
 const advance = (ms, fn) => {
   const steps = Math.round(ms / TICK_MS);
@@ -283,63 +326,110 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
   }
 }
 
+// --- a carry has to survive the whole haul, not just the lift ----------------
+// Lift height is not the same measurement as carrying something somewhere, and
+// tuning the first broke the second without touching it. A bot shift banked £0
+// on safes and delivered six of six elk in pieces while every headless
+// lift-height assertion stayed green.
+//
+// The safe is the top of the solo range and the elk is fragile: between them
+// they cover both halves of what went wrong.
+{
+  for (const a of [A, B, C]) stand(a);
+  advance(300);
+
+  for (const [kind, restY] of [['safe', 0.62], ['elk', 0.55]]) {
+    const rec = room.world.spawnProp(kind, [5.5, restY, 7.5]);
+    advance(500);
+    stand(A);   // AFTER settling: the previous block drops a generator on people
+    const q = rec.rb.translation();
+    A.pos.x = q.x; A.pos.y = 0.05; A.pos.z = q.z + 1.3;
+    A.vel.x = 0; A.vel.y = 0; A.vel.z = 0;
+    A.yaw = Math.PI;
+    A.pitch = Math.atan2(q.y - (A.pos.y + 1.58), 1.3);
+    A.body.setNextKinematicTranslation({ x: A.pos.x, y: 0.05 + A.height / 2, z: A.pos.z });
+    ok(`one contractor can pick up the ${kind}`,
+      tryGrab(room.world, A, room.holders) === rec, `${PROP_BY_ID[kind].mass}kg`);
+
+    // Now WALK somewhere with it, on open floor, for two seconds.
+    const from = { x: A.pos.x, z: A.pos.z };
+    advance(2000, () => {
+      A.pendingInput = input({ yaw: Math.PI / 2, moveY: 1, pitch: 0.05 });
+    });
+    const walked = Math.hypot(A.pos.x - from.x, A.pos.z - from.z);
+    const stillHeld = A.held === rec;
+    const p2 = rec.rb.translation();
+    const near = Math.hypot(p2.x - A.pos.x, p2.z - A.pos.z);
+
+    ok(`the ${kind} comes with you`, stillHeld && near < 3.0,
+      `walked ${walked.toFixed(1)}m, prop ${near.toFixed(1)}m away, `
+      + `${stillHeld ? 'still held' : 'DROPPED'}`);
+    // Hauling 132kg IS slow by design — loadPenalty and stamina take a walk
+    // from 4.1m/s to about 2.3 and then to 1.4 once stamina is gone. What is
+    // not by design is the load trailing so far behind that it never arrives,
+    // so this measures the lag rather than the pace.
+    ok(`the ${kind} keeps up with you`, near < 2.6,
+      `${near.toFixed(1)}m behind after ${walked.toFixed(1)}m of walking `
+      + `(the grab breaks at 3.9m)`);
+    ok(`the ${kind} survives being carried`, !rec.broken);
+    ok(`carrying the ${kind} does not knock you out`, A.health > 60 && !A.ragdoll,
+      `health ${A.health.toFixed(0)}`);
+
+    room.world.removeProp(rec);
+    stand(A);
+    advance(300);
+  }
+}
+
 // --- a carried prop does not kill the person helping you ---------------------
 // Impact damage used ABSOLUTE momentum, so a 132kg safe at walking pace scored
-// 185 against a safe threshold of 26 and knocked out anyone within a metre and
-// a half of whoever was carrying it. The correct play was for the rest of the
+// 541 against a safe threshold of 26 — an instant knockout for anyone within a
+// metre and a half of whoever was carrying it. The correct play was for the
 // crew to stand well clear, which is the opposite of a co-operative hauling
 // game. What hurts is being HIT, and that is about the speed difference.
 //
-// Gravity is switched off on the fixture and both bodies are pinned each tick,
-// so the only variable is relative velocity. An earlier version let the prop
-// fall while claiming to measure a carry, and the 0.37m/s of gravity per tick
-// was enough on 132kg to register as a series of impacts — the test failed for
-// a reason that had nothing to do with what it was checking.
+// A GENUINELY carries it and C GENUINELY walks alongside, rather than the prop
+// being pinned to a hand-set velocity. Two earlier versions of this fixture
+// pinned it, and both measured their own one-tick lag between when the velocity
+// was written and when actor.step recomputed C's — 0.8m/s of pure artefact on
+// 132kg, which is a real impact by the rules and nothing to do with the game.
 {
-  const safe = room.world.spawnProp('safe', [5.5, 0.9, 7.5]);
-  safe.rb.setGravityScale(0, true);
-  advance(200);
-  C.health = 100;
-  C.pos.x = 5.5; C.pos.y = 0.05; C.pos.z = 8.6;
-  C.body.setNextKinematicTranslation({ x: C.pos.x, y: 0.05 + C.height / 2, z: C.pos.z });
-  advance(200, () => { C.pendingInput = input(); });
+  for (const x of [A, B, C]) stand(x);
+  const safe = room.world.spawnProp('safe', [5.5, 0.62, 7.5]);
+  advance(500);
 
-  // C is given an INPUT and walks; the safe is then matched to whatever
-  // velocity the controller actually produced. Writing C.vel directly does not
-  // work — actor.step recomputes it from input every tick, so a hand-set value
-  // is gone before the impact check reads it and the "relative" velocity is
-  // just the prop's absolute velocity wearing a different name. I wrote that
-  // comment once and then made the same mistake again two fixtures later.
-  const travelling = (relX) => advance(900, () => {
-    C.pendingInput = input({ yaw: Math.PI / 2, moveY: 1 });   // due +x
-    safe.rb.setLinvel({ x: C.vel.x + relX, y: 0, z: C.vel.z }, true);
-    safe.rb.setTranslation({ x: C.pos.x + 0.75, y: C.pos.y + 0.85, z: C.pos.z }, true);
+  const q = safe.rb.translation();
+  stand(A, [q.x, 0.05, q.z + 1.3]);
+  A.yaw = Math.PI;
+  A.pitch = Math.atan2(q.y - (A.pos.y + 1.58), 1.3);
+  ok('a contractor is carrying the safe', tryGrab(room.world, A, room.holders) === safe);
+
+  // C, one and a bit metres to the side, walking the same way at the same pace.
+  stand(C, [A.pos.x + 1.3, 0.05, A.pos.z]);
+  C.health = 100;
+  advance(2500, () => {
+    A.pendingInput = input({ yaw: Math.PI / 2, moveY: 1, pitch: 0.05 });
+    C.pendingInput = input({ yaw: Math.PI / 2, moveY: 1 });
+    // Keep C abreast rather than letting them wander into the load.
+    C.pos.z = A.pos.z;
   });
-
-  // Let C reach a steady walk BEFORE measuring. The controller accelerates at
-  // GROUND_ACCEL, so for the first few ticks the prop is matched to a velocity
-  // the contractor has not reached yet — 0.8m/s of transient on 132kg is one
-  // genuine impact, and it lands every run.
-  travelling(0);
-  C.health = 100;
-  travelling(0);
-  // Survivable, not pristine. A fixture cannot hold two bodies in perfect
-  // lockstep — the contractor's speed wobbles as the controller re-grounds, and
-  // 0.2m/s of residual on 132kg is still a nudge. What matters is the size of
-  // the change: on ABSOLUTE momentum this same walk scores 4.1 * 132 = 541
-  // against a threshold of 26, which is 463 damage and an instant knockout,
-  // twice over, every time anyone carried anything past a teammate.
   ok('walking alongside a carried safe does not deck you', C.health > 80,
-    `health ${C.health.toFixed(0)} after 1.8s beside 132kg matching your pace `
+    `health ${C.health.toFixed(0)} after 2.5s beside a real 132kg carry `
     + '(absolute momentum scored 541 here and killed outright)');
+  ok('...and the carrier is fine too', A.health > 80, `health ${A.health.toFixed(0)}`);
 
+  // ...but being hit by one still hurts. Let go and fire it at them.
+  release(A, room.holders, false);
+  stand(C, [A.pos.x + 2.5, 0.05, A.pos.z]);
   C.health = 100;
-  travelling(6.0);
-  ok('a safe swung into you still hurts', C.health < 85,
-    `health ${C.health.toFixed(0)} after 132kg at +6.0m/s relative`);
+  advance(700, (i) => {
+    if (i === 0) safe.rb.setLinvel({ x: 9, y: 0, z: 0 }, true);
+    C.pendingInput = input();
+  });
+  ok('a safe thrown at you still hurts', C.health < 85, `health ${C.health.toFixed(0)}`);
 
   room.world.removeProp(safe);
-  C.pendingInput = input();
+  for (const x of [A, C]) stand(x);
   advance(200);
 }
 
@@ -348,7 +438,8 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
 // `alive`, so Actor.step returned early for ever and the contractor was a
 // permanent heap that the snapshot called neither alive nor downed.
 {
-  B.pendingInput = input();
+  stand(B);
+  stand(A);
   B.health = 0;
   B.goDown(now);
   B.alive = false;               // what bleedout does
@@ -373,14 +464,15 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
 // the rest of the job, with no way to tell anybody and nothing to do about it.
 // There are two crates stacked in the north-west corner now.
 {
-  for (const a of [A, B, C]) { release(a, room.holders, false); a.pendingInput = input(); }
-  A.alive = true; A.health = 100;
-  if (A.ragdoll) { A.downed = false; A.exitRagdoll(); }
-  A.pos.x = 0.6; A.pos.y = -1.05; A.pos.z = 1.4;
-  A.vel.x = 0; A.vel.y = 0; A.vel.z = 0;
-  A.body.setNextKinematicTranslation({ x: A.pos.x, y: A.pos.y + A.height / 2, z: A.pos.z });
+  for (const a of [A, B, C]) stand(a);
+  stand(A, [0.6, -1.05, 1.4]);
   advance(300, () => { A.pendingInput = input(); });
   ok('you can get into the pit', A.pos.y < -0.9, `y=${A.pos.y.toFixed(2)}`);
+  if (process.env.DBG) {
+    console.log('   DBG phase', room.phase, 'A alive', A.alive, 'downed', A.downed,
+      'ragdoll', !!A.ragdoll, 'health', A.health.toFixed(0), 'body', !!A.body,
+      'banked', room.banked);
+  }
 
   // Head for the crates in the corner, jumping. Yaw is atan2(dx, dz) — the
   // project's one facing convention.
