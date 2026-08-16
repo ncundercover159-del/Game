@@ -34,6 +34,19 @@ const brushes = [
   // ...and the plank somebody left across it, which will not hold a piano
   box([0, 0.06, 2.2], [8.6, 0.12, 0.9], 'plank', { tag: 'plank' }),
 
+  // A WAY BACK OUT OF THE PIT.
+  //
+  // Without these the trench is a soft-lock. Its floor is at -1.10 and its lip
+  // at +0.30, so getting out is a 1.40m climb, and a contractor can manage
+  // 0.99m — a 0.57m jump plus 0.42m of autostep. Anyone who fell in, or was
+  // knocked in, stayed there for the rest of the job with no way to say so.
+  //
+  // Two crates somebody stacked against the north wall, at 0.60m and 0.75m.
+  // Both are under the 0.99m limit with room to spare for a bad approach, and
+  // "there is junk in the inspection pit" needs no explaining to anyone.
+  box([-2.2, -0.80, -1.0], [1.4, 0.60, 1.0], 'crate', { tag: 'pitstep' }),
+  box([-2.2, -0.35, 0.0], [1.2, 0.75, 0.9], 'crate', { tag: 'pitstep' }),
+
   // --- racking rows --------------------------------------------------------
   ...racking(-15, -9, 4, 3),
   ...racking(-15, 2, 4, 3),

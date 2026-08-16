@@ -366,6 +366,37 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
   ok('...and can move again', !B.ragdoll || B.alive);
 }
 
+// --- the pit is not a soft-lock ----------------------------------------------
+// Its floor is at -1.10 and its lip at +0.30: a 1.40m climb, against the 0.99m
+// a contractor can manage (0.57m of jump plus 0.42m of autostep). Anyone who
+// fell in — or was knocked in, which is the more likely way — stayed there for
+// the rest of the job, with no way to tell anybody and nothing to do about it.
+// There are two crates stacked in the north-west corner now.
+{
+  for (const a of [A, B, C]) { release(a, room.holders, false); a.pendingInput = input(); }
+  A.alive = true; A.health = 100;
+  if (A.ragdoll) { A.downed = false; A.exitRagdoll(); }
+  A.pos.x = 0.6; A.pos.y = -1.05; A.pos.z = 1.4;
+  A.vel.x = 0; A.vel.y = 0; A.vel.z = 0;
+  A.body.setNextKinematicTranslation({ x: A.pos.x, y: A.pos.y + A.height / 2, z: A.pos.z });
+  advance(300, () => { A.pendingInput = input(); });
+  ok('you can get into the pit', A.pos.y < -0.9, `y=${A.pos.y.toFixed(2)}`);
+
+  // Head for the crates in the corner, jumping. Yaw is atan2(dx, dz) — the
+  // project's one facing convention.
+  let escaped = false;
+  advance(9000, (i) => {
+    const dx = -2.2 - A.pos.x, dz = -1.0 - A.pos.z;
+    A.pendingInput = input({
+      yaw: Math.atan2(dx, dz), moveY: 1,
+      buttons: i % 40 < 6 ? BUTTON.JUMP : 0,
+    });
+    if (A.pos.y > 0.25) escaped = true;
+  });
+  ok('...and you can get back out of it', escaped,
+    `ended at y=${A.pos.y.toFixed(2)} (lip is +0.30)`);
+}
+
 // --- the van does not fill up ------------------------------------------------
 // Found by bots, because bots are the only thing patient enough to deliver a
 // dozen items in a row. An extracted prop used to keep its collider, so paid-for

@@ -82,11 +82,18 @@ const MAX_CATCHUP_MS = 250;
 // If a socket cannot drain this fast it is not going to catch up by being sent
 // more; skip its snapshot rather than growing the kernel buffer without bound.
 const BACKPRESSURE_BYTES = 512 * 1024;
+// Snapshots skipped in a row before a socket is considered gone rather than
+// slow. Forty is two seconds at SNAPSHOT_HZ.
+const BACKPRESSURE_FRAMES = 40;
 const JOIN_GRACE_MS = 30_000;    // connect, then say something, or go away
 
 /** @type {Map<string, Session>} */
 const rooms = new Map();
 let nextClientId = 1;
+// Rotated every tick so the room stepped first is not always the same one, and
+// filled in by the load reporter below.
+let stepCursor = 0;
+const overload = { behind: 0, lostMs: 0 };
 
 // =============================================================================
 // a token bucket
@@ -129,6 +136,7 @@ class Client {
     this.alive = true;
     this.roomsMade = 0;
     this.roomsSince = 0;
+    this.stalled = 0;
   }
 
   get open() { return this.ws.readyState === 1; }
@@ -177,6 +185,7 @@ class Session {
     this.snapAcc = 0;
     this.stateAcc = 0;
     this.lostMs = 0;
+    this.lostSince = 0;      // lost time in the current reporting window
     this.ticks = 0;
 
     this.lastActivity = this.clock;
@@ -253,6 +262,10 @@ class Session {
       this.clock += lost;
       this.acc = MAX_CATCHUP_MS;
       this.lostMs += lost;
+      // Absorbing this silently is how a server ends up running every room at
+      // half speed while every dashboard says it is fine. The clamp keeps the
+      // room alive; the counter is what says it was not free.
+      this.lostSince += lost;
     }
 
     while (this.acc >= TICK_MS) {
@@ -318,7 +331,16 @@ class Session {
 
     const snap = room.snapshot(this.clock);
     for (const c of this.clients) {
-      if (c.ws.bufferedAmount > BACKPRESSURE_BYTES) continue;
+      if (c.ws.bufferedAmount > BACKPRESSURE_BYTES) {
+        // Skipping is the right first move — sending more to a socket that
+        // cannot drain only grows the kernel buffer. But skipping for ever is
+        // not a policy: a client this far behind is not playing, it is holding
+        // a slot and a send queue. Give it a couple of seconds to recover and
+        // then let it go, so it reconnects into a clean state.
+        if (++c.stalled > BACKPRESSURE_FRAMES) c.kick(4009, 'too far behind');
+        continue;
+      }
+      c.stalled = 0;
       c.send(snap);
     }
 
@@ -427,6 +449,10 @@ class Session {
 // =============================================================================
 function createSession(levelId) {
   if (rooms.size >= MAX_ROOMS) return null;
+  // A new room is a new physics world and 60 more ticks a second to find. If
+  // the rooms already here are not getting their time, taking on more is how a
+  // struggling server becomes a stopped one.
+  if (overload.behind > 0 && overload.lostMs > 2000) return null;
   const code = makeCode(rooms);
   let session;
   try {
@@ -481,6 +507,10 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({
       ok: true, rooms: rooms.size, players, bots,
+      // Deliberately visible. A server that is silently dropping simulation
+      // looks identical to a healthy one from the outside, and the difference
+      // is the entire reason anybody reads this endpoint.
+      behind: overload.behind, lostMs: Math.round(overload.lostMs),
       uptime: Math.round(process.uptime()),
     }));
     return;
@@ -817,10 +847,46 @@ function wrapAngle(a) {
 // remainder, so the tick rate does not drift with the timer's rounding.
 setInterval(() => {
   const wall = Date.now();
-  for (const session of rooms.values()) {
+  const live = [...rooms.values()];
+  if (live.length === 0) return;
+  // Round-robin with a frame budget, for two reasons. A room that takes an
+  // unreasonable amount of time to step used to delay every room behind it in
+  // Map order, which is a denial of service one player can cause for everyone
+  // else on the box; and a fixed order means the same rooms are always the ones
+  // that suffer. Rotating the start spreads it, and any room that misses a wake
+  // simply carries a bigger delta into the next one — which is exactly what its
+  // accumulator is for, so nothing is lost by deferring it.
+  const budget = TICK_MS * 0.75;
+  const began = performance.now();
+  stepCursor %= live.length;
+  for (let n = 0; n < live.length; n++) {
+    const session = live[(stepCursor + n) % live.length];
     if (!session.dead) session.step(wall);
+    if (performance.now() - began > budget && n + 1 < live.length) {
+      // Out of time. Start with the next one along on the following wake.
+      stepCursor = (stepCursor + n + 1) % live.length;
+      return;
+    }
   }
+  stepCursor = (stepCursor + 1) % live.length;
 }, Math.max(4, Math.floor(TICK_MS)));
+
+// Overload is a fact about the server, not a per-room curiosity: report it in
+// one place, at a rate somebody can actually read.
+setInterval(() => {
+  let behind = 0;
+  let lost = 0;
+  for (const session of rooms.values()) {
+    if (session.lostSince > 0) { behind++; lost += session.lostSince; }
+    session.lostSince = 0;
+  }
+  overload.behind = behind;
+  overload.lostMs = lost;
+  if (behind > 0) {
+    console.warn(`overloaded: ${behind} of ${rooms.size} rooms skipped `
+      + `${Math.round(lost)}ms of simulation in the last 5s`);
+  }
+}, 5000);
 
 setInterval(() => {
   const now = Date.now();
