@@ -668,6 +668,9 @@ try {
       wedgeState.yaw = yaw;
       const pitch = Math.atan2(prop.y - (me.y + 1.58), Math.max(0.05, flat));
       const near = Math.hypot(dx, prop.y - (me.y + 1.58), dz) < 2.2;
+      // Actor.step's wish matrix is [[-c, s], [s, c]], which is its own
+      // inverse. Derived rather than assumed, so a convention change upstream
+      // cannot quietly send this client walking backwards.
       const cy = Math.cos(yaw), sy = Math.sin(yaw);
       const ux = flat > 0.01 ? dx / flat : 0;
       const uz = flat > 0.01 ? dz / flat : 0;
@@ -678,8 +681,8 @@ try {
       const wedged = !near && Date.now() - (wedgeState.since || 0) > 700;
       if (wedged) wedgeState.since = Date.now();
       c.input({
-        moveX: near ? 0 : cy * ux + sy * uz,
-        moveY: near ? 0 : -sy * ux + cy * uz,
+        moveX: near ? 0 : -cy * ux + sy * uz,
+        moveY: near ? 0 : sy * ux + cy * uz,
         yaw,
         pitch,
         // Pulsed: room.js edge-triggers the grab, so a held button is one
@@ -838,11 +841,6 @@ try {
 section('a room of bots works a shift');
 await initPhysics();
 const botRoom = await Room.create('BOTS');
-// Step once before hiring anybody: Room.spawnFor's floor check is a raycast,
-// and Rapier's query pipeline is empty until the world has stepped, so in a
-// brand new room every contractor spawns on top of every other one. See the
-// report — four stacked capsules run the room at 3.6Hz.
-botRoom.world.step();
 const pool = new BotPool(botRoom);
 pool.fill(4);
 

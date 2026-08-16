@@ -490,13 +490,20 @@ export class Bot {
       opts.aim ? opts.aim.pitch : (carrying ? -0.12 : 0), me, carrying);
     input.pitch = this.pitch;
 
-    // Invert the actor's own wish-direction rotation to get the stick that
+    // Invert the actor's own wish-direction matrix to get the stick that
     // produces `dir` in world space, whatever yaw we ended up facing. Because
     // this is derived from the yaw actually being SENT, a bot mid-turn still
     // walks exactly where it meant to.
+    //
+    // That matrix is [[-c, s], [s, c]] — a reflection, not a rotation: its
+    // determinant is -1 and it is its own inverse. So the same expression maps
+    // both ways, which is a happy accident and not one to rely on silently.
+    // Deriving the stick from the simulation's own arithmetic rather than
+    // picking a convention is what kept the bots walking correctly through the
+    // period when aim and movement disagreed.
     const c = Math.cos(input.yaw), s = Math.sin(input.yaw);
-    input.moveX = c * dir.x + s * dir.z;
-    input.moveY = -s * dir.x + c * dir.z;
+    input.moveX = -c * dir.x + s * dir.z;
+    input.moveY = s * dir.x + c * dir.z;
 
     // Sprint on the way out, never on the way back. Empty-handed there is no
     // reason to hoard it — the bar refills during the haul, which is the half
