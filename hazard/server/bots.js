@@ -32,7 +32,7 @@ import { membership, GROUPS } from './world.js';
 import { liftCapacity } from './grab.js';
 import {
   BUTTON, GRAB_RANGE, EYE_HEIGHT, REVIVE_RADIUS, IMPACT_SAFE_MOMENTUM, TICK_DT,
-  DOWNED_BLEEDOUT_MS,
+  DOWNED_BLEEDOUT_MS, HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX,
 } from '../shared/tune.js';
 
 const { GROUP_STATIC, GROUP_ACTOR } = GROUPS;
@@ -103,8 +103,12 @@ const GIVE_UP_MS = 10_000;        // per target, before it goes on the ignore li
 const SNUB_MS = 30_000;           // how long an abandoned target stays ignored
 const REPLAN_MS = 4000;
 
+// Close enough that it does not swing into door frames or into other people,
+// far enough that it is not inside the contractor carrying it.
+const CARRY_DISTANCE = 1.35;
+
 const ZERO = {
-  seq: 0, moveX: 0, moveY: 0, yaw: 0, pitch: 0, buttons: 0, holdDist: 1.85,
+  seq: 0, moveX: 0, moveY: 0, yaw: 0, pitch: 0, buttons: 0, holdDist: CARRY_DISTANCE,
 };
 
 /**
@@ -266,6 +270,7 @@ export class Bot {
 
     if (dist < REACH) {
       const input = this.goTo(room, me, now, p.x, p.y, p.z, { arrive: 0.85, aim });
+      input.holdDist = clamp(dist, HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX);
       // The grab is edge-triggered in room.js: a held button is one attempt and
       // then silence. Pulse it, so a refused grab is retried.
       if (Math.abs(wrapAngle(aim.yaw - me.yaw)) < AIM_TOLERANCE) {
@@ -361,6 +366,14 @@ export class Bot {
           yaw: this.face(aim.yaw, aim.pitch, me, true),
           pitch: this.pitch,
         };
+      // Aiming at the van bed only puts the load there if the hold is the right
+      // length as well: the prop is driven to eye + lookDir * holdDist, so the
+      // distance has to say how far along that line the van floor is.
+      const eye = { x: me.pos.x, y: me.pos.y + EYE_HEIGHT, z: me.pos.z };
+      input.holdDist = clamp(
+        Math.hypot(stand.aim.x - eye.x, aimY - eye.y, stand.aim.z - eye.z),
+        HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX,
+      );
       // Release on the object's own position, which is the test room.js
       // applies — and give up eventually rather than stand here all shift.
       if (insideExtract(e, p, 0.2) || now - this.since > 7000) {
@@ -371,10 +384,10 @@ export class Bot {
 
     const input = this.goTo(room, me, now, stand.x, stand.y, stand.z,
       { arrive: 0, carrying: true });
-    // Reel the load in against the chest. A long hold swings into door frames
-    // and into other people, and the wire's holdDist field cannot do this —
-    // the server never reads it (see the report), so PULL is the only lever.
-    if (me.holdDist > 1.45) input.buttons |= BUTTON.PULL;
+    // Carry it in against the chest. A long hold swings into door frames and
+    // into other people, and the server honours this field now, so it is a
+    // direct statement rather than something to be pumped at with PULL.
+    input.holdDist = CARRY_DISTANCE;
     return input;
   }
 
