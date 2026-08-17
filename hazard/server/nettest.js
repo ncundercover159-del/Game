@@ -21,14 +21,14 @@ import { WebSocket } from 'ws';
 
 import { Room } from './room.js';
 import { initPhysics } from './world.js';
-import { BotPool } from './bots.js';
+import { BotPool, Bot } from './bots.js';
 import { makeCode, normaliseCode, CODE_ALPHABET } from './codes.js';
 import { decodeSnapshot } from '../client/src/net.js';
 import { Writer, writeInput, MSG, PFLAG, OFLAG } from '../shared/protocol.js';
 import { PROP_BY_ID } from '../shared/props.js';
 import { LEVEL_BY_ID, DEFAULT_LEVEL } from '../shared/levels/index.js';
 import {
-  TICK_MS, PHASE, MAX_PLAYERS, CODE_LENGTH, BUTTON, SNAPSHOT_MS,
+  TICK_MS, PHASE, MAX_PLAYERS, CODE_LENGTH, BUTTON, SNAPSHOT_MS, EYE_HEIGHT,
 } from '../shared/tune.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -50,6 +50,7 @@ const ok = (name, cond, extra) => {
 };
 const section = (s) => console.log(`\n--- ${s} ---`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const inputFrame = (c, o) => c.frame(o);
 
 /** Poll a condition. Returns what the predicate returned, or null on timeout. */
 async function until(fn, ms = 5000) {
@@ -132,6 +133,14 @@ class TC {
 
   send(o) { try { this.ws.send(JSON.stringify(o)); } catch { /* gone */ } }
   sendRaw(buf) { try { this.ws.send(buf); } catch { /* gone */ } }
+
+  frame(o) {
+    this.w.o = 0;
+    const seq = this.seq++;
+    writeInput(this.w, seq, o.moveX || 0, o.moveY || 0, o.yaw || 0, o.pitch || 0,
+      o.buttons || 0, o.holdDist == null ? 1.85 : o.holdDist);
+    return this.w.bytes();
+  }
 
   input({ moveX = 0, moveY = 0, yaw = 0, pitch = 0, buttons = 0, holdDist = 1.85 } = {}) {
     this.w.o = 0;
@@ -632,69 +641,103 @@ try {
 
   // The join keyframe carries every prop, so the authored position is enough to
   // work out which id on the wire is the one we mean.
-  // Choose from the keyframe itself: the heaviest thing one pair of hands may
-  // legally start, that is also low enough for someone on foot to reach. The
-  // really heavy stock is either ungrabbable (over the 189kg first-hands cap)
-  // or 6.6m up a rack, and neither makes a two-person carry.
+  // The piano, specifically. It is 220kg against a 173kg solo ceiling, so one
+  // contractor can get a grip on it and physically cannot walk away with it —
+  // which is what makes this a test of the SHARED hold rather than a race to
+  // see who grabs first. Picking "the heaviest reachable prop" stopped being
+  // good enough the moment a 132kg safe became solo-liftable: one pair of hands
+  // would simply leave with it, and the assertion would report one holder.
   const key = P.firstSnap;
+  // The piano by name if the level has one, otherwise the heaviest thing that
+  // still sits south of the conveyor. That belt is a 1.08m wall twenty-six
+  // metres across the middle of the warehouse — too tall to autostep and too
+  // tall to jump — so the generator behind it is not a navigation problem worth
+  // solving to make this point.
   let target = null;
   let wantedKind = '';
   let wantedMass = 0;
   for (const pr of (key ? key.props : [])) {
-    const def = PROP_BY_ID[kindById.get(pr.id)];
-    if (!def || def.mass > 189 || def.mass <= wantedMass || pr.y > 3.5) continue;
-    target = pr; wantedKind = kindById.get(pr.id); wantedMass = def.mass;
+    const kind = kindById.get(pr.id);
+    const def = PROP_BY_ID[kind];
+    if (!def) continue;
+    const reachable = pr.z > -5.5;
+    if (kind === 'piano') { target = pr; wantedKind = kind; wantedMass = def.mass; break; }
+    if (!reachable || def.mass <= wantedMass) continue;
+    target = pr; wantedKind = kind; wantedMass = def.mass;
   }
   ok('the join keyframe carries the whole site', !!key && key.props.length > 30,
     key ? `${key.props.length} props` : 'no keyframe');
-  ok('and something heavy enough to need two people', !!target && wantedMass > 100,
+  ok('and the heaviest thing on it needs more than one pair of hands',
+    !!target && wantedMass > 173,
     target ? `${wantedKind}, ${wantedMass}kg, at (${target.x.toFixed(1)}, ${target.y.toFixed(1)}, ${target.z.toFixed(1)})`
-      : 'nothing suitable');
+      : 'nothing heavy enough');
 
   if (target) {
     const id = target.id;
-    // One dumb navigator, used by both clients. No pathfinding: walk at it, and
-    // hop when you stop making progress, which is enough to get off the dock
-    // and across an open warehouse floor.
-    const nav = (c, wedgeState, only = id) => {
+    // Give the test client the bots' navigation rather than a straight line.
+    //
+    // Both remaining problems here were the same problem: a client that walks
+    // at a point and hops when wedged cannot cross a warehouse, so it could not
+    // reach the piano, and it could not reliably reach whatever the stand-in
+    // was holding either — which is what made this sequence fail one run in
+    // three. Bot.goTo already knows about ledges, the inspection pit, the ramp
+    // up to the dock, and how to invert the actor's wish matrix; none of that
+    // wants writing twice.
+    //
+    // The steering needs geometry to cast against, so it gets a local Room. The
+    // level is static data both ends already share — it is how the real client
+    // predicts against a wall — and only its brushes are read here. Positions
+    // come from the wire, as they must: this client knows what it has been told
+    // and nothing else. The pool is left empty on purpose, so there is no
+    // hazard avoidance to talk it out of walking up to a carried load.
+    const navRoom = await Room.create('NAV');
+    navRoom.world.step();   // the steering raycasts need a populated query pipeline
+    const navPool = new BotPool(navRoom);
+    const pilots = new Map();
+
+    const pilot = (c, to, extra = {}) => {
       const me = c.player();
-      const prop = c.prop(only);
-      if (!me || !prop) return false;
-      if (me.heldId === only) { c.input({ yaw: wedgeState.yaw || 0 }); return true; }
-      const dx = prop.x - me.x;
-      const dz = prop.z - me.z;
-      const flat = Math.hypot(dx, dz);
-      const yaw = Math.atan2(dx, dz);
-      wedgeState.yaw = yaw;
-      const pitch = Math.atan2(prop.y - (me.y + 1.58), Math.max(0.05, flat));
-      const near = Math.hypot(dx, prop.y - (me.y + 1.58), dz) < 2.2;
-      // Actor.step's wish matrix is [[-c, s], [s, c]], which is its own
-      // inverse. Derived rather than assumed, so a convention change upstream
-      // cannot quietly send this client walking backwards.
-      const cy = Math.cos(yaw), sy = Math.sin(yaw);
-      const ux = flat > 0.01 ? dx / flat : 0;
-      const uz = flat > 0.01 ? dz / flat : 0;
-      if (!wedgeState.at || Math.hypot(me.x - wedgeState.at.x, me.z - wedgeState.at.z) > 0.3) {
-        wedgeState.at = { x: me.x, z: me.z };
-        wedgeState.since = Date.now();
+      if (!me) return false;
+      // Whoever already has hold of it stands still. The target point is the
+      // object, the object is an arm's length in front of whoever is carrying
+      // it, so a carrier told to walk to it walks away from it for ever —
+      // dragging the thing out of reach of the second pair of hands that is
+      // trying to catch up. That is the whole "1 holder" failure.
+      if (extra.holding && me.heldId === extra.holding) {
+        c.sendRaw(inputFrame(c, { yaw: me.yaw, pitch: me.pitch, holdDist: 1.6 }));
+        return true;
       }
-      const wedged = !near && Date.now() - (wedgeState.since || 0) > 700;
-      if (wedged) wedgeState.since = Date.now();
-      c.input({
-        moveX: near ? 0 : -cy * ux + sy * uz,
-        moveY: near ? 0 : sy * ux + cy * uz,
-        yaw,
-        pitch,
-        // Pulsed: room.js edge-triggers the grab, so a held button is one
-        // attempt and then silence.
-        buttons: (near && (Date.now() % 400 < 130) ? BUTTON.GRAB : 0)
-          | (wedged ? BUTTON.JUMP : 0),
-      });
-      return false;
+      let b = pilots.get(c.label);
+      if (!b) { b = new Bot(c.slot, navPool); pilots.set(c.label, b); }
+      const here = {
+        slot: c.slot, held: null, stamina: 100,
+        pos: { x: me.x, y: me.y, z: me.z }, yaw: me.yaw, pitch: me.pitch,
+      };
+      const eye = { x: me.x, y: me.y + EYE_HEIGHT, z: me.z };
+      const dx = to.x - eye.x, dy = to.y - eye.y, dz = to.z - eye.z;
+      const flat = Math.hypot(dx, dz);
+      const aim = {
+        yaw: Math.atan2(dx, dz),
+        pitch: Math.atan2(dy, Math.max(1e-4, flat)),
+      };
+      const reach = Math.hypot(dx, dy, dz);
+      // A piano is a large compound collider and the eye sits 1.58m up, so the
+      // closest a contractor can physically stand puts the centre about 1.5m
+      // away; asking for less than that means never arriving. Comfortably
+      // inside GRAB_RANGE (3.0m), comfortably outside the object.
+      const near = reach < 2.4;
+      const input = b.goTo(navRoom, here, Date.now(), to.x, to.y, to.z,
+        { arrive: near ? 99 : 0, aim });
+      // Aim the LOAD, not the body: a held prop is driven to eye + lookDir *
+      // holdDist, so the distance is how far along that line the thing should
+      // sit. Same reason the bots state it explicitly.
+      input.holdDist = Math.max(1.0, Math.min(3.2, reach));
+      if (near && !extra.noGrab && Date.now() % 420 < 140) input.buttons |= BUTTON.GRAB;
+      if (extra.trace && near) extra.trace(reach);
+      c.sendRaw(inputFrame(c, input));
+      return near;
     };
 
-    const sp = {};
-    const sq = {};
     let maxHolders = 0;
     let carried = id;
     const watch = () => {
@@ -703,18 +746,19 @@ try {
       maxHolders = Math.max(maxHolders,
         snap.players.filter((pl) => pl.heldId === carried).length);
     };
+    const propAt = (who) => {
+      const pr = who.prop(carried);
+      return pr ? { x: pr.x, y: pr.y, z: pr.z } : null;
+    };
     let bothOn = await until(() => {
-      nav(P, sp);
-      nav(Q, sq);
+      const at = propAt(Q) || { x: target.x, y: target.y, z: target.z };
+      pilot(P, at, { holding: carried });
+      pilot(Q, at, { holding: carried });
       watch();
       return maxHolders >= 2 ? true : null;
-    }, 45000);
-    // Whether this harness's deliberately dumb client can walk thirteen metres
-    // off a dock and into a rack bay is a fact about the harness, not about the
-    // server, so it is reported rather than asserted. The co-carry assertion
-    // below is the one that matters, and it runs either way.
-    console.log(`     heavy attempt (${wantedKind}, ${wantedMass}kg): `
-      + (bothOn ? 'both took hold' : 'could not reach it, falling back to a nearer object'));
+    }, 90000);
+    ok(`two contractors walk to the ${wantedKind} and both take hold`, !!bothOn,
+      `${maxHolders} holders at once on ${wantedMass}kg`);
 
     if (!bothOn) {
       // The mechanism does not depend on which object it is. Let the stand-in
@@ -727,6 +771,22 @@ try {
       // of its hands before the second pair arrives. Retrying the approach is
       // not a weaker assertion, it is a fixture that stops flaking.
       for (let attempt = 0; attempt < 3 && !bothOn; attempt++) {
+        // Put down whatever it failed to share first. Otherwise the stand-in is
+        // still holding the piano, comes straight back with the piano, and the
+        // retry is the same attempt three times.
+        const stillHeld = (Q.player(P.slot) || {}).heldId;
+        if (stillHeld) {
+          // Clear, THEN press. The grab is edge-triggered on !grabLatch, and
+          // the approach loop above pulses the button — so a release that opens
+          // with GRAB already set produces no edge and no release, and the
+          // stand-in comes straight back holding the same thing.
+          for (let i = 0; i < 4; i++) { P.sendRaw(inputFrame(P, {})); await sleep(40); }
+          for (let i = 0; i < 4; i++) {
+            P.sendRaw(inputFrame(P, { buttons: BUTTON.GRAB })); await sleep(40);
+          }
+          P.sendRaw(inputFrame(P, {}));
+          await sleep(500);
+        }
         P.send({ t: 'autopilot', on: true });
         const lifted = await until(() => {
           const pl = Q.player(P.slot);
@@ -742,7 +802,8 @@ try {
           const pl = Q.player(P.slot);
           // The stand-in dropped it before we arrived; go round again.
           if (!pl || pl.heldId !== carried) return 'lost';
-          nav(Q, sq, carried);
+          const at = propAt(Q);
+          if (at) pilot(Q, at, { holding: carried });
           watch();
           return maxHolders >= 2 ? true : null;
         }, 30000);
