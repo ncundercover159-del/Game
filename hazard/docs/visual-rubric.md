@@ -1,9 +1,11 @@
 # HAZARD PAY — visual rubric
 
-**Version 1.1** · amended 2026-08-08, addendum to §4 on 2026-08-09 · owner: visual critic
-**v1.0** 2026-08-07. See "§3 — Amendments in v1.1" at the foot for the change list; v1.1 changes
-thresholds on C1, C4, C5 and C6, so grades against v1.0 and v1.1 are **not** directly comparable on
-those four criteria.
+**Version 1.2** · amended 2026-08-17 · owner: visual critic
+**v1.1** 2026-08-08, addendum to §4 on 2026-08-09. **v1.0** 2026-08-07.
+See "§3 — Amendments" at the foot for the change list. v1.1 changed thresholds on C1, C4, C5 and C6,
+so grades against v1.0 and v1.1 are **not** directly comparable on those four criteria. v1.2 adds
+**C10** and **§5** and changes no existing threshold, so C1–C9 remain comparable across v1.1 and
+v1.2.
 
 A screenshot-gradeable standard for the look of HAZARD PAY, calibrated against R.E.P.O. and PEAK.
 Every criterion below has a stated measurement method and numeric thresholds, so that two agents
@@ -464,6 +466,54 @@ that chases the look by desaturating everything will land on grey mush and score
 
 ---
 
+## C10 — Playable legibility from a still (new in v1.2)
+
+**Why this exists.** Nine criteria in, this rubric graded how the build *looks* and had no opinion
+at all about whether a player could tell what to do. That was an omission, and it was raised as one:
+for a first-person game the render is the entire user interface, so "the frame is well composed" and
+"the frame tells you what the game wants" are different claims and only one of them was being made.
+C10 makes the second one gradeable. It stays inside what a screenshot can actually prove — see §5
+for the far larger set of things it cannot.
+
+**What is being tested:** whether one gameplay frame, shown to someone who has never seen the game,
+communicates the job.
+
+**Method.** Take a gameplay frame at the standard capture settings. **Write the answers down before
+checking them against the level data** — a grader who checks first will find the frame far more
+legible than a player would. Five questions, in this order:
+
+1. **What in frame is worth money?** Point at it.
+2. **Where does it have to go?** Is the extraction volume identifiable as a destination rather than
+   as set dressing, and does it look like it accepts goods?
+3. **What in frame will hurt me, or break the valuable?** Drops, moving plant, live water, hazard
+   zones.
+4. **Where is onward?** The route out of this space.
+5. **Which figure is me, and which is a team-mate?** Only scored on frames containing figures.
+
+Score is the number answered correctly on the first attempt, and every wrong answer must be written
+down with what the grader thought it was — a frame where the extraction volume was read as a
+swimming pool is more useful evidence than the score.
+
+* **FAILS.** Two or fewer correct. **Automatic fail, whatever the count, if the extraction volume
+  reads as something other than a place goods go**, or if a valuable is indistinguishable from set
+  dressing at the distance the player will first see it.
+* **ACCEPTABLE.** Three or four correct. The extraction volume is identifiable once pointed out, the
+  valuables read as valuables at midground distance, and hazard livery is used for hazards.
+* **MATCHES.** All five correct from a frame the grader has not seen before, with the HUD cropped
+  away. Valuables carry a reserved finish — specular, trim, a colour — that nothing decorative uses.
+  The extraction volume reads as industrial equipment with a mouth, lit so the eye lands on it.
+  Hazard livery appears on hazards **and nowhere else**. Light is doing navigational work: the route
+  onward is the brightest continuous path in the frame, as it is in `refs/repo/fovupdate-example1.jpg`,
+  where a lit wedge of floor runs from the camera to the far door through an otherwise near-black room.
+
+**Relationship to the other criteria.** C10 overlaps C8 (composition) and C9 (reserved colours) on
+purpose, and it is scored separately because a frame can pass both and still be unreadable: three
+crisp depth bands and a disciplined palette will not tell you which of the forty props is the one
+worth £900. Where C8 asks whether the frame is built in layers, C10 asks whether the layers are
+carrying information.
+
+---
+
 ## 2. What a browser Three.js build can and cannot match
 
 An honest accounting, because effort spent on the wrong criterion is wasted.
@@ -533,6 +583,15 @@ which replaced prose with measurement on the criteria R.E.P.O. was supposed to i
 | C6 | Vignette MATCHES widened to 0.27–0.94; the corner÷centre metric declared invalid on dark-centred frames; camera-feed layer given a numeric CA band, and **the pass-2 verdict that CA was overdone is retracted** | R.E.P.O. runs the camera-feed layer loud |
 | C2, C3, C7, C8, C9 | **Unchanged.** | Both references agree, or no image evidence was gained |
 
+### Amendments in v1.2 (2026-08-17)
+
+No threshold on C1–C9 moved, so pass 4 and pass 5 remain directly comparable on all nine.
+
+| Change | Why |
+|---|---|
+| **C10 — Playable legibility from a still** added | Nine criteria graded how the build looks and none of them asked whether a frame tells the player what to do. For a first-person game the render is the interface; the omission was raised and it was a real one. |
+| **§5 — What this rubric cannot see** added | The same question, answered honestly in the other direction: C10 closes only what a screenshot can close. §5 states, so it can be cited rather than re-argued, that this instrument is blind to frame rate, latency, animation in motion, and whether the game can be won — and sets the rule for quoting somebody else's play evidence. |
+
 ### What did *not* change, and should be trusted more than before
 
 C9's numbers held up under a second independent reference. R.E.P.O. measures 19–31% dominant hue
@@ -599,3 +658,38 @@ caveat them, and score them only where the confound is absent.
    `crit4/zoom-sconce.png` — a 3× crop of a sconce in `fovupdate-example1.jpg` — is the reference
    for that judgement. The probe should be given an explicit region before its numbers are used
    again.
+
+---
+
+## 5. What this rubric cannot see (new in v1.2)
+
+Written because I was asked, directly, whether this document has anything to say about whether
+HAZARD PAY *plays* as well as it looks. The honest answer is that it did not, and that C10 closes
+only the narrow part of the gap a screenshot can close. The rest of the gap is stated here so that
+nobody reads a grade in this document as a verdict on the game.
+
+**This is a stills rubric graded by an agent that has never played the build.** Every number and
+every letter in `visual-review.md` comes from PNG files produced by a headless harness under
+software GL. That instrument is blind to, and no grade in this document is evidence about:
+
+* **Frame rate and frame pacing.** Every capture runs at 10–46 fps under SwiftShader. That figure is
+  meaningless about real hardware and must never be quoted as performance.
+* **Input latency, aim feel, movement weight.** Not visible in a still. The camera-versus-grab-ray
+  inversion described in §4 was invisible to nine criteria for the whole life of the project and was
+  found by a test that spanned two subsystems, not by looking at pictures.
+* **Animation in motion.** C7 grades a silhouette in a frozen frame. Whether the waddle reads as a
+  waddle, whether the ragdoll settles or jitters, whether interpolation is running at all — a still
+  cannot tell you. Remote figures were frozen solid in every capture for several passes and the
+  frames looked no different.
+* **Whether the game can be won.** Whether a valuable can be picked up, whether two players can join
+  a lift, whether the quota is reachable, whether a level soft-locks. A frame of a piano says
+  nothing about whether the piano can be lifted; for a long time it could not be, by anyone, and
+  the screenshots were unaffected.
+* **Audio, haptics, netcode, and everything a second player would notice.**
+
+**The rule that follows.** A visual reviewer must not infer play quality from a good-looking frame,
+and must not infer visual quality from a passing gameplay test. When play evidence is relevant to a
+visual finding — a bot run, a smoke test, a harness assertion — it may be **quoted, with attribution
+to whoever ran it**, and must be labelled as second-hand. It may never be presented as something the
+reviewer observed. The instrument that grades play is a bot harness with assertions about outcomes,
+and it belongs in a different document with a different owner.
