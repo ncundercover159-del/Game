@@ -515,6 +515,14 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
     tryGrab(room.world, A, room.holders) === piano);
 
   let joined = 0, tried = 0;
+  // 1.4 to 2.4, TELEPORTED — and no closer, because closer is not a place a
+  // contractor can be. A capsule is 0.34m in radius and a piano is a large
+  // compound collider, so 0.8m from its centre is inside it: teleporting there
+  // resolves the penetration by launching the piano nine metres into the air
+  // and shattering it, after which every later approach in the loop misses
+  // something that is no longer there. That is a fixture materialising inside
+  // a prop, not a fact about the game, and the walk-in check below is how the
+  // close range gets tested honestly instead.
   for (const dist of [1.4, 2.0, 2.4]) {
     for (const yaw of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
       tried++;
@@ -532,7 +540,33 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
     }
   }
   ok('a second pair can join from any angle, at any reachable distance',
-    joined === tried, `${joined} of ${tried} approaches`);
+    joined === tried, `${joined} of ${tried} approaches, 1.4m to 2.4m`);
+
+  // ...and from as close as a contractor can actually get, which is the case a
+  // network run was failing at 1.28m. Walked in rather than placed, so the
+  // stand-off is whatever the colliders allow rather than a number I chose.
+  {
+    const q = piano.rb.translation();
+    stand(B, [q.x, 0.05, q.z - 3.2]);
+    B.yaw = 0;
+    advance(2500, () => {
+      const t = piano.rb.translation();
+      const dz = t.z - B.pos.z, dx = t.x - B.pos.x;
+      const flat = Math.max(0.01, Math.hypot(dx, dz));
+      A.pendingInput = input({ yaw: A.yaw, pitch: A.pitch });
+      B.pendingInput = input({
+        yaw: Math.atan2(dx, dz), moveY: 1,
+        pitch: Math.atan2(t.y - (B.pos.y + 1.58), flat),
+      });
+    });
+    const t = piano.rb.translation();
+    const flat = Math.hypot(t.x - B.pos.x, t.z - B.pos.z);
+    const eyeToCentre = Math.hypot(t.x - B.pos.x, t.y - (B.pos.y + 1.58), t.z - B.pos.z);
+    ok('somebody who walks right up to it can still join the lift',
+      tryGrab(room.world, B, room.holders) === piano,
+      `stopped ${flat.toFixed(2)}m away flat, ${eyeToCentre.toFixed(2)}m eye to centre`);
+    release(B, room.holders, false);
+  }
   for (const x of [A, B, C]) stand(x);
   advance(200);
 }
