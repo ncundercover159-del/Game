@@ -861,25 +861,24 @@ pool.fill(4);
 // roughly the one the level intends. Nothing else is softened: the bots still
 // have to find it, lift it, carry it up the ramp, queue for the tailgate and
 // set it down in the van without breaking it or flattening each other.
-// Stock a single pair of hands can actually carry, which is a different
-// number since the grab was refitted: GRAB_MAX_FORCE is GRAB_MAX_MASS *
-// |GRAVITY| = 3080N and weight support now comes out of that budget, so a
-// 132kg safe spends 2904N of it just staying in the air and has 176N left to
-// be steered with. It sags, it drags, and a crew hauling six of them across a
-// warehouse knocks itself unconscious. A taxidermy elk is 38kg and £1,150 —
-// light enough to carry properly, valuable enough that six of them is a job.
+// Six safes: 132kg each, the heaviest single-handed carry the catalogue has.
+// The refitted grab divides the force budget rather than sharing it — holding
+// it up is paid first and only the remainder steers — so this is the class
+// that exercises the whole loop rather than the first second of it: find it,
+// lift it, walk it eight metres, jump the two 0.6m steps onto the dock (autostep
+// is 0.42m, so each one is a hop), queue for the tailgate, and set it down.
 //
 // Six rather than four is deliberate: extracted stock used to keep its
 // collider, so the van filled with what had already been paid for and the
 // fifth delivery bounced off the fourth. World.retireProp fixes that, and a
 // fixture seeding more than the van floor can hold is what keeps it fixed.
 const FLOOR_STOCK = [
-  ['elk', [-7.0, 0, 6.0]],
-  ['elk', [-3.5, 0, 6.5]],
-  ['elk', [3.5, 0, 6.5]],
-  ['elk', [7.0, 0, 6.0]],
-  ['elk', [-7.0, 0, 9.5]],
-  ['elk', [7.0, 0, 9.5]],
+  ['safe', [-7.0, 0, 6.0]],
+  ['safe', [-3.5, 0, 6.5]],
+  ['safe', [3.5, 0, 6.5]],
+  ['safe', [7.0, 0, 6.0]],
+  ['safe', [-7.0, 0, 9.5]],
+  ['safe', [7.0, 0, 9.5]],
 ];
 let seeded = 0;
 for (const [kind, p] of FLOOR_STOCK) {
