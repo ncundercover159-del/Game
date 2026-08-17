@@ -489,6 +489,54 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
     `ended at y=${A.pos.y.toFixed(2)} (lip is +0.30)`);
 }
 
+// --- can a second pair of hands find a lift already in progress? -------------
+// A network run reported that one contractor could reach the piano over a
+// socket and get a grip, and a second reliably could not — consistently, not
+// flakily — and pointed at pickTarget: either the fat sphere cast or the
+// line-of-sight ray.
+//
+// It is neither. The grab resolves the piano from every approach angle at every
+// distance in range, PROVIDED the contractor is looking at it. The piano sits on
+// the floor at y=0 and an eye is 1.6m up, so joining a lift from 2.4m away means
+// looking down about 0.6 radians, and a client that holds pitch at the horizon
+// casts straight over the top of it.
+//
+// Worth an assertion because "can somebody else join my lift" is a load-bearing
+// property of a co-operative game, and because the same trap caught my own probe
+// before it caught anybody else's: applyView takes pitch from pendingInput every
+// tick, so an actor left on a default input is aimed at the horizon sixty times
+// a second no matter what you set beforehand.
+{
+  for (const x of [A, B, C]) stand(x);
+  const q0 = piano.rb.translation();
+  stand(A, [q0.x, 0.05, q0.z - 1.3]);
+  A.yaw = 0; A.pitch = Math.atan2(q0.y - (A.pos.y + 1.58), 1.3);
+  ok('the first pair takes hold of the piano',
+    tryGrab(room.world, A, room.holders) === piano);
+
+  let joined = 0, tried = 0;
+  for (const dist of [1.4, 2.0, 2.4]) {
+    for (const yaw of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+      tried++;
+      const q = piano.rb.translation();
+      stand(B, [q.x - Math.sin(yaw) * dist, 0.05, q.z - Math.cos(yaw) * dist]);
+      B.yaw = yaw;
+      B.pitch = Math.atan2(q.y - (B.pos.y + 1.58), dist);
+      const by = B.yaw, bp = B.pitch, ay = A.yaw, ap = A.pitch;
+      advance(150, () => {
+        A.pendingInput = input({ yaw: ay, pitch: ap });
+        B.pendingInput = input({ yaw: by, pitch: bp });
+      });
+      if (tryGrab(room.world, B, room.holders) === piano) joined++;
+      release(B, room.holders, false);
+    }
+  }
+  ok('a second pair can join from any angle, at any reachable distance',
+    joined === tried, `${joined} of ${tried} approaches`);
+  for (const x of [A, B, C]) stand(x);
+  advance(200);
+}
+
 // --- can you actually deliver a safe? ----------------------------------------
 // This is the question the bot shift answered with "£0 banked", and it is the
 // only one that covers the whole loop: pick up the heaviest thing one person is
