@@ -489,6 +489,58 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
     `ended at y=${A.pos.y.toFixed(2)} (lip is +0.30)`);
 }
 
+// --- can you actually deliver a safe? ----------------------------------------
+// This is the question the bot shift answered with "£0 banked", and it is the
+// only one that covers the whole loop: pick up the heaviest thing one person is
+// meant to manage, walk it 8m, get it up two 0.6m steps onto the dock — each of
+// which needs a jump, because MAX_STEP is 0.42 — and let go inside the van.
+//
+// Every other grab assertion in this file measures one property in isolation.
+// This measures whether they compose, which is what the bots were doing when
+// they found that they did not.
+{
+  for (const x of [A, B, C]) stand(x);
+  const bankedBefore = room.banked;
+  const safe = room.world.spawnProp('safe', [0, 0.62, 8.0]);
+  advance(500);
+
+  const q = safe.rb.translation();
+  stand(A, [q.x, 0.05, q.z - 1.3]);
+  A.yaw = 0;                                   // forward is (sin 0, cos 0) = +z
+  A.pitch = Math.atan2(q.y - (A.pos.y + 1.58), 1.3);
+  ok('picked up the safe', tryGrab(room.world, A, room.holders) === safe,
+    `${PROP_BY_ID.safe.mass}kg`);
+
+  let delivered = false;
+  let onDock = false;
+  advance(16000, (i) => {
+    // Let go at 13.6, not 15. The load rides 1.85m ahead of the eye, so walking
+    // to 15 puts it at 16.85 — past the van's far edge at 16.6. It went onto the
+    // dock perfectly and out the other side of the volume.
+    if (A.held === safe && A.pos.z < 13.6) {
+      // Walk north, jumping steadily — the ramp and the dock lip are 0.6m each.
+      A.pendingInput = input({
+        yaw: 0, moveY: 1, pitch: 0.1,
+        buttons: i % 30 < 5 ? BUTTON.JUMP : 0,
+      });
+      if (A.pos.y > 1.0) onDock = true;
+    } else if (A.held === safe) {
+      release(A, room.holders, false);        // set it down in the van
+      A.pendingInput = input({ yaw: 0 });
+    } else {
+      A.pendingInput = input({ yaw: 0 });
+    }
+    if (safe.extracted) delivered = true;
+  });
+
+  ok('carried it up onto the dock', onDock, `ended at y=${A.pos.y.toFixed(2)}`);
+  ok('a safe can actually be delivered', delivered && room.banked > bankedBefore,
+    `banked £${bankedBefore} -> £${room.banked}, safe at `
+    + `${safe.rb.translation().z.toFixed(1)}z ${safe.extracted ? 'EXTRACTED' : 'not extracted'}`);
+  for (const x of [A, B, C]) stand(x);
+  advance(200);
+}
+
 // --- the van does not fill up ------------------------------------------------
 // Found by bots, because bots are the only thing patient enough to deliver a
 // dozen items in a row. An extracted prop used to keep its collider, so paid-for
