@@ -92,6 +92,21 @@ async function boot(levelId = DEFAULT_LEVEL) {
       tris: renderer.info.render.triangles,
       fps: Math.round(fps),
     }),
+    /**
+     * Put the job back on the clock.
+     *
+     * A harness that takes screenshots, samples floors and then measures
+     * movement can easily spend longer in the tab than the level's time limit —
+     * the warehouse allows 330 seconds and a full run under software GL is not
+     * far off that. When the job ends, actors stop stepping, and the movement
+     * check reports "walking is broken" for a reason that has nothing to do
+     * with walking.
+     */
+    resume() {
+      room.phase = PHASE.ACTIVE;
+      room.startedAt = performance.now();
+      room.phaseEndsAt = performance.now() + 1e9;
+    },
     /** Push the job clock forward, so a harness can see the water risen. */
     clockTo(seconds) {
       room.startedAt = performance.now() - seconds * 1000;

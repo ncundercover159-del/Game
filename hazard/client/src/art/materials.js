@@ -187,7 +187,11 @@ const RECIPES = {
   // high on purpose: a player who walks into an unlit corner and vanishes is a
   // gameplay bug, not a lighting choice.
   overall: { tex: 'overall', tile: 0.50, rough: 0.92, metal: 0.0, bump: 1.8, roughVar: 0.10, ao: 0.30, mottle: 0, fill: 0.38 },
-  gear: { tex: 'gear', tile: 0.34, rough: 0.44, metal: 0.06, bump: 1.6, roughVar: -0.20, ao: 0.22, mottle: 0, fill: 0.38 },
+  // bump comes down with the height channel it reads — see the note on gear()
+  // in textures.js. This recipe carries the hard hats and the faces, and both
+  // of those are smooth mouldings that catch a light; relief on them is not
+  // detail, it is grit.
+  gear: { tex: 'gear', tile: 0.34, rough: 0.44, metal: 0.06, bump: 1.05, roughVar: -0.20, ao: 0.18, mottle: 0, fill: 0.38 },
   skin: { tex: 'skin', tile: 0.26, rough: 0.66, metal: 0.0, bump: 1.1, roughVar: 0.06, ao: 0.20, mottle: 0, fill: 0.40 },
 
   // The renderer's own names.

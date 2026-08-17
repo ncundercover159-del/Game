@@ -351,58 +351,91 @@ export function makeFigure(slot) {
 
   // Torso: a barrel in a vest that does not fit.
   //
-  // WHAT WAS WRONG WITH THE CHEST WAS DEPTH, NOT COUNT.
+  // A JUMBLE IS A CROSSING PROBLEM, NOT A DEPTH PROBLEM.
   //
-  // A review called it a jumble and the reason is one number. The vest is a
-  // cylinder of radius 0.248·G, and the two vertical braces, the pocket and the
-  // badge were all placed as flat BOXES at z = 0.215–0.245 — that is, INSIDE
-  // the vest's own surface. A box buried in a cylinder emerges only where the
-  // cylinder curves away from it, so each of those four pieces showed up as a
-  // pair of disconnected slivers either side of the centreline. Four features,
-  // eight slivers, none of them the shape they were meant to be.
+  // The previous cut put every piece of trim on the vest's own curve, which was
+  // the right fix for the previous complaint and did nothing at all for this
+  // one. What a second review saw was two reflective RINGS going round the body
+  // and four vertical braces running from below the lower ring to above the
+  // upper one — two lines crossing two lines, which is a noughts-and-crosses
+  // board. Photographed from behind, the back of this vest was a three-by-three
+  // grid of orange squares in a white lattice. Every piece was individually
+  // defensible; the arrangement was a basket.
   //
-  // A curved surface wants curved trim. Every band on this vest is now an open
-  // cylinder SECTOR at a radius a few millimetres proud of it — the same
-  // primitive the horizontal bands always used, which is why those were the
-  // only part of the chest that read. And the count comes down: a hi-vis reads
-  // from across a yard because it is four big shapes, not because it is
-  // detailed. Two rings, two braces, one zip.
+  // So NOTHING CROSSES ANYTHING. The rings are the only thing that goes round
+  // the body, and the shoulder pieces live entirely above the upper ring and
+  // die into the vest's own top edge — which is what a brace does anyway. It
+  // goes over your shoulder. It does not run down your back through the
+  // banding.
+  //
+  // AND THE VEST IS OPEN AT THE FRONT, which is the other half of it. A closed
+  // orange tube has no front, no back and no way of telling you which way a
+  // contractor is facing, so it reads as a barrel however much trim you hang on
+  // it. A gap showing the dark layer underneath costs two arguments on the
+  // primitive that was already there and buys a centre line for the front, an
+  // asymmetry for the silhouette, and somewhere for the eye to start.
+  const TAU = Math.PI * 2;
   const VEST_R = 0.250 * G;      // the vest's own radius at the chest
-  const TRIM_R = VEST_R + 0.008; // ...and where trim sits on top of it
+  const TRIM_R = VEST_R + 0.009; // ...and where trim sits on top of it
+  const GAP = 0.20;              // half-angle of the front opening, radians
+  const BAND_HI = 0.055 * S;
+  const BAND_LO = -0.100 * S;
+  const VEST_TOP = 0.180 * S;
+  const VEST_H = 0.385 * S;
   /** An open strip of cylinder, hugging the vest. `mid` is radians off front. */
   const strip = (mid, width, h, y, colour, r = TRIM_R) => body.add(
     new THREE.CylinderGeometry(r, r, h, 7, 1, true, mid - width / 2, width),
     colour, BI.torso, RF.torso, [0, y, 0],
   );
+  /** A ring round the vest, interrupted by the same front opening it is on. */
+  const ring = (y, h, colour, r = TRIM_R) => body.add(
+    new THREE.CylinderGeometry(r, r, h, 16, 1, true, GAP + 0.03, TAU - 2 * (GAP + 0.03)),
+    colour, BI.torso, RF.torso, [0, y, 0],
+  );
   body
-    .add(new THREE.CylinderGeometry(0.23 * G, 0.20 * G, 0.44 * S, 12), CLOTH, BI.torso, RF.torso)
-    // The vest: a slightly larger shell, open at the front, hanging low.
-    .add(new THREE.CylinderGeometry(VEST_R, 0.240 * G, 0.36 * S, 14, 1, true), HIVIZ,
-      BI.torso, RF.torso, [0, -0.03 * S, 0])
-    // Bands, not plates. A box laid across a round torso meets it at four
-    // corners and reads as a slab bolted on; the figure ends up looking like a
-    // stack of trays. A shallow cylinder a few millimetres proud of the vest
-    // wraps it the way a reflective band actually does.
-    .cyl(TRIM_R, TRIM_R, 0.050, TAPE, BI.torso, RF.torso, [0, 0.055 * S, 0], null, 14)
-    .cyl(TRIM_R + 0.003, TRIM_R + 0.003, 0.050, TAPE, BI.torso, RF.torso, [0, -0.095 * S, 0], null, 14);
-  // Braces over both shoulders, front and back, closing the vest's silhouette
-  // at the top and giving the back view the same read as the front — which
-  // matters, because for most of a job you are looking at your crew's backs.
+    // The base layer, and then a ROUNDED top on it. A bare cylinder ends in a
+    // flat disc, and a flat dark disc the width of the chest wedged between an
+    // orange vest and a head photographs as a black slab with no explanation —
+    // which is exactly what the back view was showing above the banding. A
+    // squashed ball costs one primitive and turns the same volume into
+    // shoulders.
+    .add(new THREE.CylinderGeometry(0.220 * G, 0.196 * G, 0.40 * S, 12), CLOTH,
+      BI.torso, RF.torso, [0, -0.020 * S, 0])
+    .blob(0.218 * G, [1.0, 0.55, 0.84], CLOTH, BI.torso, RF.torso, [0, 0.150 * S, 0], 12)
+    // The vest: a slightly larger shell, hanging low, open down the front.
+    .add(new THREE.CylinderGeometry(VEST_R, 0.238 * G, VEST_H, 16, 1, true,
+      GAP, TAU - 2 * GAP), HIVIZ, BI.torso, RF.torso, [0, VEST_TOP - VEST_H / 2, 0]);
+  // Bands, not plates. A box laid across a round torso meets it at four corners
+  // and reads as a slab bolted on; the figure ends up looking like a stack of
+  // trays. A shallow cylinder a few millimetres proud of the vest wraps it the
+  // way a reflective band actually does — and stops where the vest stops, so
+  // the opening stays an opening instead of being taped shut.
+  ring(BAND_HI, 0.060, TAPE);
+  ring(BAND_LO, 0.060, TAPE, TRIM_R + 0.003);
+  // Braces over both shoulders, front and back. They span exactly the distance
+  // from the upper band to the top hem, so they terminate on the two things
+  // that were already there rather than cutting across either of them.
   for (const s of [-1, 1]) {
-    strip(s * 0.42, 0.30, 0.30 * S, -0.01 * S, TAPE);
-    strip(Math.PI + s * 0.42, 0.30, 0.30 * S, -0.01 * S, TAPE);
+    strip(s * 0.60, 0.30, VEST_TOP - BAND_HI, (VEST_TOP + BAND_HI) / 2, TAPE);
+    strip(Math.PI + s * 0.60, 0.30, VEST_TOP - BAND_HI, (VEST_TOP + BAND_HI) / 2, TAPE);
   }
-  // The zip, dead centre front, dark against the orange. One line, and it is
-  // what stops the vest reading as a barrel that happens to be orange.
-  strip(0, 0.13, 0.34 * S, -0.02 * S, HIVIZ_DEEP, TRIM_R + 0.001);
+  // Piping down both edges of the opening. An open cylinder sector has no
+  // thickness, so without this the front of the vest is a cut in a sheet of
+  // paper; a dark lip either side gives it an edge and says the gap is deliberate.
+  for (const s of [-1, 1]) {
+    strip(s * GAP, 0.075, VEST_H, VEST_TOP - VEST_H / 2, HIVIZ_DEEP, VEST_R + 0.003);
+  }
+  // One badge, on the chest between the bands, in the slot's own colour. Small
+  // on purpose: it is a grace note at two metres and must not compete with the
+  // hat at ten.
+  strip(0.62, 0.30, 0.055, -0.022 * S, badge, TRIM_R + 0.004);
   body
-    // One badge, high on the chest, in the slot's own colour. Small on purpose:
-    // it is a grace note at two metres and must not compete with the hat at ten.
-    .add(new THREE.CylinderGeometry(TRIM_R + 0.004, TRIM_R + 0.004, 0.052, 5, 1, true, 0.60, 0.34),
-      badge, BI.torso, RF.torso, [0, 0.125 * S, 0])
-    // Shoulders, so the arms have somewhere to be.
-    .ball(0.118 * G, HIVIZ, BI.torso, RF.torso, [-0.235 * G, 0.165 * S, 0])
-    .ball(0.118 * G, HIVIZ, BI.torso, RF.torso, [0.235 * G, 0.165 * S, 0]);
+    // Shoulders, so the arms have somewhere to be. Pulled in and dropped from
+    // where they were: at 0.235·G they stood a full 0.10·G proud of the vest
+    // and read as two oranges glued to a barrel rather than as the top of a
+    // garment.
+    .ball(0.114 * G, HIVIZ, BI.torso, RF.torso, [-0.208 * G, 0.150 * S, 0])
+    .ball(0.114 * G, HIVIZ, BI.torso, RF.torso, [0.208 * G, 0.150 * S, 0]);
 
   // Arms: too short to be useful, ending in ENORMOUS gloves. The glove is the
   // single most exaggerated thing on the figure and it should be — a hand
@@ -494,11 +527,25 @@ export function makeFigure(slot) {
     head.cyl(r * 1.005, r * 0.90, 0.030 * HD + 0.010, hatCol, BI.hat, RF.hat,
       [0, seat - 0.014 * HD, 0], null, 14);
   };
-  // Three stiffening ribs front-to-back, low and close together.
+  // Three stiffening ribs front-to-back, FOLLOWING the shell instead of being
+  // laid across it. A straight box over a dome touches at the crown and its two
+  // ends float clear of the surface — photographed front-on that read as three
+  // gold nuggets hovering above the brim with daylight under them, which is not
+  // what a rib is. An arc of cylinder with its axis across the head is the same
+  // primitive the shoulder braces use, and it sits down on the curve for its
+  // whole length.
+  //
+  // The arc's radius is the shell's own radius at that lateral offset, so the
+  // outer two ribs are shorter than the middle one for free, and both scales
+  // carry the shell's squash so nothing drifts off it at the ends.
   const ribs = (r, seat, squashY) => {
-    for (const [dx, len, hgt] of [[0, 1.00, 0.052], [-0.34, 0.86, 0.040], [0.34, 0.86, 0.040]]) {
-      head.box(0.030 * HD + 0.008, hgt * HD, r * 1.55 * len, hatDark, BI.hat, RF.hat,
-        [dx * r, seat + r * squashY - 0.018 * HD, 0]);
+    for (const [dx, arc, w] of [[0, 0.88, 0.030], [-0.38, 0.66, 0.024], [0.38, 0.66, 0.024]]) {
+      const rr = r * Math.sqrt(Math.max(0.04, 1 - dx * dx)) + 0.004;
+      const g = new THREE.CylinderGeometry(rr, rr, w * HD + 0.006, 10, 1, true,
+        Math.PI / 2 - arc, arc * 2);
+      g.rotateZ(Math.PI / 2);           // axis across the head; the sector arcs fore-aft
+      g.scale(1, squashY, 1.06);        // the shell's own squash, so it stays welded on
+      head.add(g, hatDark, BI.hat, RF.hat, [dx * r, seat, 0]);
     }
   };
   // The headband, in the shadow under the shell. Dark, and proud enough of the
@@ -520,14 +567,21 @@ export function makeFigure(slot) {
       hatCol, BI.hat, RF.hat, [0, CROWN - 0.014 * HD, 0.014 * HD], [-0.13, 0, 0],
     );
   } else if (build.hat === 'fullbrim') {
-    // The full-brim hard hat: a wide flat disc all the way round, and the crown
-    // sits well back inside it. In outline this is unmistakably not the other
-    // two even when it is eight pixels of hat on forty pixels of person.
+    // The full-brim hard hat: a flat disc all the way round, and the crown sits
+    // back inside it. In outline this is unmistakably not the other two even
+    // when it is eight pixels of hat on forty pixels of person.
+    //
+    // The disc came in from 0.355·HD to 0.285·HD, which is 1.39 crown radii
+    // rather than 1.73. Photographed, the wide version was not a hard hat at
+    // all: a shallow dome on a brim two thirds again its own width is a boater,
+    // or — with the ribs floating over it — a mushroom, and both of those are
+    // words a review has now used about this object. A real full-brim shell
+    // (an MSA Skullgard, a Bullard 5100) carries about forty per cent.
     const r = 0.205 * HD;
     shell(r, 0.80, CROWN);
     ribs(r, CROWN, 0.80);
     band(r, CROWN);
-    head.cyl(0.355 * HD, 0.330 * HD, 0.024 * HD + 0.006, hatCol, BI.hat, RF.hat,
+    head.cyl(0.285 * HD, 0.266 * HD, 0.026 * HD + 0.006, hatCol, BI.hat, RF.hat,
       [0, CROWN - 0.020 * HD, 0], null, 16);
   } else {
     // The standard shell: a peripheral brim, wider front and back than at the

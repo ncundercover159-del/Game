@@ -651,14 +651,30 @@ const GEN = {
     o[3] = clamp01(0.4 + weave * 0.45 + (fluff - 0.5) * 0.3);
   },
 
-  // Hard hats, boot rubber and the retro-reflective bands on a hi-viz vest.
+  // Hard hats, boot rubber, faces, and the retro-reflective bands on a hi-viz
+  // vest.
+  //
+  // THIS IS THE SURFACE OF AN INJECTION MOULDING AND IT WAS READING AS CORK.
+  //
+  // The mould figure ran at thirty cycles a tile against a 0.34 m tile, which
+  // is eleven-millimetre pitting on a shell forty centimetres across, and it
+  // put +/-0.2 of that into the height channel on top of a bump strength of
+  // 1.6. Photographed close, the hard hats came back as sponge and the faces
+  // came back as porridge — a review called the hats mushroom caps and this was
+  // half of why, because a matte pitted dome is a fungus and a glossy smooth
+  // one is a helmet.
+  //
+  // So the figure goes low-frequency, where it belongs — a moulding varies in
+  // sheen over centimetres, not over millimetres — and nearly all of its RELIEF
+  // comes out. What is left standing in the height channel is the nicks, which
+  // is the part that has actually happened to the object.
   gear(u, v, o) {
-    const mould = fbm(u, v, 30, 3, 5);
+    const mould = fbm(u, v, 8, 3, 5);
     const scuff = streak(u, v, 22, 7, 3, 61);
     const nick = smooth(0.93, 0.99, ridge(u, v, 30, 2, 23));
-    const l = (0.90 + (mould - 0.5) * 0.10) * mix(0.90, 1.06, scuff) - nick * 0.16;
+    const l = (0.90 + (mould - 0.5) * 0.07) * mix(0.93, 1.05, scuff) - nick * 0.16;
     o[0] = l; o[1] = l; o[2] = l * 1.01;
-    o[3] = clamp01(0.5 + (mould - 0.5) * 0.4 - nick * 0.5);
+    o[3] = clamp01(0.62 + (mould - 0.5) * 0.12 - nick * 0.55);
   },
 
   unknown(u, v, o) {
