@@ -54,7 +54,7 @@ import * as THREE from 'three';
 // to a wall. They get 512. Everything else would be paying boot time for detail
 // nobody looks at.
 const SIZE = 256;
-const BIG = new Set(['concrete', 'panel', 'deckplate', 'steelblue']);
+const BIG = new Set(['concrete', 'panel', 'deckplate', 'dockdeck', 'steelblue']);
 const sizeOf = (name) => (BIG.has(name) ? 512 : SIZE);
 
 // --- noise -------------------------------------------------------------------
@@ -397,7 +397,15 @@ const GEN = {
     const web = smooth(0.34, 0.58, tri) * (1 - smooth(0.58, 0.92, tri));
     // The pan between the crowns, which is where a flute is rolled.
     const pan = smooth(0.62, 0.80, tri);
-    const flute = pan * (1 - smooth(0.30, 0.70, Math.abs(fract(v * 12) - 0.5) * 2));
+    // The flute pitch went 12 a tile to 7 — 46 cm to 79 cm — when the dock,
+    // the ramp and the mezzanine moved off this recipe onto dockdeck() below.
+    // With those gone this map has exactly one job, a roof seen from eight
+    // metres underneath at fifteen to forty degrees, and 46 cm of pressed flute
+    // at that angle is under two pixels: it cannot read as a flute, only as a
+    // comb, and a comb of parallel lines is half of what a review kept calling
+    // ceiling streaking. Nothing is lost by the change because the surface that
+    // wanted a fine flute is no longer this one.
+    const flute = pan * (1 - smooth(0.30, 0.70, Math.abs(fract(v * 7) - 0.5) * 2));
 
     // Everything below is metre-scale or bigger, deliberately.
     const wash = fbm(u, v, 2, 2, 5);                // decades of roof leaks
@@ -415,8 +423,30 @@ const GEN = {
     const tooth = fbm(u, v, 36, 3, 41);
     const spangle = fbm(u, v, 150, 2, 7);
 
+    // A RIB IS A FOLD, AND A FOLD IS A NORMAL. THIS IS THE CEILING STREAKING.
+    //
+    // These two lines used to swing the albedo by twenty-seven per cent across
+    // a rib, which paints the corrugation on rather than folding it — the same
+    // mistake panel() above has a paragraph about, never applied here. It
+    // matters far more on this surface than on that one, because this surface
+    // is fifteen hundred square metres of roof seen at fifteen to forty degrees
+    // and a stripe every 2.75 m is a set of PARALLEL LINES. Parallel lines
+    // under perspective converge, and converging high-contrast lines under
+    // minification are the fans a review kept calling ceiling streaking.
+    //
+    // A bisect proved it was the albedo and not the light: with the map forced
+    // to a single texel and nothing else changed, the ceiling came back as
+    // clean pools of lamplight with no fans in it anywhere, while switching the
+    // derivative bump off on its own left every fan exactly where it was. (The
+    // bump was doing something else and just as wrong — see the level-of-detail
+    // note in materials.js — but it was not this.)
+    //
+    // So the rib keeps a hint in colour and does its work in height, where the
+    // relief LOD can take it away at the distance it stops being resolvable.
+    // What is left up there at thirty metres is wash, soot and lamplight, which
+    // is what a roof thirty metres away actually looks like.
     let l = 0.365 + (wash - 0.5) * 0.075;
-    l *= 1 + crown * 0.20 - web * 0.07;
+    l *= 1 + crown * 0.06 - web * 0.025;
     l *= mix(0.90, 1.06, soot);
     // WARM, not cool. This one material is the ceiling, the dock, the ramp and
     // the mezzanine — comfortably the largest painted area in the game — and it
@@ -431,6 +461,78 @@ const GEN = {
     o[0] = l * 1.030; o[1] = l * 1.000; o[2] = l * 0.955;
     o[3] = clamp01(0.24 + crown * 0.42 + flute * 0.16
       + (tooth - 0.5) * 0.26 + (spangle - 0.5) * 0.20);
+  },
+
+  // THE DOCK, THE RAMP AND THE MEZZANINE — chequer plate, walked on for years.
+  //
+  // Split off deckplate(), which was serving this surface and the roof at once
+  // and could only ever suit one of them. The roof wants a 2.75 m rib because
+  // it is nine metres up; a loading dock is walked over at two metres and five
+  // metres of it showed under two ribs and nothing else. Measured on a 120 px
+  // native crop under the bay lamp, the dock deck came back at p90/p10 of 1.02
+  // against R.E.P.O.'s cellar at 2.18 and PEAK's carpet at 2.02 — which is not
+  // "a bit flat", it is a surface with no material in it whatsoever, sitting at
+  // the one place in the level the player has to walk to.
+  //
+  // So this one is authored for a two-metre read, and every number in it is set
+  // by that:
+  //
+  //  * DURBAR PLATE at a 20 cm lozenge pitch. It is what a dock is actually
+  //    surfaced with, it is isotropic — two lozenge orientations crossing —
+  //    which is the property the roof deck could never have, and at 20 cm it is
+  //    ten pixels at two metres and gone by fifteen, so it can carry real
+  //    contrast without becoming a moire from across the shed.
+  //  * ALBEDO SPREAD OF ABOUT A THIRD, deliberately, where deckplate ran plus
+  //    or minus seven per cent. The lozenges are burnished bright by boots; the
+  //    plate between them holds dirt. That contrast IS the material.
+  //  * LOAD DAMAGE. A dock is not a clean plate: pallet corners gouge it in
+  //    straight lines, heels scuff it in patches, and the traffic lane down the
+  //    middle is polished while the edges are not. All three are metre-scale,
+  //    so they survive to the far end of the dock while the lozenges do not.
+  dockdeck(u, v, o) {
+    // Two lozenge families at right angles, each a short bar. abs(fract-0.5)
+    // gives a triangle; the product of a wide one and a narrow one is a bar,
+    // and offsetting the second family by half a cell interleaves them the way
+    // a real plate does.
+    const N = 4;                                   // 4 lozenges per 0.80 m tile
+    const bar = (a, b) => (1 - smooth(0.10, 0.42, Math.abs(fract(a) - 0.5) * 2))
+      * (1 - smooth(0.55, 0.95, Math.abs(fract(b) - 0.5) * 2));
+    const lozA = bar(u * N + v * N * 0.5, v * N);
+    const lozB = bar(v * N + u * N * 0.5 + 0.5, u * N + 0.5);
+    const loz = Math.max(lozA, lozB);
+
+    // The traffic lane: a metre-and-a-half band of polished plate down the
+    // middle of the tile where everything gets wheeled, and grime either side.
+    const lane = 1 - smooth(0.08, 0.34, Math.abs(fract(v + 0.5) - 0.5));
+    const grime = fbm(u, v, 3, 3, 311);            // 27 cm blotches of dirt
+    const wear = fbm(u, v, 2, 2, 419);             // metre-scale polish
+
+    // Pallet gouges: long straight scores, one axis, thresholded hard so they
+    // are cuts rather than shading.
+    const score = smooth(0.80, 0.93, streak(u, v, 22, 14, 2, 47));
+    // Heel scuffs: small, dense, and only where people stand rather than drive.
+    const scuff = smooth(0.56, 0.86, fbm(u, v, 30, 2, 83)) * (1 - lane * 0.7);
+
+    // Steel, dirty. The burnished tops run a long way over the dark plate —
+    // this is where the p90/p10 comes from and it is not subtle on purpose.
+    let l = 0.235;
+    l *= mix(0.80, 1.12, grime);
+    l = mix(l, 0.475, loz * mix(0.55, 1.0, wear));   // lozenge tops, burnished
+    l = mix(l, 0.520, lane * 0.34);                  // the polished traffic lane
+    l = mix(l, 0.140, scuff * 0.30);                 // scuffed patches go dull
+    l = mix(l, 0.560, score * 0.55);                 // a fresh gouge is bare steel
+    // Galvanised steel that has been walked on is a warm grey with the zinc
+    // showing cool where it is bright. Two hues, keyed to the same feature that
+    // carries the value, so the plate reads as metal rather than as paint.
+    o[0] = l * mix(1.035, 0.980, loz);
+    o[1] = l * 1.000;
+    o[2] = l * mix(0.930, 1.045, loz);
+    // Height: the lozenges stand proud, the gouges cut in, and a fine tooth
+    // under all of it. The relief LOD in materials.js takes the tooth away
+    // before it can alias.
+    const tooth = fbm(u, v, 64, 3, 29);
+    o[3] = clamp01(0.30 + loz * 0.55 - score * 0.34 + (tooth - 0.5) * 0.22
+      - scuff * 0.10);
   },
 
   // Open steel grating: bearing bars one way, twisted cross rods the other,
@@ -697,14 +799,29 @@ const GEN = {
     o[3] = clamp01(0.5 + (tooth - 0.5) * 0.5 + (fibre - 0.5) * 0.3);
   },
 
+  // French polish: almost nothing, which is the look. Faint swirl marks and
+  // the occasional dust nib caught under the finish.
+  //
+  // THE SWIRL IS WIDER THAN IT WAS, AND IT IS IN THE HEIGHT AS MUCH AS THE
+  // COLOUR. A review found the piano flat — one value across a metre and a half
+  // of object at a metre and a half from the lens — and half of that was here:
+  // six per cent of albedo swing on a surface whose albedo is one per cent is
+  // six ten-thousandths of anything. A polished panel does not vary its colour,
+  // it varies where it is POINTING, by a fraction of a degree over a hand's
+  // width, which is why a real one shows a slow band of light travelling across
+  // it as you move. That is height, and height is free to be large here because
+  // the relief LOD takes it away as soon as the object is small on screen.
   lacquer(u, v, o) {
-    // French polish: almost nothing, which is the look. Faint swirl marks and
-    // the occasional dust nib caught under the finish.
     const swirl = streak(u, v, 60, 30, 2, 19);
+    // The slow figure of a hand-rubbed panel: about 25 cm on this tile, which
+    // is the size of the band of light a lacquered lid actually shows.
+    const panel = fbm(u, v, 3, 2, 137);
     const nib = vnoise(u, v, 140, 83);
-    const l = 0.92 + (swirl - 0.5) * 0.06 - (nib > 0.965 ? 0.10 : 0);
+    const l = 0.92 + (swirl - 0.5) * 0.06 + (panel - 0.5) * 0.05
+      - (nib > 0.965 ? 0.10 : 0);
     o[0] = l * 1.01; o[1] = l; o[2] = l * 0.98;
-    o[3] = clamp01(0.5 + (swirl - 0.5) * 0.2 + (nib > 0.965 ? -0.3 : 0));
+    o[3] = clamp01(0.5 + (swirl - 0.5) * 0.2 + (panel - 0.5) * 0.55
+      + (nib > 0.965 ? -0.3 : 0));
   },
 
   enamel(u, v, o) {
@@ -806,15 +923,43 @@ const GEN = {
   // the light decides how much of them you see and distance takes them away.
   // On a face the same field is a soft shading variation and nothing else,
   // which is all a face at this register wants.
+  //
+  // AND THEN IT WAS AN UNTEXTURED GRADIENT, WHICH IS THE OTHER FAILURE.
+  //
+  // Taking the centimetre-scale pitting out was right and it left nothing
+  // behind: a following review called the hat and the skull a smooth gradient
+  // with no material in them at all. Both notes are correct and they are not in
+  // tension, because they are about different CHANNELS. Cork was a colour
+  // problem — a hard contrast field at a frequency the eye reads as grain,
+  // present at every distance because albedo does not fade. What a moulding and
+  // a face genuinely have is a fine RELIEF: orange peel off the tool on one,
+  // pores on the other, both about a millimetre and both invisible past arm's
+  // length.
+  //
+  // Height is now the right place for it, which it was not when that note was
+  // written: materials.js has grown a texel-density fade on the relief, so
+  // anything in this channel is fully present in a portrait at a metre and
+  // completely gone by the time a contractor is a forty-pixel figure across the
+  // shed. That is precisely the behaviour that makes fine detail safe, and it
+  // is what makes putting it back defensible after taking it out.
   gear(u, v, o) {
     const sheen = fbm(u, v, 2, 2, 5);            // ~17 cm — one side of a shell
     const drag = streak(u, v, 12, 9, 2, 61);     // scuffs, along the moulding
-    const l = 0.905 + (sheen - 0.5) * 0.030 + (drag - 0.5) * 0.038;
+    // Orange peel. 96 cells on a 0.34 m tile is 3.5 mm, which is what comes off
+    // an injection tool and what a cheek looks like at half a metre.
+    const peel = fbm(u, v, 96, 2, 211);
+    // ...and the tooling flow, which on a shell runs front to back and on a
+    // face passes for the grain of skin. Stretched, so it is a direction rather
+    // than a speckle.
+    const flow = streak(u, v, 40, 6, 2, 173);
+    const l = 0.905 + (sheen - 0.5) * 0.030 + (drag - 0.5) * 0.038
+      + (peel - 0.5) * 0.012;
     // A whisper warm rather than a whisper cool. The vertex colour carries the
     // hue on the hat and the skin tone on the face, and a cold multiplier on a
     // face is the difference between a person and a corpse.
     o[0] = l; o[1] = l * 0.997; o[2] = l * 0.990;
-    o[3] = clamp01(0.60 + (drag - 0.5) * 0.26 + (sheen - 0.5) * 0.14);
+    o[3] = clamp01(0.60 + (drag - 0.5) * 0.26 + (sheen - 0.5) * 0.14
+      + (peel - 0.5) * 0.30 + (flow - 0.5) * 0.16);
   },
 
   unknown(u, v, o) {

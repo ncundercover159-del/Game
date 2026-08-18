@@ -241,6 +241,8 @@ uniform vec2 uTexel;
 uniform float uExposure;
 uniform float uAO;
 uniform float uBloom;
+uniform vec3 uShadowTint;
+uniform vec3 uHighTint;
 uniform float uVignette;
 uniform float uGrain;
 uniform float uAberration;
@@ -429,10 +431,44 @@ void main() {
   // putting a different hue in the shadows from the one in the lights, which is
   // colour contrast rather than a colour cast. Cool in the dark, a whisper warm
   // in the light, and both small enough to be felt rather than seen.
+  // AND THE SPLIT IS WIDER AND STRONGER THAN IT WAS, BECAUSE IT WAS NOT DOING
+  // THE JOB IT IS THE ONLY THING THAT CAN DO.
+  //
+  // Bucketed by luma, every reference plate on disk rotates hard: PEAK runs
+  // blue-to-green 2.18 in its shadows against 1.63 in its highlights, and the
+  // three R.E.P.O. frames run 1.38-2.21 down to 0.69-1.08. Half a unit to over
+  // one. This build measured 0.98 down to 0.81 across the range a player
+  // actually looks at — the right direction and a fifth of the distance — and
+  // most of that came from the black point rather than from anything in the
+  // picture, because the bottom four deciles of our frame ARE the black point.
+  //
+  // Two things were holding it down and both are here. The split ran on
+  // ( 1 - l )^2, which crosses over at l = 0.29: everything above about a fifth
+  // of display white was getting the WARM half of a warm/cool split, which on a
+  // frame whose mid-tones are most of the picture means the split was warming
+  // three quarters of it and cooling the empty quarter. And the amplitudes were
+  // a third of what they needed to be to register against a scene lit end to
+  // end by one tungsten illuminant.
+  //
+  // So: crossover up to the middle of the range, on a smoothstep rather than a
+  // square, so the transition is a ramp and not a corner. Held as uniforms
+  // rather than literals because this is exactly the knob a probe wants to
+  // sweep live against the reference numbers.
+  //
+  // THE AMPLITUDES ARE SMALL AND THAT IS NOT TIMIDITY, IT IS THE COLOUR SPACE.
+  //
+  // This line runs after aces() and BEFORE srgb(), so the numbers here are
+  // scene-referred and the encode expands them enormously at the bottom of the
+  // range: 0.032 of blue added to a shadow comes out the other side of the
+  // transfer function at fifty-one counts, not eight. That was tried, measured
+  // and photographed — the whole shed went navy, which is the exact failure
+  // this file has a paragraph about further down and the reason the previous
+  // shadow tint was removed altogether. A fifth of that is a rotation; a third
+  // of it is a cast.
   float l = dot( col, LUMA );
   col = mix( vec3( l ), col, 0.88 );
-  float sh = ( 1.0 - l ) * ( 1.0 - l );
-  col += vec3( -0.006, 0.000, 0.012 ) * sh + vec3( 0.008, 0.002, -0.006 ) * ( 1.0 - sh );
+  float sh = 1.0 - smoothstep( 0.04, 0.62, l );
+  col += uShadowTint * sh + uHighTint * ( 1.0 - sh );
   // NO UPPER CLAMP HERE ANY MORE — see the gate at the bottom of the shader.
   // Contrast about a pivot multiplies the top of the range as well as spreading
   // the middle, so a clamp at this line is where a lamp stopped being a lamp:
@@ -628,7 +664,18 @@ class SitePass extends Pass {
       uShoulderAt: { value: 0.9 },
       uShoulderK: { value: 0.55 },
       // Half a correction towards D65 off a tungsten key. See the shader.
-      uBalance: { value: new THREE.Vector3(0.945, 1.0, 1.115) },
+      //
+      // Pulled back from ( 0.945, 1.0, 1.115 ). A global multiply cannot tell a
+      // highlight from a shadow, so every point of tungsten it took out of the
+      // floor it also took out of the lamp pools — and the lamp pools are the
+      // one place in this game that is SUPPOSED to be orange. Measured, the
+      // brightest decile of a shed shot was sitting at blue-to-green 0.81 where
+      // the references run 0.62-1.08, which is not a warm key, it is a key that
+      // has been balanced most of the way to neutral. Half the correction comes
+      // out here and rather more than half of it goes back in as a shadow tint
+      // below, which puts the same total distance between light and shadow
+      // while spending it on a rotation instead of on a cast.
+      uBalance: { value: new THREE.Vector3(0.952, 1.0, 1.096) },
       // The gate. uCeil is the hard promise — no pixel leaves this shader
       // above it — and 0.955 in display space is 243/255, which puts the whole
       // frame under the 250 that a clipping test counts, with room for the
@@ -637,6 +684,13 @@ class SitePass extends Pass {
       // a player would call a mid-tone is touched by it.
       uTopAt: { value: 0.72 },
       uCeil: { value: 0.955 },
+      // The split tone. Additive, in display space, and the ONLY thing in the
+      // chain that can put a different hue in the shadows from the one in the
+      // lights — a multiply cannot, because it scales both by the same factor.
+      // Luma-weighted so neither half moves the exposure: the green channel
+      // carries almost none of either tint.
+      uShadowTint: { value: new THREE.Vector3(-0.007, -0.001, 0.014) },
+      uHighTint: { value: new THREE.Vector3(0.010, 0.002, -0.008) },
       uVignette: { value: 0.36 },
       // Grain is measured in display units, and this one is easy to overdo in a
       // way that does not look like grain: at 0.045 the noise is ±6/255, which

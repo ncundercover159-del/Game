@@ -138,7 +138,7 @@ export class WorldView {
     const env = this.level.env || {};
     const fog = env.fog || { color: '#202226', near: 12, far: 70 };
     this.scene.fog = new THREE.Fog(new THREE.Color(fog.color), fog.near, fog.far);
-    this.scene.background = new THREE.Color(env.skyTop || '#1a1d22');
+    this.scene.background = skyTexture(env);
 
     const amb = env.ambient || {};
     // Hemisphere rather than flat ambient: a warehouse lit by one constant
@@ -611,7 +611,81 @@ export class WorldView {
       if (o.geometry) o.geometry.dispose();
     });
     if (this.envRT) this.envRT.dispose();
+    if (this.scene.background && this.scene.background.isTexture) this.scene.background.dispose();
   }
+}
+
+/**
+ * The sky, which was a flat slab of one colour.
+ *
+ * Every level file in the game declares BOTH `skyTop` and `skyBottom`, and the
+ * scene only ever read the first of them — so the tower, which is open to the
+ * sky by design, had a band of dead #0d1420 across the top of every shot with
+ * no gradient in it anywhere. A review called it a sky band and it was right:
+ * one flat value over a frame that has aerial perspective, fog and a graded
+ * black point in it reads as a backdrop hung behind the set, because a backdrop
+ * hung behind a set is exactly what it is.
+ *
+ * A 2x128 equirectangular ramp fixes it for a few hundred bytes. Three maps an
+ * equirect background across the whole sphere, so this also gives the horizon a
+ * PLACE — turn round in the tower and the bright band stays where the ground
+ * is, which a Color background cannot do however it is tinted.
+ *
+ * Two things about the ramp itself:
+ *
+ *   * It is NOT linear in v. A real sky is brightest in a shallow band near the
+ *     horizon and settles to its zenith colour over the first fifteen degrees
+ *     or so; a linear ramp puts the mid-tone halfway up the dome, which reads
+ *     as a studio backdrop lit from below. `pow` biases it hard.
+ *   * It goes on being paler BELOW the horizon rather than mirroring. Nothing
+ *     in this game shows the lower hemisphere except through a gap in a floor,
+ *     and when it does, what should be down there is haze, not a second zenith.
+ *
+ * The colours themselves stay the level author's — this only decides how they
+ * are distributed, which is the renderer's business rather than the level's.
+ */
+function skyTexture(env) {
+  const top = new THREE.Color(env.skyTop || '#1a1d22').convertSRGBToLinear();
+  const bot = new THREE.Color(env.skyBottom || env.skyTop || '#1a1d22').convertSRGBToLinear();
+  const N = 128;
+  const data = new Uint8Array(N * 2 * 4);
+  for (let y = 0; y < N; y++) {
+    // v runs top of the sphere (y=0) to the bottom (y=N-1).
+    const up = 1 - y / (N - 1);           // 1 at the zenith, 0 at the nadir
+    // Above the horizon: bias towards the zenith colour fast. Below it: hold
+    // near the horizon colour, because that is haze and not sky.
+    const t = up > 0.5 ? Math.pow((up - 0.5) * 2, 0.55) : 0;
+    const r = bot.r + (top.r - bot.r) * t;
+    const g = bot.g + (top.g - bot.g) * t;
+    const b = bot.b + (top.b - bot.b) * t;
+    for (let x = 0; x < 2; x++) {
+      const i = (y * 2 + x) * 4;
+      // Written back through the sRGB transfer function, because the texture is
+      // tagged sRGB below and the hardware will undo this on the way in. Doing
+      // the interpolation in linear and the storage in sRGB is what keeps the
+      // ramp smooth instead of banding across the dark half.
+      data[i] = Math.round(255 * srgbEncode(r));
+      data[i + 1] = Math.round(255 * srgbEncode(g));
+      data[i + 2] = Math.round(255 * srgbEncode(b));
+      data[i + 3] = 255;
+    }
+  }
+  const tex = new THREE.DataTexture(data, 2, N, THREE.RGBAFormat);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  tex.magFilter = THREE.LinearFilter;
+  tex.minFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.name = 'tex:sky';
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function srgbEncode(c) {
+  const v = c < 0 ? 0 : c > 1 ? 1 : c;
+  return v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
 }
 
 function span(t0, t1, t) {

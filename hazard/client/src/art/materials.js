@@ -148,6 +148,19 @@ const RECIPES = {
   // and the dock; at four degrees the graze fade removes all of it anyway, so
   // this number is paid by the near field and not by the ceiling.
   deckplate: { tex: 'deckplate', tile: 5.5, rough: 0.93, metal: 0.05, bump: 1.5, roughVar: -0.14, ao: 0.38, mottle: 0.10, fill: 0.175, env: 0.08 },
+  // The dock, the ramp and the mezzanine, split off deckplate — see the note on
+  // dockdeck() in textures.js for why one recipe could not serve both.
+  //
+  // tile 0.80 is the whole point of the split: a 20 cm lozenge pitch, which is
+  // ten pixels at the two metres this surface is walked over at and gone by
+  // fifteen. mottle stays low because the map already carries a metre-scale
+  // traffic lane and a metre-scale polish of its own, and a third drift on top
+  // of those only muddies them. ao is high — chequer plate is nothing but
+  // cavities, and the shading between the lozenges is most of what says metal.
+  // env stays small for the same reason the roof's does: a prefiltered studio
+  // room is not in this level and a dock deck under a warm lamp should not be
+  // reflecting a cool one.
+  dockdeck: { tex: 'dockdeck', tile: 0.80, rough: 0.78, metal: 0.30, bump: 1.7, roughVar: -0.26, ao: 0.50, mottle: 0.06, fill: 0.20, env: 0.20 },
   grate: { tex: 'grate', tile: 0.88, rough: 0.62, metal: 0.60, bump: 2.2, roughVar: -0.22, ao: 0.55, mottle: 0.08, fill: 0.155, env: 0.55 },
   // env DOWN from 0.5. Three hundred metres of rack upright is the second
   // largest painted area in the game and a review found it reading as glitter
@@ -175,9 +188,9 @@ const RECIPES = {
   // Prop surfaces. These sit near white and let vertex colour carry the hue —
   // see props.js. Seventeen kinds of object, ten materials, and a novelty
   // cheque can still be four different colours in a single draw call.
-  ceramic: { tex: 'ceramic', tile: 0.30, rough: 0.34, metal: 0.0, bump: 1.0, roughVar: -0.12, ao: 0.18, mottle: 0, fill: 0.30 },
-  plastic: { tex: 'plastic', tile: 0.42, rough: 0.58, metal: 0.0, bump: 1.6, roughVar: -0.14, ao: 0.22, mottle: 0, fill: 0.30 },
-  metal: { tex: 'metal', tile: 0.55, rough: 0.42, metal: 0.66, bump: 1.6, roughVar: -0.28, ao: 0.20, mottle: 0, fill: 0.26, env: 0.8 },
+  ceramic: { tex: 'ceramic', tile: 0.30, rough: 0.34, metal: 0.0, bump: 1.0, roughVar: -0.12, ao: 0.18, mottle: 0, fill: 0.30, rim: 0.030 },
+  plastic: { tex: 'plastic', tile: 0.42, rough: 0.58, metal: 0.0, bump: 1.6, roughVar: -0.14, ao: 0.22, mottle: 0, fill: 0.30, rim: 0.026 },
+  metal: { tex: 'metal', tile: 0.55, rough: 0.42, metal: 0.66, bump: 1.6, roughVar: -0.28, ao: 0.20, mottle: 0, fill: 0.26, env: 0.8, rim: 0.034 },
   glass: { tex: 'glass', tile: 0.50, rough: 0.10, metal: 0.0, bump: 0.8, roughVar: -0.08, ao: 0.10, mottle: 0, opacity: 0.42, fill: 0.45, env: 1.4 },
   fabric: { tex: 'fabric', tile: 0.34, rough: 0.98, metal: 0.0, bump: 1.8, roughVar: 0.10, ao: 0.34, mottle: 0, fill: 0.30 },
   fur: { tex: 'fur', tile: 0.28, rough: 0.94, metal: 0.0, bump: 2.4, roughVar: 0.12, ao: 0.36, mottle: 0, fill: 0.30 },
@@ -192,9 +205,12 @@ const RECIPES = {
   // 0.20 is a concert grand under gallery lights, and this thing has been in a
   // warehouse in Crayford. fill down from 0.55 — the highest figure in the file
   // and plainly wrong for black lacquer, which bounces nothing.
-  lacquer: { tex: 'lacquer', tile: 0.80, rough: 0.28, metal: 0.10, bump: 0.9, roughVar: -0.10, ao: 0.12, mottle: 0, fill: 0.26, env: 0.45 },
-  enamel: { tex: 'enamel', tile: 0.85, rough: 0.26, metal: 0.06, bump: 1.4, roughVar: -0.38, ao: 0.20, mottle: 0, fill: 0.30, env: 1.1 },
-  rust: { tex: 'rust', tile: 0.85, rough: 0.88, metal: 0.38, bump: 2.6, roughVar: -0.16, ao: 0.38, mottle: 0.08, fill: 0.28 },
+  // rim is HIGHEST here and that is the whole point of the term — see FRAG_AO.
+  // This is the £2,600 object the job is named after, it is 1% albedo, and
+  // without a grazing highlight it is a hole in the frame shaped like a piano.
+  lacquer: { tex: 'lacquer', tile: 0.80, rough: 0.26, metal: 0.10, bump: 0.9, roughVar: -0.10, ao: 0.12, mottle: 0, fill: 0.26, env: 0.45, rim: 0.075 },
+  enamel: { tex: 'enamel', tile: 0.85, rough: 0.26, metal: 0.06, bump: 1.4, roughVar: -0.38, ao: 0.20, mottle: 0, fill: 0.30, env: 1.1, rim: 0.040 },
+  rust: { tex: 'rust', tile: 0.85, rough: 0.88, metal: 0.38, bump: 2.6, roughVar: -0.16, ao: 0.38, mottle: 0.08, fill: 0.28, rim: 0.020 },
 
   // The contractor. Not asked for by the level, but figure.js wants the same
   // triplanar machinery and there is no sense having two of it. Their fill runs
@@ -250,6 +266,9 @@ uniform float tpMottle;
 uniform float tpFill;
 uniform float tpDark;  // bounce left in a corner no lamp reaches
 uniform float tpKnee;  // how fast the bounce saturates with direct light
+uniform vec3 tpCool;   // the colour of the light filling a shadow
+uniform float tpLod;   // texels of the map per metre of surface
+uniform float tpRim;   // grazing-angle Fresnel, for dark props with no edge
 uniform vec2 tpPenumbra; // shadow filter radius in texels: x plane maps, y cube
 varying vec3 vTpP;
 varying vec3 vTpN;
@@ -343,11 +362,38 @@ if ( tpTune.y > 0.0 ) {
   // which is what put snow in the corners of the first render.
   vec3 sx = dpx / max( length( dpx ), 1e-7 );
   vec3 sy = dpy / max( length( dpy ), 1e-7 );
-  // Fade the relief out as the surface turns edge-on. A forty-metre ceiling of
-  // tread plate is seen at maybe five degrees, one texel spans a dozen pixels,
-  // and the height gradient there is noise — left alone it sparkles like tinsel.
-  // Physically this is also just true: you cannot resolve relief you cannot see.
-  float graze = smoothstep( 0.10, 0.44, abs( dot( normal, normalize( - sp ) ) ) );
+  // FADE THE RELIEF OUT BY TEXEL DENSITY, NOT BY VIEW ANGLE. THIS IS THE
+  // CEILING STREAKING.
+  //
+  // What was here measured abs( dot( normal, view ) ) and faded out below
+  // about 26 degrees off edge-on, on the argument that a ceiling seen at five
+  // degrees cannot resolve its own relief. True as far as it goes, and it does
+  // not go nearly far enough — the fade is complete only in the last few
+  // degrees before the horizon, while the whole visible span of a nine-metre
+  // roof sits at twenty to fifty, where the term is a flat 1.0 and every texel
+  // of height arrives at full strength however small it has become on screen.
+  //
+  // A bisect settled it rather than an argument: with tpTune.y forced to zero
+  // and NOTHING else changed, the gradient energy in the ceiling band of the
+  // racking shot fell from 2.44/2.95 to 0.67/0.87 while the mean and the
+  // standard deviation did not move at all. Three quarters of everything
+  // happening on that roof was the derivative bump, and it was not reading as
+  // corrugated steel, it was reading as sandpaper. The file's own note at the
+  // top of textures.js says height is exempt from the frequency rule because it
+  // "averages to nothing as the texel shrinks". It does not. Mip selection under
+  // anisotropic filtering resolves the MINOR axis; along the major one a pixel
+  // still straddles several texels, and a screen-space derivative of that is
+  // noise no matter how good the filter underneath it is.
+  //
+  // So the fade is on the thing that actually matters, which is how many texels
+  // of map fall inside one pixel. fwidth( vTpP ) is the object-space footprint
+  // of a pixel — object space rather than world because that is the space the
+  // projection is in — and tpLod converts it to texels. Under one texel a pixel
+  // the relief is fully resolved and gets everything; past six it is gone.
+  // Distance, foreshortening and a small tile all reach the same term through
+  // the same door, which is what a level-of-detail is supposed to be.
+  float tpFoot = length( fwidth( vTpP ) ) * tpLod;
+  float graze = 1.0 - smoothstep( 1.0, 6.0, tpFoot );
   // Clamped, because a mip transition can put a whole texel's worth of height
   // change into one pixel and tip the normal past the horizon.
   vec2 dH = clamp( vec2( dFdx( tpHeight ), dFdy( tpHeight ) ) * tpTune.y * graze, -0.45, 0.45 );
@@ -425,8 +471,70 @@ if ( tpFill > 0.0 ) {
   // Saturating, not linear: the response has to flatten out or the floor
   // directly beneath a 1156 cd lamp gets a second sun stacked on top of it.
   float tpLit = dot( reflectedLight.directDiffuse, vec3( 0.2126, 0.7152, 0.0722 ) );
-  float tpGate = mix( tpDark, 1.0, 1.0 - exp( -tpLit * tpKnee ) );
-  reflectedLight.indirectDiffuse += diffuseColor.rgb * tpFill * tpGate * mix( 0.62, 1.30, tpUp ) * tpCav;
+  float tpLitN = 1.0 - exp( -tpLit * tpKnee );
+  float tpGate = mix( tpDark, 1.0, tpLitN );
+  // AND THE FILL IS NOT THE KEY'S COLOUR. THIS IS THE SHADOW ROTATION.
+  //
+  // Photograph a room lit by tungsten and the shadows come out BLUE. Not as a
+  // grade — as arithmetic: the only light reaching a surface the lamp cannot
+  // see is skylight and second bounce, and both of those are cooler than the
+  // lamp by a wide margin. Every reference plate on disk does it and does it
+  // hard. Bucketed by luma, PEAK runs blue-to-green 2.18 in its shadows and
+  // 1.63 in its highlights; the three R.E.P.O. frames run 1.38-2.21 down to
+  // 0.69-1.08. A rotation of half a unit to over one.
+  //
+  // This build ran 1.20 in the darkest fifth and 0.75-0.92 through everything
+  // above it — and the fifth is not a rotation, it is the black-point lift in
+  // post sitting under an empty frame. Across the range a player actually looks
+  // at, the picture got WARMER as it got darker, which is backwards, and a
+  // review named it the single most "amateur render" tell in the frame.
+  //
+  // The cause was here. The bounce returned a surface's own albedo and nothing
+  // else, so an unlit patch of concrete came back the colour of concrete —
+  // warm-grey, 0.915 blue-to-green in the recipe before a lamp is even
+  // involved — and the bounce is roughly six times the level's own hemisphere
+  // on that surface, so it decided the hue of every shadow in the game.
+  //
+  // What it should return is the albedo TIMES THE COLOUR OF THE LIGHT DOING
+  // THE FILLING, and that light is the #5b6472 hemisphere and whatever has
+  // bounced twice off pale cladding, not the #ffe2b4 lamp. So the tint runs
+  // from cool where no lamp reaches to neutral where one does — the same gate
+  // that already decides how MUCH bounce there is now also decides what colour
+  // it is, which costs one mix and makes the rotation a property of the
+  // lighting rather than of a curve in the grade.
+  //
+  // tpCool is luma-neutral by construction ( 0.2126r + 0.7152g + 0.0722b = 1 )
+  // so this rotates the shadows without brightening or darkening them, and the
+  // key/fill ratio the level is tuned against does not move.
+  vec3 tpTint = mix( tpCool, vec3( 1.0 ), tpLitN );
+  reflectedLight.indirectDiffuse += diffuseColor.rgb * tpTint * tpFill * tpGate * mix( 0.62, 1.30, tpUp ) * tpCav;
+}
+// AN EDGE ON A DARK OBJECT, WHICH IS THE ONE THING A DARK OBJECT CANNOT GET
+// FROM DIFFUSE LIGHT.
+//
+// A review measured the upright piano — 1.5 m of it, 1.5 m from the lens,
+// filling a seventh of the frame — as a flat black polygon with NO internal
+// value gradient at all: no lid highlight, no edge, nothing separating it from
+// the floor behind it. props.js models the thing properly and none of that
+// survives, and it cannot survive, because a 1% albedo returns 1% of whatever
+// lands on it however well it is shaped.
+//
+// What a real black lacquered surface has instead is Fresnel. Every dielectric
+// goes to a full mirror at grazing incidence regardless of its colour — that is
+// what makes the edge of a black car legible against a night sky — and a
+// direct-lighting renderer with a deliberately weak environment map produces
+// almost none of it. So this is the missing physics rather than an outline
+// effect: a fourth-power grazing term, scaled by smoothness because Fresnel on
+// a matte surface is scattered into nothing, and carrying the fill's own colour
+// because in this room what a grazing angle reflects is the pale ceiling and
+// the cool bay rather than the tungsten.
+//
+// Paid per material, and zero on every architectural surface: a rim light on a
+// wall is not physics, it is a shader that has been left switched on.
+if ( tpRim > 0.0 ) {
+  float tpF = 1.0 - clamp( dot( normal, normalize( vViewPosition ) ), 0.0, 1.0 );
+  tpF *= tpF; tpF *= tpF;
+  reflectedLight.indirectSpecular += tpRim * tpF * ( 1.0 - roughnessFactor ) * tpCool;
 }
 `;
 
@@ -523,6 +631,14 @@ const SOFT_SHADOW = (() => {
 export const BOUNCE = {
   dark: { value: 0.80 },
   knee: { value: 2.5 },
+  // The colour of the fill, where no lamp reaches. See FRAG_AO.
+  //
+  // Read off the level's own hemisphere rather than invented: #5b6472
+  // normalised to green is ( 0.91, 1.00, 1.14 ), and this is that pushed a
+  // little further because the bounce is standing in for the second and third
+  // bounce as well, which have been through a cool sky twice. Luma-neutral by
+  // construction, so it rotates the shadows without moving the exposure.
+  cool: { value: new THREE.Vector3(0.86, 1.01, 1.30) },
 };
 
 // Penumbra radius in shadow texels — x for plane maps, y for cube maps. Shared
@@ -548,6 +664,9 @@ function patch(shader) {
   shader.uniforms.tpFill = tp.fill;
   shader.uniforms.tpDark = BOUNCE.dark;
   shader.uniforms.tpKnee = BOUNCE.knee;
+  shader.uniforms.tpCool = BOUNCE.cool;
+  shader.uniforms.tpLod = tp.lod;
+  shader.uniforms.tpRim = tp.rim;
   shader.uniforms.tpPenumbra = PENUMBRA;
 
   shader.vertexShader = VERT_PARS + shader.vertexShader
@@ -582,16 +701,24 @@ function patch(shader) {
  */
 export function applyTriplanar(mat, texName, over = {}) {
   const base = RECIPES[texName] || {};
-  const r = { tile: 1, bump: 2, roughVar: -0.2, ao: 0.3, mottle: 0, fill: 0.12, env: 1, ...base, ...over };
+  const r = { tile: 1, bump: 2, roughVar: -0.2, ao: 0.3, mottle: 0, fill: 0.12, env: 1, rim: 0, ...base, ...over };
+  const map = surfaceTexture(texName);
   mat.userData.tp = {
-    map: { value: surfaceTexture(texName) },
+    map: { value: map },
     tune: { value: new THREE.Vector4(1 / r.tile, r.bump, r.roughVar, r.ao) },
     mottle: { value: r.mottle },
     fill: { value: r.fill },
+    // Texels of this map per metre of surface, which is what the relief's
+    // level-of-detail is measured in. Not a constant: a 512 map on a 5.5 m tile
+    // and a 256 map on a 0.3 m tile differ by twenty to one, and a fade written
+    // in metres would be wrong for one of them by that much.
+    lod: { value: (map.image ? map.image.width : 256) / r.tile },
+    rim: { value: r.rim || 0 },
     // The shared knobs, by reference, so a probe that reaches any one material
     // through the scene graph can move them for the whole level at once.
     dark: BOUNCE.dark,
     knee: BOUNCE.knee,
+    cool: BOUNCE.cool,
     penumbra: PENUMBRA,
   };
   mat.envMapIntensity = r.env;
