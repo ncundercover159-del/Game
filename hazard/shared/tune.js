@@ -60,8 +60,26 @@ export const HAUL_FREE_KG = 8;
 export const HEALTH_MAX = 100;
 export const FALL_SAFE_SPEED = 9.5;     // below this a landing is free
 export const FALL_DAMAGE_PER_MS = 6.2;  // per m/s over the safe speed
-export const IMPACT_SAFE_MOMENTUM = 26; // kg·m/s a prop can hit you with, free
-export const IMPACT_DAMAGE_PER_NS = 0.9;
+// ENERGY, NOT MOMENTUM. Momentum is linear in mass, so a fixed threshold plus a
+// fixed rate gives every prop the same ABSOLUTE window between "free" and
+// "fatal" — 111 kg·m/s under the old numbers — and that window then divides by
+// the prop's mass. For a 12kg extinguisher it was a sensible 2.2 to 11.4 m/s.
+// For a 132kg safe it was 0.20 to 1.04 m/s, and for the 220kg piano 0.12 to
+// 0.62. In other words every heavy object in the catalogue killed a contractor
+// outright at a speed slower than walking, so nudging the safe you had come to
+// pick up was a one-shot kill, and the piano — the level's headline task, the
+// one that needs four hands — could not be moved by anybody without flattening
+// whoever was helping. Two co-op assertions had been quarantined as untestable
+// because of it.
+//
+// Kinetic energy is the honest measure of what an impact does to a person: it
+// goes as the SQUARE of speed, so heavy-and-slow stops being interchangeable
+// with light-and-fast. At these numbers a safe shrugs off being pushed at
+// 1.5m/s, bruises at 2.5, hurts properly at 4 and kills at 9; the extinguisher
+// is harmless off the conveyor and dangerous thrown; and the piano still
+// flattens anyone it lands on from the mezzanine.
+export const IMPACT_SAFE_ENERGY = 220;  // joules a prop can hit you with, free
+export const IMPACT_DAMAGE_PER_J = 0.030;
 
 // Getting knocked down is the joke, so the bar is low and the recovery is slow.
 export const RAGDOLL_TRIGGER_DAMAGE = 12;

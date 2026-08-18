@@ -31,7 +31,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { membership, GROUPS } from './world.js';
 import { liftCapacity } from './grab.js';
 import {
-  BUTTON, GRAB_RANGE, EYE_HEIGHT, REVIVE_RADIUS, IMPACT_SAFE_MOMENTUM, TICK_DT,
+  BUTTON, GRAB_RANGE, EYE_HEIGHT, REVIVE_RADIUS, IMPACT_SAFE_ENERGY, TICK_DT,
   DOWNED_BLEEDOUT_MS, HOLD_DISTANCE_MIN, HOLD_DISTANCE_MAX,
 } from '../shared/tune.js';
 
@@ -857,18 +857,20 @@ export class BotPool {
   /**
    * Props worth standing clear of.
    *
-   * The bar is deliberately well under IMPACT_SAFE_MOMENTUM: by the time a
-   * thing is over the threshold it is already swinging, and the point is to not
-   * be there when it arrives.
+   * The bar is deliberately well under IMPACT_SAFE_ENERGY: by the time a thing
+   * is over the threshold it is already swinging, and the point is to not be
+   * there when it arrives. Half the energy is about seven tenths of the speed,
+   * so this still gives a bot most of a second of warning.
    */
   trackHazards() {
     this.hazards.length = 0;
     for (const rec of this.room.world.props.values()) {
       if (rec.extracted || rec.rb.isSleeping()) continue;
       const v = rec.rb.linvel();
-      const momentum = Math.hypot(v.x, v.y, v.z) * rec.def.mass;
+      const sp = Math.hypot(v.x, v.y, v.z);
+      const energy = 0.5 * rec.def.mass * sp * sp;
       const carried = rec.held !== null;
-      if (!carried && momentum < IMPACT_SAFE_MOMENTUM * 0.5) continue;
+      if (!carried && energy < IMPACT_SAFE_ENERGY * 0.5) continue;
       const p = rec.rb.translation();
       this.hazards.push({ rec, x: p.x, y: p.y, z: p.z, keep: rec.radius + 1.6 });
     }

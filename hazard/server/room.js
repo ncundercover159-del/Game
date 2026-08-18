@@ -13,7 +13,7 @@ import { LEVEL_BY_ID, DEFAULT_LEVEL, validateLevel } from '../shared/levels/inde
 import { Writer, MSG, PFLAG, OFLAG, NO_WATER } from '../shared/protocol.js';
 import {
   TICK_MS, TICK_DT, PHASE, MAX_PLAYERS, BUTTON, BRIEFING_MS, DEBRIEF_MS,
-  EXTRACT_DWELL_MS, IMPACT_SAFE_MOMENTUM, IMPACT_DAMAGE_PER_NS,
+  EXTRACT_DWELL_MS, IMPACT_SAFE_ENERGY, IMPACT_DAMAGE_PER_J,
   REVIVE_RADIUS, REVIVE_SECONDS, DOWNED_BLEEDOUT_MS, HEALTH_MAX,
   VALVE_REACH, VALVE_TURN_MS, FLOOD_WRITEOFF_MS, DROWN_DAMAGE_PER_S,
   POS_SCALE,
@@ -414,17 +414,38 @@ export class Room {
         //
         // What hurts is being hit, and being hit is about the speed difference.
         // Walk alongside a carried safe and there is none.
+        //
+        // ...AND CAPPED BY THE PROP'S OWN SPEED, because relative velocity on
+        // its own has the opposite failure and it is just as bad. Subtracting
+        // the actor's velocity means WALKING INTO A PARKED SAFE counts your own
+        // 4.1m/s as the impact: 541 momentum, 464 damage, and a contractor at
+        // full health is dead the moment they get close enough to pick the
+        // thing up. Health maxes at 100. Every approach to the heaviest and
+        // most valuable object in the catalogue was a one-shot kill.
+        //
+        // What actually hurts is the prop's kinetic energy arriving in you, and
+        // a stationary object has none to give however fast you run at it — the
+        // character controller just stops you. So take the smaller of the two:
+        // you cannot be hurt worse than the speed difference between you, and
+        // you cannot be hurt worse than the prop is actually moving. Safe swung
+        // at you at 6m/s while you stand still: 6. Safe carried beside you,
+        // both at 1.4: 0. Safe parked while you jog into it: 0. Safe flying at
+        // you while you run at it: the prop's speed, which is conservative and
+        // still plenty.
         const rvx = v.x - actor.vel.x, rvy = v.y - actor.vel.y, rvz = v.z - actor.vel.z;
-        const momentum = Math.hypot(rvx, rvy, rvz) * rec.def.mass;
-        if (momentum < IMPACT_SAFE_MOMENTUM) continue;
+        const closing = Math.hypot(rvx, rvy, rvz);
+        const carried = Math.hypot(v.x, v.y, v.z);
+        const speed = Math.min(closing, carried);
+        const energy = 0.5 * rec.def.mass * speed * speed;
+        if (energy < IMPACT_SAFE_ENERGY) continue;
         const dx = p.x - actor.pos.x, dz = p.z - actor.pos.z;
         const dy = p.y - (actor.pos.y + 0.9);
         const reach = rec.radius + 0.5;
         if (dx * dx + dy * dy + dz * dz > reach * reach) continue;
         if (now - (actor.lastHitAt || 0) < 400) continue;
         actor.lastHitAt = now;
-        actor.damage((momentum - IMPACT_SAFE_MOMENTUM) * IMPACT_DAMAGE_PER_NS, now, 'impact');
-        this.emit('hit', { slot: actor.slot, id: rec.id, force: momentum });
+        actor.damage((energy - IMPACT_SAFE_ENERGY) * IMPACT_DAMAGE_PER_J, now, 'impact');
+        this.emit('hit', { slot: actor.slot, id: rec.id, force: energy });
       }
     }
   }

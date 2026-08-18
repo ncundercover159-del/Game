@@ -428,6 +428,35 @@ ok('a prop resting in the van pays out', room.banked > bankedBefore,
   });
   ok('a safe thrown at you still hurts', C.health < 85, `health ${C.health.toFixed(0)}`);
 
+  // ...AND WALKING UP TO A PARKED ONE DOES NOT.
+  //
+  // The relative-velocity fix above has a mirror-image failure that went
+  // unnoticed for as long as the bug it replaced. Subtracting the actor's
+  // velocity means the closing speed of a contractor WALKING INTO a stationary
+  // safe is their own 4.1m/s: 541 momentum, 464 damage, dead at full health.
+  // Every approach to the heaviest object in the catalogue was a one-shot kill,
+  // and the only reason it did not read as one is that it looked like the
+  // bots being crushed by a carry rather than by standing still.
+  //
+  // The rule is that damage is capped by the prop's OWN speed, so this is the
+  // assertion that states it: a parked object cannot hurt you however fast you
+  // run at it. Note this walks C in under its own power — a fixture that
+  // teleports C next to the safe never generates the closing velocity that is
+  // the entire point of the check.
+  safe.rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+  safe.rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+  advance(600);
+  const s2 = safe.rb.translation();
+  stand(C, [s2.x, 0.05, s2.z + 3.4]);
+  C.health = 100;
+  advance(1600, () => { C.pendingInput = input({ yaw: Math.PI, moveY: 1 }); });
+  const closed = Math.hypot(C.pos.x - s2.x, C.pos.z - s2.z);
+  ok('walking into a parked safe does not kill you', C.health > 90,
+    `health ${C.health.toFixed(0)} after jogging in from 3.4m to ${closed.toFixed(2)}m `
+    + '(closing speed alone scored 541 here and killed outright)');
+  ok('...and the approach actually reached it', closed < 1.6,
+    `stopped ${closed.toFixed(2)}m from the safe`);
+
   room.world.removeProp(safe);
   for (const x of [A, C]) stand(x);
   advance(200);
