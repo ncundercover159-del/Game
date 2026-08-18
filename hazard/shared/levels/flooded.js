@@ -253,7 +253,22 @@ export const flooded = {
     light([-1.0, -2.6, 1.0], { intensity: 11, range: 11, color: '#bfe6d8' }),
     light([13.0, -1.4, 0], { intensity: 7, range: 8, color: '#9fd8c0', flicker: 0.6 }),
     // The lorry, lit like the only thing anybody cares about, which it is.
-    light([19.5, 5.4, -12.0], { intensity: 40, range: 17, color: '#cfe4ff' }),
+    //
+    // `mount: 'fixed'`, because the pendant drop was putting this fixture
+    // INSIDE THE LOAD. It is authored at 5.4m over a flatbed whose deck is at
+    // 2.2; the blanket 1.6m drop took it to 3.8, and the extraction volume runs
+    // from 2.15 to 3.95 — so the lamp hung at chest height in the middle of the
+    // cargo, lighting a hot patch of deckplate directly under itself and
+    // shading everything anybody actually put there. The warehouse had the
+    // identical fault and it took a screenshot of a glowing white box to see
+    // it. A dock light is bolted to a mast; it does not dangle in the cargo.
+    //
+    // NOT YET MEASURED. At 3.2m instead of 1.6 the same intensity spreads over
+    // four times the area, so this is a broader and considerably softer pool
+    // than the blown patch it replaces, and whether it is still the brightest
+    // thing on the job is a question for a harness rather than for arithmetic.
+    // The warehouse got that measurement; this level has not had it yet.
+    light([19.5, 5.4, -12.0], { intensity: 40, range: 17, color: '#cfe4ff', mount: 'fixed' }),
     light([-24.0, 6.0, -11.0], { intensity: 16, range: 12, color: '#ffd9a0' }),
   ],
 
