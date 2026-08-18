@@ -177,6 +177,7 @@ export class Room {
     const [x, y, z] = p;
     for (const b of this.level.brushes) {
       if (b.thin) continue;                       // railings are not floors
+      if (b.decal) continue;                      // nor is paint
       if (Math.abs(x - b.p[0]) > b.s[0] / 2) continue;
       if (Math.abs(z - b.p[2]) > b.s[2] / 2) continue;
       const top = b.p[1] + b.s[1] / 2;

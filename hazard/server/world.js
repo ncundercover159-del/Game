@@ -54,6 +54,18 @@ export class World {
   // --- static geometry ------------------------------------------------------
   buildStatic() {
     for (const b of this.level.brushes) {
+      // PAINT IS NOT GEOMETRY.
+      //
+      // A `decal` brush is a marking — floor chevrons, a stencilled bay number,
+      // a walkway stripe. It is drawn by the renderer like any other box and it
+      // has no collider at all, which is not an optimisation, it is a
+      // correctness rule. Thirty millimetres of paint on a kerb was enough to
+      // change where four bots walked, and the shift they then worked ended
+      // with all four of them downed and the quota missed. Nothing about that
+      // failure pointed at level dressing: the crew was crushed by a safe on
+      // the far side of the shed, ten metres from the marking. Dressing that
+      // can move the simulation is dressing nobody can safely add.
+      if (b.decal) continue;
       const rb = this.world.createRigidBody(
         RAPIER.RigidBodyDesc.fixed().setTranslation(b.p[0], b.p[1], b.p[2])
           .setRotation(eulerToQuat(b.r || [0, 0, 0])),

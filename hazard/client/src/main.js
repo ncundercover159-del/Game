@@ -101,11 +101,23 @@ async function boot(levelId = DEFAULT_LEVEL) {
      * far off that. When the job ends, actors stop stepping, and the movement
      * check reports "walking is broken" for a reason that has nothing to do
      * with walking.
+     *
+     * It also puts the DEBRIEF panel away, and that half matters more than the
+     * clock does. The panel is a DOM overlay with a dark scrim across the whole
+     * viewport; the canvas underneath carries on rendering the level perfectly.
+     * So a run that overruns produces screenshots that are dimmed and half
+     * covered while every pixel measurement taken from the canvas comes back
+     * clean — the numbers say the frame is fine and the picture says it is a
+     * murky mess, and the two are BOTH RIGHT. Anyone grading those PNGs is
+     * grading the scrim. Nothing else in the client hides this panel once
+     * `hud.results()` has painted it, so putting the job back on the clock has
+     * to take it down as well.
      */
     resume() {
       room.phase = PHASE.ACTIVE;
       room.startedAt = performance.now();
       room.phaseEndsAt = performance.now() + 1e9;
+      document.getElementById('results').classList.add('hidden');
     },
     /** Push the job clock forward, so a harness can see the water risen. */
     clockTo(seconds) {

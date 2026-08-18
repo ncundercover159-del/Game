@@ -73,7 +73,18 @@ const LAMP_CLEARANCE = 0.6;
 
 // How many lamps are allowed to cast. Six shadow faces each, so this is a
 // budget, not a preference.
-const SHADOW_LAMPS = 1;
+//
+// Two, not one, and the second one is the van. With a single slot the pick is
+// whichever lamp happens to have the largest number next to it, and for most of
+// this level's life that was the dock lamp — so the ONLY point-light shadows in
+// the game were in a 15m bubble around the loading bay and the entire shed
+// floor had none. Re-lighting the van dropped that lamp below the shed's 34s
+// and the slot silently moved to a shed lamp, which is better coverage but
+// leaves nothing grounded in the van: a safe delivered into the bed would sit
+// there with no contact shadow, floating in the one place the player is meant
+// to be looking. One slot for the room, one for the destination, chosen by
+// `shadow: true` rather than by intensity ranking.
+const SHADOW_LAMPS = 2;
 
 // KEY TO FILL. These three numbers are a lighting design, not three brightness
 // knobs, and getting them wrong is upstream of every other visual complaint.
@@ -175,9 +186,14 @@ export class WorldView {
     //
     // A point light costs six shadow faces, so this cannot be all of them.
     // Brightest first, capped, is a good proxy for "the ones you would notice".
+    // `shadow: true` outranks brightness. Brightest-first is a decent proxy for
+    // "the ones you would notice", but it is a proxy, and a level that needs a
+    // particular fixture to ground a particular object should be able to say so
+    // without having to win an intensity contest to do it.
     const casters = [...(this.level.lights || [])]
       .map((l, i) => ({ l, i }))
-      .sort((a, b) => b.l.intensity - a.l.intensity)
+      .sort((a, b) => (b.l.shadow ? 1 : 0) - (a.l.shadow ? 1 : 0)
+        || b.l.intensity - a.l.intensity)
       .slice(0, SHADOW_LAMPS)
       .reduce((set, e) => set.add(e.i), new Set());
 
@@ -205,9 +221,19 @@ export class WorldView {
    * and refuses to drop the lamp within LAMP_CLEARANCE of that surface. A lamp
    * over open floor gets the full pendant drop; one hanging inside a tank three
    * metres deep gets whatever the tank allows.
+   *
+   * `mount: 'fixed'` opts out entirely. The drop exists because a lamp tight
+   * against a 9.5m roof reads as a stain on the ceiling rather than a fixture
+   * lighting a room — but that argument is about PENDANTS, and it does real
+   * damage when applied to something bolted to a structure at a height chosen
+   * on purpose. The dock lamp was authored at 3.6m and the blanket drop put it
+   * at 2.0m: eye height, inside the van's mouth, 800mm off the deck. It blew
+   * the bay's side panels to a flat 177 luma with a local SD of 3.6 while the
+   * van bed BEHIND it — the place all the money has to go — stayed unlit.
    */
   hangHeight(l) {
     const [x, y, z] = l.p;
+    if (l.mount === 'fixed') return y;
     let below = -Infinity;
     for (const b of this.level.brushes) {
       if (Math.abs(x - b.p[0]) > b.s[0] / 2 || Math.abs(z - b.p[2]) > b.s[2] / 2) continue;
