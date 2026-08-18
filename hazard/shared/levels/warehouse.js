@@ -86,20 +86,55 @@ const brushes = [
   box([0, 0.95, -6.5], [26, 0.25, 1.6], 'rubber', { tag: 'conveyor', drift: [1.9, 0, 0] }),
   box([0, 0.45, -6.5], [26, 0.7, 0.3], 'steelblue'),
 
-  // --- loading dock: the van, and the ramp up to it ------------------------
-  box([0, 0.6, 14.2], [12, 1.2, 5.0], 'deckplate', { tag: 'dock' }),
-  box([0, 0.3, 10.8], [6.0, 0.6, 2.2], 'deckplate', { tag: 'ramp', ramp: true }),
-  // The canopy sits at 4.9, not 3.9.
+  // --- loading dock, and THE VAN, WHICH UNTIL NOW DID NOT EXIST ------------
   //
-  // A bay light has to clear a standing contractor — the deck is at 1.2 and a
-  // contractor is 1.8, so nothing can hang below about 3.1 — and the old lid
-  // was at 3.9 with its underside at 3.75. That left 650mm between the lamp and
-  // a large flat panel, which is not a lighting position, it is a way to make
-  // the ceiling the brightest object in the shot. One extra metre of canopy is
-  // what buys the fixtures somewhere to be.
-  box([-6.4, 2.7, 14.2], [0.3, 4.2, 5.0], 'panel'),
-  box([6.4, 2.7, 14.2], [0.3, 4.2, 5.0], 'panel'),
-  box([0, 4.9, 14.2], [12.8, 0.3, 5.0], 'panel'),
+  // The task text says "load £5,200 of stock into the van". There was no van.
+  // The extraction volume sat inside two flat cladding panels and a lid four
+  // metres up, over a stretch of the same dock decking the player was standing
+  // on, and the whole reason the bay kept blowing out under every lighting
+  // scheme tried on it is that a 12m-wide alcove of pale corrugated cladding is
+  // not a thing light can be put inside. The reference plate for this is the
+  // inside of R.E.P.O.'s extraction truck: a DARK RIBBED BOX whose bright
+  // element is the rectangular opening, not its surfaces — 74% of that frame
+  // sits below sRGB 32.
+  //
+  // So the dock now stops at the loading edge and a box body is parked against
+  // it, bed flush with the deck so nothing has to be lifted over a step. Inside
+  // is 8.5m x 2.6m x 2.4m clear, which wraps the extraction volume with room to
+  // walk. Lined in ply over rubber matting, because those are the two materials
+  // in the set that are dark AND carry real texture — the critic measured the
+  // old deckplate bed at p90/p10 1.01, which is to say no material at all.
+  box([0, 0.6, 12.95], [12, 1.2, 2.5], 'deckplate', { tag: 'dock' }),
+  box([0, 0.3, 10.8], [6.0, 0.6, 2.2], 'deckplate', { tag: 'ramp', ramp: true }),
+
+  // the body: bed, two sides, bulkhead, roof
+  box([0, 1.075, 15.5], [8.8, 0.25, 2.6], 'rubber', { tag: 'vanbed' }),
+  box([-4.4, 2.4, 15.5], [0.3, 2.4, 2.6], 'crate', { tag: 'vanwall' }),
+  box([4.4, 2.4, 15.5], [0.3, 2.4, 2.6], 'crate', { tag: 'vanwall' }),
+  box([0, 2.4, 16.95], [9.1, 2.4, 0.3], 'crate', { tag: 'vanwall' }),
+  box([0, 3.75, 15.4], [9.1, 0.3, 2.8], 'crate', { tag: 'vanroof' }),
+
+  // the rear frame, which is what actually reads as "a van" from across the
+  // shed: two uprights and a header outlining the opening
+  box([-4.4, 2.4, 14.05], [0.3, 2.4, 0.3], 'steelblue'),
+  box([4.4, 2.4, 14.05], [0.3, 2.4, 0.3], 'steelblue'),
+  box([0, 3.45, 14.05], [9.1, 0.3, 0.3], 'steelblue'),
+  // sill lip you set a safe down over
+  box([0, 1.26, 14.16], [8.8, 0.12, 0.22], 'steelblue', { tag: 'vansill' }),
+
+  // both doors swung back flat against the sides. `decal: true` — they are
+  // dressing, and dressing that can move the simulation is dressing nobody can
+  // safely add. Four 30mm chevrons on the pit kerb once ended a whole shift
+  // with the crew downed and the quota missed.
+  box([-4.72, 2.4, 13.0], [0.12, 2.4, 2.2], 'steelblue', { tag: 'vandoor', decal: true }),
+  box([4.72, 2.4, 13.0], [0.12, 2.4, 2.2], 'steelblue', { tag: 'vandoor', decal: true }),
+
+  // chassis and bumper under the bed line. No wheels: brushes are axis-aligned
+  // boxes, so a wheel would be a cube, and from a dock at deck height you never
+  // see below the sill anyway. Round geometry is what that needs and the brush
+  // system has none.
+  box([0, 0.75, 15.5], [9.0, 0.4, 2.6], 'steelblue', { tag: 'vanchassis' }),
+  box([0, 0.5, 14.05], [7.4, 0.22, 0.3], 'steelblue'),
 ];
 
 export const warehouse = {
@@ -141,38 +176,30 @@ export const warehouse = {
     light([14, 8.4, 5], { intensity: 34, range: 22, color: '#ffe2b4' }),
     light([0, 8.4, -14], { intensity: 26, range: 20, color: '#ffd9a0' }),
 
-    // --- THE VAN, WHICH IS THE BRIGHTEST THING IN THE SHED -------------------
+    // --- INSIDE THE VAN ------------------------------------------------------
     //
-    // Every pound in this level ends up in the volume at z=15.4, so that volume
-    // has to be the thing the eye goes to from anywhere on the floor. It was
-    // the opposite: one lamp at the MOUTH of the bay, dropped by the pendant
-    // rule to 2.0m — head height, in front of the van rather than in it — which
-    // lit the side panels flat and left the bed itself in shade.
+    // These used to be bay lamps hung in an alcove, and every value tried on
+    // them was wrong for the same reason: there was nothing to put the light
+    // INSIDE. Now there is a box, so they go in it, and the thing the player
+    // sees from across the shed is a lit rectangular opening rather than a
+    // glowing wall — which is what the reference plate actually does.
     //
-    // Two bolted fixtures in the throat instead, up under the canopy and
-    // inboard of the panels. Range 9 keeps the pool inside the bay: this is a
-    // lit box at the end of a dark shed, not a second sun. Cool white against
-    // the shed's sodium, because the destination should not look like more
-    // warehouse.
+    // Back to 24 from 15. Backing off to 15 was my call and it was wrong: the
+    // critic measured attention properly, as the share of the frame's brightest
+    // 1% falling inside the bay, and got 38% at 24 against 26% at 15. 34 buys
+    // no more attention than 24 and costs 17 sRGB of near-field blowout, so 24
+    // is the top of the useful range. My reason for backing off — "the cladding
+    // is legible again" — was true of the WALL and false of the DECK, which was
+    // never flat because of the lamp. It was flat because deckplate carries a
+    // 2.75m rib pitch and a 5m bed shows under two ribs of it. That bed is
+    // rubber matting now.
     //
-    // POSITION IS MOSTLY ABOUT WHAT IS NEAREST. The first attempt put these at
-    // (±2.2, 3.1, 15.6): 650mm under the lid and 1.4m off the shell's south
-    // wall, which is also the van's back wall. Inverse square does not care
-    // what a surface is for, so the lid and the back wall each got several
-    // times what the deck got and the bay rendered as a glowing white box with
-    // a dim floor in it. The deck reported 0% clipped throughout, because the
-    // crop that measures it looks straight down and never sees a wall.
-    //
-    // 3.9 is a metre under the raised canopy and 2.7m over the deck; z=14.6 is
-    // 2.4m off the back wall instead of 1.4. Nothing in the bay is now nearer
-    // to a lamp than the thing the lamp is there for.
-    //
-    // The first of them casts — see SHADOW_LAMPS. A prop that has been paid for
-    // should sit in the bed with a shadow under it rather than hover over it.
-    light([-2.4, 3.9, 14.6], { intensity: 15, range: 9, color: '#dfeaff', mount: 'fixed', shadow: true }),
-    light([2.4, 3.9, 14.6], { intensity: 15, range: 9, color: '#dfeaff', mount: 'fixed' }),
+    // 3.15 is 450mm under the roof lining and just clear of the load volume,
+    // which tops out at 3.0.
+    light([-2.3, 3.15, 15.7], { intensity: 24, range: 8, color: '#dfeaff', mount: 'fixed', shadow: true }),
+    light([2.3, 3.15, 15.7], { intensity: 24, range: 8, color: '#dfeaff', mount: 'fixed' }),
     // and one over the ramp, so the approach is legible without being in shot
-    light([0, 3.9, 11.8], { intensity: 8, range: 8, color: '#dfeaff', mount: 'fixed' }),
+    light([0, 3.4, 11.6], { intensity: 10, range: 8, color: '#dfeaff', mount: 'fixed' }),
 
     // --- THE PIT, WHICH IS THE DIMMEST ---------------------------------------
     //
