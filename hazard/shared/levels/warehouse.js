@@ -169,10 +169,10 @@ export const warehouse = {
     //
     // The first of them casts — see SHADOW_LAMPS. A prop that has been paid for
     // should sit in the bed with a shadow under it rather than hover over it.
-    light([-2.4, 3.9, 14.6], { intensity: 24, range: 9, color: '#dfeaff', mount: 'fixed', shadow: true }),
-    light([2.4, 3.9, 14.6], { intensity: 24, range: 9, color: '#dfeaff', mount: 'fixed' }),
+    light([-2.4, 3.9, 14.6], { intensity: 15, range: 9, color: '#dfeaff', mount: 'fixed', shadow: true }),
+    light([2.4, 3.9, 14.6], { intensity: 15, range: 9, color: '#dfeaff', mount: 'fixed' }),
     // and one over the ramp, so the approach is legible without being in shot
-    light([0, 3.9, 11.8], { intensity: 11, range: 8, color: '#dfeaff', mount: 'fixed' }),
+    light([0, 3.9, 11.8], { intensity: 8, range: 8, color: '#dfeaff', mount: 'fixed' }),
 
     // --- THE PIT, WHICH IS THE DIMMEST ---------------------------------------
     //
