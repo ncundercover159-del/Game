@@ -294,7 +294,31 @@ const GEN = {
     // every shot into the van came back as a white card with no ribs in it.
     // Painted steel that has been in a yard for a decade is not a 0.50 surface
     // anyway. The shoulder in post.js is the other half of this fix.
-    let r = 0.424, g = 0.418, b = 0.388;
+    //
+    // AND THEN DOWN AGAIN, BY A SEVENTH, WITH THE MEASUREMENT THAT SAYS WHY
+    // THIS IS AS FAR AS ALBEDO CAN TAKE IT.
+    //
+    // The bay was relit — canopy raised a metre, fixtures moved off the back
+    // wall — and a shot into it still measures the wall at 204.7 luma with a
+    // local standard deviation of 1.6. That is not a bright wall, it is a white
+    // card: the corrugation is present in the height channel and arrives at the
+    // screen as a one-level ghost, because everything in that bay lands in the
+    // part of the ACES curve that has no slope left.
+    //
+    // Four suspects were photographed one at a time on the shipped materials.
+    // The environment map: no effect whatsoever, to the level. The bloom: 0.3
+    // of a level. The van's own lamps: the wall goes from 205 to 8, so it is
+    // entirely direct light. And the albedo, swept live — x0.86 takes the wall
+    // to 197, x0.74 to 187, x0.64 to 175.
+    //
+    // Read that sweep honestly. A 36% cut in albedo buys 30 levels out of 205,
+    // because the surface arrives at roughly 6.5 in scene-linear and a log
+    // shoulder preserves RATIOS: 6.5 and 4.2 are close together wherever you
+    // put them. The lever with enough range is the lamp, and lamp intensity is
+    // level data. So this takes the one seventh that costs the SHED the least
+    // — its own west wall goes 71 to 56, which it can afford and arguably wants
+    // — and the rest of that fight belongs to whoever owns the fixtures.
+    let r = 0.362, g = 0.356, b = 0.330;
     // The rib pitch is 57 cm, which is still a dozen pixels wide at the far
     // wall, so this one repeating feature is allowed real contrast.
     const shade = 0.92 + 0.14 * ribH;
@@ -510,6 +534,86 @@ const GEN = {
     o[3] = clamp01(0.5 + grain * 0.35 + (fibre - 0.5) * 0.4 - seam * 0.5 - knot * 0.3);
   },
 
+  // A plywood packing crate: ply face, sawn batten frame, and whatever the last
+  // shipper stencilled on it.
+  //
+  // THIS GENERATOR DID NOT EXIST, AND THE TWO BRUSHES THAT ASK FOR IT ARE THE
+  // ONLY WAY OUT OF THE INSPECTION PIT.
+  //
+  // materialFor() answers an unknown name with the debug chequer, on the
+  // grounds that a typo in hand-authored level data should look wrong rather
+  // than crash a level. That is the right contract and it still failed here,
+  // because nothing was LOOKING: the two crates somebody stacked against the
+  // north wall of the pit — the pair a contractor who fell in has to climb to
+  // get out again, added specifically to fix a soft-lock — have been rendering
+  // as a magenta-and-navy checkerboard the whole time. See MATERIAL_NAMES in
+  // materials.js and the lint that consumes it, which is the other half of
+  // this: an unknown material now says so, loudly, instead of quietly painting
+  // itself pink on the critical path.
+  //
+  // THE TILE IS 0.90 m AND THE BATTENS ARE THE ONLY LOUD THING IN IT.
+  //
+  // Both halves of that are the rule at the top of this file. A batten pitch of
+  // 45 cm is architecture: at twenty metres it is still a dozen pixels wide, so
+  // it physically cannot alias, and it is the one feature that reads as A CRATE
+  // rather than as a brown box from the far side of the shed. Everything finer
+  // — the ply's grain, the saw tooth on the timber, the crushed corners — is in
+  // the HEIGHT channel, where a screen-space derivative averages it away by
+  // itself as the crate gets further off.
+  //
+  // Nothing here is near the tile seam, which is the other lesson this file has
+  // already paid for twice: the battens sit at the quarter and three-quarter
+  // marks, so u = 0 lands in the middle of a ply panel and a stack of crates
+  // has no visible join running through it.
+  crate(u, v, o) {
+    // The frame. Two battens across and two up, at a 0.45 m pitch.
+    const bx = Math.abs(fract(u * 2) - 0.5) * 2;
+    const by = Math.abs(fract(v * 2) - 0.5) * 2;
+    // Uprights run the full height; the rails stop where they meet them, which
+    // is how a crate is actually nailed together and stops the frame reading as
+    // a lattice laid on top of the box.
+    const upright = 1 - smooth(0.13, 0.21, bx);
+    const rail = (1 - smooth(0.15, 0.23, by)) * (1 - upright);
+    const batten = Math.max(upright, rail);
+
+    // Ply. Long fine grain one way, and the broad blotchy figure of a rotary
+    // cut veneer at a scale you can see across a room.
+    const fibre = streak(u, v, 110, 16, 2, 19);
+    const veneer = streak(u, v, 5, 3, 3, 47);
+    const patch = fbm(u, v, 3, 2, 71);            // damp, dirt, sun
+
+    // Stencilled markings, in the middle of one panel. A bar of text and the
+    // little square that means the contents are somebody else's problem. Kept
+    // deliberately weak: this repeats every 90 cm over every crate in the level
+    // and a strong decal at that pitch is wallpaper, not a marking.
+    const sx = Math.abs(fract(u + 0.5) - 0.5), sy = Math.abs(fract(v + 0.5) - 0.5);
+    const barY = 1 - smooth(0.020, 0.030, Math.abs(sy - 0.085));
+    const bar = barY * (1 - smooth(0.115, 0.140, sx))
+      // ...broken into blocks, so it reads as lettering rather than as a line.
+      * smooth(0.35, 0.55, Math.abs(fract(u * 26) - 0.5) * 2);
+    const boxMark = (1 - smooth(0.030, 0.040, Math.abs(sx - 0.055)))
+      * (1 - smooth(0.045, 0.055, Math.abs(sy + 0.030)));
+    const stencil = Math.max(bar, boxMark) * (1 - batten);
+
+    // Scuffing, where a crate meets a forklift: along the battens, because the
+    // frame is what stands proud and the frame is what gets hit.
+    const scuff = smooth(0.55, 0.85, fbm(u, v, 9, 3, 29)) * batten;
+
+    let l = 0.455 + (veneer - 0.5) * 0.115 + (fibre - 0.5) * 0.055;
+    l *= mix(0.88, 1.06, patch);
+    // A batten is sawn softwood over a sanded ply face, so it is both a shade
+    // darker and a different surface. The darkening is small on purpose — the
+    // frame carries in HEIGHT, and a dark line at 45 cm would be a grid.
+    l *= 1 - batten * 0.13;
+    l = mix(l, 0.72, scuff * 0.45);               // raw timber under the dirt
+    l = mix(l, 0.155, stencil * 0.80);            // stencil ink
+    // Softwood ply: warm, and yellower than the scaffold board next door
+    // because it has not spent a winter outside.
+    o[0] = l * 1.145; o[1] = l * 1.005; o[2] = l * 0.735;
+    o[3] = clamp01(0.44 + batten * 0.34 + (fibre - 0.5) * 0.34
+      + (veneer - 0.5) * 0.16 - scuff * 0.20);
+  },
+
   // Conveyor belting: lateral cleats, rubber crumb, and years of grease.
   rubber(u, v, o) {
     const rib = Math.abs(fract(v * 9) - 0.5) * 2;
@@ -639,42 +743,78 @@ const GEN = {
     o[3] = clamp01(0.4 + edge * 0.5 + (dust - 0.5) * 0.3);
   },
 
-  // A contractor's overalls and gloves. Cloth, but coarser than upholstery, and
-  // with the grime of a job that pays by the hazard.
+  // A contractor's overalls, their gloves, and the hi-vis vest over the top.
+  // Cloth, but coarser than upholstery, and with the grime of a job that pays
+  // by the hazard.
+  //
+  // THE TWILL WAS A BASKET. At thirty diagonal cycles across a 0.34 m... no,
+  // across a 0.50 m tile, the thread pitch was 1.7 cm — and a 1.7 cm thread is
+  // not cloth, it is wicker. Photographed from two metres the back of the vest
+  // came out as a laundry hamper with reflective bands round it, which is a
+  // large part of why a review could not see the banding: it was competing with
+  // a weave running at the same scale and higher contrast.
+  //
+  // The real reason it read that hard was the height channel, not the colour.
+  // 0.45 of relief under a bump of 1.8 turns a 1.7 cm ripple into a rope. So
+  // the pitch is halved to 8 mm, which is coarse workwear rather than basketry,
+  // and the relief comes down by nearly half — the recipe's `bump` comes down
+  // with it. What survives is a cloth that has a direction and a nap and does
+  // not have a warp you could get your finger under.
   overall(u, v, o) {
-    const twill = Math.abs(fract((u * 2 + v) * 30) - 0.5) * 2;
+    const twill = Math.abs(fract((u * 2 + v) * 62) - 0.5) * 2;
     const weave = 1 - smooth(0.25, 0.75, twill);
     const fluff = fbm(u, v, 34, 3, 17);
     const grime = fbm(u, v, 5, 3, 83);
-    const l = (0.76 + weave * 0.20 + (fluff - 0.5) * 0.12) * mix(0.84, 1.06, grime);
+    const l = (0.79 + weave * 0.13 + (fluff - 0.5) * 0.10) * mix(0.86, 1.05, grime);
     o[0] = l; o[1] = l * 0.995; o[2] = l * 0.99;
-    o[3] = clamp01(0.4 + weave * 0.45 + (fluff - 0.5) * 0.3);
+    o[3] = clamp01(0.42 + weave * 0.26 + (fluff - 0.5) * 0.26);
   },
 
-  // Hard hats, boot rubber, faces, and the retro-reflective bands on a hi-viz
-  // vest.
+  // A hard hat and the face under it. Nothing else in the game uses this: the
+  // contractor's head is one skinned mesh and this is its one material, so
+  // whatever is written here is worn by both a moulded plastic shell and a
+  // human forehead at the same time.
   //
-  // THIS IS THE SURFACE OF AN INJECTION MOULDING AND IT WAS READING AS CORK.
+  // AND IT WAS READING AS CORK. BOTH OF THEM. WHICH IS WHAT THAT MEANS.
   //
-  // The mould figure ran at thirty cycles a tile against a 0.34 m tile, which
-  // is eleven-millimetre pitting on a shell forty centimetres across, and it
-  // put +/-0.2 of that into the height channel on top of a bump strength of
-  // 1.6. Photographed close, the hard hats came back as sponge and the faces
-  // came back as porridge — a review called the hats mushroom caps and this was
-  // half of why, because a matte pitted dome is a fungus and a glossy smooth
-  // one is a helmet.
+  // The previous cut had already taken one pass at this — the mould figure came
+  // down from thirty cycles a tile to eight, and a note above it explains why
+  // eleven-millimetre pitting is not a moulding. The note was right and the fix
+  // did not go nearly far enough, because the frequency was only half of it:
   //
-  // So the figure goes low-frequency, where it belongs — a moulding varies in
-  // sheen over centimetres, not over millimetres — and nearly all of its RELIEF
-  // comes out. What is left standing in the height channel is the nicks, which
-  // is the part that has actually happened to the object.
+  //   * `mould` was fbm at 8 cells with THREE OCTAVES on a 0.34 m tile. The
+  //     base cell is 4 cm and the third octave is one centimetre, so cutting
+  //     the base frequency by four left the finest detail exactly where it was.
+  //     Octaves are the frequency you actually shipped.
+  //   * `nick` was ridged noise thresholded at 0.93 over 30 cells. That does not
+  //     draw nicks. It draws the LEVEL SETS of the noise field — the same closed
+  //     contour loops that were scribbling on the concrete floor until they were
+  //     deleted from it — at 1.1 cm across, wrapped round a skull.
+  //   * and the pair of them drove -0.55 of height under a bump of 1.05, so the
+  //     light dug every one of those pits out again on top of the colour.
+  //
+  // Photographed at a metre the verdict was the same from every angle: cork.
+  // There is no amplitude at which centimetre-scale pitting reads as injection
+  // moulding, because injection moulding does not have any — and there is
+  // certainly none at which it reads as skin.
+  //
+  // What is left is the two things both objects genuinely have. A slow drift in
+  // sheen across the shell, at seventeen centimetres, which is the size of the
+  // thing itself and so can never be mistaken for grain. And drag: long shallow
+  // scuffs from a hat that lives in the back of a van, stretched nine to one so
+  // they read as strokes rather than as noise, and carried mostly in HEIGHT so
+  // the light decides how much of them you see and distance takes them away.
+  // On a face the same field is a soft shading variation and nothing else,
+  // which is all a face at this register wants.
   gear(u, v, o) {
-    const mould = fbm(u, v, 8, 3, 5);
-    const scuff = streak(u, v, 22, 7, 3, 61);
-    const nick = smooth(0.93, 0.99, ridge(u, v, 30, 2, 23));
-    const l = (0.90 + (mould - 0.5) * 0.07) * mix(0.93, 1.05, scuff) - nick * 0.16;
-    o[0] = l; o[1] = l; o[2] = l * 1.01;
-    o[3] = clamp01(0.62 + (mould - 0.5) * 0.12 - nick * 0.55);
+    const sheen = fbm(u, v, 2, 2, 5);            // ~17 cm — one side of a shell
+    const drag = streak(u, v, 12, 9, 2, 61);     // scuffs, along the moulding
+    const l = 0.905 + (sheen - 0.5) * 0.030 + (drag - 0.5) * 0.038;
+    // A whisper warm rather than a whisper cool. The vertex colour carries the
+    // hue on the hat and the skin tone on the face, and a cold multiplier on a
+    // face is the difference between a person and a corpse.
+    o[0] = l; o[1] = l * 0.997; o[2] = l * 0.990;
+    o[3] = clamp01(0.60 + (drag - 0.5) * 0.26 + (sheen - 0.5) * 0.14);
   },
 
   unknown(u, v, o) {

@@ -144,10 +144,28 @@ const BUILDS = [
 ];
 
 // The site palette. One vest colour for everybody — see the note at the top.
-const HIVIZ = 0xef7a1c;        // safety orange
+//
+// THREE OF THESE MOVED FOR ONE REASON: THE TORSO HAD NO CONTRAST IN IT.
+//
+// A graded review measured the lightness delta across the torso at 20.9 against
+// a failing line of 20 — one point from failing — and photographs of the back
+// bear it out: reflective banding at CIE L* 85.3 over a vest at 63.6 is a
+// twenty-two point step, which is a change of shade rather than a change of
+// material. Retroreflective tape under a lamp is not a pale grey. It is the
+// brightest thing on a person by a wide margin, which is the entire reason
+// anybody wears it, and photographing as near-white is correct rather than
+// generous. That single change takes band-to-vest from 21.7 to 29.6.
+//
+// The shirt goes the other way for the same reason: a dark navy work layer
+// under the vest reads as a shadow the vest is sitting in, and it takes
+// vest-to-shirt from 43.9 to 50.5. The vest itself barely moves — it is
+// already the right orange, and it has to stay orange rather than becoming
+// red, because under a #ffe2b4 lamp anything with less green than this stops
+// reading as hi-vis and starts reading as rust.
+const HIVIZ = 0xf27d15;        // safety orange
 const HIVIZ_DEEP = 0xa8480d;   // its own shadow, for panel breaks
-const TAPE = 0xcfd6dd;         // retroreflective banding, near-white grey
-const CLOTH = 0x2b303a;        // trousers and sleeves
+const TAPE = 0xeaeff5;         // retroreflective banding, near-white
+const CLOTH = 0x20242c;        // trousers and sleeves
 const RUBBER = 0x16181d;       // boots and gloves
 const SOLE = 0x0d0f12;
 const SKIN = 0xd8a883;
@@ -410,14 +428,37 @@ export function makeFigure(slot) {
   // trays. A shallow cylinder a few millimetres proud of the vest wraps it the
   // way a reflective band actually does — and stops where the vest stops, so
   // the opening stays an opening instead of being taped shut.
-  ring(BAND_HI, 0.060, TAPE);
-  ring(BAND_LO, 0.060, TAPE, TRIM_R + 0.003);
-  // Braces over both shoulders, front and back. They span exactly the distance
-  // from the upper band to the top hem, so they terminate on the two things
-  // that were already there rather than cutting across either of them.
+  ring(BAND_HI, 0.076, TAPE);
+  ring(BAND_LO, 0.076, TAPE, TRIM_R + 0.003);
+  // Braces over both shoulders, front and back.
+  //
+  // AND THEY NO LONGER TOUCH THE UPPER BAND, WHICH IS THE WHOLE FIX.
+  //
+  // The previous cut ran them from the band to the top hem, which was the right
+  // answer to the complaint before last: nothing crosses anything, the rings go
+  // round the body and the braces live entirely above them. What it produced
+  // was a different shape and a worse one. Two wide vertical straps landing
+  // squarely on a horizontal band is a Π — photographed from behind, the top
+  // half of this vest was a grey capital pi with one small orange window in it,
+  // and a review called the back of the vest a grey cross rather than banding.
+  //
+  // Every piece was right and the arrangement was still wrong, for the second
+  // time, which says the lesson is about area rather than about crossings: on
+  // the BACK of a hi-vis vest the two horizontal bands have to be the largest
+  // reflective things by a clear margin, or whatever else is up there takes
+  // over the read.
+  //
+  // So the braces are narrower — 0.21 rad is about five centimetres on this
+  // chest, which is what a strap actually is, against the seven and a half they
+  // were — they sit further outboard, and they STOP SHORT of the band with a
+  // hand's width of orange under them. That gap is what turns a Π back into two
+  // straps and a stripe. The bands get wider at the same time, so the two
+  // things that go round the body gain area while the two that go over the
+  // shoulder lose it.
+  const BRACE_LO = BAND_HI + 0.055 * S;
   for (const s of [-1, 1]) {
-    strip(s * 0.60, 0.30, VEST_TOP - BAND_HI, (VEST_TOP + BAND_HI) / 2, TAPE);
-    strip(Math.PI + s * 0.60, 0.30, VEST_TOP - BAND_HI, (VEST_TOP + BAND_HI) / 2, TAPE);
+    strip(s * 0.66, 0.21, VEST_TOP - BRACE_LO, (VEST_TOP + BRACE_LO) / 2, TAPE);
+    strip(Math.PI + s * 0.66, 0.21, VEST_TOP - BRACE_LO, (VEST_TOP + BRACE_LO) / 2, TAPE);
   }
   // Piping down both edges of the opening. An open cylinder sector has no
   // thickness, so without this the front of the vest is a cut in a sheet of
@@ -477,56 +518,80 @@ export function makeFigure(slot) {
   }
   head.box(0.062, 0.05, 0.052, CLOTH, BI.head, RF.head, [0, 0.16 * HD, 0]);   // a tuft
 
-  // THE HAT. Two silhouettes, and they have to be different at range or the
-  // eight builds collapse to four. The dome is a hard hat: hemisphere, comb
-  // ridge, brim all the way round. The cap is a bump cap: a shallower crown
-  // and a PEAK at the front only. The previous 'bucket' was a flat-topped
-  // cylinder with a flat brim, which from any distance reads as a bowler.
-  // A HAT IS A THING YOU WEAR ON TOP OF A FACE, NOT INSTEAD OF ONE.
+  // THE HAT, WHICH IS SOLVED AGAINST THE SKULL RATHER THAN AUTHORED AS
+  // CONSTANTS, BECAUSE THAT IS WHAT WAS WRONG WITH IT.
   //
-  // Every crown here is a half-sphere seated ABOVE the eye line, and that is
-  // load-bearing rather than fussy. The first cut used a full squashed sphere
-  // for the cap, whose lower hemisphere reached 0.08·HD below the eyes and
-  // enclosed the entire face — photographed from the front, the contractor was
-  // a coloured egg with a dark bar across it and no eyes at all. Anything with
-  // a lower half will eat the head it is sitting on; a dome cannot.
+  // Every previous cut of this picked a shell radius out of the air — 0.212·HD,
+  // then 0.215·HD — and seated it on a collar at 0.135·HD, against a skull of
+  // 0.170·HD. Do the arithmetic at the height the collar actually sits and the
+  // skull has already narrowed to about 0.14·HD, so the shell stood SEVEN
+  // CENTIMETRES proud of the head all the way round and you could see straight
+  // through the gap to where an ear would be. A review put it exactly: a
+  // scalloped dome wider than the head with bare skull showing between hat and
+  // ear. It does not read as a hard hat because it is not sitting on anything.
   //
-  // The two silhouettes have to stay different at range or the eight builds
-  // collapse to four. The dome is a hard hat: hemisphere, comb ridge, brim all
-  // the way round. The cap is a bump cap: a lower, flatter crown and a PEAK at
-  // the front only. The previous 'bucket' was a flat-topped cylinder with a
-  // flat brim, which from any distance reads as a bowler.
-  // AND THE THING THEY ALL HAVE TO STOP BEING IS A MUSHROOM.
+  // A hard hat is not appreciably wider than a head. It is a shell on a fabric
+  // cradle and the cradle is a centimetre or so. So the rim radius is not a
+  // number any more, it is SOLVED: it is the skull's own radius at the height
+  // the rim sits, plus that cradle. Every build then gets a hat that touches
+  // its own head however big that head is, which a constant could never do —
+  // the eight heads here vary by half in scale.
   //
-  // The previous dome was a true hemisphere of radius 0.212·HD sitting on a
-  // 0.300·HD disc with a 0.170·HD fin down the middle. Photographed front-on
-  // that is a stalk-and-cap, and the review used exactly that word. Three
-  // things were wrong and all three are geometric rather than a matter of
-  // taste:
+  // Three things follow from that, and all three are what a hard hat has:
   //
-  //  * A HARD HAT IS NOT A HEMISPHERE. Its shell is about two thirds as tall as
-  //    it is wide. A half-sphere has its widest point at the very bottom, which
-  //    is where a mushroom is widest and where a hat is not — a hat's shell
-  //    tucks back IN towards the headband. Squashing the sphere and seating it
-  //    on a slightly narrower collar does both jobs at once.
-  //  * THE FIN. 0.170·HD of comb on a 0.212·HD crown is four fifths of the
-  //    shell's own height standing on top of it. Real ribs are a couple of
-  //    millimetres of stiffening. Three low ones read as a hard hat; one tall
-  //    one reads as a centurion helmet, and at range as a stalk.
-  //  * NO SHADOW LINE. Crown and brim were the same colour with no break
-  //    between them, so the two merged into one blob. A dark headband in the
-  //    gap costs one cylinder and is what tells the eye where the hat stops and
-  //    the head starts.
-  const CROWN = 0.135 * HD;      // seat height — clear of the eyes at 0.015·HD
-  // The shell, common to all three: a squashed dome with a rolled lower edge.
-  const shell = (r, squashY, seat) => {
-    head.add(squash(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2),
-      [1.0, squashY, 1.06]), hatCol, BI.hat, RF.hat, [0, seat, 0]);
-    // The roll. A short taper under the dome's rim, narrowing downwards, which
-    // is the tuck a real shell has where it meets the headband.
-    head.cyl(r * 1.005, r * 0.90, 0.030 * HD + 0.010, hatCol, BI.hat, RF.hat,
-      [0, seat - 0.014 * HD, 0], null, 14);
+  //  * NO ROLL, NO STACK. The old shell had a rolled collar under it, then a
+  //    brim under that, then a headband under that — four rings of different
+  //    radii at four heights, which photographs as a boater however you tune
+  //    it. The shell's own rim IS the widest point of the crown now, and the
+  //    brim springs directly off it with nothing in between.
+  //  * THE BRIM STARTS WHERE THE CROWN STOPS. Its top face sits three
+  //    millimetres above the shell's seat, so there is a lip and there is no
+  //    gap. A gap between crown and brim is the single thing that says
+  //    "sun hat".
+  //  * THE BAND CLOSES THE HAT ONTO THE HEAD. It runs at the SKULL's radius
+  //    rather than at a fraction of the shell's, so it fills the space under
+  //    the rim instead of adding a fourth ring to the stack, and being dark it
+  //    is the shadow line that tells you where the hat stops.
+  //
+  // A hat is still a thing you wear on TOP of a face. Every crown here is a
+  // half sphere seated above the brow bar and nothing has a lower hemisphere —
+  // an early cut used a full sphere for the cap and the contractor came out as
+  // a coloured egg with a dark bar across it and no eyes at all.
+  //
+  // The three silhouettes still have to be different at range or the eight
+  // builds collapse. Dome: peripheral brim, comb ribs. Fullbrim: a flat disc
+  // half again as wide, unmistakable at eight pixels. Cap: a bump cap, lower
+  // crown, no brim at the sides and a long peak at the front.
+
+  /** The head blob's own radius at a height, in figure-relative metres. */
+  const skullR = (y) => {
+    const t = (y - 0.02) / (HR * 1.02);           // the blob's y semi-axis
+    return HR * Math.sqrt(Math.max(0.04, 1 - t * t));
   };
+  // Where the rim sits: clear of the brow bar, which is the highest thing on
+  // the face and reaches eyeY + eyeR·1.13. A hat that clips its own eyebrows
+  // is worse than one that floats.
+  const RIM = Math.max(0.080 * HD, eyeY + eyeR * 1.30);
+  // ...and the cradle. Four centimetres of head scale, which is a suspension,
+  // a shell thickness, and the correction for the first cut of this.
+  //
+  // Solving the rim against the skull fixed the gap and immediately introduced
+  // its opposite: photographed front on, the shell came out NARROWER THAN THE
+  // EYES. That is not a hat either — it reads as a bottle cap — and it happens
+  // because the eyes are not on the skull's silhouette, they are proud of it,
+  // so a hat sized to the skull is automatically smaller than the widest thing
+  // on the face. Three centimetres of cradle is what a hat has; the extra
+  // centimetre is what the caricature has, and the numbers below are set so
+  // that every build's brim clears its own eyeballs.
+  const RIM_R = skullR(RIM) + 0.042 * HD;
+
+  // The shell: a squashed half sphere whose widest point is its own rim. Taller
+  // than it is a hemisphere, because a hard hat's crown rises about half its
+  // own width above the brim and the old 0.78 squash made it a saucer.
+  const shell = (r, squashY, seat) => head.add(
+    squash(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+      [1.0, squashY, 1.06]), hatCol, BI.hat, RF.hat, [0, seat, 0],
+  );
   // Three stiffening ribs front-to-back, FOLLOWING the shell instead of being
   // laid across it. A straight box over a dome touches at the crown and its two
   // ends float clear of the surface — photographed front-on that read as three
@@ -537,10 +602,12 @@ export function makeFigure(slot) {
   //
   // The arc's radius is the shell's own radius at that lateral offset, so the
   // outer two ribs are shorter than the middle one for free, and both scales
-  // carry the shell's squash so nothing drifts off it at the ends.
+  // carry the shell's squash so nothing drifts off it at the ends. They stand
+  // 0.012·HD proud rather than 0.004 flat: a rib you cannot see the shadow of
+  // is not a raised crown ridge, it is a painted stripe.
   const ribs = (r, seat, squashY) => {
-    for (const [dx, arc, w] of [[0, 0.88, 0.030], [-0.38, 0.66, 0.024], [0.38, 0.66, 0.024]]) {
-      const rr = r * Math.sqrt(Math.max(0.04, 1 - dx * dx)) + 0.004;
+    for (const [dx, arc, w] of [[0, 0.92, 0.034], [-0.40, 0.68, 0.026], [0.40, 0.68, 0.026]]) {
+      const rr = r * Math.sqrt(Math.max(0.04, 1 - dx * dx)) + 0.008 * HD;
       const g = new THREE.CylinderGeometry(rr, rr, w * HD + 0.006, 10, 1, true,
         Math.PI / 2 - arc, arc * 2);
       g.rotateZ(Math.PI / 2);           // axis across the head; the sector arcs fore-aft
@@ -548,52 +615,72 @@ export function makeFigure(slot) {
       head.add(g, hatDark, BI.hat, RF.hat, [dx * r, seat, 0]);
     }
   };
-  // The headband, in the shadow under the shell. Dark, and proud enough of the
-  // skull to draw a line rather than to be a coincidence of shading.
-  const band = (r, seat) => head.cyl(r * 0.93, r * 0.93, 0.036 * HD + 0.006, hatDark,
-    BI.hat, RF.hat, [0, seat - 0.030 * HD - 0.004, 0], null, 14);
+  // The headband. At the SKULL's radius, in the space under the rim that the
+  // shell has just stopped covering, so hat and head are continuous.
+  const band = (seat) => {
+    const h = 0.052 * HD;
+    head.cyl(skullR(seat) + 0.005 * HD, skullR(seat - h) + 0.005 * HD, h, hatDark,
+      BI.hat, RF.hat, [0, seat - h / 2, 0], null, 14);
+  };
 
   if (build.hat === 'cap') {
-    // A bump cap. Lowest and smallest crown of the three, no brim at the sides
-    // at all, and a long curved peak — which is the whole silhouette. A half
-    // disc rather than a box: a rectangular peak reads as a plank from any
-    // angle off-axis, and the curve is one parameter on the same primitive.
-    const r = 0.196 * HD;
-    shell(r, 0.72, CROWN);
-    band(r, CROWN);
+    // A bump cap. Lowest crown of the three, no brim at the sides at all, and a
+    // long curved peak — which is the whole silhouette. A half disc rather than
+    // a box: a rectangular peak reads as a plank from any angle off-axis, and
+    // the curve is one parameter on the same primitive.
+    const r = RIM_R * 0.97;
+    shell(r, 0.90, RIM);
+    band(RIM);
+    // A HALF DISC IS NOT A PEAK, IT IS A SAUCER.
+    //
+    // The first cut swept 180 degrees at 1.46 radii, and photographed front on
+    // that is a flying saucer with a skullcap on it: from directly ahead you
+    // see the whole width of the sweep and none of its length, so the one thing
+    // that makes a peak a peak — that it points somewhere — is the one thing
+    // you cannot see. A real peak subtends about 120 degrees and is longer than
+    // it is wide. Narrower arc, smaller radius, more stretch down +Z, and a
+    // steeper tilt so it catches a different value from the crown.
     head.add(
-      squash(new THREE.CylinderGeometry(r * 1.34, r * 1.34, 0.020 * HD + 0.006, 14, 1,
-        false, -Math.PI / 2, Math.PI), [1.0, 1.0, 1.14]),
-      hatCol, BI.hat, RF.hat, [0, CROWN - 0.014 * HD, 0.014 * HD], [-0.13, 0, 0],
+      squash(new THREE.CylinderGeometry(r * 1.30, r * 1.20, 0.024 * HD + 0.006, 14, 1,
+        false, -1.05, 2.10), [1.0, 1.0, 1.34]),
+      // Tilted so the front DROOPS. Rotation about +X carries +Z downwards, so
+      // the sign here is the difference between a peak and a party hat; every
+      // previous cut had it negative and photographed with the peak pointing at
+      // the ceiling.
+      hatCol, BI.hat, RF.hat, [0, RIM - 0.006 * HD, 0.014 * HD], [0.17, 0, 0],
     );
   } else if (build.hat === 'fullbrim') {
     // The full-brim hard hat: a flat disc all the way round, and the crown sits
     // back inside it. In outline this is unmistakably not the other two even
     // when it is eight pixels of hat on forty pixels of person.
     //
-    // The disc came in from 0.355·HD to 0.285·HD, which is 1.39 crown radii
-    // rather than 1.73. Photographed, the wide version was not a hard hat at
-    // all: a shallow dome on a brim two thirds again its own width is a boater,
-    // or — with the ribs floating over it — a mushroom, and both of those are
-    // words a review has now used about this object. A real full-brim shell
-    // (an MSA Skullgard, a Bullard 5100) carries about forty per cent.
-    const r = 0.205 * HD;
-    shell(r, 0.80, CROWN);
-    ribs(r, CROWN, 0.80);
-    band(r, CROWN);
-    head.cyl(0.285 * HD, 0.266 * HD, 0.026 * HD + 0.006, hatCol, BI.hat, RF.hat,
-      [0, CROWN - 0.020 * HD, 0], null, 16);
+    // 1.58 rim radii, which on a real Bullard 5100 or MSA Skullgard is about
+    // right. It reads far wider than the old 0.285·HD disc did in relation to
+    // its crown, and yet it is NARROWER in absolute terms, because the crown it
+    // is measured against is no longer a size and a half too big.
+    const r = RIM_R;
+    shell(r, 1.02, RIM);
+    ribs(r, RIM, 1.02);
+    band(RIM);
+    // 1.46 radii, not 1.58. A brim more than about half again the crown is a
+    // boater whatever else you do to it, and at 1.58 over a crown squashed to
+    // 0.94 this photographed as exactly that — a pith helmet on a small man.
+    // The crown comes UP at the same time, which is the half that matters: what
+    // separates a full-brim hard hat from a sun hat in outline is not the width
+    // of the disc, it is how much shell there is standing above it.
+    head.cyl(r * 1.46, r * 1.36, 0.026 * HD + 0.006, hatCol, BI.hat, RF.hat,
+      [0, RIM - 0.010 * HD, 0], null, 16);
   } else {
     // The standard shell: a peripheral brim, wider front and back than at the
     // sides, which is what a Centurion or an MSA actually looks like from above.
-    const r = 0.215 * HD;
-    shell(r, 0.78, CROWN);
-    ribs(r, CROWN, 0.78);
-    band(r, CROWN);
+    const r = RIM_R;
+    shell(r, 1.08, RIM);
+    ribs(r, RIM, 1.08);
+    band(RIM);
     head.add(
-      squash(new THREE.CylinderGeometry(0.272 * HD, 0.252 * HD, 0.022 * HD + 0.006, 16),
-        [1.0, 1.0, 1.22]),
-      hatCol, BI.hat, RF.hat, [0, CROWN - 0.018 * HD, 0.020 * HD],
+      squash(new THREE.CylinderGeometry(r * 1.40, r * 1.28, 0.024 * HD + 0.006, 16),
+        [1.0, 1.0, 1.20]),
+      hatCol, BI.hat, RF.hat, [0, RIM - 0.009 * HD, 0.014 * HD],
     );
   }
 
@@ -688,13 +775,33 @@ export function makeFigure(slot) {
   }
   // Domes here too, and for the same reason — a corpse whose hat has eaten its
   // own face is the one pose in the game where you are guaranteed a long look.
+  //
+  // AND THE RAGDOLL SKULL IS NOT HD-SCALED, WHICH IS WHY THIS HAD ITS OWN BUG.
+  //
+  // The eleven ragdoll lumps come off BONE_SIZES, which is a fixed list the
+  // server shares — the head is 0.24 across for everybody. The hat over it was
+  // authored at 0.215·HD, so THE APPRENTICE's corpse wore a 0.27 m hat on a
+  // 0.125 m head: not merely floating, twice the width of the thing it was on.
+  // Solved against the ragdoll's own skull the same way the upright one is.
+  const RAG_HR = BONE_SIZES[2][0] * 0.52;
+  const ragSkullR = (y) => RAG_HR * Math.sqrt(Math.max(0.04, 1 - (y / (RAG_HR * 1.05)) ** 2));
+  const RAG_RIM = 0.052;                 // above the eyes, which sit at EYE_AT[1] - 0.02
+  const RAG_R = ragSkullR(RAG_RIM) + 0.022;
+  // The hat bone rests 0.14 above the skull's centre, and the geometry is
+  // authored relative to it, so the seat is the rim height less that offset.
+  const ragSeat = RAG_RIM - 0.14;
   if (build.hat === 'cap') {
-    ragHead.add(squash(new THREE.SphereGeometry(0.215 * HD, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2),
-      [1.0, 0.80, 1.04]), hatCol, 11, ragHatRest, [0, 0.005, 0]);
-    ragHead.box(0.30 * HD, 0.024, 0.15 * HD, hatCol, 11, ragHatRest, [0, 0.012, 0.185 * HD], [-0.10, 0, 0]);
+    ragHead.add(squash(new THREE.SphereGeometry(RAG_R * 0.97, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2),
+      [1.0, 0.84, 1.04]), hatCol, 11, ragHatRest, [0, ragSeat, 0]);
+    ragHead.add(squash(new THREE.CylinderGeometry(RAG_R * 1.46, RAG_R * 1.34, 0.028, 12, 1,
+      false, -Math.PI / 2, Math.PI), [1.0, 1.0, 1.20]),
+    hatCol, 11, ragHatRest, [0, ragSeat - 0.004, 0.010], [-0.15, 0, 0]);
   } else {
-    ragHead.dome(0.212 * HD, hatCol, 11, ragHatRest, [0, 0.005, 0], 14);
-    ragHead.cyl(0.300 * HD, 0.300 * HD, 0.026, hatCol, 11, ragHatRest, [0, 0.013, 0.022 * HD], null, 14);
+    const w = build.hat === 'fullbrim' ? 1.58 : 1.28;
+    ragHead.add(squash(new THREE.SphereGeometry(RAG_R, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2),
+      [1.0, 0.98, 1.06]), hatCol, 11, ragHatRest, [0, ragSeat, 0]);
+    ragHead.cyl(RAG_R * w, RAG_R * (w - 0.10), 0.028, hatCol, 11, ragHatRest,
+      [0, ragSeat - 0.008, 0.008], null, 14);
   }
   for (const side of [-1, 1]) {
     ragHead.blob(eyeR * 1.22, [1, 1, 0.5], SOCKET, 2, RAG_REST[2],

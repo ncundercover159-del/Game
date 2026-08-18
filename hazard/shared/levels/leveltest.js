@@ -129,6 +129,37 @@ const floorOfTheWorld = (lvl) => Math.min(...lvl.brushes.map((b) => b.p[1] - b.s
  * Scraped rather than hard-coded so this cannot rot: the day room.js grows
  * `operate_in_order`, this picks it up with no edit here.
  */
+/**
+ * Every surface name the renderer can actually build.
+ *
+ * WHY THIS IS A DYNAMIC IMPORT AND WHY IT IS ALLOWED TO COME BACK NULL.
+ *
+ * `crate` was used by two brushes in the warehouse and was not a recipe, so
+ * both of them rendered as the engine's magenta debug chequer — on the pair of
+ * crates in the inspection pit, which exist specifically so that a contractor
+ * who falls in can climb back out. It survived because the two halves of the
+ * contract live in different halves of the project: levels are shared data and
+ * materials are client art, and nothing had ever compared the two lists.
+ *
+ * So this reaches across. It has to be dynamic because art/materials.js imports
+ * three, which is installed under client/ and not at the repo root — node
+ * resolves a bare specifier from the importing file's directory, so the import
+ * works from here, but only as long as `npm --prefix client install` has been
+ * run. A checkout that has not built the client should not fail its level lint
+ * for that reason, so a failed import downgrades to a WARN and the rest of the
+ * run carries on.
+ */
+async function materialNames() {
+  try {
+    const m = await import('../../client/src/art/materials.js');
+    return new Set(m.MATERIAL_NAMES);
+  } catch (err) {
+    warn('material names unavailable, so brush materials went unchecked',
+      `${err.message.split('\n')[0]} — run "npm --prefix client install"`);
+    return null;
+  }
+}
+
 async function supportedTaskTypes() {
   const src = await readFile(new URL('../../server/room.js', import.meta.url), 'utf8');
   return new Set([...src.matchAll(/t\.type === '([a-z_]+)'/g)].map((m) => m[1]));
@@ -429,6 +460,24 @@ async function checkLevel(lvl) {
   const unknown = lvl.props.filter((p) => !PROP_BY_ID[p.kind]).map((p) => p.kind);
   if (!ok('every prop kind is in the catalogue', unknown.length === 0, unknown.join(', '))) return;
 
+  // Every brush material has to be one the renderer can build. An unknown one
+  // does not crash and does not warp: it renders as the debug chequer, which
+  // looks like a deliberate texture from far enough away and was sitting on the
+  // only route out of the warehouse's inspection pit until this line existed.
+  // Counted per name so the failure says how much of the level is affected.
+  if (MATERIALS) {
+    const bad = new Map();
+    for (const b of lvl.brushes) {
+      const m = b.mat || 'concrete';
+      if (!MATERIALS.has(m)) bad.set(m, (bad.get(m) || 0) + 1);
+    }
+    ok('every brush material has a recipe in art/materials.js', bad.size === 0,
+      bad.size
+        ? [...bad].map(([m, n]) => `"${m}" on ${n} brush${n === 1 ? '' : 'es'}`).join(', ')
+          + ' — these render as the magenta debug chequer'
+        : `${new Set(lvl.brushes.map((b) => b.mat || 'concrete')).size} distinct materials`);
+  }
+
   // --- 2. is the job possible at all? --------------------------------------
   const stock = lvl.props.reduce((n, p) => n + PROP_BY_ID[p.kind].value, 0);
   const ratio = stock / lvl.quota;
@@ -718,6 +767,7 @@ async function findLevels() {
 
 await initPhysics();
 const SUPPORTED = await supportedTaskTypes();
+const MATERIALS = await materialNames();
 const found = await findLevels();
 const unregistered = found.filter((f) => !f.registered);
 console.log(`level lint — ${found.length} level file${found.length === 1 ? '' : 's'}, `

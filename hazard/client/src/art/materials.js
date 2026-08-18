@@ -62,6 +62,10 @@ import * as THREE from 'three';
 import { surfaceTexture } from './textures.js';
 
 const cache = new Map();
+// Every name that has been asked for and has no recipe. Read by nothing in the
+// game; exported so a harness can ask whether the frame it just photographed
+// had a chequer in it.
+const missing = new Set();
 
 // tile:     metres per texture repeat. Sets texel density; smaller = finer.
 // bump:     derivative-bump strength. The height channel is read as a screen
@@ -156,6 +160,16 @@ const RECIPES = {
   steelblue: { tex: 'steelblue', tile: 1.75, rough: 0.72, metal: 0.22, bump: 1.5, roughVar: -0.22, ao: 0.30, mottle: 0.11, fill: 0.235, env: 0.22 },
   railing: { tex: 'railing', tile: 1.05, rough: 0.62, metal: 0.22, bump: 1.8, roughVar: -0.20, ao: 0.26, mottle: 0.10, fill: 0.225 },
   plank: { tex: 'plank', tile: 1.55, rough: 0.90, metal: 0.0, bump: 2.0, roughVar: -0.16, ao: 0.34, mottle: 0.13, fill: 0.225 },
+  // Packing crates. The two in the inspection pit are the only way back out of
+  // it, and until now they rendered as the debug chequer — see crate() in
+  // textures.js for how that survived, and MATERIAL_NAMES at the bottom of this
+  // file for what stops the next one.
+  //
+  // tile 0.90 puts one batten frame on a crate face. mottle stays low: the
+  // texture already carries a metre-scale veneer figure of its own, and a
+  // second low-frequency drift on top of it only muddies the frame, which is
+  // the feature the whole surface is built around.
+  crate: { tex: 'crate', tile: 0.90, rough: 0.93, metal: 0.0, bump: 1.6, roughVar: -0.12, ao: 0.34, mottle: 0.07, fill: 0.24 },
   rubber: { tex: 'rubber', tile: 1.15, rough: 0.97, metal: 0.0, bump: 2.2, roughVar: -0.10, ao: 0.45, mottle: 0.08, fill: 0.14 },
 
   // Prop surfaces. These sit near white and let vertex colour carry the hue —
@@ -186,13 +200,24 @@ const RECIPES = {
   // triplanar machinery and there is no sense having two of it. Their fill runs
   // high on purpose: a player who walks into an unlit corner and vanishes is a
   // gameplay bug, not a lighting choice.
-  overall: { tex: 'overall', tile: 0.50, rough: 0.92, metal: 0.0, bump: 1.8, roughVar: 0.10, ao: 0.30, mottle: 0, fill: 0.38 },
-  // bump comes down with the height channel it reads — see the note on gear()
-  // in textures.js. This recipe carries the hard hats and the faces, and both
-  // of those are smooth mouldings that catch a light; relief on them is not
-  // detail, it is grit.
-  gear: { tex: 'gear', tile: 0.34, rough: 0.44, metal: 0.06, bump: 1.05, roughVar: -0.20, ao: 0.18, mottle: 0, fill: 0.38 },
-  skin: { tex: 'skin', tile: 0.26, rough: 0.66, metal: 0.0, bump: 1.1, roughVar: 0.06, ao: 0.20, mottle: 0, fill: 0.40 },
+  //
+  // bump comes down with the weave it reads. See overall() in textures.js: at
+  // 1.8 the twill was a rope rather than a thread and the vest photographed as
+  // a laundry basket, which is not a texture problem you can fix in the texture
+  // alone — the relief strength and the relief itself have to come down
+  // together or the one just amplifies what is left of the other.
+  overall: { tex: 'overall', tile: 0.50, rough: 0.92, metal: 0.0, bump: 1.15, roughVar: 0.10, ao: 0.24, mottle: 0, fill: 0.38 },
+  // AND THIS ONE IS THE HARD HATS AND THE FACES, WHICH IS WHY IT IS SO FLAT.
+  //
+  // The head is one skinned mesh with one material on it, so every number here
+  // is worn simultaneously by a moulded plastic shell and by somebody's
+  // forehead. Both of those are smooth. bump comes down again — from 1.05 to
+  // 0.45 — because the height channel now carries drag marks rather than
+  // pitting and drag marks want to be a sheen, not a relief; ao follows it down
+  // for the same reason, since cavity occlusion on a surface with no cavities
+  // is just a second copy of the noise. What is left is a semi-gloss moulding
+  // that catches a lamp, which is the entire brief for this surface.
+  gear: { tex: 'gear', tile: 0.34, rough: 0.42, metal: 0.06, bump: 0.45, roughVar: -0.20, ao: 0.09, mottle: 0, fill: 0.38 },
 
   // The renderer's own names.
   broken: { tex: 'broken', tile: 0.55, rough: 1.0, metal: 0.0, bump: 3.0, roughVar: -0.10, ao: 0.45, mottle: 0.10, fill: 0.28, noVertexColour: true },
@@ -586,6 +611,25 @@ export function materialFor(matName) {
   const hit = cache.get(key);
   if (hit) return hit;
 
+  // AN UNKNOWN NAME STILL RENDERS. IT NO LONGER DOES SO QUIETLY.
+  //
+  // The chequer is the right thing to draw — a typo in hand-authored level data
+  // should look wrong rather than throw, and half this project's data is
+  // hand-authored. What was wrong was that it drew and said nothing. `crate`
+  // was never a recipe, and the two brushes that ask for it are the crates
+  // stacked in the inspection pit: the only way out of a hole a contractor can
+  // be knocked into, wearing a magenta-and-navy checkerboard, for the entire
+  // life of the level. Nobody noticed because nothing told anybody.
+  //
+  // Once per name, because this is called per material and not per frame, but
+  // console.error rather than warn: a missing surface is a bug in shipped data,
+  // not a style note.
+  if (!RECIPES[key]) {
+    missing.add(key);
+    console.error(`hazard: no material recipe for "${key}" — drawing the debug`
+      + ' chequer. Add it to RECIPES in art/materials.js and a generator to'
+      + ' art/textures.js.');
+  }
   const r = RECIPES[key] || RECIPES.unknown;
   const mat = new THREE.MeshStandardMaterial({
     // White, because the colour lives in the texture and in vertex colours.
@@ -646,3 +690,20 @@ export function tintedMaterial(matName, tint) {
   cache.set(key, mat);
   return mat;
 }
+
+/**
+ * Every surface this file knows how to make, and every one it has been asked
+ * for and could not.
+ *
+ * MATERIAL_NAMES is the list a level's brush `mat` field is allowed to draw
+ * from. It is exported for one reason: shared/levels/leveltest.js asserts every
+ * brush in every level against it, so a material that does not exist fails a
+ * lint run instead of shipping as a checkerboard on the critical path. That
+ * assertion is the actual fix for the `crate` bug; the recipe was only the
+ * symptom.
+ *
+ * `missingMaterials()` is the runtime half of the same question, for a harness
+ * that would rather ask than look.
+ */
+export const MATERIAL_NAMES = Object.keys(RECIPES);
+export const missingMaterials = () => [...missing];
