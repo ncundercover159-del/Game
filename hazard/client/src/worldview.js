@@ -13,7 +13,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { PROP_BY_ID } from '../../shared/props.js';
+import { PROP_BY_ID, propRadius } from '../../shared/props.js';
 import { PFLAG, OFLAG } from '../../shared/protocol.js';
 import { PLAYER_RADIUS, PLAYER_HEIGHT, INTERP_DELAY_MS, SNAPSHOT_MS } from '../../shared/tune.js';
 import { materialFor } from './art/materials.js';
@@ -197,10 +197,39 @@ export class WorldView {
       .slice(0, SHADOW_LAMPS)
       .reduce((set, e) => set.add(e.i), new Set());
 
+    // FIXTURES, so that the room reads as LIT rather than as TINTED.
+    //
+    // Until now every lamp in this game was a bare THREE.PointLight and nothing
+    // else: no housing, no emitter, no reflector, no cable. Light arrived from
+    // an invisible point, which is why a crop of a ceiling lamp is a smear of
+    // horizontal bands with no source in it. The reference plate has a dark iron
+    // bracket silhouetted against the wall carrying a bright vertical emitter
+    // whose core stays a hard readable rectangle inside its halo — the halo is
+    // the bloom's job and we already do that part; what was missing is the thing
+    // the halo is supposed to be coming out of.
+    //
+    // A dark shade and a small emissive lens, merged per level into two draws
+    // total rather than two per lamp. `fixture: false` opts out, for the pit's
+    // amber strip and anything else that is a glow rather than a luminaire.
+    const shades = [];
+    const lenses = [];
+
     this.lamps = [];
     (this.level.lights || []).forEach((l, i) => {
       const p = new THREE.PointLight(new THREE.Color(l.color), l.intensity * LIGHT_GAIN, l.range * LAMP_REACH, 2);
-      p.position.set(l.p[0], this.hangHeight(l), l.p[2]);
+      const hang = this.hangHeight(l);
+      if (l.fixture !== false) {
+        // Sized off the lamp's own reach, so a 22m shed pendant is a bigger
+        // object than an 8m van light without either being authored twice.
+        const r = Math.min(0.42, 0.10 + l.range * 0.012);
+        const shade = new THREE.CylinderGeometry(r, r * 0.55, r * 0.62, 12, 1, true);
+        shade.translate(l.p[0], hang + r * 0.34, l.p[2]);
+        shades.push(shade);
+        const lens = new THREE.SphereGeometry(r * 0.46, 10, 6);
+        lens.translate(l.p[0], hang, l.p[2]);
+        lenses.push(lens);
+      }
+      p.position.set(l.p[0], hang, l.p[2]);
       if (casters.has(i)) {
         p.castShadow = true;
         p.shadow.mapSize.set(512, 512);
@@ -212,6 +241,29 @@ export class WorldView {
       this.scene.add(p);
       if (l.flicker) this.lamps.push({ light: p, base: l.intensity, amount: l.flicker });
     });
+
+    if (shades.length) {
+      const shade = new THREE.Mesh(
+        shades.length === 1 ? shades[0] : mergeGeometries(shades, false),
+        new THREE.MeshStandardMaterial({
+          color: 0x14161a, roughness: 0.72, metalness: 0.55, side: THREE.DoubleSide,
+        }),
+      );
+      shade.name = 'lamp:shades';
+      shade.castShadow = true;
+      this.scene.add(shade);
+      // Unlit and self-coloured. A lens that takes lighting is a grey ball
+      // hanging under a lamp; the whole job of this mesh is to be the bright
+      // hard core the bloom blows a halo around, so it emits and nothing else
+      // touches it.
+      const lens = new THREE.Mesh(
+        lenses.length === 1 ? lenses[0] : mergeGeometries(lenses, false),
+        new THREE.MeshBasicMaterial({ color: 0xfff0d2, fog: false }),
+      );
+      lens.name = 'lamp:lenses';
+      this.scene.add(lens);
+      this.stats.staticDraws += 2;
+    }
   }
 
   /**
@@ -316,7 +368,22 @@ export class WorldView {
       const def = PROP_BY_ID[p.kind];
       if (!def) { id++; continue; }
       const obj = protos.get(def.id).clone();
-      obj.castShadow = true;
+      // SMALL THINGS DO NOT CAST.
+      //
+      // Two shadow-casting point lights are twelve cube faces, and every face
+      // redraws every caster in range — measured, that is 144 of this level's
+      // 256 draw calls against 112 for the main pass. Twenty-three of the
+      // casters are mugs, staplers and extinguishers whose contact shadow is
+      // sub-pixel from anywhere a player stands, so they are paying twelve
+      // draws each for nothing anyone can see. Everything a person could trip
+      // over, stand on or hide behind still casts.
+      //
+      // This is a reduction, not a threshold move. The budget in the harness
+      // has been raised twice already and the honest fix for the rest is
+      // instancing props by kind — ten mugs are ten meshes and one InstancedMesh
+      // would do — which nobody has written and which I am not pretending is
+      // done here.
+      obj.castShadow = propRadius(def) > 0.16;
       obj.receiveShadow = true;
       obj.position.set(p.p[0], p.p[1], p.p[2]);
       if (p.r) obj.rotation.set(p.r[0], p.r[1], p.r[2]);

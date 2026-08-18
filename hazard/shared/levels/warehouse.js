@@ -68,6 +68,26 @@ const brushes = [
   box([-2.2, -0.80, -1.0], [1.4, 0.60, 1.0], 'crate', { tag: 'pitstep' }),
   box([-2.2, -0.35, 0.0], [1.2, 0.75, 0.9], 'crate', { tag: 'pitstep' }),
 
+  // --- the roof, which had nothing in it ------------------------------------
+  //
+  // Fifteen hundred square metres of ceiling with no purlins, no joists, no
+  // ducting: a review called the ceiling shot "brown fog" and it was right,
+  // because there was literally nothing up there to catch a highlight or throw
+  // a shadow. A shed roof is mostly structure seen from below.
+  //
+  // Purlins run the long axis at a 4m pitch, 250mm below the deck, so they sit
+  // ABOVE the pendants at 6.8m and are lit from underneath — which is what puts
+  // a rhythm of bright edges and dark gaps overhead instead of a flat plane.
+  // They merge into the existing steelblue mesh, so the whole roof costs no
+  // extra draw calls at all.
+  ...[-14, -10, -6, -2, 2, 6, 10, 14].map(
+    (z) => box([0, 9.25, z], [46, 0.36, 0.22], 'steelblue', { tag: 'purlin' }),
+  ),
+  // two rafters across them, and a duct run down the middle
+  box([-11, 9.02, 0], [0.3, 0.2, 33], 'steelblue', { tag: 'purlin' }),
+  box([11, 9.02, 0], [0.3, 0.2, 33], 'steelblue', { tag: 'purlin' }),
+  box([4.5, 8.55, 0], [0.9, 0.9, 30], 'metal', { tag: 'duct' }),
+
   // --- racking rows --------------------------------------------------------
   ...racking(-15, -9, 4, 3),
   ...racking(-15, 2, 4, 3),
@@ -209,7 +229,7 @@ export const warehouse = {
     // frames out of five. Now a failing amber strip at the lip, dimmer than the
     // floor it interrupts. The chevrons above do the warning; the hole is a
     // hole, and you are meant to lose your footing in it.
-    light([0, 0.15, 1.0], { intensity: 0.55, range: 4.2, color: '#ff9d3c', flicker: 0.7, mount: 'fixed' }),
+    light([0, 0.15, 1.0], { intensity: 0.55, range: 4.2, color: '#ff9d3c', flicker: 0.7, mount: 'fixed', fixture: false }),
   ],
 
   props: [
