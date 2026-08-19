@@ -217,6 +217,11 @@ function frame(now) {
     camera.rotation.set(0, 0, 0);
     camera.rotateY(controls.yaw + Math.PI);
     camera.rotateX(controls.pitch);
+    // The torch goes where you look. See WorldView.buildTorch — this game was
+    // taken down to reference exposure without one, and a torch is the half of
+    // the reference's look that is a gameplay feature rather than a grade.
+    camera.updateMatrixWorld();
+    view.aimTorch(camera);
     // Hide your own body: you are inside it.
     const mine = view.figures.get(mySlot);
     if (mine) { mine.root.visible = false; mine.rig.visible = !!mine.ragdoll; }

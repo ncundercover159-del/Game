@@ -22,6 +22,9 @@ import { BONE_SIZES } from './art/figure.js';
 import { makeFigure } from './art/figure.js';
 
 const _q = new THREE.Quaternion();
+const _v = new THREE.Vector3();
+const _right = new THREE.Vector3();
+const _up = new THREE.Vector3();
 
 // Candela per unit of a level's lamp "intensity". See buildEnvironment.
 const LIGHT_GAIN = 17;
@@ -131,6 +134,70 @@ export class WorldView {
     this.buildProps();
     this.buildExtractZone();
     this.buildWater();
+    this.buildTorch();
+  }
+
+  /**
+   * THE THING THAT MAKES A DARK GAME PLAYABLE, AND WE DID NOT HAVE ONE.
+   *
+   * The exposure pass took this game down to where the reference plates sit —
+   * whole-frame mean 31 against their 14-16, darkest tenth 10 against their 7 —
+   * and that was right on its own terms. But it was only half of what the
+   * reference is doing, and the missing half is load-bearing: R.E.P.O. players
+   * carry "a tiny flashlight that projects a fairly narrow cone of light ahead
+   * of you", and one of the plates in refs/MANIFEST.md is captioned "torch in
+   * hand". Their frames can sit near black because the player brings their own
+   * key light with them.
+   *
+   * Ours could not. Taking the room down without giving the player a torch is
+   * not art direction, it is turning the lights off on somebody trying to find a
+   * mug on a shelf, and it would have shipped as "atmospheric" while being
+   * unplayable everywhere the pendants do not reach.
+   *
+   * A spot rather than a point: it has to go where you look, and a cone is what
+   * gives the beam an edge you can aim with. It deliberately does NOT cast — a
+   * spot shadow is one map against a point light's six, so it is affordable, but
+   * the draw budget is accounted to the last dozen and this can be switched on
+   * the moment prop instancing frees them. Without occlusion a torch still
+   * shades form correctly, since a surface facing away from the beam gets
+   * nothing from it; what it loses is objects throwing shadows behind them.
+   */
+  buildTorch() {
+    // 260cd, and the number comes from a comparison rather than from taste. A
+    // shed pendant is intensity 34 x LIGHT_GAIN 17 = 578cd about seven metres
+    // up, so it puts roughly 12 lux on the floor of its pool. The torch has to
+    // be the same order of thing at the distance you actually work at — at five
+    // metres 260cd is about 10 lux, so stepping out of a pendant pool with the
+    // torch on costs you a little rather than dropping you into nothing. The
+    // first attempt was 46cd, which measured 1.5 lux at the same distance and
+    // lifted the darkest floor in the level by 30%: a torch you could not see by.
+    this.torch = new THREE.SpotLight(0xfff1d8, 260, 20, 0.55, 0.6, 2);
+    this.torch.castShadow = false;
+    this.torchTarget = new THREE.Object3D();
+    this.scene.add(this.torch);
+    this.scene.add(this.torchTarget);
+    this.torch.target = this.torchTarget;
+  }
+
+  /**
+   * Point the torch wherever the camera is looking.
+   *
+   * Driven from the render loop rather than parented to the camera, because the
+   * camera is not in the scene graph — main.js drives it directly off the
+   * authoritative actor position.
+   */
+  aimTorch(camera) {
+    if (!this.torch) return;
+    // Off the shoulder, not out of the bridge of the nose. A torch exactly at
+    // the eye lights every surface along the view axis dead-on, which flattens
+    // everything it touches; 180mm down and across is enough for the beam to
+    // rake what you are looking at and give it a shadow side, and it is roughly
+    // where a hand or a helmet clip would be anyway.
+    camera.getWorldDirection(_v);
+    this.torch.position.copy(camera.position)
+      .addScaledVector(_right.set(1, 0, 0).applyQuaternion(camera.quaternion), 0.18)
+      .addScaledVector(_up.set(0, 1, 0).applyQuaternion(camera.quaternion), -0.18);
+    this.torchTarget.position.copy(camera.position).addScaledVector(_v, 12);
   }
 
   // --- sky, fog, lights -----------------------------------------------------
