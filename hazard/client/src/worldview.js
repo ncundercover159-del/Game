@@ -258,7 +258,16 @@ export class WorldView {
       // touches it.
       const lens = new THREE.Mesh(
         lenses.length === 1 ? lenses[0] : mergeGeometries(lenses, false),
-        new THREE.MeshBasicMaterial({ color: 0xfff0d2, fog: false }),
+        // `toneMapped: false` and a colour past 1.0, so the lens writes near
+        // white whatever the exposure is doing and clears the bloom threshold.
+        // Without it the emitter was measured at p90 195 against a ceiling of
+        // 187-193 around it — the lamp was DIMMER than the surface it hangs
+        // against, so there was no halo at all. That is pass 8's complaint
+        // exactly inverted: then it was a halo with no core, this was a core
+        // with no halo.
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color(2.6, 2.45, 2.1), fog: false, toneMapped: false,
+        }),
       );
       lens.name = 'lamp:lenses';
       this.scene.add(lens);

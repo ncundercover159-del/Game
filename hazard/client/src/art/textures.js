@@ -390,8 +390,28 @@ const GEN = {
   // the spangle on galvanising and is what your eye actually reads at two
   // metres.
   deckplate(u, v, o) {
+    // THE RIB RUNS ACROSS THE PURLINS, WHICH IS BOTH HOW A ROOF IS BUILT AND
+    // THE FIX FOR THE STREAKING BEING ONE-DIRECTIONAL.
+    //
+    // This keyed on `v` until now. On a ceiling the triplanar picks the p.xz
+    // projection, so u is world x and v is world z — and the purlins the level
+    // hangs under this deck are 46 m bars running along X at a 4 m pitch in Z.
+    // Deck ribs on `v` are ALSO spaced in Z and also run along X, so every
+    // repeating feature on the entire roof pointed the same way: the rib, the
+    // flute and the structure. A review measured the ceiling's gradient energy
+    // at 0.50 x-to-y against a reference band of 0.99-1.27, which is not a
+    // texture that is too strong, it is a texture with only one direction in
+    // it, and no amount of softening a set of parallel lines makes them stop
+    // being parallel.
+    //
+    // Profiled deck spans FROM purlin TO purlin — that is what the ribs are
+    // for — so a real roof has its deck ribs at right angles to its purlins
+    // and cannot be built the other way round. Keying on `u` is therefore not
+    // a cross-hatch bolted on to beat a metric; it is the only orientation the
+    // roof could actually have, and it puts a second direction overhead for
+    // free.
     const ribs = 2;
-    const phase = fract(v * ribs);
+    const phase = fract(u * ribs);
     const tri = Math.abs(phase - 0.5) * 2;
     const crown = 1 - smooth(0.34, 0.58, tri);      // flat top of the rib
     const web = smooth(0.34, 0.58, tri) * (1 - smooth(0.58, 0.92, tri));
@@ -405,7 +425,7 @@ const GEN = {
     // comb, and a comb of parallel lines is half of what a review kept calling
     // ceiling streaking. Nothing is lost by the change because the surface that
     // wanted a fine flute is no longer this one.
-    const flute = pan * (1 - smooth(0.30, 0.70, Math.abs(fract(v * 7) - 0.5) * 2));
+    const flute = pan * (1 - smooth(0.30, 0.70, Math.abs(fract(u * 7) - 0.5) * 2));
 
     // Everything below is metre-scale or bigger, deliberately.
     const wash = fbm(u, v, 2, 2, 5);                // decades of roof leaks

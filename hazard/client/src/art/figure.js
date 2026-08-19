@@ -585,13 +585,59 @@ export function makeFigure(slot) {
   // that every build's brim clears its own eyeballs.
   const RIM_R = skullR(RIM) + 0.042 * HD;
 
-  // The shell: a squashed half sphere whose widest point is its own rim. Taller
-  // than it is a hemisphere, because a hard hat's crown rises about half its
-  // own width above the brim and the old 0.78 squash made it a saucer.
+  // The shell: a squashed half sphere whose widest point is its own rim.
+  //
+  // THE CROWN CAME DOWN, AND THE REASON IS ARITHMETIC RATHER THAN TASTE.
+  //
+  // The rule this was set by — "a hard hat's crown rises about half its own
+  // width above the brim" — is true of a hard hat and was being applied to the
+  // wrong denominator. Worked through for THE UNIT: the rim solves to y 0.147
+  // and the skull tops out at 0.221, so there is 74 mm of head above the brim
+  // line, while a squash of 1.08 on a rim radius of 0.202 put 218 mm of shell
+  // above it. The crown was very nearly THREE TIMES the height of the skull it
+  // was covering, which is not a hard hat, it is a bowler, and photographed
+  // side-on that is exactly what it looked like.
+  //
+  // The rim is high because the eyes are a caricature: eyeR is half the skull
+  // radius, so "clear of the brow bar" lands three quarters of the way up the
+  // head and leaves the shell almost nothing to sit on. That is the constraint,
+  // it is not going away, and the answer is not to keep growing the crown until
+  // the hat looks big — it is to put the missing shell BELOW the brim, where a
+  // hard hat actually keeps it. See skirt() below.
   const shell = (r, squashY, seat) => head.add(
     squash(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2),
       [1.0, squashY, 1.06]), hatCol, BI.hat, RF.hat, [0, seat, 0],
   );
+  // THE SKIRT, WHICH IS THE HALF OF A HARD HAT THAT WAS MISSING.
+  //
+  // "Bare skull showing between hat and ear" has now been written by two
+  // separate reviews, and both times the fix went into the crown or the rim
+  // radius, and both times the skull between the brim and the ear stayed
+  // exactly where it was — because nothing in this build ever descended below
+  // the brim line at all. Every previous cut was a dome plus a disc, and a dome
+  // plus a disc is a hat you put ON a head. A hard hat goes AROUND one: the
+  // shell wraps down over the temples to about the top of the ear and lower
+  // still at the back, and that wrap is most of the silhouette from the side —
+  // which is the view the complaint keeps coming from.
+  //
+  // Open at the front, because that is where the brim is and there is nothing
+  // under a brim. 130 degrees of opening rather than a token gap: the eyes sit
+  // at plus and minus 53 degrees off the nose (eyeX is clamped to 0.80 of the
+  // skull radius) and they are PROUD of the skull, so a skirt at skull radius
+  // that reached them would bury them. 65 degrees each side clears them with
+  // room for the socket ring.
+  //
+  // It follows the skull's own curve top and bottom, like the band does, so it
+  // is welded to the head rather than hovering off it, and it carries the
+  // shell's colour rather than the band's: this is shell, not suspension.
+  const SKIRT_OPEN = 1.13;                  // radians each side of the nose
+  const skirt = (seat, drop) => {
+    const rt = skullR(seat) + 0.030 * HD;
+    const rb = skullR(seat - drop) + 0.026 * HD;
+    const g = new THREE.CylinderGeometry(rt, rb, drop, 18, 1, true,
+      SKIRT_OPEN, Math.PI * 2 - SKIRT_OPEN * 2);
+    head.add(g, hatCol, BI.hat, RF.hat, [0, seat - drop / 2, 0]);
+  };
   // Three stiffening ribs front-to-back, FOLLOWING the shell instead of being
   // laid across it. A straight box over a dome touches at the crown and its two
   // ends float clear of the surface — photographed front-on that read as three

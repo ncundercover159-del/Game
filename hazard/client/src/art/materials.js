@@ -227,13 +227,29 @@ const RECIPES = {
   //
   // The head is one skinned mesh with one material on it, so every number here
   // is worn simultaneously by a moulded plastic shell and by somebody's
-  // forehead. Both of those are smooth. bump comes down again — from 1.05 to
-  // 0.45 — because the height channel now carries drag marks rather than
-  // pitting and drag marks want to be a sheen, not a relief; ao follows it down
-  // for the same reason, since cavity occlusion on a surface with no cavities
-  // is just a second copy of the noise. What is left is a semi-gloss moulding
-  // that catches a lamp, which is the entire brief for this surface.
-  gear: { tex: 'gear', tile: 0.34, rough: 0.42, metal: 0.06, bump: 0.45, roughVar: -0.20, ao: 0.09, mottle: 0, fill: 0.38 },
+  // forehead. Both of those are smooth, which is why the albedo in gear() is
+  // nearly flat and must stay that way — a hard contrast field at grain
+  // frequency is what got this surface called cork.
+  //
+  // AND THEN IT WAS CALLED A SMOOTH UNTEXTURED GRADIENT, WHICH WAS THIS LINE
+  // AND NOT THE TEXTURE.
+  //
+  // gear() carries a full swing of relief — orange peel at 3.5 mm, tooling flow,
+  // drag marks — and its own note says height is now the safe place for fine
+  // detail because the relief has a texel-density fade on it. It does. But bump
+  // 0.45 is the lowest figure in this file by a wide margin, so a third of that
+  // relief was arriving even in a portrait at a metre, where the fade is not
+  // doing anything at all and the detail is entirely wanted. The surface was
+  // authored twice and then turned off.
+  //
+  // 0.72 puts the moulding back at portrait range and the LOD still takes it
+  // away by the time a contractor is forty pixels across the shed. And the
+  // sheen this material's previous note was reaching for is roughVar, not bump:
+  // a moulded shell reads as plastic because its highlight BREAKS along the
+  // tooling flow, and roughness variation is the only channel that does that.
+  // -0.34 is in the same band as the enamel and the painted steel, which is
+  // what this is.
+  gear: { tex: 'gear', tile: 0.34, rough: 0.42, metal: 0.06, bump: 0.72, roughVar: -0.34, ao: 0.14, mottle: 0, fill: 0.38 },
 
   // The renderer's own names.
   broken: { tex: 'broken', tile: 0.55, rough: 1.0, metal: 0.0, bump: 3.0, roughVar: -0.10, ao: 0.45, mottle: 0.10, fill: 0.28, noVertexColour: true },

@@ -97,7 +97,7 @@ const brushes = [
   ...racking(14, 11, 3, 2),
 
   // --- mezzanine over the north-west corner --------------------------------
-  box([-13, 4.2, -13.5], [18, 0.35, 6.5], 'deckplate', { tag: 'mezz' }),
+  box([-13, 4.2, -13.5], [18, 0.35, 6.5], 'dockdeck', { tag: 'mezz' }),
   ...catwalk([2, 4.2, -13.5], [12, 0.3, 2.0]),
   ...stairs([-4.2, 0, -9.5], [-4.2, 4.2, -13.0], 1.5),
   box([-22, 2.1, -13.5], [0.2, 4.2, 6.5], 'railing', { tag: 'rail', thin: true }),
@@ -124,8 +124,19 @@ const brushes = [
   // walk. Lined in ply over rubber matting, because those are the two materials
   // in the set that are dark AND carry real texture — the critic measured the
   // old deckplate bed at p90/p10 1.01, which is to say no material at all.
-  box([0, 0.6, 12.95], [12, 1.2, 2.5], 'deckplate', { tag: 'dock' }),
-  box([0, 0.3, 10.8], [6.0, 0.6, 2.2], 'deckplate', { tag: 'ramp', ramp: true }),
+  //
+  // The deck itself is `dockdeck` and not `deckplate`. Those were one recipe
+  // until now, and one recipe could not serve both ends of the job: `deckplate`
+  // is fifteen hundred square metres of roof read at eight metres and fifteen
+  // degrees, so everything in it is authored at a 2.75 m rib pitch to survive
+  // minification — and the same map laid on the twelve metres of deck a player
+  // walks across all job long showed TWO RIBS and nothing else. Measured on a
+  // native crop under the bay lamp it came back at p90/p10 1.02 against a
+  // reference band of 1.81-2.18, which is not a flat-ish surface, it is no
+  // surface at all, at the one place in the level every run has to end.
+  // See dockdeck() in client/src/art/textures.js for what replaced it.
+  box([0, 0.6, 12.95], [12, 1.2, 2.5], 'dockdeck', { tag: 'dock' }),
+  box([0, 0.3, 10.8], [6.0, 0.6, 2.2], 'dockdeck', { tag: 'ramp', ramp: true }),
 
   // the body: bed, two sides, bulkhead, roof
   box([0, 1.075, 15.5], [8.8, 0.25, 2.6], 'rubber', { tag: 'vanbed' }),
@@ -216,8 +227,24 @@ export const warehouse = {
     //
     // 3.15 is 450mm under the roof lining and just clear of the load volume,
     // which tops out at 3.0.
-    light([-2.3, 3.15, 15.7], { intensity: 24, range: 8, color: '#dfeaff', mount: 'fixed', shadow: true }),
-    light([2.3, 3.15, 15.7], { intensity: 24, range: 8, color: '#dfeaff', mount: 'fixed' }),
+    // ONE LAMP, AND IT CASTS. This was two at intensity 24 and only one of them
+    // had `shadow: true` — which in a renderer where a point light without a
+    // shadow map is occluded by NOTHING meant the second one lit the whole shed
+    // straight through the van's own roof and bulkhead. Measured: it put linear
+    // 0.1346 on the shell's south wall directly above the van against 0.0109 on
+    // the same wall fourteen metres along, i.e. 92% of the light on that patch
+    // arrived through half a metre of solid geometry, and the wall above the van
+    // was 12.7x brighter than the same wall elsewhere. That is what the blue
+    // starburst over the loading bay has been for three grading passes.
+    //
+    // And 24 was far too much for a closed box in any case: the interior wall
+    // measured mean sRGB 213 with a local SD of 0.45 — a blank white card, in
+    // the one place the reference plate is nearly black. Albedo cannot fix that
+    // and the material file records three separate attempts to make it.
+    //
+    // 7 at range 5 puts the pool on the bed and the threshold and lets it fall
+    // off toward the bulkhead, which is what a load light in a box body does.
+    light([0, 3.1, 15.1], { intensity: 7, range: 5, color: '#dfeaff', mount: 'fixed', shadow: true }),
     // and one over the ramp, so the approach is legible without being in shot
     light([0, 3.4, 11.6], { intensity: 10, range: 8, color: '#dfeaff', mount: 'fixed' }),
 

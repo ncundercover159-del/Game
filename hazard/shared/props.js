@@ -98,7 +98,22 @@ export const PROPS = [
       { shape: 'box', size: [1.48, 1.20, 0.62], offset: [0, 0.60, 0] },
       { shape: 'box', size: [1.48, 0.22, 0.30], offset: [0, 0.98, 0.42] },
     ],
-    look: { kind: 'piano', mat: 'lacquer', tint: '#191512' },
+    // #191512 IS NOT BLACK LACQUER, IT IS A HOLE. 25/21/18 decodes to a linear
+    // luma of 0.0074 — seven tenths of one per cent — and a surface that
+    // returns 0.7% of what lands on it cannot show a lid, a fallboard or a
+    // pair of key cheeks however carefully props.js models them. Photographed
+    // 1.5 m from the lens filling a seventh of the frame, this read as a flat
+    // black polygon with no internal value gradient at all, which is what
+    // three separate reviews have now called it.
+    //
+    // A real piano-black polyester finish measures L* 13-18, which is a linear
+    // luma around 0.018-0.025 — two and a half times this, and still so plainly
+    // black that nobody would call it grey. The gradient the reviews are asking
+    // for is not a lighting effect that was missing, it is the shading that was
+    // always there multiplied by an albedo big enough to survive the tone
+    // curve. See the rim term in art/materials.js for the other half: Fresnel
+    // is what gives a dark lacquer its edge, and it is paid for separately.
+    look: { kind: 'piano', mat: 'lacquer', tint: '#2b2724' },
   }),
   P('bathtub', {
     name: 'CAST IRON BATH', shape: 'compound', mass: 190, value: 1800,
