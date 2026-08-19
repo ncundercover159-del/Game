@@ -193,7 +193,7 @@ const brushes = [
   box([-21.0, GANTRY + 2.95, 9.6], [8.9, 0.3, 7.7], 'deckplate', { tag: 'ceiling' }),
 
   // --- the loading platform, south-east: the only dry ground at the end ----
-  box([19.5, 1.1, -12.0], [11.0, 2.2, 7.0], 'dockdeck', { tag: 'dock' }),
+  box([19.5, 1.1, -12.0], [11.0, 2.2, 7.0], 'deckplate', { tag: 'dock' }),
   box([19.5, 2.55, -15.6], [11.0, 0.7, 0.4], 'steelblue', { tag: 'kerb' }),
   box([24.8, 2.55, -12.0], [0.4, 0.7, 7.0], 'steelblue', { tag: 'kerb' }),
   ...flight([9.6, DECK, -11.7], [14.0, 2.2, -11.7], 1.8),

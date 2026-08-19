@@ -224,7 +224,7 @@ const brushes = [
   // The skip is a 150mm steel pad with a 300mm kerb on three sides, open to
   // the west. Low on purpose: you have to be able to CROUCH beside it and set
   // a chandelier down, because a chandelier dropped 200mm is a bag of glass.
-  box([12.5, 0.075, 11.0], [7.0, 0.15, 5.0], 'dockdeck', { tag: 'dock' }),
+  box([12.5, 0.075, 11.0], [7.0, 0.15, 5.0], 'deckplate', { tag: 'dock' }),
   box([16.15, 0.35, 11.0], [0.3, 0.4, 5.0], 'steelblue', { tag: 'kerb' }),
   box([12.5, 0.35, 13.35], [7.6, 0.4, 0.3], 'steelblue', { tag: 'kerb' }),
   box([12.5, 0.35, 8.65], [7.6, 0.4, 0.3], 'steelblue', { tag: 'kerb' }),

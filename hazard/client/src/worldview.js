@@ -266,7 +266,13 @@ export class WorldView {
         // exactly inverted: then it was a halo with no core, this was a core
         // with no halo.
         new THREE.MeshBasicMaterial({
-          color: new THREE.Color(2.6, 2.45, 2.1), fog: false, toneMapped: false,
+          // Under 1.0, because 2.6 overshot in the other direction. It wrote a
+          // hard near-white disc at p90 205 against a reference strip light of
+          // 149, and produced a halo box no brighter than the frame average
+          // (0.94x, against 2.6x in the reference) — the glow has to come from
+          // bloom radius, not from driving the emitter through the roof. 0.34
+          // linear encodes to about sRGB 155.
+          color: new THREE.Color(0.34, 0.32, 0.28), fog: false, toneMapped: false,
         }),
       );
       lens.name = 'lamp:lenses';
@@ -441,7 +447,7 @@ export class WorldView {
     const deck = new THREE.Mesh(mergeGeometries(marks, false),
       new THREE.MeshStandardMaterial({
         color: 0xe8b53a, roughness: 0.72, metalness: 0.0,
-        emissive: 0x3a2a06, emissiveIntensity: 0.4,
+        emissive: 0x6b4d0c, emissiveIntensity: 0.9,
       }));
     deck.receiveShadow = true;
     this.scene.add(deck);
@@ -463,10 +469,27 @@ export class WorldView {
         bars.push(a, b, post);
       }
     }
+    // MARKED, NOT FLOODED — and this is the thing the reference does that three
+    // rounds of lamp-tuning kept failing to imitate.
+    //
+    // Every attempt to make the extraction point read has been an attempt to
+    // make it BRIGHT, and each one ended with a white box that had no material
+    // in it. The reference does the opposite: R.E.P.O.'s drop-off is a dark
+    // body carrying a small saturated emissive panel, and its extraction truck
+    // is near-black with its aperture as the only lit element. A destination
+    // that has to out-glow the room is a destination competing with every lamp
+    // in the room; a destination carrying its own saturated marker wins at any
+    // exposure, and it still wins once the room has been taken down to where
+    // the reference sits.
+    //
+    // So the brackets emit on their own account rather than borrowing from a
+    // lamp. `toneMapped: false` keeps them at that value through the exposure
+    // change that just took the whole picture down by nearly half, which is
+    // exactly the property wanted: the room got darker, the marker did not.
     const frame = new THREE.Mesh(mergeGeometries(bars, false),
       new THREE.MeshStandardMaterial({
         color: 0x9fe8bd, roughness: 0.4, metalness: 0.1,
-        emissive: 0x1d5c3a, emissiveIntensity: 0.9,
+        emissive: 0x46e08c, emissiveIntensity: 2.6, toneMapped: false,
       }));
     frame.castShadow = true;
     this.scene.add(frame);

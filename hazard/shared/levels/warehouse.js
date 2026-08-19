@@ -182,7 +182,21 @@ export const warehouse = {
     fog: { color: '#23252b', near: 6, far: 42 },
     sun: { dir: [-0.35, -0.82, -0.45], color: '#ffd9a8', intensity: 1.5 },
     ambient: { sky: '#5b6472', ground: '#2b2521', intensity: 0.85 },
-    exposure: 1.0,
+    // 0.55, AND THIS IS THE ONE THAT MATTERED MOST.
+    //
+    // Measured against the reference plates, this game had no blacks in it at
+    // all: our darkest tenth sat at sRGB 21-24 while R.E.P.O.'s MEDIAN is 11-12
+    // and its whole-frame mean is 14. Our mean was 50. Nothing in the picture
+    // was ever dark, which is most of why an otherwise competent frame read as
+    // a render rather than as a room — and every texture judgement made at the
+    // old exposure was made on the wrong curve, so this comes before any
+    // further material work rather than after it.
+    //
+    // It is exposure and not albedo. The `panel` recipe records three separate
+    // attempts to fix the same symptom by darkening the material, the last of
+    // which bought 30 levels off 205 for a 36% cut, and its own comment
+    // concludes albedo is out of range. It is.
+    exposure: 0.55,
   },
 
   // On the dock (its deck is at y=1.2), well inside the shell — the spawn ring
@@ -244,7 +258,24 @@ export const warehouse = {
     //
     // 7 at range 5 puts the pool on the bed and the threshold and lets it fall
     // off toward the bulkhead, which is what a load light in a box body does.
-    light([0, 3.1, 15.1], { intensity: 7, range: 5, color: '#dfeaff', mount: 'fixed', shadow: true }),
+    // 2.2 at range 3.5, down from 7 at 5. Dropping 24 to 7 moved the interior
+    // wall from sRGB 213 to 195, which is an 8% move where about an 85% one was
+    // needed: the reference truck's interior walls measure 31-38 and its floor
+    // 12, with the bright APERTURE at 98 — so ours was not merely bright, its
+    // walls were twice the reference's single brightest element. A dark box
+    // with a bright hole, not an illuminated display case. The `crate` battens
+    // survive this: local SD went 0.45 to 8.7 at intensity 7 and the darkness
+    // is what they need to read as relief rather than as a pattern.
+    // ...and then re-lifted to 8, because dropping the van AND the global
+    // exposure in the same change was one cut too many: the interior went to
+    // linear 0.003 and the opening took 0.1% of the frame's brightest pixels,
+    // i.e. the destination disappeared entirely. The instruction was to bring
+    // the picture down and then re-lift the van and the ramp, and this is the
+    // second half of it. Pulled forward to z=14.8 as well, so the pool falls on
+    // the sill and the threshold rather than on the bulkhead — the reference
+    // truck's bright element is its APERTURE at 98 against walls of 31-38, and
+    // an aperture is lit from just inside it.
+    light([0, 3.1, 14.8], { intensity: 8, range: 4, color: '#dfeaff', mount: 'fixed', shadow: true }),
     // and one over the ramp, so the approach is legible without being in shot
     light([0, 3.4, 11.6], { intensity: 10, range: 8, color: '#dfeaff', mount: 'fixed' }),
 
@@ -256,7 +287,16 @@ export const warehouse = {
     // frames out of five. Now a failing amber strip at the lip, dimmer than the
     // floor it interrupts. The chevrons above do the warning; the hole is a
     // hole, and you are meant to lose your footing in it.
-    light([0, 0.15, 1.0], { intensity: 0.55, range: 4.2, color: '#ff9d3c', flicker: 0.7, mount: 'fixed', fixture: false }),
+    // Range 1.2, not 4.2, and this is a correction of my own claim. The commit
+    // that added it said "the hole is a hole"; measured from the south approach
+    // the inside face of the north trench wall reads mean 142 against 50 for the
+    // surrounding shed floor and 10 for the chevron kerb that is supposed to be
+    // the warning. A non-casting lamp at the lip with 4.2m of reach floodlights
+    // a wall 2.5m away and nothing occludes it, so the trench was a lit alcove
+    // 2.9x brighter than the floor around it and 15x brighter than its own
+    // hazard livery. At 1.2 it cannot reach the walls at all and only spills on
+    // the kerb it sits on.
+    light([0, 0.15, 1.0], { intensity: 0.55, range: 1.2, color: '#ff9d3c', flicker: 0.7, mount: 'fixed', fixture: false }),
   ],
 
   props: [
