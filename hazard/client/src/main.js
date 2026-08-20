@@ -269,6 +269,23 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 
+// Fullscreen. Wired at module scope so it works on the title screen as well as
+// in game, and guarded because a page embedded in an iframe without the
+// fullscreen permission will reject the request rather than throw — there is
+// nothing useful to say to the player when that happens, so it just stays put.
+{
+  const btn = document.getElementById('btn-full');
+  btn?.addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch { /* embedded without permission; leave the window as it is */ }
+    // Pointer lock is lost on a fullscreen transition, and taking the button
+    // out of the tab order afterwards stops SPACE re-triggering it mid-game.
+    btn.blur();
+  });
+}
+
 document.getElementById('btn-join').addEventListener('click', () => {
   boot().catch((err) => {
     document.getElementById('screen-error').textContent = `FAILED: ${err.message}`;
