@@ -224,7 +224,19 @@ export const flooded = {
     fog: { color: '#101a18', near: 10, far: 58 },
     sun: { dir: [0.25, -0.86, 0.44], color: '#89a8b8', intensity: 0.55 },
     ambient: { sky: '#39525c', ground: '#1a221f', intensity: 0.9 },
-    exposure: 1.0,
+    // Measured, not copied from the warehouse. A live exposure sweep across all
+    // three levels (scratchpad/expo.mjs, which mutates toneMappingExposure in
+    // one browser session rather than rebuilding per guess) put this level's
+    // spawn frame at mean 96.7 with a MEDIAN of 95.5 — roughly six times the
+    // whole-frame mean of the reference plates, and the single most overbright
+    // frame in the game. It is the first thing a player sees on job 03.
+    //
+    // 0.42 lands it at mean 40.4, p10 8.4, p50 25.1: blacks in the frame and a
+    // median in the low twenties, which is the band the warehouse sits in.
+    // The warehouse's own 0.55 would have left this at mean ~53 — the levels
+    // needed different numbers and assuming otherwise would have been the
+    // mistake.
+    exposure: 0.42,
   },
 
   // On the lorry platform, which is the one surface on this job that is dry at

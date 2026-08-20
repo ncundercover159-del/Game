@@ -245,7 +245,12 @@ export const tower = {
     fog: { color: '#131a26', near: 20, far: 96 },
     sun: { dir: [-0.30, -0.52, 0.80], color: '#a9bedd', intensity: 1.15 },
     ambient: { sky: '#3a4d68', ground: '#241f1a', intensity: 0.8 },
-    exposure: 1.05,
+    // 1.05 -> 0.60, measured. This level's median was already in band at 24.3,
+    // but its p90 was 158.7 — the darks were fine and the highlights were
+    // blowing, which a median cannot see. 0.60 takes p90 to 114.7 and mean from
+    // 54.7 to 38.9 while p10 barely moves (8.1 -> 7.1), because what came down
+    // is the top end and that is what needed to.
+    exposure: 0.60,
   },
 
   // In the yard by the gate, on flat slab, a long way from anything that can
