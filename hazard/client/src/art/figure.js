@@ -822,7 +822,26 @@ export function makeFigure(slot) {
     ribs(r, RIM, 0.62);
     // The standard shell's own wrap. This is the one the review kept
     // photographing from the side and calling a dome with bare skull under it.
-    skirt(RIM, HR * 0.38);
+    //
+    // AND IT ENDS WHERE THE BRIM ENDS, WHICH IS WHY THE FULL BRIM READS AND
+    // THIS ONE DID NOT.
+    //
+    // Photographed side by side at four hundred pixels of head, the full-brim
+    // build reads as a hard hat immediately and this one reads as three stacked
+    // objects — dome, then a pale ring, then a green band under it with a flat
+    // cut across the bottom. Same crown, same brim construction, same skirt
+    // function. The only difference is the arithmetic: the full brim drops its
+    // wrap 0.26 skull radii and puts its brim's lower edge 0.039 head-scales
+    // below the rim, so the wrap finishes half a millimetre under the brim and
+    // the two are ONE edge. This build dropped 0.38 and put the brim at 0.033,
+    // so three centimetres of wrap hung below the brim as a separate tier.
+    //
+    // A hard hat has one lower edge. 0.24 puts the wrap's bottom at 0.041
+    // head-scales against the brim's 0.038, which is the same flush that works
+    // on the other build, and the headband — 0.052 deep from the rim in the
+    // shell's dark colour — still covers the skull under both of them, which is
+    // the job the deep wrap was doing.
+    skirt(RIM, HR * 0.24);
     band(RIM);
     // A BRIM THAT DROOPS, WHICH IS THE DIFFERENCE BETWEEN A HARD HAT AND A
     // FLYING SAUCER, AND IS ONE PRIMITIVE EITHER WAY.
@@ -864,7 +883,7 @@ export function makeFigure(slot) {
     head.add(
       squash(new THREE.CylinderGeometry(r * 1.04, r * 1.13, 0.022 * HD, 18),
         [1.0, 1.0, 1.20]),
-      hatCol, BI.hat, RF.hat, [0, RIM - 0.011 * HD, 0.010 * HD],
+      hatCol, BI.hat, RF.hat, [0, RIM - 0.017 * HD, 0.010 * HD],
     );
   }
 
