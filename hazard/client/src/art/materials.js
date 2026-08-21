@@ -676,7 +676,35 @@ export const BOUNCE = {
   // little further because the bounce is standing in for the second and third
   // bounce as well, which have been through a cool sky twice. Luma-neutral by
   // construction, so it rotates the shadows without moving the exposure.
-  cool: { value: new THREE.Vector3(0.86, 1.01, 1.30) },
+  //
+  // AND THEN IT WAS SWEPT, WHICH IS THE FIRST TIME THIS NUMBER HAS BEEN.
+  //
+  // Every previous value here was arithmetic — a hemisphere colour normalised
+  // and then "pushed a little further" by eye, in a file, without a frame. The
+  // uniform is shared precisely so that stops being necessary, and five
+  // candidates were photographed and measured in one browser session on the
+  // warehouse spawn and aisle plates. Blue-to-green in the darkest fifth of
+  // the frame, against the highlight fifth:
+  //
+  //     0.86/1.01/1.30   spawn 1.74 -> 0.93   aisle 1.44 -> 0.84
+  //     0.78/1.01/1.53   spawn 1.79 -> 0.93   aisle 1.51 -> 0.86
+  //     0.70/1.01/1.76   spawn 1.85 -> 0.94   aisle 1.58 -> 0.89
+  //     0.60/1.01/2.11   spawn 1.93 -> 0.95   aisle 1.69 -> 0.92
+  //     0.50/1.01/2.40   spawn 2.00 -> 0.96   aisle 1.80 -> 0.95
+  //
+  // The references bracket it: PEAK runs 2.18 in shadow, the three R.E.P.O.
+  // plates 1.38-2.21, and this level's aisle shot was the weak one at 1.44.
+  // 0.60/1.01/2.11 puts both plates inside that band with the whole-frame cast
+  // still at 1.20 against an assertion line of 1.5, no clipped pixels, and the
+  // frame mean moving by half a level — which is what luma-neutral is for.
+  //
+  // 0.50/1.01/2.40 measures slightly better again — the shadow-to-highlight
+  // rotation goes 2.03 to 2.08 on the spawn plate — and it is not taken,
+  // because photographed side by side the two frames are not tellably
+  // different and it costs another two points of whole-frame cast for that
+  // nothing. This is the far end of what the measurement supports, not the far
+  // end of what the uniform will do.
+  cool: { value: new THREE.Vector3(0.60, 1.01, 2.11) },
 };
 
 // Penumbra radius in shadow texels — x for plane maps, y for cube maps. Shared

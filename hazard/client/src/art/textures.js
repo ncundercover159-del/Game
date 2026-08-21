@@ -77,21 +77,29 @@ function smooth(e0, e1, x) {
 }
 
 /**
- * Value noise with period `cells` across the unit tile.
+ * Value noise with independent periods on each axis.
  *
- * The wrap is the whole point: the lattice index is taken modulo `cells`, so
- * u=0 and u=1 read the same corners and the texture tiles exactly.
+ * The wrap is the whole point: each lattice index is taken modulo its own cell
+ * count, so u=0 and u=1 read the same corners and the texture tiles exactly.
+ * Two counts rather than one because that is what an anisotropic field needs —
+ * see streak(), which used to get its stretch by scaling `u` instead and broke
+ * the wrap doing it.
  */
-function vnoise(u, v, cells, s) {
-  const x = u * cells, y = v * cells;
+function vnoise2(u, v, cu, cv, s) {
+  const x = u * cu, y = v * cv;
   const xi = Math.floor(x), yi = Math.floor(y);
   const fx = x - xi, fy = y - yi;
   const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
-  const x0 = wrapi(xi, cells), x1 = wrapi(xi + 1, cells);
-  const y0 = wrapi(yi, cells), y1 = wrapi(yi + 1, cells);
+  const x0 = wrapi(xi, cu), x1 = wrapi(xi + 1, cu);
+  const y0 = wrapi(yi, cv), y1 = wrapi(yi + 1, cv);
   const a = hash2(x0, y0, s), b = hash2(x1, y0, s);
   const c = hash2(x0, y1, s), d = hash2(x1, y1, s);
   return (a + (b - a) * ux) * (1 - uy) + (c + (d - c) * ux) * uy;
+}
+
+/** Value noise with period `cells` across the unit tile, on both axes. */
+function vnoise(u, v, cells, s) {
+  return vnoise2(u, v, cells, cells, s);
 }
 
 function fbm(u, v, cells, oct, s) {
@@ -108,12 +116,31 @@ function ridge(u, v, cells, oct, s) {
   return 1 - Math.abs(fbm(u, v, cells, oct, s) * 2 - 1);
 }
 
-/** Anisotropic fbm — stretched along u. Brushing, fur, wood. */
+/**
+ * Anisotropic fbm — stretched along u. Brushing, fur, wood, rain runs, scuffs.
+ *
+ * THIS DID NOT TILE, AND IT IS USED SIXTEEN TIMES.
+ *
+ * The stretch used to be got by scaling the coordinate — `vnoise(u / aniso, v,
+ * c)` — which walks only 1/aniso of the way across a lattice that wraps at
+ * u=1. The field therefore had a hard discontinuity down every tile edge: the
+ * texel at u=0.999 and the texel at u=0.001 were sampled from unrelated cells.
+ * Photographed flat, every streaked recipe in the file has a visible seam down
+ * the middle of the wrap, and on `gear` — tile 0.34 m, which is exactly one
+ * head — that seam lands once on every face and every hard hat in the game.
+ *
+ * The stretch is a property of the LATTICE, not of the coordinate: fewer cells
+ * across u than across v is an elongated field, and it wraps on both axes by
+ * construction. Same density, same anisotropy, no seam.
+ *
+ * (The old line also carried a `* 0` term — a second noise fetch whose result
+ * was multiplied away — which is what the two-period form was reaching for and
+ * never arrived at.)
+ */
 function streak(u, v, cells, aniso, oct, s) {
   let f = 0, amp = 0.5, sum = 0, c = cells;
   for (let i = 0; i < oct; i++) {
-    f += vnoise(u, v, Math.max(1, Math.round(c / aniso)), s + i * 97) * 0
-      + vnoise(u * (1 / aniso), v, c, s + i * 97) * amp;
+    f += vnoise2(u, v, Math.max(1, Math.round(c / aniso)), Math.round(c), s + i * 97) * amp;
     sum += amp; amp *= 0.5; c *= 2;
   }
   return f / sum;
@@ -172,9 +199,28 @@ const GEN = {
   //
   // What a working warehouse floor actually has, in order of how far away you
   // can see it: saw-cut bay joints, then spills, then dust. So it has those.
+  //
+  // AND A MIDDLE TERM, BECAUSE THE RULE ABOVE HAS A HOLE IN IT.
+  //
+  // "Metre-scale in albedo, centimetre-scale in height" is right about aliasing
+  // and it left this floor with nothing at all between a 1.9 m stain and a
+  // 3 mm grit — which is precisely the band that fills the frame when you are
+  // standing on it. Height was supposed to cover that band and on this surface
+  // it cannot: relief arrives through a derivative bump, a bump needs a light
+  // with a direction, and the light on a warehouse floor is a bay lamp eight
+  // metres straight up. At near-normal incidence the entire tooth of this
+  // material renders as nothing, which is why a near-field crop of the slab
+  // photographs as a smooth wash with one dark blob on it.
+  //
+  // So the band gets an albedo term, at the frequency the cladding's own note
+  // works out: 24 cells over a 5.6 m tile is 23 cm at the base and 12 cm at the
+  // second octave. At two metres that is the trowel finish; at twenty it is
+  // four pixels and the mip has already averaged it away. Seven per cent, which
+  // is what a power-float leaves.
   concrete(u, v, o) {
     const pour = fbm(u, v, 2, 3, 11);          // where one day's pour met the next
     const patch = fbm(u, v, 4, 2, 97);         // power-float swirl, wear, damp
+    const float = fbm(u, v, 24, 2, 181);       // trowel finish, 23 cm — ALBEDO
     const tooth = fbm(u, v, 40, 3, 23);        // the fine surface — HEIGHT
     // Aggregate. Finer and much weaker than it was: at 115 cells over a 5.6 m
     // tile these were 5 cm blobs driving a 0.42 cavity-occlusion term, which is
@@ -205,12 +251,24 @@ const GEN = {
     // three-metre black amoebas across the floor that no reasonable viewer
     // reads as oil. Higher threshold for less of it, and see below: what makes
     // a spill legible is not that it is dark, it is that it is WET.
-    const spill = smooth(0.600, 0.700, fbm(u, v, 3, 3, 71));
+    // AND FIVE CELLS RATHER THAN THREE, WHICH IS ABOUT THE REPEAT AND NOT
+    // ABOUT THE SIZE.
+    //
+    // Thresholding a three-cell field over a 5.6 m tile produces one large
+    // distinctive silhouette per tile, and this floor is 46 m of tile: the same
+    // recognisable blob appears eight times in a row down the shed, in a
+    // straight line, which is the mistake the cladding note describes as
+    // twenty-two copies of the same rust patch in a dead-straight grid. Five
+    // cells is a 1.1 m puddle — still far too big to alias at any distance the
+    // shed contains — and there are enough of them per tile that no one of them
+    // is the shape you recognise.
+    const spill = smooth(0.600, 0.700, fbm(u, v, 5, 3, 71));
     // ...and the pale opposite: dust, plaster, efflorescence out of the slab.
     const bloom = smooth(0.60, 0.80, fbm(u, v, 2, 2, 137));
 
     let l = 0.415 + (pour - 0.5) * 0.095;
     l *= mix(0.89, 1.08, smooth(0.28, 0.68, patch));
+    l *= 1 + (float - 0.5) * 0.15;             // the 23 cm trowel finish
     // Mostly a groove, only slightly a line. A saw cut fills with dirt and goes
     // dark, but if the darkening carries the feature then at thirty metres the
     // joint is a one-pixel black wire and it crawls.
@@ -1205,6 +1263,31 @@ const GEN = {
   // back of a van actually has. At a metre that is the material; at ten metres
   // it is four pixels across and the mip has already averaged it away, which is
   // the same argument the concrete floor's oil stains are allowed to make.
+  //
+  // AND THE AMPLITUDE WENT UP AGAIN, BECAUSE A FOURTH PORTRAIT SAID SO.
+  //
+  // The note above raised the swing and the hat still photographed as a pastel
+  // dome with nothing on it — a telephoto head shot at three metres, four
+  // hundred pixels of hard hat, and not one mark. Two reasons, and the second
+  // is the one that was missed both times.
+  //
+  // The first is that the map does not reach the frame at its own contrast.
+  // It multiplies a saturated vertex colour and then goes through a filmic
+  // curve, and both compress: a ten per cent swing on a 0.72 green arrives as
+  // about six levels out of 255. Whatever amplitude this map has, expect a
+  // third of it on screen.
+  //
+  // The second is that the map was CLIPPING. Measured flat, the albedo ran
+  // 193-255 with a mean of 217 — the top of the range was pinned against white,
+  // so the burnished half of every feature was being flattened before the
+  // renderer ever saw it, and raising the amplitude further would only have
+  // pinned more of it. Part of that was the tiling bug in streak(): the seam
+  // put a discontinuity through the drag field once per tile, which on a 0.34 m
+  // tile is once per head. With the wrap fixed the peak fell to 245 on its own.
+  //
+  // So: a base low enough that the loudest texel lands under white, and the
+  // swing spent where the eye is looking. 245 is still the ceiling and 165 the
+  // floor, which is a third peak-to-peak instead of a fifth.
   gear(u, v, o) {
     const sheen = fbm(u, v, 2, 2, 5);            // ~17 cm — one side of a shell
     const drag = streak(u, v, 12, 9, 2, 61);     // scuffs, along the moulding
@@ -1223,9 +1306,13 @@ const GEN = {
     // face passes for the grain of skin. Stretched, so it is a direction rather
     // than a speckle.
     const flow = streak(u, v, 40, 6, 2, 173);
-    let l = 0.880 + (sheen - 0.5) * 0.100 + (drag - 0.5) * 0.135
-      + (grime - 0.5) * 0.100 + (peel - 0.5) * 0.026;
-    l *= 1 + burnish * 0.100;
+    // Soil: the 3 cm blotch between the 7 cm grime and the 3.5 mm peel. It is
+    // what collects in a moulding's flow lines and around a headband, and on a
+    // face it is the last thing in the albedo that still resolves at a metre.
+    const soil = fbm(u, v, 11, 2, 293);
+    let l = 0.840 + (sheen - 0.5) * 0.085 + (drag - 0.5) * 0.170
+      + (grime - 0.5) * 0.150 + (soil - 0.5) * 0.140 + (peel - 0.5) * 0.030;
+    l *= 1 + burnish * 0.105;
     // A whisper warm rather than a whisper cool. The vertex colour carries the
     // hue on the hat and the skin tone on the face, and a cold multiplier on a
     // face is the difference between a person and a corpse.

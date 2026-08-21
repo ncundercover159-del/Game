@@ -616,8 +616,15 @@ export function makeFigure(slot) {
   // is that the crown must still clear the skull it covers: worked for the
   // worst case of the eight builds, THE APPRENTICE, whose head is 1.28 and
   // whose skull stands 70 mm above its own rim against 127 mm of shell.
+  //
+  // 18 by 9 rather than 14 by 8. A telephoto portrait shows the crown's
+  // silhouette as a run of flat chords — the one place on this figure where
+  // faceting is legible, because it is the only large smooth convex surface
+  // seen against a dark background. Four more segments is 140 triangles on a
+  // head that is drawn at most eight times in a frame, against a budget with
+  // 330,000 spare.
   const shell = (r, squashY, seat) => head.add(
-    squash(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+    squash(new THREE.SphereGeometry(r, 18, 9, 0, Math.PI * 2, 0, Math.PI / 2),
       [1.0, squashY, 1.06]), hatCol, BI.hat, RF.hat, [0, seat, 0],
   );
   // THE SKIRT, WHICH IS THE HALF OF A HARD HAT THAT WAS MISSING.
@@ -712,14 +719,70 @@ export function makeFigure(slot) {
     // you cannot see. A real peak subtends about 120 degrees and is longer than
     // it is wide. Narrower arc, smaller radius, more stretch down +Z, and a
     // steeper tilt so it catches a different value from the crown.
+    //
+    // AND THEN IT WAS PHOTOGRAPHED FRONT ON WITH A LONG LENS, AND IT WAS STILL
+    // A SAUCER. AND THEN THE FIX FOR THAT WAS PHOTOGRAPHED FROM THE SIDE AND
+    // IT WAS A PLANK NAILED TO A MUSHROOM.
+    //
+    // The cut before this one solved the peak's rear corners against the crown
+    // and wrote down that 1.02 radii "reaches 0.81 at plus and minus fifty-three
+    // degrees against the crown's own 0.80 there — flush, to a millimetre". That
+    // arithmetic is wrong, and wrong in the one term that mattered: it compared
+    // the corner's X against the crown's X and never looked at Z. The sector is
+    // stretched 1.9 along Z, so the corner's actual distance from the axis was
+    // sqrt(0.81^2 + 1.17^2) = 1.42 radii against a crown of 1.04 there. The
+    // corners stood 0.38 radii OUTBOARD of the shell, which photographs — and
+    // did photograph, from the side, at four hundred pixels of head — as a thin
+    // card floating in front of a dome with daylight between the two.
+    //
+    // So it gets solved in the plane it lives in. The peak's outer edge is the
+    // ellipse (A.sin t, A.Z.cos t) in crown radii; the crown's rim is the
+    // ellipse x^2 + z^2/1.06^2 = 1, because shell() squashes 1.06 down +Z. Two
+    // conditions fix both unknowns:
+    //
+    //   * the REAR CORNER, at t = ARC/2, sits at 0.92 of the rim ellipse —
+    //     just inside the shell rather than on it, so the tilt below has
+    //     somewhere to go;
+    //   * the TIP, at t = 0, reaches 1.45 crown radii, against the crown's own
+    //     1.06 down +Z. A peak that projects about four tenths of a radius past
+    //     the shell is a cap; the 1.94 the old numbers gave is a sun visor, and
+    //     the photograph agreed.
+    //
+    // ARC is then free, and it buys width: 2.10 rad gives a peak 1.24 crown
+    // diameters wide, 2.50 gives 1.63. 2.30 rad — 132 degrees — is 1.46, which
+    // is a peak that is clearly narrower than the head it is on and still
+    // clearly a peak and not a beak. A/Z fall out of it as 0.80 and 1.811.
+    //
+    // The edge is inside the crown for the whole arc rather than only at the
+    // ends, because A^2 = 0.64 is less than (Z/1.06)^2 = 1.87 and the ellipse
+    // ratio is therefore monotonic from tip to corner. No mid-arc bulge.
+    //
+    // ...AND THE TILT IS STILL PAID FOR, WHICH IS WHERE THE FIRST GAP CAME FROM.
+    //
+    // Rotation about +X carries all of +Z downwards, the rear corners included,
+    // and those corners are the only part of this that is meant to touch the
+    // shell. So the seat is lifted by exactly the drop the tilt puts on them —
+    // solved, not eyeballed, so it survives ARC, TIP or PK_TILT moving. At 0.16
+    // rad that is 0.094 radii of lift, the shell has narrowed to 0.985 of its
+    // rim by that height, and 0.985 against the corner's 0.92 leaves 0.065
+    // radii of clearance — a third of the peak's own thickness, so the two
+    // interpenetrate and there is no daylight anywhere along the join. The tip
+    // still finishes 0.137 radii below the rim, which is the droop.
+    const PK_ARC = 2.30, PK_TILT = 0.16, PK_R = r * 0.8007, PK_Z = 1.811;
+    const pkLift = PK_R * Math.cos(PK_ARC / 2) * PK_Z * Math.sin(PK_TILT);
     head.add(
-      squash(new THREE.CylinderGeometry(r * 1.30, r * 1.20, 0.024 * HD + 0.006, 14, 1,
-        false, -1.05, 2.10), [1.0, 1.0, 1.34]),
+      // Thicker than the brims, because a peak is seen edge-on from the side
+      // for most of its length and it photographed as a sheet of card with a
+      // shadow under it rather than as a moulding. The underside is drawn in a
+      // little so the edge is an undercut with a shadow in it rather than a
+      // square cut, which is the cheapest thing that reads as a moulded lip.
+      squash(new THREE.CylinderGeometry(PK_R, PK_R * 0.93, 0.032 * HD + 0.006, 20, 1,
+        false, -PK_ARC / 2, PK_ARC), [1.0, 1.0, PK_Z]),
       // Tilted so the front DROOPS. Rotation about +X carries +Z downwards, so
       // the sign here is the difference between a peak and a party hat; every
       // previous cut had it negative and photographed with the peak pointing at
       // the ceiling.
-      hatCol, BI.hat, RF.hat, [0, RIM - 0.006 * HD, 0.014 * HD], [0.17, 0, 0],
+      hatCol, BI.hat, RF.hat, [0, RIM - 0.006 * HD + pkLift, 0.010 * HD], [PK_TILT, 0, 0],
     );
   } else if (build.hat === 'fullbrim') {
     // The full-brim hard hat: a flat disc all the way round, and the crown sits
@@ -743,8 +806,14 @@ export function makeFigure(slot) {
     // The crown comes UP at the same time, which is the half that matters: what
     // separates a full-brim hard hat from a sun hat in outline is not the width
     // of the disc, it is how much shell there is standing above it.
-    head.cyl(r * 1.46, r * 1.36, 0.026 * HD + 0.006, hatCol, BI.hat, RF.hat,
-      [0, RIM - 0.010 * HD, 0], null, 16);
+    //
+    // ...and it falls, for the reason written against the dome's brim above: a
+    // Skullgard's brim is not a plate, it dips away from the crown all the way
+    // round. Gentler here than on the dome — 1.10 out to 1.46 over 2.6 cm is
+    // about 20 degrees — because this brim is half again as wide and the same
+    // angle over that reach would be a conical hat.
+    head.cyl(r * 1.10, r * 1.46, 0.026 * HD, hatCol, BI.hat, RF.hat,
+      [0, RIM - 0.013 * HD, 0], null, 18);
   } else {
     // The standard shell: a peripheral brim, wider front and back than at the
     // sides, which is what a Centurion or an MSA actually looks like from above.
@@ -755,10 +824,26 @@ export function makeFigure(slot) {
     // photographing from the side and calling a dome with bare skull under it.
     skirt(RIM, HR * 0.38);
     band(RIM);
+    // A BRIM THAT DROOPS, WHICH IS THE DIFFERENCE BETWEEN A HARD HAT AND A
+    // FLYING SAUCER, AND IS ONE PRIMITIVE EITHER WAY.
+    //
+    // Every cut of this has been a flat disc, and a flat horizontal disc meeting
+    // a dome at a hard corner is a sun hat in outline no matter what its radius
+    // is — photographed front on, the crown and the disc read as two separate
+    // objects with a shadow between them. A hard hat has no flat disc anywhere
+    // on it: the shell keeps curving outwards past its widest point and the
+    // edge finishes BELOW the crown line.
+    //
+    // A cone frustum is exactly that shape and costs the same as the disc did:
+    // 1.06 radii at the top, where it meets the crown with a millimetre of lip,
+    // out to 1.24 at the bottom over 2.2 cm of head scale — a 38 degree fall,
+    // which is what a Centurion's peripheral brim actually does. Stretched 1.32
+    // down +Z, because a peripheral brim is longer front to back than it is at
+    // the temples, which is what makes it read as a hard hat from above.
     head.add(
-      squash(new THREE.CylinderGeometry(r * 1.40, r * 1.28, 0.024 * HD + 0.006, 16),
-        [1.0, 1.0, 1.20]),
-      hatCol, BI.hat, RF.hat, [0, RIM - 0.009 * HD, 0.014 * HD],
+      squash(new THREE.CylinderGeometry(r * 1.06, r * 1.24, 0.022 * HD, 18),
+        [1.0, 1.0, 1.32]),
+      hatCol, BI.hat, RF.hat, [0, RIM - 0.011 * HD, 0.012 * HD],
     );
   }
 
