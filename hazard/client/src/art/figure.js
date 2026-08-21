@@ -604,6 +604,18 @@ export function makeFigure(slot) {
   // it is not going away, and the answer is not to keep growing the crown until
   // the hat looks big — it is to put the missing shell BELOW the brim, where a
   // hard hat actually keeps it. See skirt() below.
+  //
+  // AND THE NUMBER THAT FOLLOWS FROM ALL OF THAT, BECAUSE THE NOTE ABOVE
+  // ARGUED IT AND NEVER APPLIED IT.
+  //
+  // squashY is the crown's height as a fraction of its own rim radius. A real
+  // shell is about 0.6 of it — 90 mm of crown over a 140 mm rim — and this ran
+  // 1.08 for the dome, 1.02 for the full brim and 0.90 for the bump cap, so
+  // every one of the three was between a half and a full radius too tall.
+  // 0.62/0.66/0.55 is the real proportion, and the check that says it is safe
+  // is that the crown must still clear the skull it covers: worked for the
+  // worst case of the eight builds, THE APPRENTICE, whose head is 1.28 and
+  // whose skull stands 70 mm above its own rim against 127 mm of shell.
   const shell = (r, squashY, seat) => head.add(
     squash(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2),
       [1.0, squashY, 1.06]), hatCol, BI.hat, RF.hat, [0, seat, 0],
@@ -621,16 +633,25 @@ export function makeFigure(slot) {
   // which is the view the complaint keeps coming from.
   //
   // Open at the front, because that is where the brim is and there is nothing
-  // under a brim. 130 degrees of opening rather than a token gap: the eyes sit
-  // at plus and minus 53 degrees off the nose (eyeX is clamped to 0.80 of the
-  // skull radius) and they are PROUD of the skull, so a skirt at skull radius
-  // that reached them would bury them. 65 degrees each side clears them with
-  // room for the socket ring.
+  // under a brim.
+  //
+  // AND THE OPENING IS 89 DEGREES EACH SIDE, WHICH IS NOT A TASTE DECISION.
+  //
+  // The previous cut wrote this function, put 65 degrees in it, and never
+  // called it — which is why the complaint survived a third review. 65 was
+  // solved against where the eyes' CENTRES are, and the eyes are balls: for
+  // THE UNIT the pair sit at 56 degrees off the nose at a radius of 0.190 with
+  // a radius of 0.100 each, so at the height the skirt's lower edge runs they
+  // reach 84 degrees, and a skirt at 65 would have been driven straight through
+  // both eyeballs. Solved at the lower edge for the widest-eyed build and
+  // rounded up, the opening is 1.55 rad — which leaves the skirt covering the
+  // back and the sides behind the ear, and that is exactly the part of a hard
+  // hat that hangs below its own brim.
   //
   // It follows the skull's own curve top and bottom, like the band does, so it
   // is welded to the head rather than hovering off it, and it carries the
   // shell's colour rather than the band's: this is shell, not suspension.
-  const SKIRT_OPEN = 1.13;                  // radians each side of the nose
+  const SKIRT_OPEN = 1.55;                  // radians each side of the nose
   const skirt = (seat, drop) => {
     const rt = skullR(seat) + 0.030 * HD;
     const rb = skullR(seat - drop) + 0.026 * HD;
@@ -638,6 +659,7 @@ export function makeFigure(slot) {
       SKIRT_OPEN, Math.PI * 2 - SKIRT_OPEN * 2);
     head.add(g, hatCol, BI.hat, RF.hat, [0, seat - drop / 2, 0]);
   };
+
   // Three stiffening ribs front-to-back, FOLLOWING the shell instead of being
   // laid across it. A straight box over a dome touches at the crown and its two
   // ends float clear of the surface — photographed front-on that read as three
@@ -675,7 +697,11 @@ export function makeFigure(slot) {
     // a box: a rectangular peak reads as a plank from any angle off-axis, and
     // the curve is one parameter on the same primitive.
     const r = RIM_R * 0.97;
-    shell(r, 0.90, RIM);
+    shell(r, 0.55, RIM);
+    // The deepest skirt of the three, because a cap has no brim at the sides
+    // and the wrap IS the whole side of it. Two fifths of a skull radius takes
+    // the edge to about the top of an ear.
+    skirt(RIM, HR * 0.46);
     band(RIM);
     // A HALF DISC IS NOT A PEAK, IT IS A SAUCER.
     //
@@ -705,8 +731,11 @@ export function makeFigure(slot) {
     // its crown, and yet it is NARROWER in absolute terms, because the crown it
     // is measured against is no longer a size and a half too big.
     const r = RIM_R;
-    shell(r, 1.02, RIM);
-    ribs(r, RIM, 1.02);
+    shell(r, 0.66, RIM);
+    ribs(r, RIM, 0.66);
+    // Shallowest of the three: on a full-brim helmet the disc is doing the work
+    // and a deep wrap under it would read as a sou'wester.
+    skirt(RIM, HR * 0.26);
     band(RIM);
     // 1.46 radii, not 1.58. A brim more than about half again the crown is a
     // boater whatever else you do to it, and at 1.58 over a crown squashed to
@@ -720,8 +749,11 @@ export function makeFigure(slot) {
     // The standard shell: a peripheral brim, wider front and back than at the
     // sides, which is what a Centurion or an MSA actually looks like from above.
     const r = RIM_R;
-    shell(r, 1.08, RIM);
-    ribs(r, RIM, 1.08);
+    shell(r, 0.62, RIM);
+    ribs(r, RIM, 0.62);
+    // The standard shell's own wrap. This is the one the review kept
+    // photographing from the side and calling a dome with bare skull under it.
+    skirt(RIM, HR * 0.38);
     band(RIM);
     head.add(
       squash(new THREE.CylinderGeometry(r * 1.40, r * 1.28, 0.024 * HD + 0.006, 16),

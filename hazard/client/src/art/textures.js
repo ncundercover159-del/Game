@@ -54,7 +54,7 @@ import * as THREE from 'three';
 // to a wall. They get 512. Everything else would be paying boot time for detail
 // nobody looks at.
 const SIZE = 256;
-const BIG = new Set(['concrete', 'panel', 'deckplate', 'dockdeck', 'steelblue']);
+const BIG = new Set(['concrete', 'panel', 'deckplate', 'dockdeck', 'steelblue', 'structsteel']);
 const sizeOf = (name) => (BIG.has(name) ? 512 : SIZE);
 
 // --- noise -------------------------------------------------------------------
@@ -244,9 +244,6 @@ const GEN = {
   // Corrugated wall cladding. The ribs run along one texture axis, which under
   // box projection means they stand vertically on every wall — which is how
   // cladding is actually hung.
-  // Corrugated wall cladding. The ribs run along one texture axis, which under
-  // box projection means they stand vertically on every wall — which is how
-  // cladding is actually hung.
   //
   // Eight ribs across a 3.2 m tile is a 40 cm pitch, which is real. The count
   // and the tile have to be chosen together: the tile also sets how often the
@@ -259,12 +256,49 @@ const GEN = {
   // so it belongs almost entirely in the height channel where the light can
   // decide what it looks like; the albedo keeps a hint of it and no more.
   //
-  // The grime here used to be four octaves off a four-cell base — fourteen
-  // centimetre blotches at twenty-six per cent contrast, over a wall forty-six
-  // metres long. That is the same mistake as the ceiling in a quieter key: it
-  // does not read as dirt at any distance, it reads as the wall boiling. Dirt
-  // on a wall is a metre across. Two octaves, and the fine end of it goes into
-  // height where the light can decide whether it matters.
+  // AND THEN A REVIEW MEASURED IT AS THE FLATTEST SURFACE IN THE GAME, WHICH
+  // IS THE PROBLEM EVERY NOTE ABOVE WAS SOLVING FOR AND OVERSHOT.
+  //
+  // Laplacian energy 1.10 in the flooded plant and 1.92 in the tower, the two
+  // lowest readings in the level set, on a material covering about sixty per
+  // cent of the flooded spawn frame. Two separate causes, and they are the
+  // same two the roof deck had:
+  //
+  //  * IT WAS A ONE-DIMENSIONAL RIPPLE. Every feature with any contrast in it
+  //    keyed on `u`. The triplanar samples p.zy on an x-facing wall and p.xy
+  //    on a z-facing one, so on EVERY vertical surface in the game u is the
+  //    horizontal and v IS WORLD HEIGHT — and there was nothing keyed on v at
+  //    all except two octaves of blotch. A wall with one direction in it reads
+  //    as corrugated card however good the corrugation is.
+  //  * ITS ONLY FINE DETAIL WAS IN HEIGHT, UNDER A BUMP OF 2.1. Height reaches
+  //    the frame through a derivative bump, and a bump needs a light with a
+  //    DIRECTION to show anything. Most of this wall is lit by the bounce
+  //    floor, which arrives from everywhere at once, so on the fill-lit two
+  //    thirds of the surface the entire tooth of the material rendered as
+  //    nothing whatsoever.
+  //
+  // So: a second family on v, the tooth split across both channels, and the
+  // rust allowed to be rust.
+  //
+  // THE SECOND FAMILY IS THE SHEET LAP, and it is not a metric-beating
+  // cross-hatch. Profiled cladding comes in sheets a few metres long, hung off
+  // horizontal rails and lapped where they meet; that lap is a hard line
+  // across the ribs with thirty years of dirt washed out of it hanging
+  // underneath. It is the one feature a clad wall has that runs the other way,
+  // it is architecture rather than texture, and — because v is world height —
+  // it comes out level on all four walls for free. One line per 1.53 m.
+  //
+  // The dirt below it is deliberately the larger half. A hairline every metre
+  // and a half crossed with a rib every 57 cm is a grid, and the roof deck has
+  // a paragraph about what a metre-scale grid does under a lamp; a soft wash
+  // that fades out over three quarters of a metre is not a grid, it is a
+  // stain that happens to start at a straight edge.
+  //
+  // ...AND THE RAIN RUNS NOW RUN DOWNWARDS. `streak(u, v, ...)` compresses its
+  // first argument, so it elongates features along U — horizontally, on a wall.
+  // The comment beside it said "vertical on a wall" and had said so for four
+  // cuts. Water has never done that. Arguments swapped, which costs nothing and
+  // turns the largest soft feature on the surface the right way up.
   panel(u, v, o) {
     const ribs = 8;
     const phase = fract(u * ribs);
@@ -274,11 +308,23 @@ const GEN = {
     const ribH = 1 - smooth(0.22, 0.78, tri);
     const dirt = fbm(u, v, 3, 2, 3);              // metre-scale grime
     const grit = fbm(u, v, 26, 3, 3);             // the tooth — HEIGHT
-    const streaks = streak(u, v, 9, 6, 2, 29);    // rain runs, vertical on a wall
-    const rustAt = smooth(0.72, 0.94, fbm(u, v, 5, 2, 53)) * smooth(0.42, 0.88, streaks);
+    // ...and its coarse half, in ALBEDO. 22 cells over a 4.6 m tile is 21 cm at
+    // the base and 10 cm at the second octave, which is weathering blotch on a
+    // painted sheet rather than grain: at two metres you can see it, at twenty
+    // it is still four pixels across and cannot alias. The third octave stays
+    // in `grit` where the channel rule wants it.
+    const tooth = fbm(u, v, 22, 2, 131);
+    const runs = streak(v, u, 9, 6, 2, 29);       // rain, DOWN the wall
+    const rustAt = smooth(0.70, 0.92, fbm(u, v, 5, 2, 53)) * smooth(0.40, 0.80, runs);
     // Sheet joints only at the tile edge. An earlier version put three across
     // the tile and the wall came out looking like brickwork.
     const seam = smooth(0.994, 1.0, Math.abs(Math.cos(v * Math.PI)));
+
+    // The lap, signed so that "below" means below. v is world height and it
+    // increases upwards, so negative is down and the wash goes down.
+    const lv = fract(v * 3 + 0.5) - 0.5;          // 0 at the lap, +/-0.5 mid-sheet
+    const lap = 1 - smooth(0.006, 0.030, Math.abs(lv));
+    const lapWash = smooth(-0.16, -0.005, lv) * mix(0.55, 1.0, dirt);
 
     // A FADED WARM GREY, NOT A COOL ONE. Cladding is the second largest area in
     // the level after the roof deck and it was mixed 0.47/0.50/0.50 — neutral
@@ -318,18 +364,38 @@ const GEN = {
     // level data. So this takes the one seventh that costs the SHED the least
     // — its own west wall goes 71 to 56, which it can afford and arguably wants
     // — and the rest of that fight belongs to whoever owns the fixtures.
+    //
+    // The exposure has since come down from 1.0 to 0.55 and the van has grown a
+    // dark ply body of its own, so the white-card argument no longer binds this
+    // number; it stays where the shed liked it and the contrast below is what
+    // changed instead.
     let r = 0.362, g = 0.356, b = 0.330;
     // The rib pitch is 57 cm, which is still a dozen pixels wide at the far
     // wall, so this one repeating feature is allowed real contrast.
     const shade = 0.92 + 0.14 * ribH;
     r *= shade; g *= shade; b *= shade;
-    const grime = mix(0.86, 1.05, dirt) * mix(0.94, 1.04, streaks);
+    const grime = mix(0.86, 1.05, dirt) * mix(0.94, 1.04, runs) * (1 + (tooth - 0.5) * 0.16);
     r *= grime; g *= grime; b *= grime * 0.96;
-    // Rust bleeds warm and kills the paint's slight green.
-    r = mix(r, 0.42, rustAt); g = mix(g, 0.23, rustAt); b = mix(b, 0.13, rustAt);
+    // The lap: a dark line with a warm wash under it. The wash is worth more
+    // than the line — it is 74 cm tall and the line is three centimetres.
+    const washK = lapWash * 0.30;
+    r *= 1 - washK * 0.62; g *= 1 - washK * 0.86; b *= 1 - washK * 1.00;
+    r *= 1 - lap * 0.34; g *= 1 - lap * 0.38; b *= 1 - lap * 0.40;
+    // Rust bleeds warm and kills the paint's slight green. Allowed to arrive:
+    // the two masks it is made of are both soft, so a product of them barely
+    // reached a third before, and a third of the way to a colour is a tint.
+    //
+    // BROWN, THOUGH. The first cut of this took the target to 0.46/0.22/0.11,
+    // which is a two-and-a-half to one red-to-blue ratio — orange paint, not
+    // iron oxide — and photographed on a blue-lit wall in the flooded plant it
+    // came back as red splashes. Rust is a dark warm brown with barely more
+    // chroma than the steel it is eating; what makes it read is that it is
+    // DARKER and rougher than the paint, not that it is coloured.
+    r = mix(r, 0.375, rustAt); g = mix(g, 0.235, rustAt); b = mix(b, 0.155, rustAt);
     r *= 1 - seam * 0.45; g *= 1 - seam * 0.45; b *= 1 - seam * 0.45;
     o[0] = r; o[1] = g; o[2] = b;
-    o[3] = clamp01(ribH * 0.74 + 0.11 - seam * 0.45 - rustAt * 0.18 + (grit - 0.5) * 0.22);
+    o[3] = clamp01(ribH * 0.74 + 0.11 - seam * 0.45 - rustAt * 0.18
+      - lap * 0.42 - lapWash * 0.10 + (grit - 0.5) * 0.22);
   },
 
   // Profiled steel roof deck. Two ribs across the tile and nothing else in the
@@ -514,11 +580,21 @@ const GEN = {
     // gives a triangle; the product of a wide one and a narrow one is a bar,
     // and offsetting the second family by half a cell interleaves them the way
     // a real plate does.
+    //
+    // AND THE SHEAR CAME OUT, WHICH IS WHY IT WAS HOUNDSTOOTH.
+    //
+    // Both families were sheared — `u * N + v * N * 0.5` — which leans every
+    // bar over at 27 degrees, and two families of leaning bars interlocking is
+    // not chequer plate, it is a tweed. Photographed on the dock at two metres
+    // this came back as a navy houndstooth scarf laid over the loading bay, and
+    // it was the loudest surface in the frame by a wide margin. Durbar plate's
+    // bars are square to the sheet; the interlock comes from the half-cell
+    // offset, which is still here and is all it ever needed.
     const N = 4;                                   // 4 lozenges per 0.80 m tile
     const bar = (a, b) => (1 - smooth(0.10, 0.42, Math.abs(fract(a) - 0.5) * 2))
       * (1 - smooth(0.55, 0.95, Math.abs(fract(b) - 0.5) * 2));
-    const lozA = bar(u * N + v * N * 0.5, v * N);
-    const lozB = bar(v * N + u * N * 0.5 + 0.5, u * N + 0.5);
+    const lozA = bar(u * N, v * N);
+    const lozB = bar(v * N + 0.5, u * N + 0.5);
     const loz = Math.max(lozA, lozB);
 
     // The traffic lane: a metre-and-a-half band of polished plate down the
@@ -533,30 +609,46 @@ const GEN = {
     // Heel scuffs: small, dense, and only where people stand rather than drive.
     const scuff = smooth(0.56, 0.86, fbm(u, v, 30, 2, 83)) * (1 - lane * 0.7);
 
-    // Steel, dirty. The burnished tops run a long way over the dark plate —
-    // this is where the p90/p10 comes from and it is not subtle on purpose.
-    let l = 0.235;
-    l *= mix(0.80, 1.12, grime);
-    l = mix(l, 0.475, loz * mix(0.55, 1.0, wear));   // lozenge tops, burnished
-    l = mix(l, 0.520, lane * 0.34);                  // the polished traffic lane
-    l = mix(l, 0.140, scuff * 0.30);                 // scuffed patches go dull
-    l = mix(l, 0.560, score * 0.55);                 // a fresh gouge is bare steel
-    // Galvanised steel that has been walked on is a warm grey with the zinc
-    // showing cool where it is bright. Two hues, keyed to the same feature that
-    // carries the value, so the plate reads as metal rather than as paint.
-    o[0] = l * mix(1.035, 0.980, loz);
+    // AND THE CONTRAST CAME DOWN BY HALF, WHICH IS THE OTHER HALF OF THE TWEED.
+    //
+    // The note this replaces said the burnished tops running a long way over
+    // the dark plate "is not subtle on purpose", and it was answering a real
+    // finding: the dock had measured p90/p10 1.02, which is a surface with no
+    // material in it at all. It then overshot by as much again. 0.235 to 0.475
+    // is a two-to-one albedo ratio inside twenty centimetres, on a plate that
+    // is also 30% metallic with a -0.26 roughness variance keyed to the same
+    // feature — so the tops were brighter AND glossier AND standing proud, three
+    // times over, and the frame-wide texture measure came out at 0.199 against
+    // a reference band of 0.040-0.080.
+    //
+    // Chequer plate is a dark grey plate with slightly paler tops on it. The
+    // ratio is nearer 1.4 than 2.0, and what makes it read at two metres is the
+    // relief and the gloss, both of which are still here and both of which fade
+    // with distance the way they should.
+    let l = 0.250;
+    l *= mix(0.84, 1.10, grime);
+    l = mix(l, 0.345, loz * mix(0.55, 1.0, wear));   // lozenge tops, burnished
+    l = mix(l, 0.375, lane * 0.30);                  // the polished traffic lane
+    l = mix(l, 0.170, scuff * 0.30);                 // scuffed patches go dull
+    l = mix(l, 0.410, score * 0.45);                 // a fresh gouge is bare steel
+    // Galvanised steel that has been walked on is a WARM grey, and the hue
+    // split that used to run the other way is why the dock photographed navy.
+    // The tops were pushed cool (blue x1.045) and the plate warm, so the pattern
+    // arrived as blue-white on brown before the cool fill light had even reached
+    // it; under the bounce tint the whole surface then went indigo. Bare steel
+    // where a boot has polished it IS the cool part, but by a per cent, not by
+    // twelve, and the plate under it is warm rather than neutral.
+    o[0] = l * mix(1.045, 1.010, loz);
     o[1] = l * 1.000;
-    o[2] = l * mix(0.930, 1.045, loz);
+    o[2] = l * mix(0.945, 0.985, loz);
     // Height: the lozenges stand proud, the gouges cut in, and a fine tooth
     // under all of it. The relief LOD in materials.js takes the tooth away
     // before it can alias.
     const tooth = fbm(u, v, 64, 3, 29);
-    o[3] = clamp01(0.30 + loz * 0.55 - score * 0.34 + (tooth - 0.5) * 0.22
+    o[3] = clamp01(0.30 + loz * 0.46 - score * 0.34 + (tooth - 0.5) * 0.22
       - scuff * 0.10);
   },
 
-  // Open steel grating: bearing bars one way, twisted cross rods the other,
-  // and a lot of nothing in between.
   grate(u, v, o) {
     const bars = 9;
     const bx = Math.abs(fract(u * bars) - 0.5) * 2;
@@ -591,6 +683,24 @@ const GEN = {
   // loops that were scribbling on the floor, wrapped around the uprights.
   // Racking is punched on a regular pitch because a beam has to hook into it,
   // so it is a regular pitch now, and mostly in height.
+  //
+  // AND IT IS NO LONGER THE ONLY BLUE THING IN THE GAME, WHICH IS WHY IT IS
+  // STILL ALLOWED TO BE BLUE.
+  //
+  // This one recipe was drawing racking uprights, racking decks, the conveyor,
+  // the van's frame, the van's doors, the van's chassis, the roof purlins and
+  // the roof rafters. Eight jobs, one saturated blue enamel, at 0.661
+  // saturation with 79% of every chromatic pixel in the frame landing in a
+  // single fifteen-degree hue bin. At two metres the racking read as swimming
+  // pool tile and at nine metres the purlins read as blue strip lights bolted
+  // to the roof, which is a fair description of what a bright saturated bar
+  // under a lamp looks like when it is the only bright saturated thing up
+  // there.
+  //
+  // Splitting the jobs is the fix, and it is a fix that costs the racking
+  // nothing: see structsteel() and vandoor() below, and the tag table in
+  // worldview.js that decides which brush gets which. What is left here is the
+  // one job the colour was chosen for.
   steelblue(u, v, o) {
     const chip = vnoise(u, v, 22, 7);
     const chipMask = smooth(0.76, 0.90, chip);
@@ -610,6 +720,118 @@ const GEN = {
     r *= 1 - slot * 0.34; g *= 1 - slot * 0.34; b *= 1 - slot * 0.34;
     o[0] = r; o[1] = g; o[2] = b;
     o[3] = clamp01(0.55 + (scuff - 0.5) * 0.28 - chipMask * 0.22 - slot * 0.55);
+  },
+
+  // STRUCTURE: purlins, rafters, columns, beams, kerbs, pipes, the van's frame
+  // and its chassis. Everything that holds a building up and nothing that
+  // holds stock.
+  //
+  // Split out of steelblue() because a bright saturated blue is the wrong
+  // answer for all of it and was measurably damaging the frame — see the note
+  // above. Structural steel in a working shed is galvanised or it is painted
+  // grey, it is thirty years into a roof that leaks, and the one thing it is
+  // never is a primary colour.
+  //
+  // Three things it needs and the racking recipe could not give it:
+  //
+  //  * LOW CHROMA. The purlins and rafters are the only thing in the top third
+  //    of a wide shot besides the deck, and at 0.66 saturation under a bay lamp
+  //    they were reading as lighting rather than as steel. This is under 0.10.
+  //  * DARKER THAN THE DECK IT HANGS UNDER. A rafter that is brighter than the
+  //    roof behind it is a light; a rafter that is darker is a rafter. The deck
+  //    sits at 0.365 and this sits at 0.285, so the roof structure resolves as
+  //    silhouette, which is how you actually read a roof.
+  //  * TWO DIRECTIONS. Mill scale and rust are isotropic blotch; the drips run
+  //    down. A member with only one of those in it is a painted dowel.
+  structsteel(u, v, o) {
+    // Galvanising spangle at the coarse end, and the patchy grey of paint that
+    // has been rolled on over it twice. Both metre-scale on a 1.75 m tile.
+    const scale = fbm(u, v, 4, 2, 211);
+    // ...and the same thing an octave band finer — 12 cm and 6 cm on a 1.75 m
+    // tile. This one is in ALBEDO on purpose. Everything fine on the old recipe
+    // was in height under a bump, and a purlin nine metres up is lit by a lamp
+    // three metres to one side of it: the derivative bump returns almost
+    // nothing at that angle, so the member arrived as a single flat value.
+    const grain = fbm(u, v, 14, 2, 149);
+    const paint = fbm(u, v, 2, 2, 71);
+    // Drips and run marks, DOWN the member. streak() elongates along its first
+    // argument, so passing v first is what makes these vertical.
+    const drip = streak(v, u, 16, 7, 2, 17);
+    // The tooth — HEIGHT. Rolled steel is not smooth and neither is old paint.
+    const tooth = fbm(u, v, 30, 3, 53);
+    // Rust where the paint has gone, which is at the drips and at the ends.
+    const rustAt = smooth(0.62, 0.86, fbm(u, v, 6, 2, 97)) * smooth(0.38, 0.82, drip);
+    // ONE flange edge per tile in each direction, at the tile seam, so what a
+    // member shows is a CORNER rather than a grid. A rolled section is two
+    // plates meeting at a right angle and the arris between them is the only
+    // hard line on it; putting several across a tile is how the wall cladding
+    // ended up looking like brickwork, and the same mistake is available here.
+    const arris = Math.max(
+      smooth(0.988, 1.0, Math.abs(Math.cos(u * Math.PI))),
+      smooth(0.988, 1.0, Math.abs(Math.cos(v * Math.PI))),
+    );
+
+    // A cool-leaning grey, but barely: 1.00/1.01/1.06 is under three per cent
+    // of chroma, which is what galvanising over grey paint looks like and is
+    // small enough that it cannot join a hue bin.
+    let l = 0.285 * mix(0.82, 1.14, paint) * mix(0.92, 1.06, scale);
+    l *= mix(0.94, 1.05, drip) * (1 + (grain - 0.5) * 0.20);
+    let r = l * 1.000, g = l * 1.010, b = l * 1.060;
+    // Rust is the only colour this material is allowed and it is warm, which is
+    // also the only thing keeping the roof structure out of the blue bin.
+    r = mix(r, 0.40, rustAt * 0.85); g = mix(g, 0.20, rustAt * 0.85); b = mix(b, 0.115, rustAt * 0.85);
+    r *= 1 - arris * 0.30; g *= 1 - arris * 0.30; b *= 1 - arris * 0.30;
+    o[0] = r; o[1] = g; o[2] = b;
+    o[3] = clamp01(0.52 + (tooth - 0.5) * 0.30 + (scale - 0.5) * 0.16
+      - arris * 0.40 - rustAt * 0.16);
+  },
+
+  // The van's rear doors. A painted steel skin and nothing else.
+  //
+  // Also split out of steelblue(), and for a different reason from the one
+  // above: the doors are the two largest flat surfaces at the loading end, they
+  // are held open a metre from the player for the whole job, and they were
+  // wearing a racking upright's punched slot pattern at a 22 cm pitch. A van
+  // door is the opposite of that — it is a pressed panel whose whole character
+  // is that it is SMOOTH, with a swage rolled into it for stiffness and a lap
+  // where the skin wraps the frame.
+  //
+  // So this is deliberately the quietest map in the set. Two features with any
+  // contrast: the swage, which is horizontal because v is world height on any
+  // vertical surface under the box projection, and the vertical seam at the
+  // tile edge where the skin folds. Everything else is the orange-peel of a
+  // cheap respray and forty thousand miles of road film, and both of those are
+  // in height where they belong.
+  //
+  // What is NOT here is the handle. A handle is a fifteen-centimetre object at
+  // one specific place on one specific door; a tiling triplanar map cannot put
+  // anything at a place, and every attempt to fake one with a threshold puts
+  // eleven of them on each door. That is geometry, and geometry for the van is
+  // level data rather than a texture.
+  vandoor(u, v, o) {
+    // The swage: two shallow steps pressed across the skin. Real, and the only
+    // thing that stops a flat panel being a flat panel.
+    const sw = Math.abs(fract(v * 2 + 0.25) - 0.5) * 2;
+    const swage = (1 - smooth(0.62, 0.84, sw)) * smooth(0.42, 0.62, sw);
+    // Where the skin wraps the frame. One per tile, at the seam.
+    const fold = smooth(0.982, 1.0, Math.abs(Math.cos(u * Math.PI)));
+    const film = fbm(u, v, 3, 2, 307);            // road film, metre-scale
+    const peel = fbm(u, v, 44, 2, 89);            // orange peel — HEIGHT
+    const wash = streak(v, u, 12, 8, 2, 149);     // rain off the roof line
+
+    // Van white that has been white for a long time. Warm, because a respray
+    // yellows and because the shed's only other pale surface is the concrete.
+    let l = 0.300 * mix(0.88, 1.08, film) * mix(0.95, 1.04, wash);
+    l *= 1 + swage * 0.09;
+    let r = l * 1.030, g = l * 1.010, b = l * 0.965;
+    // Rot along the bottom of a door is rust, and it is the one loud thing a
+    // working van has. Kept low-frequency so it reads at four metres.
+    const rot = smooth(0.74, 0.94, fbm(u, v, 4, 2, 233)) * smooth(0.45, 0.85, wash);
+    r = mix(r, 0.34, rot); g = mix(g, 0.17, rot); b = mix(b, 0.10, rot);
+    r *= 1 - fold * 0.40; g *= 1 - fold * 0.40; b *= 1 - fold * 0.40;
+    o[0] = r; o[1] = g; o[2] = b;
+    o[3] = clamp01(0.58 + swage * 0.26 - fold * 0.50
+      + (peel - 0.5) * 0.22 + (film - 0.5) * 0.12 - rot * 0.14);
   },
 
   // Safety yellow with hazard chevrons, worn through where boots land.
@@ -962,9 +1184,38 @@ const GEN = {
   // completely gone by the time a contractor is a forty-pixel figure across the
   // shed. That is precisely the behaviour that makes fine detail safe, and it
   // is what makes putting it back defensible after taking it out.
+  //
+  // ...AND THAT DID NOT FIX IT EITHER, BECAUSE HEIGHT ALONE CANNOT.
+  //
+  // A third review, after all of the above shipped, still read the hat and the
+  // face as a smooth untextured gradient. Measured against the recipe rather
+  // than guessed at: the whole albedo swing here was sheen ±0.015, drag ±0.019
+  // and peel ±0.006 on a base of 0.905 — under four per cent peak to peak, or
+  // about four levels out of two hundred. Four levels IS a gradient. The relief
+  // was doing its job and could not be seen doing it, because relief arrives
+  // through a derivative bump and a bump needs a light with a DIRECTION; the
+  // contractor's head is lit largely by the bounce, which arrives from
+  // everywhere at once, and by a torch pointing straight down the view axis,
+  // which is the one direction that shows no relief at all.
+  //
+  // So the colour has to carry some of it, and the frequency rule says exactly
+  // how much of what. The 3.5 mm peel stays in height where it belongs. What
+  // goes into albedo is the band between one and five centimetres — mould flow,
+  // grime in the recesses, and the polished drag marks a hat that lives in the
+  // back of a van actually has. At a metre that is the material; at ten metres
+  // it is four pixels across and the mip has already averaged it away, which is
+  // the same argument the concrete floor's oil stains are allowed to make.
   gear(u, v, o) {
     const sheen = fbm(u, v, 2, 2, 5);            // ~17 cm — one side of a shell
     const drag = streak(u, v, 12, 9, 2, 61);     // scuffs, along the moulding
+    // The few that went deep enough to burnish. A threshold rather than more
+    // amplitude: what a scuffed shell has is a handful of BRIGHT strokes on an
+    // otherwise even surface, not a uniformly noisy one, and a face gets the
+    // same field as the sheen off a cheekbone.
+    const burnish = smooth(0.70, 0.93, drag);
+    // Grime, at 7 cm. On a hat it is what collects around the ribs and the
+    // band; on a face it is the shading that stops a sphere being a sphere.
+    const grime = fbm(u, v, 5, 2, 197);
     // Orange peel. 96 cells on a 0.34 m tile is 3.5 mm, which is what comes off
     // an injection tool and what a cheek looks like at half a metre.
     const peel = fbm(u, v, 96, 2, 211);
@@ -972,12 +1223,18 @@ const GEN = {
     // face passes for the grain of skin. Stretched, so it is a direction rather
     // than a speckle.
     const flow = streak(u, v, 40, 6, 2, 173);
-    const l = 0.905 + (sheen - 0.5) * 0.030 + (drag - 0.5) * 0.038
-      + (peel - 0.5) * 0.012;
+    let l = 0.880 + (sheen - 0.5) * 0.100 + (drag - 0.5) * 0.135
+      + (grime - 0.5) * 0.100 + (peel - 0.5) * 0.026;
+    l *= 1 + burnish * 0.100;
     // A whisper warm rather than a whisper cool. The vertex colour carries the
     // hue on the hat and the skin tone on the face, and a cold multiplier on a
     // face is the difference between a person and a corpse.
-    o[0] = l; o[1] = l * 0.997; o[2] = l * 0.990;
+    //
+    // Grime is the one thing here allowed to move the hue: dirt is warm and it
+    // takes the blue out first, which on a shell reads as dirt and on a face
+    // reads as blood under the skin. Both are wanted.
+    const dirty = (1 - grime) * 0.055;
+    o[0] = l; o[1] = l * (0.997 - dirty * 0.30); o[2] = l * (0.990 - dirty);
     o[3] = clamp01(0.60 + (drag - 0.5) * 0.26 + (sheen - 0.5) * 0.14
       + (peel - 0.5) * 0.30 + (flow - 0.5) * 0.16);
   },

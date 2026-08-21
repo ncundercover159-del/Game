@@ -171,6 +171,28 @@ const RECIPES = {
   // next. Enamel over pressed steel is nearly matte; the highlight it is
   // entitled to comes from the lamps, not from a room that is not there.
   steelblue: { tex: 'steelblue', tile: 1.75, rough: 0.72, metal: 0.22, bump: 1.5, roughVar: -0.22, ao: 0.30, mottle: 0.11, fill: 0.235, env: 0.22 },
+  // ONE ENAMEL WAS DOING EIGHT JOBS. THESE ARE THE OTHER TWO OF THE THREE.
+  //
+  // Every level still writes `steelblue` on the brush, because that is what a
+  // level author means and because leveltest.js checks brush materials against
+  // MATERIAL_NAMES; worldview.js picks one of the three by the brush's own tag
+  // at build time. `rackblue` is the same recipe under the name that says what
+  // it is for, so that a future reader does not have to work out which of the
+  // eight jobs the numbers were tuned against.
+  rackblue: { tex: 'steelblue', tile: 1.75, rough: 0.72, metal: 0.22, bump: 1.5, roughVar: -0.22, ao: 0.30, mottle: 0.11, fill: 0.235, env: 0.22 },
+  // Structure. Rougher and less metallic than the racking — this is paint over
+  // mill scale rather than enamel over pressed steel — and mottle is up,
+  // because a 46 m purlin is one long member and the drift is the only thing
+  // stopping it being one long value. env is nearly off: a rafter nine metres
+  // up catching a prefiltered studio room is exactly the glitter the racking
+  // note below is about, and it is worse up there because there is no other
+  // detail at that distance to argue with it.
+  structsteel: { tex: 'structsteel', tile: 1.75, rough: 0.86, metal: 0.12, bump: 1.4, roughVar: -0.18, ao: 0.34, mottle: 0.15, fill: 0.215, env: 0.06 },
+  // A painted door skin: smoother, glossier and flatter than either. bump is
+  // low on purpose — the whole point of the surface is that it is a pressed
+  // panel — and env is up, because a van door IS the one thing at the loading
+  // end with enough gloss to show the shed back to you.
+  vandoor: { tex: 'vandoor', tile: 2.40, rough: 0.52, metal: 0.06, bump: 0.9, roughVar: -0.24, ao: 0.22, mottle: 0.07, fill: 0.245, env: 0.30 },
   railing: { tex: 'railing', tile: 1.05, rough: 0.62, metal: 0.22, bump: 1.8, roughVar: -0.20, ao: 0.26, mottle: 0.10, fill: 0.225 },
   plank: { tex: 'plank', tile: 1.55, rough: 0.90, metal: 0.0, bump: 2.0, roughVar: -0.16, ao: 0.34, mottle: 0.13, fill: 0.225 },
   // Packing crates. The two in the inspection pit are the only way back out of
@@ -671,6 +693,23 @@ export const BOUNCE = {
 // third of a metre of penumbra under a crate, which is about what a four-metre
 // bay lamp actually throws.
 export const PENUMBRA = { value: new THREE.Vector2(2.2, 4.0) };
+
+// A HANDLE ON THE THREE SHARED UNIFORMS, FOR THE SAME REASON post.js EXPOSES
+// ITS OWN.
+//
+// Every number in this file that is a property of the ROOM rather than of a
+// surface — the bounce floor, its colour, the penumbra radius — is one uniform
+// object shared by every material in the level. Which means a probe can sweep
+// it in a single browser session, and the alternative is a four-minute rebuild
+// per candidate value. Both of the last two shadow-rotation numbers were
+// guessed at because nothing here was reachable; the tint below was then
+// derived by arithmetic and never checked against a frame.
+//
+// Read-only in practice and never touched by the game. Guarded, because this
+// module is imported by the level lint under node where there is no window.
+if (typeof globalThis !== 'undefined') {
+  globalThis.__hzArt = { BOUNCE, PENUMBRA };
+}
 
 function patch(shader) {
   const tp = this.userData.tp;

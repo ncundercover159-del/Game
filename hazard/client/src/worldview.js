@@ -418,7 +418,7 @@ export class WorldView {
       if (b.r) g.rotateX(b.r[0] || 0), g.rotateY(b.r[1] || 0), g.rotateZ(b.r[2] || 0);
       g.translate(b.p[0], b.p[1], b.p[2]);
 
-      const key = b.mat || 'concrete';
+      const key = surfaceFor(b);
       if (!byMat.has(key)) byMat.set(key, []);
       byMat.get(key).push(g);
     }
@@ -864,6 +864,39 @@ function shortestAngle(a) {
   while (a > Math.PI) a -= Math.PI * 2;
   while (a < -Math.PI) a += Math.PI * 2;
   return a;
+}
+
+// ONE ENAMEL WAS DOING EIGHT JOBS, AND THE LEVELS ARE NOT THE PLACE TO FIX IT.
+//
+// `steelblue` was drawing racking uprights, racking decks, the conveyor, the
+// van's frame, its doors, its chassis, the roof purlins and the roof rafters.
+// Measured, that is 0.661 saturation with 79% of every chromatic pixel in the
+// frame inside a single fifteen-degree hue bin: at two metres the racking read
+// as swimming-pool tile and at nine metres the purlins read as blue strip
+// lights bolted to the roof. Splitting the recipe is the fix (see materials.js)
+// and this is where the split is DECIDED.
+//
+// It is decided here, and by TAG, for two reasons. A level is plain data shared
+// with the server, and which of three paint jobs a purlin wears is a render
+// question that the collider does not have an opinion about; and every one of
+// these brushes is already tagged with what it IS, by an author who was not
+// thinking about materials when they wrote it. Reading the tag costs nothing
+// and cannot drift out of step with the geometry the way a parallel list would.
+//
+// Anything not named here falls through to structure, which is the right
+// default: an untagged steel brush in this game has so far always been a frame
+// member, a sill or a kerb.
+const STEEL_JOBS = {
+  strut: 'rackblue',      // racking uprights, and the tower's scaffold props
+  deck: 'rackblue',       // racking beams
+  vandoor: 'vandoor',
+};
+
+/** Which material actually draws this brush. */
+function surfaceFor(b) {
+  const mat = b.mat || 'concrete';
+  if (mat !== 'steelblue') return mat;
+  return STEEL_JOBS[b.tag] || 'structsteel';
 }
 
 /** Deterministic per-position jitter, so a rebuild shades identically. */
