@@ -373,6 +373,16 @@ const GEN = {
     // in `grit` where the channel rule wants it.
     const tooth = fbm(u, v, 22, 2, 131);
     const runs = streak(v, u, 9, 6, 2, 29);       // rain, DOWN the wall
+    // Sheet joints only at the tile edge. An earlier version put three across
+    // the tile and the wall came out looking like brickwork.
+    const seam = smooth(0.994, 1.0, Math.abs(Math.cos(v * Math.PI)));
+
+    // The lap, signed so that "below" means below. v is world height and it
+    // increases upwards, so negative is down and the wash goes down.
+    const lv = fract(v * 3 + 0.5) - 0.5;          // 0 at the lap, +/-0.5 mid-sheet
+    const lap = 1 - smooth(0.006, 0.030, Math.abs(lv));
+    const lapWash = smooth(-0.16, -0.005, lv) * mix(0.55, 1.0, dirt);
+
     // RUST THAT IS NOT THERE IS NOT RUST. Photographed flat, this recipe had
     // no rust anywhere on it: a two-octave fbm is a near-Gaussian clustered on
     // 0.5 with a standard deviation around a tenth, so thresholding it at
@@ -395,15 +405,6 @@ const GEN = {
     // water sits" term. Same two families doing two jobs.
     const rustAt = clamp01(smooth(0.56, 0.80, streak(v, u, 6, 3, 2, 53))
       * mix(0.40, 1.0, smooth(0.34, 0.76, runs)) * mix(0.80, 1.45, lapWash));
-    // Sheet joints only at the tile edge. An earlier version put three across
-    // the tile and the wall came out looking like brickwork.
-    const seam = smooth(0.994, 1.0, Math.abs(Math.cos(v * Math.PI)));
-
-    // The lap, signed so that "below" means below. v is world height and it
-    // increases upwards, so negative is down and the wash goes down.
-    const lv = fract(v * 3 + 0.5) - 0.5;          // 0 at the lap, +/-0.5 mid-sheet
-    const lap = 1 - smooth(0.006, 0.030, Math.abs(lv));
-    const lapWash = smooth(-0.16, -0.005, lv) * mix(0.55, 1.0, dirt);
 
     // A FADED WARM GREY, NOT A COOL ONE. Cladding is the second largest area in
     // the level after the roof deck and it was mixed 0.47/0.50/0.50 — neutral
