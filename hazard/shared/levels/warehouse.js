@@ -31,8 +31,20 @@ const brushes = [
   box([3.8, -0.55, 1.0], [0.5, 1.7, 5.0], 'concrete'),
   box([0, -0.55, -1.8], [7.0, 1.7, 0.5], 'concrete'),
   box([0, -0.55, 3.8], [7.0, 1.7, 0.5], 'concrete'),
-  // ...and the plank somebody left across it, which will not hold a piano
-  box([0, 0.06, 2.2], [8.6, 0.12, 0.9], 'plank', { tag: 'plank' }),
+  // ...and the plank somebody left across it, which will not hold a piano.
+  //
+  // Narrower and further back than it was. At 900mm wide sitting at z=2.2 it
+  // spanned the full width of the trench right behind the near kerb, so from
+  // the south approach — which is the way you come from the spawn — it capped
+  // the hole: you saw a black plinth with hazard tape on top and no opening at
+  // all. 620mm at z=1.2 leaves two metres of open trench between the near kerb
+  // and the plank, so the hole reads as a hole from the direction people
+  // actually arrive from.
+  //
+  // z=1.2 and not further north because the pit's two escape crates sit at
+  // z=-1.0 and z=0.0 and the second one tops out at y=0.025 — a plank at y=0
+  // to 0.12 laid over it would intersect the only way out of the trench.
+  box([0, 0.06, 1.2], [8.6, 0.12, 0.62], 'plank', { tag: 'plank' }),
 
   // CHEVRONS ON THE LIP.
   //
