@@ -406,6 +406,55 @@ const GEN = {
     const rustAt = clamp01(smooth(0.56, 0.80, streak(v, u, 6, 3, 2, 53))
       * mix(0.40, 1.0, smooth(0.34, 0.76, runs)) * mix(0.80, 1.45, lapWash));
 
+    // FIXINGS, WHICH ARE THE ONE THING ON A CLAD WALL AT THE SCALE THAT IS
+    // MISSING.
+    //
+    // Splitting the rib between albedo and height fixed the barcode and moved
+    // the measured local contrast by nothing at all — 3.49 to 3.42 on the
+    // flooded plate, 4.57 to 4.21 in the aisle. That is not a failed change,
+    // it is a mis-aimed one: the laplacian of this wall is dominated by a
+    // 57 cm rib, and moving contrast from one channel to another leaves the
+    // total where it was. What the surface is actually short of is anything
+    // between the 21 cm weathering blotch and the 3 mm tooth, at a contrast
+    // the eye can find. On real profiled cladding that band is not texture at
+    // all — it is HARDWARE. A sheet is screwed to a rail through the crown of
+    // every rib, and a wall this size carries several hundred of them.
+    //
+    // Which is also why this does not fall foul of the "twenty-two copies of
+    // the same rust patch in a dead-straight grid" note further up. That note
+    // is about a random feature repeating on a lattice, which reads as a
+    // texture failing. Fixings ARE on a lattice — a dead-straight one, at the
+    // rib crown and the rail height — and a grid is what they are supposed to
+    // look like. It is the one place on this recipe where regularity is the
+    // subject rather than the artefact.
+    //
+    // Rails at a sixth of the tile is 77 cm, which is tight for a purlin and
+    // right for a side rail, and it puts two rows between each pair of sheet
+    // laps rather than one — enough for the row to read as a row at ten metres
+    // without becoming a dot screen at two. The washer is about 4 cm, which is
+    // sub-pixel past fifteen metres and mips away with nothing left to alias.
+    const fu = Math.abs(fract(u * ribs) - 0.5);           // 0 at the rib crown
+    const fv = Math.abs(fract(v * 6 + 0.5) - 0.5);        // 0 at a rail
+    const fix = (1 - smooth(0.014, 0.062, fu)) * (1 - smooth(0.010, 0.044, fv));
+    // ...and the streak under it. A fixing is a hole through a painted sheet
+    // and the water that gets in comes back out: the rust bleed below a screw
+    // is more visible from ten metres than the screw is, and it is the reason
+    // an old clad wall reads as a grid of tears rather than a grid of dots.
+    //
+    // AND NO TWO OF THEM ARE THE SAME, which is the difference between a weep
+    // and a tick mark. The first cut of this was a constant-width bar at full
+    // rust for its whole length, repeated identically under every screw on the
+    // wall, and photographed flat it was a row of orange hyphens — the painted
+    // stripe failure that the rib has two paragraphs about, on a smaller
+    // feature. Three things fix it and all three are free: the tear SPREADS as
+    // it falls, the rain runs decide how far it gets, and a field at nine cells
+    // decides which screws weep at all. About a third of them do, which is what
+    // a wall looks like.
+    const fd = fract(v * 6 + 0.5) - 0.5;              // negative below the rail
+    const fall = smooth(-0.058, -0.006, fd);          // 1 at the screw, 0 by 9 cm
+    const fixWeep = clamp01((1 - smooth(0.014, 0.062 + (1 - fall) * 0.055, fu))
+      * fall * mix(0.20, 1.25, runs) * mix(0.05, 1.40, fbm(u, v, 9, 2, 311)));
+
     // A FADED WARM GREY, NOT A COOL ONE. Cladding is the second largest area in
     // the level after the roof deck and it was mixed 0.47/0.50/0.50 — neutral
     // tipping green-blue. Between it, the roof and the racking, a review
@@ -505,7 +554,15 @@ const GEN = {
     // came back as red splashes. Rust is a dark warm brown with barely more
     // chroma than the steel it is eating; what makes it read is that it is
     // DARKER and rougher than the paint, not that it is coloured.
-    r = mix(r, 0.375, rustAt); g = mix(g, 0.235, rustAt); b = mix(b, 0.155, rustAt);
+    // The weep is rust arriving through a second door, so it goes to the same
+    // colour and is capped together with the patch mask rather than added on
+    // top of it — two full-strength rusts multiplying would be a black smear.
+    const iron = clamp01(rustAt + fixWeep * mix(0.30, 0.85, dirt));
+    r = mix(r, 0.375, iron); g = mix(g, 0.235, iron); b = mix(b, 0.155, iron);
+    // The fixing itself: a galvanised screw in a dark washer, so it is darker
+    // and much less warm than the sheet it is in.
+    r = mix(r, 0.135, fix * 0.86); g = mix(g, 0.140, fix * 0.86);
+    b = mix(b, 0.150, fix * 0.86);
     r *= 1 - seam * 0.45; g *= 1 - seam * 0.45; b *= 1 - seam * 0.45;
     o[0] = r; o[1] = g; o[2] = b;
     // ...and the other half of the split. The rib keeps a third of the range
@@ -514,8 +571,13 @@ const GEN = {
     // it, the lap is a groove rather than a black wire, and nothing in here
     // clamps at either end any more — the old line ran 0 to 240 out of 255 with
     // the rib alone.
-    o[3] = clamp01(0.34 + ribH * 0.32 - seam * 0.30 - rustAt * 0.14
-      - lap * 0.26 - lapWash * 0.08 + (grit - 0.5) * 0.30);
+    // The fixing stands PROUD — a screw head and a washer are the only things
+    // on this surface that come towards you — so it is the one term here with
+    // a positive sign, and it is worth more in this channel than in albedo:
+    // half a centimetre of relief at a metre is a real shadow, and the cavity
+    // occlusion picks up the washer's rim for free.
+    o[3] = clamp01(0.34 + ribH * 0.32 - seam * 0.30 - iron * 0.14
+      - lap * 0.26 - lapWash * 0.08 + (grit - 0.5) * 0.30 + fix * 0.20);
   },
 
   // Profiled steel roof deck. Two ribs across the tile and nothing else in the
