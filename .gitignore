@@ -1,0 +1,6 @@
+
+# Agent harness logs. The critic and art passes write measurement logs while
+# they work; several have landed in the repo root by accident. They belong in
+# the scratchpad, and none of them is source.
+crit*.log
+hz*.log
