@@ -373,7 +373,28 @@ const GEN = {
     // in `grit` where the channel rule wants it.
     const tooth = fbm(u, v, 22, 2, 131);
     const runs = streak(v, u, 9, 6, 2, 29);       // rain, DOWN the wall
-    const rustAt = smooth(0.70, 0.92, fbm(u, v, 5, 2, 53)) * smooth(0.40, 0.80, runs);
+    // RUST THAT IS NOT THERE IS NOT RUST. Photographed flat, this recipe had
+    // no rust anywhere on it: a two-octave fbm is a near-Gaussian clustered on
+    // 0.5 with a standard deviation around a tenth, so thresholding it at
+    // 0.70-0.92 selects roughly the top two per cent of the tile, and then
+    // MULTIPLYING that by a second soft mask took most of the two per cent
+    // away again. The mask reached about 0.15 at its strongest and the mix it
+    // drives is a lerp, so the strongest rust on the wall was fifteen per cent
+    // of the way to a colour — a tint on a tint.
+    //
+    // So the threshold comes down to where it selects about a tenth of the
+    // sheet, which is what a thirty-year-old clad wall has, and the rain runs
+    // BIAS it rather than gate it: rust starts where water sits, but a run that
+    // happens to miss a patch does not mean the patch is clean.
+    // ...and it runs DOWNWARDS, because rust on a clad wall is not a splash.
+    // The first cut of this threshold photographed flat as round terracotta
+    // blobs — paint, thrown at a wall. Iron oxide on profiled steel starts at a
+    // fixing or a lap where water stands and then bleeds down the sheet, so the
+    // mask is an anisotropic field elongated along v (world height) and it is
+    // biased by lapWash, which is already the "just under the lap, where the
+    // water sits" term. Same two families doing two jobs.
+    const rustAt = clamp01(smooth(0.56, 0.80, streak(v, u, 6, 3, 2, 53))
+      * mix(0.40, 1.0, smooth(0.34, 0.76, runs)) * mix(0.80, 1.45, lapWash));
     // Sheet joints only at the tile edge. An earlier version put three across
     // the tile and the wall came out looking like brickwork.
     const seam = smooth(0.994, 1.0, Math.abs(Math.cos(v * Math.PI)));
@@ -428,11 +449,45 @@ const GEN = {
     // number; it stays where the shed liked it and the contrast below is what
     // changed instead.
     let r = 0.362, g = 0.356, b = 0.330;
-    // The rib pitch is 57 cm, which is still a dozen pixels wide at the far
-    // wall, so this one repeating feature is allowed real contrast.
-    const shade = 0.92 + 0.14 * ribH;
+    // THE RIB MOVES BACK INTO ALBEDO, AND THE REASON IS THE SAME MEASUREMENT
+    // THAT TOOK IT OUT.
+    //
+    // The note above put the rib "almost entirely in the height channel where
+    // the light can decide what it looks like", on the argument that a fold is
+    // a normal and not a painted stripe. That argument is right about physics
+    // and it produced a surface that fails at BOTH ends of the distance range,
+    // for one reason: the bump term in materials.js fades out on texel
+    // footprint. Photographed flat, the height channel of this recipe is a hard
+    // black-to-white barcode — ribH alone spans 0.74 of a 0.85 range, so the
+    // grit, the lap and the rust are all riding in the last eighth of it and
+    // arrive as nothing. Close up, that barcode at bump 2.1 IS the flooded
+    // spawn frame: sixty-four per cent of it is this material and it reads as
+    // corrugated card. Far away the bump has faded to zero and what is left is
+    // the albedo, which had a seven per cent ripple in it — which is the 1.10
+    // laplacian a review called the lowest local detail in the project. One
+    // cause, two opposite symptoms.
+    //
+    // So the rib is split. It is a fold AND it is a weathering pattern, and the
+    // second half is the half that is not a lie: rain runs off the crowns and
+    // stands in the valleys, so the valley carries thirty years of dirt and the
+    // crown is washed and chalked. That is albedo, it survives to any distance,
+    // and it is not a painted stripe because it is MODULATED — the valleys are
+    // dirtier where the sheet is dirty and where the water runs, so no two of
+    // them are the same value and the wall does not stripe uniformly.
+    const valley = 1 - ribH;
+    const sits = valley * mix(0.22, 1.05, dirt) * mix(0.38, 1.0, runs);
+    // Washed on the crown, dirty in the valley. The crown also loses chroma —
+    // that is chalking, and it is why old cladding goes pale on the ribs first.
+    //
+    // 0.40 rather than the 0.14 the shading term had. A typical valley lands
+    // about a fifth darker than its crown and a filthy one about a third, which
+    // is what an agricultural shed actually looks like and is nowhere near the
+    // half-swing painted stripe the note above was arguing against — that one
+    // was uniform, and uniform is the whole difference.
+    const shade = 1.07 - 0.40 * sits;
     r *= shade; g *= shade; b *= shade;
-    const grime = mix(0.86, 1.05, dirt) * mix(0.94, 1.04, runs) * (1 + (tooth - 0.5) * 0.16);
+    r += ribH * 0.012; g += ribH * 0.012; b += ribH * 0.013;
+    const grime = mix(0.86, 1.05, dirt) * mix(0.94, 1.04, runs) * (1 + (tooth - 0.5) * 0.22);
     r *= grime; g *= grime; b *= grime * 0.96;
     // The lap: a dark line with a warm wash under it. The wash is worth more
     // than the line — it is 74 cm tall and the line is three centimetres.
@@ -452,8 +507,14 @@ const GEN = {
     r = mix(r, 0.375, rustAt); g = mix(g, 0.235, rustAt); b = mix(b, 0.155, rustAt);
     r *= 1 - seam * 0.45; g *= 1 - seam * 0.45; b *= 1 - seam * 0.45;
     o[0] = r; o[1] = g; o[2] = b;
-    o[3] = clamp01(ribH * 0.74 + 0.11 - seam * 0.45 - rustAt * 0.18
-      - lap * 0.42 - lapWash * 0.10 + (grit - 0.5) * 0.22);
+    // ...and the other half of the split. The rib keeps a third of the range
+    // instead of seven eighths, which is what leaves room for anything else to
+    // be seen: grit is now half the rib's amplitude rather than a quarter of
+    // it, the lap is a groove rather than a black wire, and nothing in here
+    // clamps at either end any more — the old line ran 0 to 240 out of 255 with
+    // the rib alone.
+    o[3] = clamp01(0.34 + ribH * 0.32 - seam * 0.30 - rustAt * 0.14
+      - lap * 0.26 - lapWash * 0.08 + (grit - 0.5) * 0.30);
   },
 
   // Profiled steel roof deck. Two ribs across the tile and nothing else in the

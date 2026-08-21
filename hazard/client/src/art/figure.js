@@ -835,15 +835,36 @@ export function makeFigure(slot) {
     // edge finishes BELOW the crown line.
     //
     // A cone frustum is exactly that shape and costs the same as the disc did:
-    // 1.06 radii at the top, where it meets the crown with a millimetre of lip,
-    // out to 1.24 at the bottom over 2.2 cm of head scale — a 38 degree fall,
-    // which is what a Centurion's peripheral brim actually does. Stretched 1.32
-    // down +Z, because a peripheral brim is longer front to back than it is at
-    // the temples, which is what makes it read as a hard hat from above.
+    // 1.04 radii at the top, where it meets the crown with a millimetre of lip,
+    // out to 1.13 at the bottom over 2.2 cm of head scale, and stretched down
+    // +Z, because a peripheral brim is longer front to back than it is at the
+    // temples — which is what makes it read as a hard hat from above.
+    //
+    // AND IT IS HALF THE BRIM IT WAS, BECAUSE THE FRUSTUM DID NOT FIX THE
+    // SAUCER — IT WAS NEVER THE FLATNESS, IT WAS THE OVERHANG.
+    //
+    // 1.24 radii stretched 1.32 puts the brim's edge 1.64 radii down +Z against
+    // a crown that reaches 1.06 there: the brim projected 0.58 radii past the
+    // shell while the crown stood 0.62 radii above it, so overhang and crown
+    // height were within a tenth of each other. THAT ratio is the whole tell.
+    // A sun hat is a small crown inside a big brim; a hard hat is a big crown
+    // with a lip on it, and on a real Centurion the shell stands about 90 mm
+    // over a brim that projects 35 — nearly three to one. Photographed from the
+    // side at four hundred pixels of head this came back as a flying saucer for
+    // the third review running, and no amount of tilting the disc was going to
+    // change that, because the disc was simply half as big again as it should
+    // ever have been.
+    //
+    // 1.13 out and 1.20 of stretch is 1.36 radii down +Z — 0.30 of overhang
+    // against 0.62 of crown, which is the two-to-one a hard hat actually has —
+    // and 0.13 at the temples, which is the lip you see under a brim from the
+    // front. It stays clearly wider front-to-back than side-to-side, so the
+    // peripheral shape still reads from above and in three-quarter, which is
+    // the one bit of silhouette that separates this build from the full brim.
     head.add(
-      squash(new THREE.CylinderGeometry(r * 1.06, r * 1.24, 0.022 * HD, 18),
-        [1.0, 1.0, 1.32]),
-      hatCol, BI.hat, RF.hat, [0, RIM - 0.011 * HD, 0.012 * HD],
+      squash(new THREE.CylinderGeometry(r * 1.04, r * 1.13, 0.022 * HD, 18),
+        [1.0, 1.0, 1.20]),
+      hatCol, BI.hat, RF.hat, [0, RIM - 0.011 * HD, 0.010 * HD],
     );
   }
 
