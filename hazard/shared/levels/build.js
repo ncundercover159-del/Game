@@ -57,6 +57,24 @@ export function racking(cx, cz, bays, decks, opts = {}) {
       place(lx, (decks * deckH) / 2, lz, 0.12, decks * deckH, 0.12, 'steelblue', 'strut');
     }
   }
+  // A SOLID BACK, WHEN THE LEVEL ASKS FOR ONE.
+  //
+  // Not for realism — real pallet racking is open both sides — but because a
+  // 46x34m shed with nothing vertical in it gives its lamps nowhere to land
+  // except the floor. Measured, the brightest region in four frames out of five
+  // was the concrete at the player's boots, and it won by default: it was the
+  // only surface within reach of a pendant. A backed bay turns each aisle into a
+  // corridor with lit walls, which is what puts a bright band at eye level and
+  // gives a silhouette something to read against.
+  //
+  // `opts.back` is a side, -1 or +1, so a row can be closed on its outboard face
+  // and stay open to the aisle a contractor actually walks down.
+  if (opts.back) {
+    const side = Math.sign(opts.back) * (depth / 2 + 0.06);
+    place(0, (decks * deckH) / 2, side, bays * bayW, decks * deckH, 0.08,
+      opts.backMat || 'structsteel', 'rackback');
+  }
+
   // decks
   for (let d = 1; d <= decks; d++) {
     place(0, d * deckH, 0, bays * bayW, 0.09, depth, 'steelblue', 'deck');

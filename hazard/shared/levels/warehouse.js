@@ -101,11 +101,31 @@ const brushes = [
   box([4.5, 8.55, 0], [0.9, 0.9, 30], 'metal', { tag: 'duct' }),
 
   // --- racking rows --------------------------------------------------------
-  ...racking(-15, -9, 4, 3),
-  ...racking(-15, 2, 4, 3),
+  //
+  // BACKED ON THEIR OUTBOARD FACES, which is a lighting decision rather than a
+  // warehousing one. This shed is 46m by 34m with nothing vertical in it above
+  // knee height, so its pendants had no surface to land on except the floor —
+  // and the floor duly won the brightest-region measurement in four frames out
+  // of five, not because it was lit well but because it was the only thing lit
+  // at all. Backing the outboard face of each row turns the two side aisles into
+  // corridors with lit walls, which is where the eye is supposed to go.
+  //
+  // The west rows close to the west (-1) and the east rows to the east (+1), so
+  // every bay stays open to the aisle a contractor actually walks down and the
+  // top-deck stock is still reachable from it.
+  //
+  // THE z=11 ROWS ARE DELIBERATELY LEFT OPEN. Backing them put a 4.3m wall at
+  // z=11.61 across x 9.95-18.05, and the dock deck starts at z=11.7 — so it
+  // sealed the east approach to the loading bay. smoke.js caught it within a
+  // minute: a contractor walking in to pick up a safe stopped 3.11m short of it
+  // against a wall that had not existed when the fixture was written. The two
+  // deep-shed rows are where the aisles actually are and where the lighting
+  // problem actually is.
+  ...racking(-15, -9, 4, 3, { back: -1 }),
+  ...racking(-15, 2, 4, 3, { back: -1 }),
   ...racking(-15, 11, 3, 2),
-  ...racking(14, -9, 4, 3),
-  ...racking(14, 2, 4, 3),
+  ...racking(14, -9, 4, 3, { back: 1 }),
+  ...racking(14, 2, 4, 3, { back: 1 }),
   ...racking(14, 11, 3, 2),
 
   // --- mezzanine over the north-west corner --------------------------------
