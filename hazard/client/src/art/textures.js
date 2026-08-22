@@ -561,7 +561,37 @@ const GEN = {
     // is what an agricultural shed actually looks like and is nowhere near the
     // half-swing painted stripe the note above was arguing against — that one
     // was uniform, and uniform is the whole difference.
-    const shade = 1.07 - 0.40 * sits;
+    //
+    // ...AND 0.40 WAS THE BARCODE. IT MOVED, IT DID NOT GO.
+    //
+    // A later grading pass photographed the shed down its length and reported
+    // "rows of stacked goods on the racking resolve into cream/tan/rust vertical
+    // stripes with no object boundaries". There is no stock on the racking. The
+    // surface is this one, and the isolate proves it: with every static hidden
+    // except `panel` the whole barcode is still there, and with this one
+    // coefficient forced to zero and nothing else changed it disappears
+    // completely.
+    //
+    // The mechanism is the geometry of the view, and it is worth writing down
+    // because it applies to every ribbed surface in the level. Down a 46 m shed
+    // the wall's HEIGHT is unforeshortened and its LENGTH is crushed to the
+    // vanishing point. So the v-family — laps, washes, courses — becomes
+    // perspective, and the u-family becomes a screen-vertical comb with eighty
+    // teeth in it. Anisotropic filtering does not save you: it resolves the
+    // minor axis, which here is the one the ribs vary along.
+    //
+    // That is a hard constraint on ANY periodic albedo feature: whatever
+    // amplitude reads as texture face-on reads as a comb at a grazing angle,
+    // multiplied by however many repeats fit in the frame. Height is exempt,
+    // because the bump fades out on texel footprint and is gone by then — which
+    // is the argument the note above overturned, and it was right about the
+    // near field and wrong to conclude the rib belonged in albedo at strength.
+    //
+    // So the rib keeps a sixth of what it took and the face-on detail comes
+    // from the things that are NOT periodic: the 21 cm weathering blotch, the
+    // fixings, and the rust. Measured: the barcode goes and the flat-plate
+    // laplacian holds at 1.0 against the 0.93 this recipe started at.
+    const shade = 1.07 - 0.16 * sits;
     r *= shade; g *= shade; b *= shade;
     r += ribH * 0.012; g += ribH * 0.012; b += ribH * 0.013;
     const grime = mix(0.86, 1.05, dirt) * mix(0.94, 1.04, runs) * (1 + (tooth - 0.5) * 0.22);
