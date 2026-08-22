@@ -200,11 +200,16 @@ const RECIPES = {
   // textures.js for how that survived, and MATERIAL_NAMES at the bottom of this
   // file for what stops the next one.
   //
-  // tile 0.90 puts one batten frame on a crate face. mottle stays low: the
-  // texture already carries a metre-scale veneer figure of its own, and a
-  // second low-frequency drift on top of it only muddies the frame, which is
-  // the feature the whole surface is built around.
-  crate: { tex: 'crate', tile: 0.90, rough: 0.93, metal: 0.0, bump: 1.6, roughVar: -0.12, ao: 0.34, mottle: 0.07, fill: 0.24 },
+  // tile 1.80, not 0.90, and the recipe now draws four boxes across it instead
+  // of two — so the batten pitch is unchanged at 45 cm and the number of
+  // DISTINCT boxes on the map goes from four to sixteen. That is the whole
+  // point: at 0.90 the van's cargo wall was twenty-seven repeats of four cells
+  // and photographed as quilting. See crate() in textures.js.
+  //
+  // mottle stays low: the texture already carries a metre-scale veneer figure
+  // of its own, and a second low-frequency drift on top of it only muddies the
+  // frame, which is the feature the whole surface is built around.
+  crate: { tex: 'crate', tile: 1.80, rough: 0.93, metal: 0.0, bump: 1.6, roughVar: -0.12, ao: 0.34, mottle: 0.07, fill: 0.24 },
   rubber: { tex: 'rubber', tile: 1.15, rough: 0.97, metal: 0.0, bump: 2.2, roughVar: -0.10, ao: 0.45, mottle: 0.08, fill: 0.14 },
 
   // Prop surfaces. These sit near white and let vertex colour carry the hue —

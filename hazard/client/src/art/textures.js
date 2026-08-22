@@ -54,7 +54,12 @@ import * as THREE from 'three';
 // to a wall. They get 512. Everything else would be paying boot time for detail
 // nobody looks at.
 const SIZE = 256;
-const BIG = new Set(['concrete', 'panel', 'deckplate', 'dockdeck', 'steelblue', 'structsteel']);
+// ...and 'crate', which joined this list when its tile doubled to 1.80 m. The
+// argument is the one above, applied honestly: the van's cargo wall is 22 m2
+// filling the middle of a frame and is read from two metres and from twelve,
+// which is the same job the four architectural surfaces do. At 256 over a
+// 1.80 m tile a texel is 7 mm and the batten edges go to mush.
+const BIG = new Set(['concrete', 'panel', 'deckplate', 'dockdeck', 'steelblue', 'structsteel', 'crate']);
 const sizeOf = (name) => (BIG.has(name) ? 512 : SIZE);
 
 // --- noise -------------------------------------------------------------------
@@ -436,6 +441,28 @@ const GEN = {
     const fu = Math.abs(fract(u * ribs) - 0.5);           // 0 at the rib crown
     const fv = Math.abs(fract(v * 6 + 0.5) - 0.5);        // 0 at a rail
     const fix = (1 - smooth(0.014, 0.062, fu)) * (1 - smooth(0.010, 0.044, fv));
+    // WHICH SCREWS LEAK, AND WHY THAT IS NOT A DETAIL.
+    //
+    // Every screw is on a rib crown, because that is where a sheet is fixed.
+    // The first cut let every screw weep as well, and a weep is the highest
+    // chroma thing on this material — so the recipe carried a rust-coloured
+    // stripe at EXACTLY THE RIB PERIOD. Face on that is invisible under the
+    // ribs' own shading. Down the length of a 46 m shed it is the whole
+    // picture: the wall's height is unforeshortened and its length is crushed
+    // to the vanishing point, so the u-family becomes a screen-vertical comb
+    // and the v-family becomes perspective, and a review photographed the
+    // result and called it cream/tan/rust vertical stripes with no object
+    // boundaries. Same barcode as before the split, rebuilt out of my own
+    // hardware, one octave up.
+    //
+    // A per-fixing hash rather than a noise field, because the field that was
+    // doing this job runs at 9 cells over a 4.6 m tile — 51 cm against a
+    // 57.5 cm rib pitch — so neighbouring screws were sampling nearly the same
+    // value and the variation beat slowly instead of scattering. The hash is
+    // on the fixing's own lattice index and wraps with the tile, so about a
+    // third of them leak and no two adjacent ones agree.
+    const weepOn = smooth(0.52, 0.68,
+      hash2(wrapi(Math.floor(u * ribs), ribs), wrapi(Math.floor(v * 6 + 0.5), 6), 733));
     // ...and the streak under it. A fixing is a hole through a painted sheet
     // and the water that gets in comes back out: the rust bleed below a screw
     // is more visible from ten metres than the screw is, and it is the reason
@@ -453,7 +480,7 @@ const GEN = {
     const fd = fract(v * 6 + 0.5) - 0.5;              // negative below the rail
     const fall = smooth(-0.058, -0.006, fd);          // 1 at the screw, 0 by 9 cm
     const fixWeep = clamp01((1 - smooth(0.014, 0.062 + (1 - fall) * 0.055, fu))
-      * fall * mix(0.20, 1.25, runs) * mix(0.05, 1.40, fbm(u, v, 9, 2, 311)));
+      * fall * mix(0.20, 1.25, runs) * weepOn);
 
     // A FADED WARM GREY, NOT A COOL ONE. Cladding is the second largest area in
     // the level after the roof deck and it was mixed 0.47/0.50/0.50 — neutral
@@ -557,7 +584,11 @@ const GEN = {
     // The weep is rust arriving through a second door, so it goes to the same
     // colour and is capped together with the patch mask rather than added on
     // top of it — two full-strength rusts multiplying would be a black smear.
-    const iron = clamp01(rustAt + fixWeep * mix(0.30, 0.85, dirt));
+    // ...and the weep is worth less than the patch. A tear under a screw is a
+    // stain a few centimetres wide; a rust patch is the paint gone. Half what
+    // it was, because at a grazing angle there are several hundred of these in
+    // a frame and a rust patch reaches the eye about six times.
+    const iron = clamp01(rustAt + fixWeep * mix(0.14, 0.42, dirt));
     r = mix(r, 0.375, iron); g = mix(g, 0.235, iron); b = mix(b, 0.155, iron);
     // The fixing itself: a galvanised screw in a dark washer, so it is darker
     // and much less warm than the sheet it is in.
@@ -1077,29 +1108,67 @@ const GEN = {
   // this: an unknown material now says so, loudly, instead of quietly painting
   // itself pink on the critical path.
   //
-  // THE TILE IS 0.90 m AND THE BATTENS ARE THE ONLY LOUD THING IN IT.
+  // AND THEN IT WAS PHOTOGRAPHED LINING THE VAN, AND IT WAS A PADDED CELL.
   //
-  // Both halves of that are the rule at the top of this file. A batten pitch of
-  // 45 cm is architecture: at twenty metres it is still a dozen pixels wide, so
-  // it physically cannot alias, and it is the one feature that reads as A CRATE
-  // rather than as a brown box from the far side of the shed. Everything finer
-  // — the ply's grain, the saw tooth on the timber, the crushed corners — is in
-  // the HEIGHT channel, where a screen-space derivative averages it away by
-  // itself as the crate gets further off.
+  // The note this replaces argued the batten frame at a 45 cm pitch was the one
+  // loud thing in the recipe and that everything finer belonged in height. Both
+  // halves are still right. What neither half noticed is that the frame is a
+  // LATTICE — battens across AND up, at the same pitch, with the same weight —
+  // and a lattice of equal squares on a 0.90 m tile, hung on a 9 m by 2.4 m
+  // cargo wall, is twenty-seven repeats of four identical cells. Photographed
+  // from the dock it is not stacked stock, it is quilting: a grid of squares of
+  // the same size and the same value, each with the same little stencil in the
+  // middle of it. A review called it a padded cell and that is exactly the word.
+  //
+  // Three things were wrong and they are the same three every repeating surface
+  // in this file has got wrong at least once.
+  //
+  //  * THE LATTICE. Stacked goods do not form squares. They form COURSES — a
+  //    row of boxes, then another row on top with its joints in the middle of
+  //    the row below, because that is how anything stacks without falling over.
+  //    Running bond costs one term: the row index decides a half-cell jog. The
+  //    horizontal joints stay continuous, which is true (a course line runs the
+  //    length of a stack) and the vertical ones stop being a grid.
+  //  * THE GLYPH. One stencil per tile, in the same place, on every box on the
+  //    wall. It is now per BOX, about half of them carry one, and which mark it
+  //    is and where it sits come off the box's own hash.
+  //  * THE REPEAT LENGTH. Four distinct cells is four distinct cells however
+  //    good each one is. The tile doubles to 1.80 m with four cells across
+  //    instead of two, so the batten pitch is unchanged at 45 cm and the map
+  //    now holds SIXTEEN different boxes before anything repeats. That doubles
+  //    the texel size, so the recipe joins concrete and the cladding at 512 —
+  //    which is the argument that list was built on in the first place, and the
+  //    van's cargo wall qualifies: it is 22 m2 filling the middle of a frame.
   //
   // Nothing here is near the tile seam, which is the other lesson this file has
-  // already paid for twice: the battens sit at the quarter and three-quarter
-  // marks, so u = 0 lands in the middle of a ply panel and a stack of crates
-  // has no visible join running through it.
+  // already paid for twice: a joint lands on the tile edge by construction, so
+  // a stack of boxes has no visible join running through it.
   crate(u, v, o) {
-    // The frame. Two battens across and two up, at a 0.45 m pitch.
-    const bx = Math.abs(fract(u * 2) - 0.5) * 2;
-    const by = Math.abs(fract(v * 2) - 0.5) * 2;
-    // Uprights run the full height; the rails stop where they meet them, which
-    // is how a crate is actually nailed together and stops the frame reading as
-    // a lattice laid on top of the box.
-    const upright = 1 - smooth(0.13, 0.21, bx);
-    const rail = (1 - smooth(0.15, 0.23, by)) * (1 - upright);
+    const CELLS = 4;                             // 45 cm boxes on a 1.80 m tile
+    // Running bond. floor(u*4 + 0.5) reaches 4 at the far edge of an odd row
+    // and wraps to 0, and fract() lands on 0.5 at both ends, so the jog tiles.
+    const row = Math.floor(v * CELLS);
+    const jog = (wrapi(row, 2)) * 0.5;
+    const col = Math.floor(u * CELLS + jog);
+    const cu = fract(u * CELLS + jog);           // 0..1 across one box
+    const cv = fract(v * CELLS);                 // 0..1 up one box
+    // Two independent draws per box, wrapped on the cell lattice so the tile
+    // still tiles: one for the timber, one for what is stencilled on it.
+    const bxi = wrapi(col, CELLS), byi = wrapi(row, CELLS);
+    const id = hash2(bxi, byi, 401);
+    const id2 = hash2(bxi, byi, 977);
+
+    // The gap between boxes. This is the feature that says "two objects" rather
+    // than "one surface with a line drawn on it", so it is a shadow rather than
+    // a stripe: dark, narrow, and carried mostly in the height channel where
+    // the cavity occlusion can find it.
+    const gu = Math.min(cu, 1 - cu), gv = Math.min(cv, 1 - cv);
+    const joint = Math.max(1 - smooth(0.010, 0.048, gu), 1 - smooth(0.010, 0.048, gv));
+    // The batten frame, just inboard of the gap: sawn softwood over a sanded
+    // ply face, standing proud. Uprights the full height of a box, rails
+    // stopping where they meet them, which is how a crate is nailed together.
+    const upright = (1 - smooth(0.050, 0.098, gu)) * (1 - joint);
+    const rail = (1 - smooth(0.052, 0.100, gv)) * (1 - joint) * (1 - upright);
     const batten = Math.max(upright, rail);
 
     // Ply. Long fine grain one way, and the broad blotchy figure of a rotary
@@ -1108,36 +1177,51 @@ const GEN = {
     const veneer = streak(u, v, 5, 3, 3, 47);
     const patch = fbm(u, v, 3, 2, 71);            // damp, dirt, sun
 
-    // Stencilled markings, in the middle of one panel. A bar of text and the
-    // little square that means the contents are somebody else's problem. Kept
-    // deliberately weak: this repeats every 90 cm over every crate in the level
-    // and a strong decal at that pitch is wallpaper, not a marking.
-    const sx = Math.abs(fract(u + 0.5) - 0.5), sy = Math.abs(fract(v + 0.5) - 0.5);
-    const barY = 1 - smooth(0.020, 0.030, Math.abs(sy - 0.085));
-    const bar = barY * (1 - smooth(0.115, 0.140, sx))
+    // Stencilled markings, on ABOUT HALF the boxes, in a place that box chose.
+    // A bar of text and the little square that means the contents are somebody
+    // else's problem. Kept deliberately weak even so: a strong decal repeated
+    // over a cargo wall is wallpaper, not a marking.
+    const marked = smooth(0.46, 0.56, id2);
+    const mcx = mix(0.34, 0.64, id), mcy = mix(0.30, 0.68, id2);
+    const sx = Math.abs(cu - mcx), sy = Math.abs(cv - mcy);
+    const bar = (1 - smooth(0.028, 0.042, sy)) * (1 - smooth(0.145, 0.180, sx))
       // ...broken into blocks, so it reads as lettering rather than as a line.
-      * smooth(0.35, 0.55, Math.abs(fract(u * 26) - 0.5) * 2);
-    const boxMark = (1 - smooth(0.030, 0.040, Math.abs(sx - 0.055)))
-      * (1 - smooth(0.045, 0.055, Math.abs(sy + 0.030)));
-    const stencil = Math.max(bar, boxMark) * (1 - batten);
+      * smooth(0.35, 0.55, Math.abs(fract(u * CELLS * 24) - 0.5) * 2);
+    const boxMark = (1 - smooth(0.045, 0.058, Math.abs(sx - 0.20)))
+      * (1 - smooth(0.048, 0.062, Math.abs(sy - 0.010)));
+    const stencil = Math.max(bar, boxMark * mix(0.4, 1.0, id)) * marked * (1 - batten);
 
-    // Scuffing, where a crate meets a forklift: along the battens, because the
-    // frame is what stands proud and the frame is what gets hit.
-    const scuff = smooth(0.55, 0.85, fbm(u, v, 9, 3, 29)) * batten;
+    // Scuffing, where a box meets a forklift: along the battens, because the
+    // frame is what stands proud and the frame is what gets hit. Per box, so
+    // one is battered and its neighbour is not.
+    const scuff = smooth(0.55, 0.85, fbm(u, v, 9, 3, 29)) * batten * mix(0.35, 1.5, id2);
 
+    // Per-box tone. Stock is not one product: some of it is fresh ply, some is
+    // a carton that has been round the yard twice. An eighth either way is
+    // enough to stop two neighbours reading as one object, and small enough
+    // that the wall is still plainly a wall of the same kind of thing.
     let l = 0.455 + (veneer - 0.5) * 0.115 + (fibre - 0.5) * 0.055;
     l *= mix(0.88, 1.06, patch);
-    // A batten is sawn softwood over a sanded ply face, so it is both a shade
-    // darker and a different surface. The darkening is small on purpose — the
+    l *= mix(0.87, 1.13, id);
+    // A batten is a shade darker than the ply face. Small on purpose — the
     // frame carries in HEIGHT, and a dark line at 45 cm would be a grid.
-    l *= 1 - batten * 0.13;
-    l = mix(l, 0.72, scuff * 0.45);               // raw timber under the dirt
+    l *= 1 - batten * 0.11;
+    l *= 1 - joint * 0.42;                        // the shadow between boxes
+    l = mix(l, 0.72, clamp01(scuff) * 0.45);      // raw timber under the dirt
     l = mix(l, 0.155, stencil * 0.80);            // stencil ink
     // Softwood ply: warm, and yellower than the scaffold board next door
-    // because it has not spent a winter outside.
-    o[0] = l * 1.145; o[1] = l * 1.005; o[2] = l * 0.735;
-    o[3] = clamp01(0.44 + batten * 0.34 + (fibre - 0.5) * 0.34
-      + (veneer - 0.5) * 0.16 - scuff * 0.20);
+    // because it has not spent a winter outside. Some boxes are card rather
+    // than ply, which is greyer and pinker, and that is the second axis that
+    // stops the wall reading as one material tiled.
+    const card = smooth(0.62, 0.86, id2);
+    o[0] = l * mix(1.145, 1.075, card);
+    o[1] = l * mix(1.005, 0.985, card);
+    o[2] = l * mix(0.735, 0.855, card);
+    // The batten keeps a third of the height range rather than the half it had:
+    // a lattice at full swing under bump 1.6 is the quilting, in the one
+    // channel where it cannot be argued down by albedo.
+    o[3] = clamp01(0.46 + batten * 0.24 - joint * 0.40 + (fibre - 0.5) * 0.34
+      + (veneer - 0.5) * 0.16 - clamp01(scuff) * 0.20);
   },
 
   // Conveyor belting: lateral cleats, rubber crumb, and years of grease.
