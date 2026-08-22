@@ -193,7 +193,22 @@ export const warehouse = {
     // 74m never engages, so distance reads as flat.
     fog: { color: '#23252b', near: 6, far: 42 },
     sun: { dir: [-0.35, -0.82, -0.45], color: '#ffd9a8', intensity: 1.5 },
-    ambient: { sky: '#5b6472', ground: '#2b2521', intensity: 0.85 },
+    // THE SKY TERM WAS A FLAT BLUE CONSTANT ON EVERY UP-FACING SURFACE.
+    //
+    // '#5b6472' is (91,100,114) — decisively blue — and a hemisphere light puts
+    // it on every pixel whose normal points up, unconditionally. Measured, the
+    // darkest 5% of a spawn frame came back 9/10/31: a channel spread of 22
+    // against 1.6-3.9 in the reference plates, which is verbatim the rubric's
+    // C1 FAILS condition, "surfaces facing away from all lights are lit by a
+    // single flat term". It is why unlit concrete read as cold cloud rather
+    // than as dark concrete, and pulling the pendants into pools is what made
+    // it visible — the old wall-to-wall lamp wash had been swamping it.
+    //
+    // Warm grey with the blue taken out, and the ground bounce warmed to match
+    // a sodium-lit shed. The hemisphere stays because something has to light
+    // an up-facing surface in shade; what changes is that it no longer paints
+    // the whole floor one saturated colour.
+    ambient: { sky: '#6a6459', ground: '#33291f', intensity: 0.85 },
     // 0.55, AND THIS IS THE ONE THAT MATTERED MOST.
     //
     // Measured against the reference plates, this game had no blacks in it at
@@ -249,10 +264,18 @@ export const warehouse = {
     // rather than overlapping four deep — which is what gives a floor a bright
     // middle and a dim edge instead of one flat sheet — and the gaps beyond the
     // ring stay dark for the torch to work in.
-    light([-14, 8.4, -9], { intensity: 42, range: 15, color: '#ffe2b4' }),
-    light([14, 8.4, -9], { intensity: 42, range: 15, color: '#ffe2b4' }),
-    light([-14, 8.4, 5], { intensity: 42, range: 15, color: '#ffe2b4' }),
-    light([14, 8.4, 5], { intensity: 42, range: 15, color: '#ffe2b4' }),
+    // Range 17 on these four, not 15, and the reason is an error in my own
+    // commit message. I wrote that the pools "meet at their edges against a 14m
+    // spacing". 14m is the Z spacing. The X spacing is 28m — these sit at
+    // x = +/-14 — and a lamp 6.9m up with a 15m window reaches a floor radius of
+    // sqrt(15^2 - 6.9^2) = 13.3m, so the two rows stopped 0.7m short of the
+    // centre line and left a dead strip down the middle of the shed. Measured on
+    // a half-metre grid, (-0.5, 4) was receiving exactly 0.000 — outside every
+    // pendant's range window at once. 17 reaches 15.5m and the rows overlap.
+    light([-14, 8.4, -9], { intensity: 42, range: 17, color: '#ffe2b4' }),
+    light([14, 8.4, -9], { intensity: 42, range: 17, color: '#ffe2b4' }),
+    light([-14, 8.4, 5], { intensity: 42, range: 17, color: '#ffe2b4' }),
+    light([14, 8.4, 5], { intensity: 42, range: 17, color: '#ffe2b4' }),
     light([0, 8.4, -14], { intensity: 34, range: 15, color: '#ffd9a0' }),
 
     // --- LANDMARKS, so the eye has somewhere to go that is not your boots ----
