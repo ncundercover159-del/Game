@@ -70,8 +70,26 @@ export function racking(cx, cz, bays, decks, opts = {}) {
   // `opts.back` is a side, -1 or +1, so a row can be closed on its outboard face
   // and stay open to the aisle a contractor actually walks down.
   if (opts.back) {
+    // ABOVE HEAD HEIGHT ONLY, and the reason is that the first version of this
+    // sealed the level.
+    //
+    // `side` is a LOCAL Z offset, and with rot=0 that is world Z. A row is
+    // `bays * bayW` long in X and only `depth` deep in Z, so its large faces are
+    // the +/-Z ones — which is right for making an aisle read as a corridor, and
+    // catastrophically wrong at full height. A grading pass found the result:
+    // solid 10.8 x 6.45m panels at z = -9.61, 1.39 and 10.39, colliding, cutting
+    // the west and east thirds of the shed into three sealed compartments each.
+    // The quota route runs down x=0 and is clear, which is exactly why no test
+    // failed and why it took somebody photographing an aisle to notice.
+    //
+    // From 2.2m up, so a contractor walks under it and the light still lands on
+    // it. That is not a compromise — it is better for the thing the panel was
+    // added for, because a lit surface between 2.2m and 6.45m projects HIGH in
+    // frame, which is where the bright region is supposed to be.
     const side = Math.sign(opts.back) * (depth / 2 + 0.06);
-    place(0, (decks * deckH) / 2, side, bays * bayW, decks * deckH, 0.08,
+    const top = decks * deckH;
+    const under = Math.min(2.2, top - 0.4);
+    place(0, (under + top) / 2, side, bays * bayW, top - under, 0.08,
       opts.backMat || 'structsteel', 'rackback');
   }
 

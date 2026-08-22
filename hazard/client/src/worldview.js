@@ -122,7 +122,27 @@ const SHADOW_LAMPS = 2;
 // right and only the level was wrong. Lifting the fill fixes the level without
 // touching the design; a master gain would flatten the ratio and clip pools that
 // currently hold a clean 0.00% clipped.
-const AMBIENT_GAIN = 1.05;
+// BACK TO 0.31, because the lift was the right lever for the wrong problem.
+//
+// I raised this to 1.05 on a grading pass's own target of p50 35-45, and the
+// next pass retracted that target with the measurement that settles it: the
+// reference plates run a median under 12 and the manifest says outright that
+// "light is entirely local... there is no ambient wash at all". We were at p50
+// 12-25 BEFORE the lift, already about twice the reference, and 35-45 would have
+// been three to four times it.
+//
+// The thing the lift was trying to fix — an unlit floor that reads as cold blue
+// cloud rather than dark concrete — is not a lighting problem at all. It is four
+// cool terms in the post grade (uBalance, uShadowTint, uLift, uAerial) applied
+// AFTER every light in the rig, which paint distant shadowed floor with a 1.15x
+// blue multiply and about 0.047 linear of additive blue-over-red. That is why
+// de-blueing the ambient sky was powerless, and why adding fill only made the
+// darks brighter without making them any less blue: the blue is downstream of
+// everything this constant can reach.
+//
+// So this returns to its measured pre-lift value rather than to a number I
+// invented in between, and the actual fix is in art/post.js.
+const AMBIENT_GAIN = 0.31;
 const SUN_GAIN = 0.55;
 
 // A cold kick from behind, casting nothing.

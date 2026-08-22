@@ -98,7 +98,20 @@ const brushes = [
   // two rafters across them, and a duct run down the middle
   box([-11, 9.02, 0], [0.3, 0.2, 33], 'steelblue', { tag: 'purlin' }),
   box([11, 9.02, 0], [0.3, 0.2, 33], 'steelblue', { tag: 'purlin' }),
-  box([4.5, 8.55, 0], [0.9, 0.9, 30], 'metal', { tag: 'duct' }),
+  // `structsteel`, not `metal`. THIS DUCT WAS THE "SKY BAND".
+  //
+  // Three grading passes chased a blue band across the top of every wide shot
+  // and filed it as an aliasing artefact, a bloom problem, and a sky gradient.
+  // It was none of those. `metal` has an albedo around 0.80 — the brightest
+  // recipe in the roof by a factor of two against deckplate's 0.365 and
+  // structsteel's 0.285 — so a thirty-metre run of it at 8.55m was simply the
+  // brightest object up there, catching every pendant and smearing across the
+  // ceiling. Measured on a variant build, this one word takes the ceiling's blue
+  // coverage from 2.2% to 0.6% and the top-of-frame from 21/25/85 to 24/26/65.
+  //
+  // `structsteel`'s own comment already argues this case for the rafters. The
+  // duct simply never got it.
+  box([4.5, 8.55, 0], [0.9, 0.9, 30], 'structsteel', { tag: 'duct' }),
 
   // --- racking rows --------------------------------------------------------
   //
