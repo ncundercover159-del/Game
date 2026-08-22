@@ -1430,13 +1430,48 @@ const GEN = {
     // face passes for the grain of skin. Stretched, so it is a direction rather
     // than a speckle.
     const flow = streak(u, v, 40, 6, 2, 173);
+    // Tool marks at 6 mm, elongated eleven to one. This is the one term in the
+    // recipe finer than a centimetre that is allowed real amplitude, and the
+    // anisotropy is the whole reason it is allowed: see the note above the
+    // amplitudes for why an isotropic field at this scale is the thing that has
+    // to stay small.
+    const tool = streak(u, v, 56, 11, 2, 401);
     // Soil: the 3 cm blotch between the 7 cm grime and the 3.5 mm peel. It is
     // what collects in a moulding's flow lines and around a headband, and on a
     // face it is the last thing in the albedo that still resolves at a metre.
     const soil = fbm(u, v, 11, 2, 293);
-    let l = 0.840 + (sheen - 0.5) * 0.085 + (drag - 0.5) * 0.170
-      + (grime - 0.5) * 0.150 + (soil - 0.5) * 0.140 + (peel - 0.5) * 0.030;
-    l *= 1 + burnish * 0.105;
+    // AND THEN IT WENT THE OTHER WAY, WHICH IS WHAT OVERCORRECTING LOOKS LIKE.
+    //
+    // The complaint this recipe was built to answer was that the hats and faces
+    // read as CORK — a grainy brown noise field, isotropic, at a middling
+    // frequency, at an amplitude you could not miss. The answer was to pull the
+    // grain out, and the answer worked: measured flat the map came back at a
+    // standard deviation of 11.5 on a mean of 207 with a laplacian of 1.76, and
+    // the next review called it a smooth untextured gradient. Both reviews are
+    // right about the same map at two different amplitudes.
+    //
+    // The mistake in between was treating "grain" as a quantity when it is a
+    // SHAPE. Look at where the contrast actually sat: sheen at 17 cm, drag at
+    // 2.8 cm, grime at 7 cm, soil at 3 cm — every term with any amplitude in it
+    // is a tenth of the tile or larger, which on a 0.34 m tile means the finest
+    // thing on the map was a centimetre across. That is not a texture, it is a
+    // shading. The only sub-centimetre term, the 3.5 mm orange peel, was
+    // carrying three per cent, which through a saturated vertex colour and a
+    // filmic curve arrives as about one level.
+    //
+    // What separates moulded plastic from cork is not how much fine detail
+    // there is, it is that plastic's fine detail has a DIRECTION — flow lines
+    // off a tool, drag marks along the shell, the grain of skin — while cork is
+    // isotropic blobs. So the amplitude comes back and it comes back
+    // anisotropic: `tool` at 6 mm and eleven to one carries more than anything
+    // else under a centimetre, the orange peel goes up by half because it is
+    // the thing that keeps a close-up from being plastic-smooth, and the
+    // isotropic mid-scale terms — grime and soil, the two that made it cork —
+    // come DOWN to pay for it.
+    let l = 0.824 + (sheen - 0.5) * 0.085 + (drag - 0.5) * 0.180
+      + (grime - 0.5) * 0.110 + (soil - 0.5) * 0.100
+      + (tool - 0.5) * 0.115 + (peel - 0.5) * 0.048;
+    l *= 1 + burnish * 0.115;
     // A whisper warm rather than a whisper cool. The vertex colour carries the
     // hue on the hat and the skin tone on the face, and a cold multiplier on a
     // face is the difference between a person and a corpse.
@@ -1447,7 +1482,7 @@ const GEN = {
     const dirty = (1 - grime) * 0.055;
     o[0] = l; o[1] = l * (0.997 - dirty * 0.30); o[2] = l * (0.990 - dirty);
     o[3] = clamp01(0.60 + (drag - 0.5) * 0.26 + (sheen - 0.5) * 0.14
-      + (peel - 0.5) * 0.30 + (flow - 0.5) * 0.16);
+      + (peel - 0.5) * 0.30 + (flow - 0.5) * 0.16 + (tool - 0.5) * 0.14);
   },
 
   unknown(u, v, o) {
