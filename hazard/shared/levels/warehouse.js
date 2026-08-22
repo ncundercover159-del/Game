@@ -227,11 +227,50 @@ export const warehouse = {
   brushes,
 
   lights: [
-    light([-14, 8.4, -9], { intensity: 34, range: 22, color: '#ffe2b4' }),
-    light([14, 8.4, -9], { intensity: 34, range: 22, color: '#ffe2b4' }),
-    light([-14, 8.4, 5], { intensity: 34, range: 22, color: '#ffe2b4' }),
-    light([14, 8.4, 5], { intensity: 34, range: 22, color: '#ffe2b4' }),
-    light([0, 8.4, -14], { intensity: 26, range: 20, color: '#ffd9a0' }),
+    // POOLS, WITH DARK BETWEEN THEM — which this shed has never had.
+    //
+    // Five pendants with 20-22m of range in a room 46m across means every point
+    // on the floor is inside four of them at once. Measured across the whole
+    // 46x34m floor, brightest-to-darkest irradiance was 2.4:1; the reference
+    // measures 11.6:1 between a lit and an unlit patch of the SAME stone. At
+    // 2.4:1 there is no such thing as a pool and no such thing as shade, so
+    // nothing in the room silhouettes against anything else and a torch has
+    // nothing to be better than.
+    //
+    // I went to range 10 first and walked straight into the failure that is
+    // written down four screens above this line. LAMP_REACH records an earlier
+    // attempt at exactly this idea reaching 133:1 with the floor between lamps
+    // at 0.006; range 10 measured 53.7:1 with the fill at 0.0036 and 40% of the
+    // frame lit, against a harness band of 2-9:1 and a 50% floor. Same mistake,
+    // in the same file, under a comment describing it.
+    //
+    // 15 is the middle. Each pool is about a 13.4m radius on the floor from
+    // 6.8m up against a 14m spacing, so adjacent pools now meet at their edges
+    // rather than overlapping four deep — which is what gives a floor a bright
+    // middle and a dim edge instead of one flat sheet — and the gaps beyond the
+    // ring stay dark for the torch to work in.
+    light([-14, 8.4, -9], { intensity: 42, range: 15, color: '#ffe2b4' }),
+    light([14, 8.4, -9], { intensity: 42, range: 15, color: '#ffe2b4' }),
+    light([-14, 8.4, 5], { intensity: 42, range: 15, color: '#ffe2b4' }),
+    light([14, 8.4, 5], { intensity: 42, range: 15, color: '#ffe2b4' }),
+    light([0, 8.4, -14], { intensity: 34, range: 15, color: '#ffd9a0' }),
+
+    // --- LANDMARKS, so the eye has somewhere to go that is not your boots ----
+    //
+    // In five of six graded frames the largest bright region in the picture was
+    // the floor immediately in front of the camera, centred at 67-92% of frame
+    // height. In the reference plate captioned "torch in hand" it sits at 25% —
+    // a lit doorway at the far end of a corridor that you walk toward. Ours
+    // rewarded looking down; the reference rewards looking down the room.
+    //
+    // Two wall packs on the north gable and one over the far racking aisle,
+    // deliberately small-range so they are bright POINTS at distance rather than
+    // more general illumination. They carry fixture geometry like every other
+    // lamp, so what you see from thirty metres away is a lit lens with a dark
+    // housing round it, which is what a landmark is.
+    light([-10.5, 4.6, -16.2], { intensity: 20, range: 7, color: '#ffd9a0', mount: 'fixed' }),
+    light([10.5, 4.6, -16.2], { intensity: 20, range: 7, color: '#ffd9a0', mount: 'fixed' }),
+    light([-20.5, 3.4, 11.5], { intensity: 16, range: 6, color: '#ffe2b4', mount: 'fixed' }),
 
     // --- INSIDE THE VAN ------------------------------------------------------
     //
@@ -306,9 +345,13 @@ export const warehouse = {
     // the warning. A non-casting lamp at the lip with 4.2m of reach floodlights
     // a wall 2.5m away and nothing occludes it, so the trench was a lit alcove
     // 2.9x brighter than the floor around it and 15x brighter than its own
-    // hazard livery. At 1.2 it cannot reach the walls at all and only spills on
-    // the kerb it sits on.
-    light([0, 0.15, 1.0], { intensity: 0.55, range: 1.2, color: '#ff9d3c', flicker: 0.7, mount: 'fixed', fixture: false }),
+    // hazard livery. At 1.2 it could not reach the walls at all — but it could
+    // not reach the KERB either, and pulling the pendants in to make pools took
+    // the room light off the chevrons at the same time, so the best-read object
+    // in the level went dark. Range 3.0 reaches most of the kerb top and stops
+    // short of the trench's inner faces at 3.55, which is the distinction that
+    // matters: it lights the warning and not the hole.
+    light([0, 0.15, 1.0], { intensity: 1.6, range: 3.0, color: '#ff9d3c', flicker: 0.7, mount: 'fixed', fixture: false }),
   ],
 
   props: [

@@ -171,7 +171,31 @@ export class WorldView {
     // torch on costs you a little rather than dropping you into nothing. The
     // first attempt was 46cd, which measured 1.5 lux at the same distance and
     // lifted the darkest floor in the level by 30%: a torch you could not see by.
-    this.torch = new THREE.SpotLight(0xfff1d8, 260, 20, 0.55, 0.6, 2);
+    // A BEAM, NOT AN EXPOSURE LIFT. Four numbers, all of them measured wrong.
+    //
+    // This was SpotLight(260, 20, 0.55, 0.6, 2) and the critic took it apart:
+    // a 0.55 rad half-angle is 31.5 degrees against the camera's 39-degree
+    // vertical half-FOV, so the cone covered 81% of the screen's height and its
+    // bright region measured 86% of frame WIDTH. A beam that wide cannot read
+    // as a beam — it reads as the exposure going up, which is exactly what it
+    // looked like. penumbra 0.6 then smeared the boundary across most of the
+    // cone's own radius, so there was no edge to aim with either, in a comment
+    // that claimed an edge was the whole point of using a cone.
+    //
+    // And the energy was landing at your feet: decay 2 with a 20m window gives
+    // about 29 lux at 3m and 0.54 at 15m, a 54:1 near-to-work ratio, so the
+    // torch lit ground you could already see and moved findability at 15m by
+    // nothing. Measured, torch-on at the warehouse spawn was worth 0.6 luma of
+    // frame mean and took legibility from 99% to 99%.
+    //
+    // 0.20 rad is 11.5 degrees, which puts the pool at roughly a quarter of
+    // frame height and matches the small pool in the reference plate captioned
+    // "torch in hand". penumbra 0.30 leaves it an edge. The same lamp poured
+    // into about a seventh of the solid angle wants more candela, not fewer, so
+    // 600 — the pool ends up both smaller AND brighter. 28m of throw takes the
+    // usable range from about 5m to about 12m, which is the distance at which
+    // you are actually looking for a crate.
+    this.torch = new THREE.SpotLight(0xfff1d8, 600, 28, 0.20, 0.30, 2);
     this.torch.castShadow = false;
     this.torchTarget = new THREE.Object3D();
     this.scene.add(this.torch);
