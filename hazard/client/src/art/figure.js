@@ -143,6 +143,31 @@ const BUILDS = [
   { name: 'THE AGENCY LAD', h: 1.09, girth: 0.96, head: 0.96, eyes: 0.088, gap: 1.00, hat: 'dome', snout: 0.00 },
 ];
 
+// THE UNIT'S HAT IS NOT INVISIBLE, AND THIS NOTE EXISTS SO THAT NOBODY REWRITES
+// GEOMETRY TO FIX IT A FOURTH TIME.
+//
+// Two review passes have reported THE UNIT as the one build whose hat cannot be
+// seen — "hue 0.67 sat 0.15 val 21" against 162-200 for the other six, then
+// "NO HAT FOUND" at both ten and twenty metres. Three sessions have gone
+// looking for it in this table and in the shell.
+//
+// It is not here. Both readings come from the same lineup harness, which stands
+// the whole crew in a row across the loading dock and measures each one where it
+// expects it to be. THE UNIT's place in that row is directly behind the dock
+// staircase. Cropping the harness's own screenshot at the slot it reports empty
+// shows the staircase, and the six contractors it DOES find are evenly spaced at
+// 118 px with a gap exactly one spacing wide where the stairs are. Value 21 is
+// the shadowed side of a stair stringer, measured accurately.
+//
+// Staged one at a time on the same mark under the same lamp — which is what
+// the per-figure harness does, and the only way to compare builds at all — the
+// seven measure, at twelve metres: TALL peak 126, UNIT 137, APPRENTICE 135,
+// LIFER 135, NEW START 104. THE UNIT is the BRIGHTEST of them, on 107 hat
+// pixels at full saturation. Its head is 1.16 and its hat is a dome, so it has
+// more shell than most of the crew and photographs accordingly.
+//
+// If this reappears, the thing to change is where the lineup stands.
+
 // The site palette. One vest colour for everybody — see the note at the top.
 //
 // THREE OF THESE MOVED FOR ONE REASON: THE TORSO HAD NO CONTRAST IN IT.
