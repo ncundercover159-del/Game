@@ -382,9 +382,30 @@ export const warehouse = {
     // the sill and the threshold rather than on the bulkhead — the reference
     // truck's bright element is its APERTURE at 98 against walls of 31-38, and
     // an aperture is lit from just inside it.
-    light([0, 3.1, 14.8], { intensity: 8, range: 4, color: '#dfeaff', mount: 'fixed', shadow: true }),
+    // ...AND THEY ARE THE ONLY TWO COLD LAMPS IN THE SHED, WHICH IS WHY THE VAN
+    // KEPT PHOTOGRAPHING BLUE AFTER THE GRADE WAS FIXED.
+    //
+    // Nine lamps here are #ffe2b4 or #ffd9a0 tungsten and one is the pit's
+    // amber flicker. These two — the van's load light and the ramp light — were
+    // #dfeaff, a blue-white, and between them they light the deck, the sill and
+    // the whole dock floor that fills the bottom half of every shot into the
+    // bay. Once the cool bias came out of the post grade, they were what was
+    // left: the same frame that reads warm everywhere else had its floor at
+    // blue-minus-red +23 against a reference shaded stone of -1.
+    //
+    // Swept live on the van plate, blue-minus-red on the dock floor:
+    //
+    //     #dfeaff   +23        #fff2e2   -12
+    //     #eaf0f5   +10        #ffe8cc   -24
+    //     #f5f2ec    -1
+    //
+    // #f5f2ec is the reference value to the level, and it is not a retreat to
+    // tungsten: it is a clean neutral white, still plainly a colder and newer
+    // fitting than the amber bay lamps around it, which is the thing the blue
+    // was there to say. It just no longer says it by painting the floor.
+    light([0, 3.1, 14.8], { intensity: 8, range: 4, color: '#f5f2ec', mount: 'fixed', shadow: true }),
     // and one over the ramp, so the approach is legible without being in shot
-    light([0, 3.4, 11.6], { intensity: 10, range: 8, color: '#dfeaff', mount: 'fixed' }),
+    light([0, 3.4, 11.6], { intensity: 10, range: 8, color: '#f5f2ec', mount: 'fixed' }),
 
     // --- THE PIT, WHICH IS THE DIMMEST ---------------------------------------
     //
