@@ -675,7 +675,50 @@ class SitePass extends Pass {
       // out here and rather more than half of it goes back in as a shadow tint
       // below, which puts the same total distance between light and shadow
       // while spending it on a rotation instead of on a cast.
-      uBalance: { value: new THREE.Vector3(0.952, 1.0, 1.096) },
+      // AND THEN THE WHOLE CHAIN WAS MEASURED AGAINST THE LIGHT RIG, AND THE
+      // BLUE WAS NOT COMING FROM THE LIGHTS AT ALL.
+      //
+      // Four separate attempts have gone at "the room is cold" from the lamp
+      // end — a hemisphere de-blued from #5b6472 to a warm grey, a fill lift,
+      // a rim colour swept from #7fa8d8 to #cbbda6, the shared bounce colour
+      // swept across its whole range — and every one of them moved the frame by
+      // under a level. A knock-out test says why, and it is not subtle. Removing
+      // the environment map, the hemisphere, both directionals, the spot, or the
+      // bounce leaves the van's floor at red-to-blue 0.62-0.65, which is where
+      // it started. Removing the POINT lamps takes it to 5.3/5.2/6.2 — nearly
+      // black and DEAD NEUTRAL. Every one of those lamps is warm by level data
+      // (#ffe2b4, #ffd9a0), and a warm lamp on a warm concrete albedo cannot
+      // return a blue pixel. So the blue is not in the rig. It is added after
+      // it, here, by these four terms — which is exactly why de-blueing a light
+      // moved nothing.
+      //
+      // Measured on the van plate, the unlit floor ran 63/76/98: blue over red
+      // by 34 where a reference shaded stone runs about MINUS 1, with 38% of the
+      // frame carrying more blue than red by a clear margin.
+      //
+      // THE CORRECTION HAS TO PRESERVE EACH TERM'S LUMINANCE or it is an
+      // exposure change wearing a hue change's clothes. So green is held exactly
+      // where it was and red and blue are both moved towards
+      //
+      //     m = ( 0.2126 r + 0.0722 b ) / 0.2848
+      //
+      // which is the one value the pair can share without altering what the term
+      // contributes to brightness. Every number below is that path, walked 55%
+      // of the way, and the four luma sums come back to within a ten-thousandth
+      // of what they were.
+      //
+      // 55% and not 100%, and this is the part worth arguing. Swept live at
+      // k = 0, 0.35, 0.5, 0.65, 0.8 and 1 on three plates: the van's blue
+      // coverage falls 38.2% -> 31.5% -> 30.3% -> 23.7% and its cargo wall turns
+      // from pale blue-white to gold, which is the whole complaint. But the shed
+      // spawn's LIT floor goes the other way at the same time — blue-minus-red
+      // -11.7 at k=0 and -32.4 at k=0.65 — and a warm floor under a tungsten
+      // pendant is the khaki three separate reviews have already complained
+      // about. uBalance exists to hold that line. Photographed side by side, k=1
+      // takes the shed there and k=0.5 does not, so this sits just past half:
+      // enough to take the navy out of the unlit half, not enough to put the
+      // khaki back in the lit half.
+      uBalance: { value: new THREE.Vector3(0.972, 1.0, 1.037) },
       // The gate. uCeil is the hard promise — no pixel leaves this shader
       // above it — and 0.955 in display space is 243/255, which puts the whole
       // frame under the 250 that a clipping test counts, with room for the
@@ -689,7 +732,9 @@ class SitePass extends Pass {
       // lights — a multiply cannot, because it scales both by the same factor.
       // Luma-weighted so neither half moves the exposure: the green channel
       // carries almost none of either tint.
-      uShadowTint: { value: new THREE.Vector3(-0.007, -0.001, 0.014) },
+      // De-biased with the other three — see the note beside uBalance. The
+      // rotation survives, at about a third of the distance it had.
+      uShadowTint: { value: new THREE.Vector3(-0.004, -0.001, 0.005) },
       uHighTint: { value: new THREE.Vector3(0.010, 0.002, -0.008) },
       uVignette: { value: 0.36 },
       // Grain is measured in display units, and this one is easy to overdo in a
@@ -736,8 +781,13 @@ class SitePass extends Pass {
       // stays the only strong colour on a contractor. The aerial term keeps
       // slightly more of its blue than the near lift does, because that one is
       // standing in for actual air and actual air is actually blue.
-      uLift: { value: new THREE.Vector3(0.086, 0.084, 0.098) },
-      uAerial: { value: new THREE.Vector3(0.030, 0.033, 0.044) },
+      // Both de-biased with uBalance and uShadowTint. These two are the ones
+      // that put the cast where a grader photographs it: they are gated on
+      // shadow and on distance, so they land hardest on exactly the unlit floor
+      // and far racking the "everything is navy" complaint is about, and their
+      // luma is untouched so the black point they exist to set has not moved.
+      uLift: { value: new THREE.Vector3(0.0877, 0.084, 0.0931) },
+      uAerial: { value: new THREE.Vector3(0.0320, 0.033, 0.0383) },
       uAerialRate: { value: 0.030 },
     });
 
