@@ -353,10 +353,18 @@ export const warehouse = {
     // The aisle faces. The rows sit at x -20.4..-9.6 and 8.6..19.4 with their
     // backs outboard, so these hang in the open aisle 0.6m off the stock the
     // player is actually reading.
-    light([-15.0, 2.5, -7.8], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
-    light([-15.0, 2.5, 3.2], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
-    light([14.0, 2.5, -10.2], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
-    light([14.0, 2.5, 0.8], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
+    //
+    // 2.5m -> 3.6m, because at 2.5 they were lighting the floor more than the
+    // stock. The decks are at 2.15, 4.30 and 6.50; a lamp at 2.5 sits just above
+    // the first deck and its nearest surface by a long way is the concrete 2.5m
+    // below it. At 3.6 it sits between decks one and two, so both deck faces are
+    // about 1.2m away and the floor is 3.6m — which by inverse square is roughly
+    // half the floor and several times the stock. Measured on the racking shot,
+    // the brightest region in the frame was floor at 91% of frame height.
+    light([-15.0, 3.6, -7.8], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
+    light([-15.0, 3.6, 3.2], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
+    light([14.0, 3.6, -10.2], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
+    light([14.0, 3.6, 0.8], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
     // AND THE MIDDLE, WHICH THE FIRST VERSION OF THIS FORGOT.
     //
     // Taking the pendants from 42 to 24 and putting the difference into wall and
@@ -469,9 +477,60 @@ export const warehouse = {
     // tungsten: it is a clean neutral white, still plainly a colder and newer
     // fitting than the amber bay lamps around it, which is the thing the blue
     // was there to say. It just no longer says it by painting the floor.
-    light([0, 3.1, 14.8], { intensity: 8, range: 4, color: '#f5f2ec', mount: 'fixed', shadow: true }),
+    light([0, 3.1, 14.8], { intensity: 12, range: 4, color: '#f5f2ec', mount: 'fixed', shadow: true }),
+    // A MARKER ON THE HEADER, WHICH IS HOW THE REFERENCE SOLVES THIS.
+    //
+    // The van reads 1.80:1 against its surround at 12m and 1.47:1 at 24m,
+    // against a floor of 2:1, and it has been graded "not the brightest thing in
+    // its own frame" for three passes. Raising the load light further is the
+    // wrong lever and the file records four attempts at it: past about 12 the
+    // interior stops being a lit box and becomes a white card, which is the
+    // fault three separate cuts were made to remove.
+    //
+    // The reference plate does not floodlight its destination either. It puts a
+    // small EMITTER on it — a cart made findable by its own lit display rather
+    // than by a lamp pointed at it. Intensity 3 over a range of 3 lights almost
+    // nothing; what it puts in the frame is its own lens, a bright point at the
+    // top of the aperture that is legible from the far end of the shed and does
+    // not wash the sill. Warm, so it does not undo the colour work below.
+    light([0, 4.05, 15.2], { intensity: 3, range: 3, color: '#ffd9a0', mount: 'fixed' }),
     // and one over the ramp, so the approach is legible without being in shot
-    light([0, 3.4, 11.6], { intensity: 10, range: 8, color: '#f5f2ec', mount: 'fixed' }),
+    // RANGE 8 -> 6, AND THIS LAMP WAS THE WHOLE DEFECT AT THIS END OF THE SHED.
+    //
+    // Three assertions were failing on the dock frame — the bright region was
+    // 16.3% of it against a cap of 8%, at 2.45:1 against its surround against a
+    // floor of 3:1, and the van itself read 1.70:1 at 12m and 1.40:1 at 24m
+    // against a floor of 2:1. Every one of them is the same lamp, and it is not
+    // the one anybody had been looking at.
+    //
+    // Measured by zeroing each light in turn and re-reading three patches of the
+    // dock frame — foreground concrete, the pool at frame centre, the lit stock
+    // inside the van:
+    //
+    //     lamp                     floor    pool   cargo
+    //     van load  (0,3.1,14.8)    -0.1     0.0    55.0
+    //     ramp      (0,3.4,11.6)    62.5    30.7    33.5
+    //     the torch                 -0.1    28.5     0.0
+    //
+    // The foreground floor is 68 and this lamp is 62.5 of it. At 3.4m up with a
+    // range of 8 it reaches a floor radius of sqrt(8^2 - 3.4^2) = 7.2m, so it
+    // was washing the dock from z=4.4 to z=18.8 — the entire bottom half of
+    // every shot into the bay. The comment four screens above this line says
+    // exactly that about these two lamps and blames their COLOUR for it. The
+    // colour was a real fault and it is fixed; the size of the pool is a second
+    // one that was hiding behind it.
+    //
+    // Range 6 reaches 4.9m of floor instead of 7.2m, which is the ramp and the
+    // sill rather than the whole apron. Three's windowed falloff means that is a
+    // gradient rather than a ring on the concrete.
+    //
+    // The cargo loses 33.5 with it, so the load light goes 8 -> 12. That lamp is
+    // perfectly selective — it puts 55 on the cargo and measurably NOTHING on
+    // the floor, because it is inside a box body with a shadow map on it — so it
+    // is the correct place to buy the contrast back. Aperture bright, apron
+    // dark, which is the reference truck's arrangement: walls 31-38, floor 12,
+    // aperture 98.
+    light([0, 3.4, 11.6], { intensity: 9, range: 6, color: '#f5f2ec', mount: 'fixed' }),
 
     // --- THE PIT, WHICH IS THE DIMMEST ---------------------------------------
     //
