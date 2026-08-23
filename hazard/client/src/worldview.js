@@ -22,6 +22,8 @@ import { BONE_SIZES } from './art/figure.js';
 import { makeFigure } from './art/figure.js';
 
 const _q = new THREE.Quaternion();
+// An instance with no size draws no pixels: how an extracted prop disappears.
+const _zero = new THREE.Matrix4().makeScale(0, 0, 0);
 const _v = new THREE.Vector3();
 const _right = new THREE.Vector3();
 const _up = new THREE.Vector3();
@@ -160,7 +162,8 @@ export class WorldView {
   constructor(level, renderer) {
     this.level = level;
     this.scene = new THREE.Scene();
-    this.props = new Map();     // wire id -> { obj, def, from, to }
+    this.props = new Map();     // wire id -> { obj, def, group, ix, from, to }
+    this.groups = [];           // InstancedMesh per kind that appears more than once
     this.figures = new Map();   // slot -> figure
     this.stats = { staticDraws: 0, tris: 0 };
     this.snapAt = 0;      // arrival time of the newest snapshot
@@ -253,7 +256,41 @@ export class WorldView {
     // pointed at your boots that switches off the moment you raise your eyes to
     // search. At 200cd and decay 1.3 the near field is about unchanged and 15m
     // gets roughly two and a half times more, taking the ratio to about 5.6:1.
-    this.torch = new THREE.SpotLight(0xfff1d8, 200, 28, 0.22, 0.30, 1.3);
+    //
+    // PENUMBRA 0.30 -> 0.78, AND THE EDGE WAS THE LAST THING WRONG WITH IT.
+    //
+    // The intensity work above fixed how BRIGHT the pool is and left how it
+    // ENDS untouched, and a later grading pass measured the ending: falloff
+    // from 90% to 10% of peak, as a fraction of the pool's own radius, runs
+    // 0.25 on the aisle pose and 0.28 down-room. The reference median is 1.27
+    // — meaning the reference's pool has no visible boundary anywhere in the
+    // frame at all, and ours completes its entire falloff inside a quarter of
+    // its radius. That is a cut-out disc with a soft-ish rim, which is exactly
+    // what "reads as a decal rather than as light" describes, and it survived
+    // a fix that was aimed at the middle of the pool rather than its edge.
+    //
+    // 0.78 with a 12.6 degree half-angle puts the soft band across most of the
+    // cone. Intensity STAYS at 200, and the attempt to take it to 155 with the
+    // penumbra is worth recording because of what it exposed rather than what
+    // it fixed. At 155 the harness's "the torch is what makes the dark end of
+    // the shed workable" check fell to 1.86x against a floor of 2x — the torch
+    // stopped doing the one job it is in the game to do. Penumbra redistributes
+    // the same energy over a softer edge, which is the fix the grading pass
+    // actually asked for; cutting intensity as well was me over-reading a note
+    // about the core clipping, and the core clipping is the tonemap shoulder's
+    // problem, not the lamp's.
+    //
+    // The soft edge cost something else, and that one is a real finding rather
+    // than a regression: the destination-contrast checks at 12m and 24m fell
+    // from passing to 1.63:1 and 1.33:1. They did not break — they stopped
+    // being satisfied by an artefact. A penumbra-0.30 torch puts a hard bright
+    // disc exactly where those checks sample the van opening and nowhere near
+    // where they sample its surround, so the van was reading as a destination
+    // because the player was pointing a torch at it. Softening the torch
+    // measured the van's OWN light for the first time, and the van does not
+    // read. That is a level defect the grading pass had already reported by eye
+    // and the harness had been hiding.
+    this.torch = new THREE.SpotLight(0xfff1d8, 200, 28, 0.22, 0.78, 1.3);
     this.torch.castShadow = false;
     this.torchTarget = new THREE.Object3D();
     this.scene.add(this.torch);
@@ -623,10 +660,47 @@ export class WorldView {
   }
 
   buildProps() {
-    // One prototype per kind, cloned per instance: forty props of a dozen kinds
-    // means a dozen geometries, not forty.
+    // One prototype per kind: forty props of a dozen kinds means a dozen
+    // geometries, not forty. The prototypes are never added to the scene —
+    // they are here to be shared by an InstancedMesh or cloned by a singleton.
     const protos = new Map();
     for (const def of Object.values(PROP_BY_ID)) protos.set(def.id, meshForProp(def));
+
+    // TEN MUGS ARE ONE DRAW.
+    //
+    // The instancing owed since the draw budget was first raised. Every kind
+    // that appears more than once in a level becomes one InstancedMesh; its
+    // members keep a bare Object3D to carry the transform the wire gives them
+    // and are never in the scene graph themselves.
+    //
+    // It is not the free win it looks like, because draw calls are counted
+    // AFTER frustum culling. Fifteen mugs scattered through a level are
+    // fifteen cullable objects and most views see two of them; collapsed into
+    // one mesh, the bounding sphere spans the building and is drawn in every
+    // view — and behind it, twelve more times, once per face of each
+    // shadow-casting point light. Measured at the five poses the harness
+    // photographs, per level, sum of draw calls:
+    //
+    //     warehouse 1125 -> 1028      tower 1206 -> 1149      flooded 1070 -> 1119
+    //
+    // Flooded, which has the most props and spreads them furthest, got worse.
+    //
+    // So I tried grouping by kind AND 12m cell, to keep the bounding spheres
+    // small enough to cull: 1079 / 1197 / 1035, a better total and a WORSE
+    // answer. Frame time is set by the heaviest frame, not the average one,
+    // and on the worst pose in each level plain kind grouping wins outright:
+    //
+    //     baseline  245 / 254 / 246      by kind  214 / 227 / 228      by cell  229 / 248 / 231
+    //
+    // Grouping by kind is what shipped. The cell version is not in the file
+    // because a cleverer structure that loses on the number that matters is
+    // just a slower structure.
+    const tally = new Map();
+    for (const p of this.level.props) tally.set(p.kind, (tally.get(p.kind) || 0) + 1);
+
+    this.groups = [];
+    const groups = new Map();
+    const cursor = new Map();
 
     // The wire numbers props 1..n in the order the level lists them, which is
     // exactly the order World.spawnProps walks. Mirror it rather than inventing
@@ -635,34 +709,95 @@ export class WorldView {
     for (const p of this.level.props) {
       const def = PROP_BY_ID[p.kind];
       if (!def) { id++; continue; }
-      const obj = protos.get(def.id).clone();
-      // SMALL THINGS DO NOT CAST.
-      //
-      // Two shadow-casting point lights are twelve cube faces, and every face
-      // redraws every caster in range — measured, that is 144 of this level's
-      // 256 draw calls against 112 for the main pass. Twenty-three of the
-      // casters are mugs, staplers and extinguishers whose contact shadow is
-      // sub-pixel from anywhere a player stands, so they are paying twelve
-      // draws each for nothing anyone can see. Everything a person could trip
-      // over, stand on or hide behind still casts.
-      //
-      // This is a reduction, not a threshold move. The budget in the harness
-      // has been raised twice already and the honest fix for the rest is
-      // instancing props by kind — ten mugs are ten meshes and one InstancedMesh
-      // would do — which nobody has written and which I am not pretending is
-      // done here.
-      obj.castShadow = propRadius(def) > 0.16;
-      obj.receiveShadow = true;
+      const proto = protos.get(def.id);
+      let obj, group = null, ix = -1;
+
+      if (tally.get(p.kind) > 1) {
+        group = groups.get(p.kind);
+        if (!group) {
+          const mesh = new THREE.InstancedMesh(proto.geometry, proto.material, tally.get(p.kind));
+          mesh.name = `props:${def.id}`;
+          // The size rule still applies. A mug's contact shadow is sub-pixel
+          // from anywhere a player stands and twelve cube faces is a lot to
+          // pay for it; what instancing changes is who pays, since the whole
+          // mug kind now costs what one mug used to. Turning it back on for
+          // everything was measured too — 3401 draws to 3591, past the
+          // baseline — so it stays a separate question with its own pictures,
+          // not a rider on this change.
+          mesh.castShadow = propRadius(def) > 0.16;
+          mesh.receiveShadow = true;
+          mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+          this.scene.add(mesh);
+          group = { mesh, dirty: false };
+          groups.set(p.kind, group);
+          this.groups.push(group);
+          cursor.set(p.kind, 0);
+        }
+        ix = cursor.get(p.kind);
+        cursor.set(p.kind, ix + 1);
+        // Members carry their transform on a bare Object3D and are never in
+        // the scene graph; the mesh reads their matrices, nothing draws them.
+        obj = new THREE.Object3D();
+      } else {
+        obj = proto.clone();
+        obj.castShadow = propRadius(def) > 0.16;
+        obj.receiveShadow = true;
+        this.scene.add(obj);
+      }
+
       obj.position.set(p.p[0], p.p[1], p.p[2]);
       if (p.r) obj.rotation.set(p.r[0], p.r[1], p.r[2]);
-      this.scene.add(obj);
+      if (group) {
+        obj.updateMatrix();
+        group.mesh.setMatrixAt(ix, obj.matrix);
+        group.dirty = true;
+      }
       this.props.set(id, {
-        obj, def, broken: false, extracted: false,
+        obj, def, group, ix, broken: false, extracted: false,
+        // Props are only on the wire while they are moving, so a resting prop
+        // stops being written after one interpolation window rather than
+        // re-uploading a matrix buffer every frame for a mug nobody touched.
+        settleAt: 0,
         from: { p: obj.position.clone(), q: obj.quaternion.clone(), t: 0 },
         to: { p: obj.position.clone(), q: obj.quaternion.clone(), t: 0 },
       });
       id++;
     }
+    this.flushGroups();
+  }
+
+  flushGroups() {
+    for (const g of this.groups) {
+      if (!g.dirty) continue;
+      g.mesh.instanceMatrix.needsUpdate = true;
+      g.mesh.boundingSphere = null;   // stale bounds cull a whole kind out of view
+      g.dirty = false;
+    }
+  }
+
+  /**
+   * Take one prop out of its instanced kind and give it a mesh of its own.
+   *
+   * A material belongs to an InstancedMesh, not to an instance, so a prop that
+   * breaks cannot change colour while it is still in the pool. Rather than
+   * carry a second pool for a state a handful of props ever reach, the broken
+   * one leaves: its slot collapses to zero scale and it becomes an ordinary
+   * mesh that costs an ordinary draw. There are never many of them, and the
+   * ones there are have just made a noise you were meant to notice.
+   */
+  soloise(rec) {
+    const g = rec.group;
+    g.mesh.setMatrixAt(rec.ix, _zero);
+    g.dirty = true;
+    const m = new THREE.Mesh(g.mesh.geometry, g.mesh.material);
+    m.castShadow = g.mesh.castShadow;
+    m.receiveShadow = true;
+    m.position.copy(rec.obj.position);
+    m.quaternion.copy(rec.obj.quaternion);
+    this.scene.add(m);
+    rec.obj = m;
+    rec.group = null;
+    rec.ix = -1;
   }
 
   /**
@@ -881,14 +1016,21 @@ export class WorldView {
       rec.to.q.set(p.qx, p.qy, p.qz, p.qw);
       rec.to.t = this.snapAt;
       rec.seeded = true;
+      // One interval to play the span out, one for the client to be late in.
+      rec.settleAt = this.snapAt + SNAPSHOT_MS * 2;
 
       const broken = (p.flags & OFLAG.BROKEN) !== 0;
       if (broken && !rec.broken) {
         rec.broken = true;
+        if (rec.group) this.soloise(rec);
         rec.obj.material = materialFor('broken');
       }
       const gone = (p.flags & OFLAG.EXTRACTED) !== 0;
-      if (gone !== rec.extracted) { rec.extracted = gone; rec.obj.visible = !gone; }
+      if (gone !== rec.extracted) {
+        rec.extracted = gone;
+        if (rec.group) rec.group.dirty = true;
+        else rec.obj.visible = !gone;
+      }
     }
 
     const seen = new Set();
@@ -953,7 +1095,12 @@ export class WorldView {
       rec.obj.position.lerpVectors(rec.from.p, rec.to.p, f);
       _q.copy(rec.from.q).slerp(rec.to.q, f);
       rec.obj.quaternion.copy(_q);
+      if (!rec.group || T > rec.settleAt) continue;
+      rec.obj.updateMatrix();
+      rec.group.mesh.setMatrixAt(rec.ix, rec.extracted ? _zero : rec.obj.matrix);
+      rec.group.dirty = true;
     }
+    this.flushGroups();
 
     for (const fig of this.figures.values()) {
       const f = span(fig.from.t, fig.to.t, T);

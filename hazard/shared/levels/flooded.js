@@ -205,11 +205,24 @@ const brushes = [
   // A process plant is mostly pipework seen from below. Three runs along the long
   // axis at staggered heights, a cross-tie, and two hangers carrying them —
   // enough to break the ceiling plane and give the upper frame a rhythm to read
-  // against, at no extra draw calls since `metal` is already a merged mesh here.
-  box([0, 10.4, -6.5], [52, 0.55, 0.55], 'metal', { tag: 'pipe' }),
-  box([0, 9.7, -5.6], [52, 0.4, 0.4], 'metal', { tag: 'pipe' }),
-  box([0, 10.9, 7.2], [52, 0.7, 0.7], 'metal', { tag: 'pipe' }),
-  box([-8.0, 10.1, 0.4], [0.45, 0.45, 14.5], 'metal', { tag: 'pipe' }),
+  // against, at no extra draw calls since `steelblue` is already a merged mesh here.
+  //
+  // `steelblue`, and the first version of these four lines said `metal` — chosen
+  // because `metal` was already merged in this level, which is a draw-call
+  // reason for a decision that is entirely about light. `metal` is the highest
+  // environment-map term in the table (env 0.8 against structsteel's 0.06), and
+  // at ten metres up with no lamp within four metres of them these runs were not
+  // being lit by the rig at all: they were mirroring the blue environment map,
+  // and photographed as cold blue diagonal streaks with a hard specular ridge in
+  // a level that is otherwise mint and amber. The same mistake as the duct that
+  // became the sky band, made in the same commit that fixed the duct.
+  //
+  // The level had already answered the question three lines further down, where
+  // its original pipework is `steelblue`, as are the warehouse purlins.
+  box([0, 10.4, -6.5], [52, 0.55, 0.55], 'steelblue', { tag: 'pipe' }),
+  box([0, 9.7, -5.6], [52, 0.4, 0.4], 'steelblue', { tag: 'pipe' }),
+  box([0, 10.9, 7.2], [52, 0.7, 0.7], 'steelblue', { tag: 'pipe' }),
+  box([-8.0, 10.1, 0.4], [0.45, 0.45, 14.5], 'steelblue', { tag: 'pipe' }),
   box([-8.0, 11.6, -6.0], [0.25, 2.4, 0.25], 'structsteel', { tag: 'hanger' }),
   box([12.0, 11.6, 7.2], [0.25, 2.4, 0.25], 'structsteel', { tag: 'hanger' }),
 
@@ -302,6 +315,36 @@ export const flooded = {
     light([-16.0, 3.2, 0], { intensity: 20, range: 15, color: '#a8f0c4', flicker: 0.4 }),
     light([-1.0, 3.6, 0], { intensity: 24, range: 18, color: '#cfe0e8' }),
     light([13.0, 3.2, 0], { intensity: 18, range: 14, color: '#a8f0c4', flicker: 0.55 }),
+    // TWO LAMPS ON THE SIGHT LINE, BECAUSE THE COMPOSITION WAS RIGHT AND EMPTY.
+    //
+    // Moving the spawn to look down the plant's long axis fixed a frame that
+    // opened on cladding six metres away, and replaced it with a frame that
+    // opened on a void: measured at the shipped spawn, mean 25.4, p50 23,
+    // p90 32 — the entire picture inside a sixteen-value band, with thirds at
+    // 23.9 / 25.9 / 26.4. Flat, no focal point, no depth cue.
+    //
+    // The reason is geometric rather than artistic. Forward from the spawn is
+    // (sin -0.96, cos -0.96) = (-0.82, +0.57), and the first lamp along that
+    // vector is the `[-1.0, 3.6, 0]` fitting TWENTY-ONE METRES out. You could
+    // see about six metres of the twenty-one the move was made to show.
+    //
+    // These two sit on that vector at roughly 7m and 14m, so the middle
+    // distance has something lit in it and the frame gets a near/mid/far to
+    // read. Amber, deliberately: the level is mint and blue everywhere else
+    // and this is the sight line the player looks down for the whole round.
+    light([10.4, 3.4, -8.0], { intensity: 15, range: 11, color: '#ffcf94' }),
+    light([5.2, 3.8, -4.4], { intensity: 12, range: 10, color: '#ffbe7a' }),
+    // And one for the pipework, which was invisible until it had one.
+    //
+    // The four roof runs above were added to break the ceiling plane and were
+    // photographed doing it in mirror-blue, because `metal` reflects the
+    // environment map when nothing lights it. Correcting the material to
+    // `steelblue` stopped the streaking and left them unlit and therefore not
+    // in the picture, which is a pointless six brushes. The nearest lamp was
+    // four metres below them; this one is 1.1-2.3m under the runs, which is
+    // close enough to make a pool on a surface rather than a wash under it —
+    // the same lever the low wall fixtures pull, pointed up instead of down.
+    light([2.0, 8.6, -3.0], { intensity: 11, range: 12, color: '#ffd3a2', mount: 'fixed' }),
     // Down in the tanks, where the money is and the lamps are not.
     light([-16.5, -0.8, 0], { intensity: 9, range: 9, color: '#9fd8c0' }),
     light([-1.0, -2.6, 1.0], { intensity: 11, range: 11, color: '#bfe6d8' }),
