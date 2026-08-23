@@ -305,11 +305,77 @@ export const warehouse = {
     // centre line and left a dead strip down the middle of the shed. Measured on
     // a half-metre grid, (-0.5, 4) was receiving exactly 0.000 — outside every
     // pendant's range window at once. 17 reaches 15.5m and the rows overlap.
-    light([-14, 8.4, -9], { intensity: 42, range: 17, color: '#ffe2b4' }),
-    light([14, 8.4, -9], { intensity: 42, range: 17, color: '#ffe2b4' }),
-    light([-14, 8.4, 5], { intensity: 42, range: 17, color: '#ffe2b4' }),
-    light([14, 8.4, 5], { intensity: 42, range: 17, color: '#ffe2b4' }),
-    light([0, 8.4, -14], { intensity: 34, range: 15, color: '#ffd9a0' }),
+    //
+    // 42 -> 24, AND THE POINT IS WHERE THE LIGHT GOES, NOT HOW MUCH OF IT.
+    //
+    // Every previous argument on this line was about the total: the room was
+    // too dark, so the number went up; the pools blew out, so it came down.
+    // A grading pass measured the distribution instead and the answer was not
+    // on that axis at all. Our key floor reads 143 sRGB where the reference's
+    // lit stone reads 65 — 2.2x hot — while our deep fill reads 6/5/6 against
+    // the reference's 6/5/9, which is a match to within a value. We are not
+    // crushed at the bottom. We are stretched at the top, and the median sits
+    // at 22 because the light is all in the pools and there is nothing in
+    // between them.
+    //
+    // A pendant 8.4m over a flat slab cannot make a pool: by the time its cone
+    // reaches the floor it is a wash, and the only surface in reach is the
+    // concrete at your boots — which is precisely why the brightest region in
+    // four frames out of five was the floor, and why the assertion about it
+    // failed on area rather than on height. So the key comes down and the
+    // difference goes into the fixtures below, 0.5m off a surface, where a
+    // lamp CAN make a pool. Total flux is roughly unchanged: 202 -> 196.
+    light([-14, 8.4, -9], { intensity: 24, range: 17, color: '#ffe2b4' }),
+    light([14, 8.4, -9], { intensity: 24, range: 17, color: '#ffe2b4' }),
+    light([-14, 8.4, 5], { intensity: 24, range: 17, color: '#ffe2b4' }),
+    light([14, 8.4, 5], { intensity: 24, range: 17, color: '#ffe2b4' }),
+    light([0, 8.4, -14], { intensity: 20, range: 15, color: '#ffd9a0' }),
+
+    // --- LOW FIXTURES, WHICH IS WHERE THE 42 WENT ----------------------------
+    //
+    // Wall packs at 2.6m, half a metre off the cladding, and aisle lamps at
+    // 2.5m, half a metre off the face of the stock. Short range on all of them,
+    // deliberately: a 6m window from 2.6m up puts the whole pool on a wall and
+    // the rack faces rather than spreading a further wash over concrete that is
+    // already lit. Each one is a small bright thing at eye level with a dark
+    // housing round it, which is what the reference plates are full of and what
+    // this shed had none of below 4.6m.
+    //
+    // `mount: 'fixed'` on every one, because the blanket 1.6m pendant drop would
+    // put a 2.5m lamp at 0.9m — in the player's face, and inside the aisle they
+    // walk down. The van lamps learned this the hard way and it is written up
+    // three screens below.
+    light([-22.4, 2.6, -4.0], { intensity: 10, range: 6.0, color: '#ffd9a0', mount: 'fixed' }),
+    light([-22.4, 2.6, 4.0], { intensity: 10, range: 6.0, color: '#ffd9a0', mount: 'fixed' }),
+    light([22.4, 2.6, -8.0], { intensity: 10, range: 6.0, color: '#ffd9a0', mount: 'fixed' }),
+    light([22.4, 2.6, 0.0], { intensity: 10, range: 6.0, color: '#ffd9a0', mount: 'fixed' }),
+    light([22.4, 2.6, 8.0], { intensity: 10, range: 6.0, color: '#ffd9a0', mount: 'fixed' }),
+    // The aisle faces. The rows sit at x -20.4..-9.6 and 8.6..19.4 with their
+    // backs outboard, so these hang in the open aisle 0.6m off the stock the
+    // player is actually reading.
+    light([-15.0, 2.5, -7.8], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
+    light([-15.0, 2.5, 3.2], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
+    light([14.0, 2.5, -10.2], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
+    light([14.0, 2.5, 0.8], { intensity: 9, range: 5.5, color: '#ffe2b4', mount: 'fixed' }),
+    // AND THE MIDDLE, WHICH THE FIRST VERSION OF THIS FORGOT.
+    //
+    // Taking the pendants from 42 to 24 and putting the difference into wall and
+    // aisle fixtures moved the light to the EDGES of the shed. Measured: the
+    // peak came down properly, p90 56 -> 33, but the floor between the pools
+    // halved — fill 0.0316 -> 0.0133 — and key over fill went 9.3:1 to 20.4:1,
+    // which is further from the reference's 11.6:1 than where it started. The
+    // grading pass's complaint was "a hot key, a black floor and nothing in
+    // between", and I had fixed the first third and made the last third worse.
+    //
+    // The fix is the same principle applied to the middle rather than more wash
+    // over it: there IS a surface down the centre of this shed, the conveyor at
+    // z=-6.5, and it had no light on it at all. Three lamps 1.45m above the belt
+    // light the belt, the floor either side of it, and anything riding it — and
+    // they give the open centre of the room the lit line it needs to be a
+    // composition rather than a gap between two lit walls.
+    light([-9.0, 2.4, -6.5], { intensity: 9, range: 6.0, color: '#ffe2b4', mount: 'fixed' }),
+    light([0.0, 2.4, -6.5], { intensity: 9, range: 6.0, color: '#ffe2b4', mount: 'fixed' }),
+    light([9.0, 2.4, -6.5], { intensity: 9, range: 6.0, color: '#ffe2b4', mount: 'fixed' }),
 
     // --- LANDMARKS, so the eye has somewhere to go that is not your boots ----
     //
