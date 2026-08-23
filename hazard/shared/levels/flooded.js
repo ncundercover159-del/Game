@@ -193,6 +193,26 @@ const brushes = [
   box([-21.0, GANTRY + 2.95, 9.6], [8.9, 0.3, 7.7], 'deckplate', { tag: 'ceiling' }),
 
   // --- the loading platform, south-east: the only dry ground at the end ----
+  // --- SOMETHING UNDER THE ROOF -------------------------------------------
+  //
+  // The shell is 13m to the ceiling and had nothing between 6m and there, so the
+  // upper half of every frame in this level was an empty black band — a grading
+  // pass measured `flooded/high` at two distinct colours and 99% flat. Moving the
+  // spawn to look down the plant's long axis removed the wall that used to fill
+  // that band and replaced it with a void, which is a different failure rather
+  // than much of an improvement.
+  //
+  // A process plant is mostly pipework seen from below. Three runs along the long
+  // axis at staggered heights, a cross-tie, and two hangers carrying them —
+  // enough to break the ceiling plane and give the upper frame a rhythm to read
+  // against, at no extra draw calls since `metal` is already a merged mesh here.
+  box([0, 10.4, -6.5], [52, 0.55, 0.55], 'metal', { tag: 'pipe' }),
+  box([0, 9.7, -5.6], [52, 0.4, 0.4], 'metal', { tag: 'pipe' }),
+  box([0, 10.9, 7.2], [52, 0.7, 0.7], 'metal', { tag: 'pipe' }),
+  box([-8.0, 10.1, 0.4], [0.45, 0.45, 14.5], 'metal', { tag: 'pipe' }),
+  box([-8.0, 11.6, -6.0], [0.25, 2.4, 0.25], 'structsteel', { tag: 'hanger' }),
+  box([12.0, 11.6, 7.2], [0.25, 2.4, 0.25], 'structsteel', { tag: 'hanger' }),
+
   box([19.5, 1.1, -12.0], [11.0, 2.2, 7.0], 'deckplate', { tag: 'dock' }),
   box([19.5, 2.55, -15.6], [11.0, 0.7, 0.4], 'steelblue', { tag: 'kerb' }),
   box([24.8, 2.55, -12.0], [0.4, 0.7, 7.0], 'steelblue', { tag: 'kerb' }),
@@ -241,8 +261,30 @@ export const flooded = {
 
   // On the lorry platform, which is the one surface on this job that is dry at
   // the end of it. The ring at 1.6m is all deckplate.
-  spawn: [19.5, 2.35, -10.4],
-  spawnYaw: 1.75,
+  // MOVED, NOT ROTATED, AND THE DISTINCTION WAS THE POINT.
+  //
+  // This was [19.5, 2.35, -10.4] at yaw 1.75 — forward (0.98, -0.18), which is
+  // very nearly due +X. The shell is 52 x 32, so the east wall stands at x=26.35
+  // and the north wall at z=-16.35: the player spawned in a CORNER, facing a
+  // blank corrugated wall six and a half metres away, on the opening frame of
+  // job 03. A grading pass called it the worst picture in the game and ruled out
+  // the obvious fix explicitly — it photographed the +90 degree view too and got
+  // the same banded surface, because rotating inside a corner just recomposes
+  // the wall you are stood against.
+  //
+  // So: the west end of the same lorry platform, looking west-south-west down
+  // the plant's long axis. That is about twenty-one metres of tanks, gantry and
+  // sump instead of six and a half metres of cladding, and it puts the job in
+  // the first frame. The spawn ring is 1.6 and the platform runs x 14 to 25, so
+  // x=16 keeps all four contractors on the deck rather than dropping the outer
+  // one off a 2.2m edge before the clock starts.
+  //
+  // The flatbed is behind and to the right from here, which is correct — its
+  // emissive corner brackets are what make it findable, and a destination you
+  // have to turn around to see is a destination you have to LEARN, which is the
+  // point of marking it rather than shining a light on it.
+  spawn: [16.0, 2.35, -12.0],
+  spawnYaw: -0.96,
   spawnSpread: 1.6,
 
   // The flatbed. You stand on it to load it, so a fishbowl can be crouched down
