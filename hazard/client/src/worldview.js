@@ -374,8 +374,37 @@ export class WorldView {
         const shade = new THREE.CylinderGeometry(r, r * 0.55, r * 0.62, 12, 1, true);
         shade.translate(l.p[0], hang + r * 0.34, l.p[2]);
         shades.push(shade);
+        // A LENS WITH A HOT SPOT, NOT A BALL OF PAINT.
+        //
+        // MeshBasicMaterial shades nothing, which is the point — but it also
+        // means every vertex of this sphere returns the identical value, and a
+        // sphere of one flat colour is a disc. A grading pass photographed the
+        // near pendant in the spawn frame and called it "a black shade with a
+        // flat grey egg and no emissive read at all", which is precisely what a
+        // uniformly coloured ball under a dark cone looks like.
+        //
+        // A real luminaire is brightest where the light leaves it and falls
+        // away into the shade that is hiding the rest of it. That is one vertex
+        // attribute: full at the bottom of the sphere, 0.42 at the top, on a
+        // curve so the transition is not a band. It costs nothing per frame,
+        // it survives the merge because every lens carries the attribute, and
+        // it gives the bloom a bright core to grow from instead of a disc of
+        // even grey.
         const lens = new THREE.SphereGeometry(r * 0.46, 10, 6);
         lens.translate(l.p[0], hang, l.p[2]);
+        const lp = lens.attributes.position, lc = new Float32Array(lp.count * 3);
+        for (let v = 0; v < lp.count; v++) {
+          // -1 at the bottom of the sphere, +1 at the top.
+          const t = (lp.getY(v) - hang) / (r * 0.46);
+          // 1.0 at the bottom falling to 0.09 at the top, on a steep curve so
+          // the hot part is the lower third rather than the lower half. The
+          // core has to be small: it is going over the bloom threshold now, and
+          // a large area over the threshold is the "hard near-white disc" the
+          // note below records as the failure in the other direction.
+          const k = 0.09 + 0.91 * (0.5 - 0.5 * Math.max(-1, Math.min(1, t))) ** 1.9;
+          lc[v * 3] = k; lc[v * 3 + 1] = k; lc[v * 3 + 2] = k;
+        }
+        lens.setAttribute('color', new THREE.BufferAttribute(lc, 3));
         lenses.push(lens);
       }
       p.position.set(l.p[0], hang, l.p[2]);
@@ -395,7 +424,16 @@ export class WorldView {
       const shade = new THREE.Mesh(
         shades.length === 1 ? shades[0] : mergeGeometries(shades, false),
         new THREE.MeshStandardMaterial({
-          color: 0x14161a, roughness: 0.72, metalness: 0.55, side: THREE.DoubleSide,
+          // Dark iron, and DELIBERATELY not black. 0x14161a photographed at
+          // 10/10/12 against a ceiling of 52/37/22 — that is not a silhouette,
+          // it is a hole punched in the frame with a hard edge and nothing
+          // inside it. The reference's fitting is a dark bracket whose FORM you
+          // can still read. Two stops up plus a warm emissive well under a
+          // tenth is what a shade with a bulb in it looks like: the metal stays
+          // dark, the rim and the inner cone pick up enough to have a shape,
+          // and it is nowhere near competing with a lens that now blooms.
+          color: 0x24272e, roughness: 0.72, metalness: 0.55, side: THREE.DoubleSide,
+          emissive: 0x2a1e10, emissiveIntensity: 0.55,
         }),
       );
       shade.name = 'lamp:shades';
@@ -421,7 +459,73 @@ export class WorldView {
           // (0.94x, against 2.6x in the reference) — the glow has to come from
           // bloom radius, not from driving the emitter through the roof. 0.34
           // linear encodes to about sRGB 155.
-          color: new THREE.Color(0.34, 0.32, 0.28), fog: false, toneMapped: false,
+          //
+          // ...AND IT WAS GREY, WHICH IS THE OTHER HALF OF "NO EMISSIVE READ".
+          //
+          // 0.34/0.32/0.28 is a neutral. Encoded that is sRGB 155/151/142 — a
+          // ball of concrete. Every lamp in this shed is #ffe2b4 tungsten, the
+          // pool it throws on the floor is amber, and the one object in the
+          // frame that is supposed to be the SOURCE of that was rendering
+          // greyer than the light it emits. The eye reads a light by its colour
+          // long before it reads it by its value, which is why a dim warm bulb
+          // still says "bulb" and a bright grey disc says "hole".
+          //
+          // So it goes to the lamp's own hue and up by about a fifth in luma —
+          // sRGB 195/173/135, which is well under the 205 that the note above
+          // measured as a hard white disc, and unmistakably a filament rather
+          // than a pebble. The vertex gradient above spends the rest: the
+          // bottom of the lens sits at this value and the top at 0.42 of it, so
+          // the mesh has a hot spot instead of being one flat number.
+          //
+          // ...AND NONE OF THAT MATTERED, BECAUSE THE NUMBER WAS BEING JUDGED
+          // AGAINST THE WRONG THING. IT HAS TO BEAT uThreshold.
+          //
+          // Both notes above argue this value against sRGB output — 155 here,
+          // 205 there, 149 in the reference — and pick something in between.
+          // The bloom does not read sRGB output. `uThreshold` in post.js is
+          // 1.62 in SCENE-LINEAR luma, and 0.34, 0.55 and every other value
+          // this line has held since are under a fifth of it. So the lens has
+          // not cleared the bloom threshold at any point since it was taken
+          // below 1.0, which means it has had no halo at all — and a small
+          // matte ball with no halo hanging under a black cone is exactly the
+          // "black shade with a flat grey egg and no emissive read" that the
+          // grading pass reported. Photographed at 7x: the lens measured
+          // 108/94/72 against the deck IT LIGHTS at 95/77/51. The lamp was a
+          // tenth of a stop brighter than its own pool.
+          //
+          // The note about driving the emitter through the roof was right about
+          // the mechanism and wrong about the lever: a big uniform disc over
+          // the threshold is a white plate, but the fix for that is to make the
+          // hot part SMALL, not to take the whole mesh under the threshold and
+          // lose the halo with it. The gradient above does the small part now.
+          //
+          // The value is SWEPT, not solved, because the arithmetic gets the
+          // threshold right and still misses by a factor of five. Driving the
+          // emitter live and measuring the lens core, a ring just outside it
+          // and the frame's clip%:
+          //
+          //     3.04   core 152/138/115   ring  6/ 6/ 7   clip 0%
+          //     6.00   core 171/161/143   ring  6/ 6/ 7   clip 0%
+          //    10.00   core 179/171/156   ring 16/17/19   clip 0%
+          //    16.00   core 182/174/160   ring 23/25/32   clip 0%
+          //    26.00   core 184/176/162   ring 24/26/33   clip 0%
+          //
+          // Two things fall out of that. The CORE saturates at about 183 and
+          // will not go further however hard it is driven, because the shoulder
+          // in post.js folds everything above it into three thousandths of
+          // itself — so `toneMapped: false` buys nothing here at all and the
+          // fear of a "hard white disc" was unfounded; there is no clipping at
+          // any value on this sweep. And the RING, which is the halo and the
+          // whole point, does not move until 10 and is done by 26. Clearing the
+          // threshold is not enough: the knee is squared and the bloom buffer
+          // is quarter-resolution, so a small source has to be well past 1.62
+          // before enough of its area survives to blur into anything.
+          //
+          // 16 is the knee. The hue is the lamp's own — #ffe2b4 is (1.00,
+          // 0.760, 0.452) in linear — so the halo is amber like the pool it
+          // throws, and the top of the sphere at 0.09 of it stays a dark bulb.
+          color: new THREE.Color(16.0, 12.16, 7.23),
+          vertexColors: true, fog: false, toneMapped: false,
         }),
       );
       lens.name = 'lamp:lenses';
@@ -632,13 +736,36 @@ export class WorldView {
     // the reference sits.
     //
     // So the brackets emit on their own account rather than borrowing from a
-    // lamp. `toneMapped: false` keeps them at that value through the exposure
-    // change that just took the whole picture down by nearly half, which is
-    // exactly the property wanted: the room got darker, the marker did not.
+    // lamp — but they are PAINT THAT GLOWS, not a decal, and the previous cut
+    // lost the difference.
+    //
+    // `toneMapped: false` at emissive 2.6 does not mean "survives an exposure
+    // change", it means "is not in the photograph". Every other surface in the
+    // level goes through the shoulder, ACES and the grade; a material that opts
+    // out of all three arrives at a flat clipped primary with no shading on it
+    // whatsoever, and a grading pass duly reported these as reading like UI —
+    // "unlit pure green with no perspective, floating at the van lip". That is
+    // exactly what a mesh looks like when nothing in the room can reach it: the
+    // three faces of every bar return the identical value, so there is no form,
+    // no near-to-far falloff, and no clue that the thing is an object at all.
+    //
+    // The pit chevrons twenty lines up are the proof, and they were the answer
+    // the whole time. Same job — a painted marker that has to read across a
+    // room — and the same review calls them correct, because they are an
+    // ordinary tone-mapped standard material with a modest emissive UNDER their
+    // diffuse. The glow lifts them off the floor; the room's own light still
+    // decides which of their faces is bright.
+    //
+    // So: tone-mapped like everything else, emissive well under one so the
+    // diffuse shading survives on top of it, and the base colour lightened to
+    // carry the lit faces now that the emissive is no longer doing it alone.
+    // The marker still wins at any exposure — a saturated green in a shed with
+    // no other green in it does not need to out-glow the lamps, which is what
+    // the paragraph above was right about and overspent on.
     const frame = new THREE.Mesh(mergeGeometries(bars, false),
       new THREE.MeshStandardMaterial({
-        color: 0x9fe8bd, roughness: 0.4, metalness: 0.1,
-        emissive: 0x46e08c, emissiveIntensity: 2.6, toneMapped: false,
+        color: 0x86d8a6, roughness: 0.55, metalness: 0.0,
+        emissive: 0x2f8f5c, emissiveIntensity: 0.80,
       }));
     frame.castShadow = true;
     this.scene.add(frame);

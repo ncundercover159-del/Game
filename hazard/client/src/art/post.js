@@ -206,7 +206,31 @@ void main() {
   // it. Clamping the source says exactly that: past a point, more light does not
   // buy more veil, it only buys a brighter core — which the tone curve then
   // handles, and which is what keeps a lamp reading as an object with an edge.
-  gl_FragColor = vec4( min( c, vec3( uClamp ) ), 1.0 );
+  //
+  // ...AND IT CLAMPS BY LUMINANCE, BECAUSE min(c, vec3(k)) IS A HUE CHANGE.
+  //
+  // A per-channel min is a per-channel operation and it does what per-channel
+  // operations always do to a saturated colour: it takes the biggest channel
+  // down to the ceiling, then the next, and what comes out the far side is
+  // WHITE. Every lamp in this shed is #ffe2b4 tungsten, which in linear is
+  // roughly (1.00, 0.76, 0.45) — so at any source value bright enough to be
+  // worth blooming, all three channels are over 2.2 and the veil around a warm
+  // lamp was exactly (2.2, 2.2, 2.2). Neutral. Then uBalance tips it to b/r
+  // 1.067 and the halo comes out COLD.
+  //
+  // Measured on the shed's near pendant, driving the emitter from 3.04 to 16:
+  // the light the halo added was +31/+36/+45, blue-dominant, out of a source
+  // whose own ratio is 1 : 0.76 : 0.45. That is the light of a lamp arriving
+  // the wrong colour, on every lamp in the game at once, and it is one more
+  // reason the room kept photographing cold after the grade was fixed.
+  //
+  // Luminance clamping says the same thing the note above says — the veil
+  // carries a bounded amount of LIGHT — without saying anything about hue. The
+  // dominant channel is allowed past uClamp, which is correct: the constraint
+  // is on how much scatters, not on any one primary.
+  float lc = dot( c, vec3( 0.2126, 0.7152, 0.0722 ) );
+  c *= min( 1.0, uClamp / max( lc, 1e-5 ) );
+  gl_FragColor = vec4( c, 1.0 );
 }
 `;
 
