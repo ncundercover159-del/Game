@@ -265,6 +265,7 @@ uniform vec2 uTexel;
 uniform float uExposure;
 uniform float uAO;
 uniform float uBloom;
+uniform float uSat;         // chroma, about frame luma. 1.0 is untouched
 uniform vec3 uShadowTint;
 uniform vec3 uHighTint;
 uniform float uVignette;
@@ -490,7 +491,7 @@ void main() {
   // shadow tint was removed altogether. A fifth of that is a rotation; a third
   // of it is a cast.
   float l = dot( col, LUMA );
-  col = mix( vec3( l ), col, 0.88 );
+  col = mix( vec3( l ), col, uSat );
   float sh = 1.0 - smoothstep( 0.04, 0.62, l );
   col += uShadowTint * sh + uHighTint * ( 1.0 - sh );
   // NO UPPER CLAMP HERE ANY MORE — see the gate at the bottom of the shader.
@@ -758,6 +759,12 @@ class SitePass extends Pass {
       // carries almost none of either tint.
       // De-biased with the other three — see the note beside uBalance. The
       // rotation survives, at about a third of the distance it had.
+      // Chroma, about the frame's own luma. This was the literal 0.88 sitting
+      // in the shader with "enough saturation taken out that the hi-viz reads as
+      // the brightest thing in the frame" written beside it — a real argument,
+      // made once, never measured, and then compounded by the de-biasing above.
+      // Placeholder; swept below.
+      uSat: { value: 0.88 },
       uShadowTint: { value: new THREE.Vector3(-0.004, -0.001, 0.005) },
       uHighTint: { value: new THREE.Vector3(0.010, 0.002, -0.008) },
       uVignette: { value: 0.36 },

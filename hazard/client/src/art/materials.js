@@ -124,7 +124,18 @@ const RECIPES = {
   // down the file: what this puts back into the dark is TEXTURED and TINTED, so
   // a crate in an unlit corner still shows a top, a side and its own grain. The
   // failure mode being avoided is not darkness, it is emptiness.
-  concrete: { tex: 'concrete', tile: 5.6, rough: 0.94, metal: 0.0, bump: 1.05, roughVar: -0.20, ao: 0.42, mottle: 0.16, fill: 0.235 },
+  // MOTTLE DOWN BY NEARLY TWO THIRDS, AND THE DIFFERENCE PUT WHERE IT SHOWS.
+  //
+  // mottle is a metre-scale drift in value AND in hue, and at 0.16 on the
+  // largest surface in the game it was the only variation the floor had that a
+  // player could actually see — a grading pass measured coarse-to-fine energy
+  // at 12.28 against PEAK's 4.55 and called the result camouflage, which is
+  // precisely what a big soft warm patch beside a big soft cool patch with
+  // nothing inside either of them looks like. The tile-breaking job it exists
+  // for is real and 0.06 still does it; what it must not also be is the
+  // surface's whole character. See concrete() in textures.js for the 6 cm
+  // albedo band that now carries the fine end.
+  concrete: { tex: 'concrete', tile: 5.6, rough: 0.94, metal: 0.0, bump: 1.05, roughVar: -0.20, ao: 0.42, mottle: 0.06, hue: 0.17, fill: 0.235 },
   panel: { tex: 'panel', tile: 4.6, rough: 0.80, metal: 0.10, bump: 2.1, roughVar: -0.20, ao: 0.46, mottle: 0.13, fill: 0.205, env: 0.35 },
   // Fifteen hundred square metres of ceiling, and every number here is set by
   // that. The tile went 4.0 -> 5.5 so the deck's two ribs sit at a 2.75 m
@@ -306,6 +317,7 @@ const FRAG_PARS = /* glsl */`
 uniform sampler2D tpMap;
 uniform vec4 tpTune;   // x tiles/metre, y bump, z roughness variance, w cavity ao
 uniform float tpMottle;
+uniform float tpHue;        // the mottle's COLOUR half, decoupled from its value half
 uniform float tpFill;
 uniform float tpDark;  // bounce left in a corner no lamp reaches
 uniform float tpKnee;  // how fast the bounce saturates with direct light
@@ -378,8 +390,22 @@ const FRAG_MAP = /* glsl */`
   // patch of floor next to a cool one is the cheapest colour a scene can own.
   // Both are low frequency by construction, so neither costs any of the smooth
   // area the eye needs somewhere to rest.
+  //
+  // AND THEY ARE TWO KNOBS NOW, BECAUSE THEY WERE ASKED TO MOVE IN OPPOSITE
+  // DIRECTIONS AND ONE COEFFICIENT CANNOT.
+  //
+  // A grading pass measured the concrete's coarse-to-fine energy ratio at 12.28
+  // against PEAK's 4.55 and called the floor camouflage. That is the VALUE
+  // drift: metre-scale light and dark patches with nothing inside them. The
+  // same pass measured the frame at 41% of pixels carrying any chroma against
+  // the reference's 97%. That is an argument for MORE of the hue drift, which
+  // is one of the few things in a grey shed that puts a warm surface next to a
+  // cool one at all. Scaling both off tpMottle meant cutting the camouflage
+  // also cut the chroma, so the colour half gets its own coefficient and
+  // defaults to the value half, which leaves every other material exactly
+  // where it was.
   float drift = tpDrift( vTpP );
-  vec3 warm = vec3( 1.0 ) + tpMottle * 0.85 * tpDrift( vTpP * 0.36 + 4.0 ) * vec3( 0.55, 0.02, -0.48 );
+  vec3 warm = vec3( 1.0 ) + tpHue * 0.85 * tpDrift( vTpP * 0.36 + 4.0 ) * vec3( 0.55, 0.02, -0.48 );
   diffuseColor.rgb *= tp.rgb * ( 1.0 + tpMottle * drift ) * warm;
 }
 `;
@@ -749,6 +775,7 @@ function patch(shader) {
   shader.uniforms.tpMap = tp.map;
   shader.uniforms.tpTune = tp.tune;
   shader.uniforms.tpMottle = tp.mottle;
+  shader.uniforms.tpHue = tp.hue;
   shader.uniforms.tpFill = tp.fill;
   shader.uniforms.tpDark = BOUNCE.dark;
   shader.uniforms.tpKnee = BOUNCE.knee;
@@ -790,11 +817,13 @@ function patch(shader) {
 export function applyTriplanar(mat, texName, over = {}) {
   const base = RECIPES[texName] || {};
   const r = { tile: 1, bump: 2, roughVar: -0.2, ao: 0.3, mottle: 0, fill: 0.12, env: 1, rim: 0, ...base, ...over };
+  if (r.hue === undefined) r.hue = r.mottle;   // colour follows value unless a recipe says otherwise
   const map = surfaceTexture(texName);
   mat.userData.tp = {
     map: { value: map },
     tune: { value: new THREE.Vector4(1 / r.tile, r.bump, r.roughVar, r.ao) },
     mottle: { value: r.mottle },
+    hue: { value: r.hue },
     fill: { value: r.fill },
     // Texels of this map per metre of surface, which is what the relief's
     // level-of-detail is measured in. Not a constant: a 512 map on a 5.5 m tile

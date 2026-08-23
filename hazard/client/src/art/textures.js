@@ -226,6 +226,31 @@ const GEN = {
     const pour = fbm(u, v, 2, 3, 11);          // where one day's pour met the next
     const patch = fbm(u, v, 4, 2, 97);         // power-float swirl, wear, damp
     const float = fbm(u, v, 24, 2, 181);       // trowel finish, 23 cm — ALBEDO
+    // ...and the band under THAT, which is the one a reference actually has.
+    //
+    // A grading pass measured this floor's coarse-to-fine energy ratio at 12.28
+    // against PEAK's 4.55, and its fine-scale relative standard deviation at
+    // 0.007 against PEAK's 0.018 — so the surface has nearly three times too
+    // much of its variation at the metre scale and a third of what it should
+    // have at the centimetre scale. Photographed, that is exactly the word the
+    // pass used: camouflage. Big soft patches, and inside each patch nothing.
+    //
+    // The reason is the channel rule at the top of this file, applied honestly
+    // and still coming out wrong here. Fine detail was put in HEIGHT because
+    // height averages away with distance and cannot alias. It does — and on
+    // THIS surface it also averages away at two metres, because the bump term
+    // in materials.js fades on texel footprint and the light on a warehouse
+    // floor is a pendant eight metres straight up, which is very nearly normal
+    // incidence. So the floor you stand on has a 1.9 m stain, a 23 cm trowel
+    // swirl, and then nothing at all until the 3 mm tooth that the renderer is
+    // throwing away. 6 cm and 3 cm is the gap, it is the band that fills the
+    // lower third of every frame in this game, and it has to be in albedo
+    // because albedo is the only channel that survives to be seen.
+    //
+    // It cannot alias either: 90 cells over a 5.6 m tile is 6.2 cm at the base
+    // and 3.1 cm at the second octave, against a 512 map whose texel is 1.1 cm.
+    // Four texels per feature is what the mip chain is for.
+    const fine = fbm(u, v, 90, 2, 419);        // 6 cm and 3 cm — ALBEDO
     const tooth = fbm(u, v, 40, 3, 23);        // the fine surface — HEIGHT
     // Aggregate. Finer and much weaker than it was: at 115 cells over a 5.6 m
     // tile these were 5 cm blobs driving a 0.42 cavity-occlusion term, which is
@@ -274,6 +299,7 @@ const GEN = {
     let l = 0.415 + (pour - 0.5) * 0.095;
     l *= mix(0.89, 1.08, smooth(0.28, 0.68, patch));
     l *= 1 + (float - 0.5) * 0.15;             // the 23 cm trowel finish
+    l *= 1 + (fine - 0.5) * 0.13;              // ...and the 6 cm one under it
     // Mostly a groove, only slightly a line. A saw cut fills with dirt and goes
     // dark, but if the darkening carries the feature then at thirty metres the
     // joint is a one-pixel black wire and it crawls.
