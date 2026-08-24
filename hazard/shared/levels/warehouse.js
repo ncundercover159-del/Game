@@ -224,7 +224,27 @@ export const warehouse = {
     skyTop: '#20242c', skyBottom: '#3a3129',
     // The unit is 46m across its diagonal; fog starting at 14m and ending at
     // 74m never engages, so distance reads as flat.
-    fog: { color: '#23252b', near: 6, far: 42 },
+    //
+    // ...and 6/42 was the overshoot in the other direction. Linear fog at
+    // near 6 begins SIX METRES FROM THE EYE, which is inside the working range:
+    // everything a contractor looks at while doing the job is already being
+    // blended toward #23252b before they have taken a step. At 24m — the
+    // distance the van has to read from — the blend is (24-6)/(42-6) = 50%.
+    //
+    // Measured, and this is the whole of why the destination would not read.
+    // Knocking out each contribution in turn at that distance: no lamp puts
+    // ANYTHING measurable on the van's surround, and neither does the ambient,
+    // the environment map or the sun — all four move it by 0.0-0.4. Turning the
+    // fog off moves the van's own aperture from 39.1 to 55.3 and the contrast
+    // from 1.49:1 to 2.08:1. The van was not too dim; it was fifty per cent
+    // dissolved.
+    //
+    // 12/58 keeps the far end reading — the diagonal is 57m, so a sight line
+    // down the length of the shed still finishes near-solid — and takes the
+    // blend at 24m from 50% to 25%. The original complaint that fog which never
+    // engages makes distance flat was correct and this does not undo it; it
+    // moves the engagement out of the range where the job happens.
+    fog: { color: '#23252b', near: 12, far: 58 },
     sun: { dir: [-0.35, -0.82, -0.45], color: '#ffd9a8', intensity: 1.5 },
     // THE SKY TERM WAS A FLAT BLUE CONSTANT ON EVERY UP-FACING SURFACE.
     //
@@ -493,7 +513,28 @@ export const warehouse = {
     // nothing; what it puts in the frame is its own lens, a bright point at the
     // top of the aperture that is legible from the far end of the shed and does
     // not wash the sill. Warm, so it does not undo the colour work below.
-    light([0, 4.05, 15.2], { intensity: 3, range: 3, color: '#ffd9a0', mount: 'fixed' }),
+    //
+    // ...AND THE FIRST PLACEMENT WAS ON THE ROOF, OUTSIDE THE BOX.
+    //
+    // 4.05m. The van's roof brush spans 3.60 to 3.90 and its rear header 3.30
+    // to 3.60, so a lamp at 4.05 sat ON TOP of the vehicle, above both. That is
+    // why it contributed 0.9 luma to an aperture it was not inside and moved the
+    // destination contrast by 0.02 — I wrote that "what it puts in the frame is
+    // its own lens" and the lens was not in the frame.
+    //
+    // It also leaked. Point lights in this renderer do not self-occlude without
+    // a shadow map, and both shadow slots are spoken for, so range is the only
+    // containment there is: from the roof a 3m window reached the shed's south
+    // wall and lit it. That went unnoticed while the fog began at 6m, because
+    // the fog washed the wall and its control patch to the same value — 0.0034
+    // against 0.0034, a clean 1.00x. Moving the fog out of the working range
+    // exposed it at 1.98x against a limit of 2.0. A fog that hides a light leak
+    // is not atmosphere, it is a lid.
+    //
+    // 3.15m puts it under the header and inside the aperture where it belongs,
+    // and range 2.0 cannot reach past z=16.3 — short of the bulkhead at 16.95,
+    // let alone the wall behind it.
+    light([0, 3.15, 14.3], { intensity: 3, range: 2.0, color: '#ffd9a0', mount: 'fixed' }),
     // and one over the ramp, so the approach is legible without being in shot
     // RANGE 8 -> 6, AND THIS LAMP WAS THE WHOLE DEFECT AT THIS END OF THE SHED.
     //
