@@ -112,6 +112,7 @@ export class InputManager {
     let trick = this.held('trick');
     let look = this.held('look');
     let back = brake && item;
+    let fwd = accelKey && item;
 
     const t = this.touch?.state;
     if (t) {
@@ -123,6 +124,7 @@ export class InputManager {
       trick ||= t.trick;
       look ||= t.look;
       back ||= t.itemBack || (t.look && t.item);
+      fwd ||= t.itemFwd;
       if (t.touched) this.lastDevice = 'touch';
     }
 
@@ -153,6 +155,7 @@ export class InputManager {
     if (trick) btn |= BTN.TRICK;
     if (look) btn |= BTN.LOOK;
     if (back) btn |= BTN.BACK;
+    if (fwd) btn |= BTN.FWD;
     return { steer: clamp(steer, -1, 1), btn };
   }
 }

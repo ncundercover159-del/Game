@@ -35,6 +35,7 @@ export class LocalSession {
   get time() { return this.race.time; }
   get countdown() { return this.race.countdown; }
   localKart() { return this.race.kart(this.localId); }
+  itemState() { return this.race.items; }
 
   update(realDt) {
     if (this.paused) return 0;

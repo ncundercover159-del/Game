@@ -7,6 +7,7 @@ import { getRacer, getVehicle, getWheels, getGlider } from '../data/registry.js'
 import { emptyInput } from '../physics/input.js';
 import { makeRng } from '../math.js';
 import { LapSystem } from './laps.js';
+import { ItemSystem } from './items.js';
 
 export class Race {
   // opts: { world, mode: 'race'|'freeplay'|'battle'|'timetrial', laps, classId,
@@ -27,6 +28,7 @@ export class Race {
     this.karts = [];
     this.inputs = new Map();
     this.systems = [];      // pluggable per-tick systems (items, hazards, laps, AI)
+    this.hitHooks = [];     // (kart, kind, opts) => void, e.g. battle balloons
     const spawns = this.world.gridSpawns ? this.world.gridSpawns(opts.entrants.length) : null;
     opts.entrants.forEach((e, i) => this.addKart(e, spawns ? spawns[i] : this.world.respawnPoint({ x: 0, z: 0 })));
     this.emit = (type, id, data) => this.events.push({ type, id, t: this.tick, ...data });
@@ -34,6 +36,9 @@ export class Race {
       this.lapSystem = new LapSystem(this);
       this.systems.push(this.lapSystem);
     }
+    this.items = new ItemSystem(this, { items: opts.items !== false && this.mode !== 'timetrial' });
+    this.systems.unshift(this.items);
+    this.ranked = [...this.karts];
   }
 
   addKart(e, spawn) {
@@ -91,7 +96,7 @@ export class Race {
       const inp = k.finished && k.human ? this.autoInput(k) : this.inputs.get(k.id) || emptyInput();
       stepKart(k, inp, this.world, dt, ctx);
     }
-    collideKarts(this.karts, this.emit);
+    collideKarts(this.karts, this.emit, (o, kind, o2) => this.items.hit(o, kind, o2));
     for (const sys of this.systems) sys.postStep?.(this, dt);
   }
 

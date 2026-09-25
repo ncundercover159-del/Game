@@ -450,7 +450,7 @@ export function stepKart(k, input, world, dt, ctx) {
 }
 
 // Kart-vs-kart sphere collisions with weight-based impulses.
-export function collideKarts(karts, emit) {
+export function collideKarts(karts, emit, hitFn = (o, kind, opts) => hitKart(o, kind, emit, opts)) {
   const R = KART.radius;
   for (let i = 0; i < karts.length; i++) {
     const a = karts[i];
@@ -480,10 +480,10 @@ export function collideKarts(karts, emit) {
       a.ex -= nx * imp * wa; a.ez -= nz * imp * wa;
       b.ex += nx * imp * wb; b.ez += nz * imp * wb;
       // star power / shrunk squish
-      if (a.star > 0 && b.star <= 0) hitKart(b, 'tumble', emit, { by: a.id });
-      else if (b.star > 0 && a.star <= 0) hitKart(a, 'tumble', emit, { by: b.id });
-      else if (a.shrink > 0 && b.shrink <= 0) hitKart(a, 'squish', emit, { by: b.id, ignoreInvuln: false });
-      else if (b.shrink > 0 && a.shrink <= 0) hitKart(b, 'squish', emit, { by: a.id, ignoreInvuln: false });
+      if (a.star > 0 && b.star <= 0) hitFn(b, 'tumble', { by: a.id, src: 'star' });
+      else if (b.star > 0 && a.star <= 0) hitFn(a, 'tumble', { by: b.id, src: 'star' });
+      else if (a.shrink > 0 && b.shrink <= 0) hitFn(a, 'squish', { by: b.id, src: 'squish' });
+      else if (b.shrink > 0 && a.shrink <= 0) hitFn(b, 'squish', { by: a.id, src: 'squish' });
       if (emit) emit('bump', a.id, { other: b.id, strength: imp });
     }
   }

@@ -6,6 +6,8 @@ import { createToyMaterial } from './toyMaterial.js';
 import { Animator } from './animator.js';
 import { TEX } from './textures.js';
 import { PROPS } from './propDefs.js';
+import { itemMesh } from './itemView.js';
+import { ITEMS } from '@shared/config.js';
 import { KART } from '@shared/config.js';
 import { getRacer, getVehicle, getWheels, getGlider } from '@shared/data/registry.js';
 import { clamp, damp } from '@shared/math.js';
@@ -235,6 +237,133 @@ export class KartView {
     }
 
     this.updateEffects(k, dt, time);
+    this.updateItems(k, dt, time);
+  }
+
+  // Items carried by the kart: trailing shield, orbiters, flail, clone, burrow.
+  updateItems(k, dt, t) {
+    // trailing item behind the kart
+    const trailKind = k.trailing;
+    if (trailKind !== this.trailKind) {
+      this.trailMesh?.removeFromParent();
+      this.trailMesh = trailKind ? itemMesh(trailKind, this.element) : null;
+      if (this.trailMesh) this.root.add(this.trailMesh);
+      this.trailKind = trailKind;
+    }
+    if (this.trailMesh) {
+      this.trailMesh.position.set(0, 0.55 + Math.sin(t * 8) * 0.05, -ITEMS.trailDistance);
+      this.trailMesh.rotation.y = t * 3;
+    }
+    // orbiters
+    const oc = k.orbit?.count || 0;
+    const okind = k.orbit?.kind;
+    if (!this.orbiters) this.orbiters = [];
+    if (this.orbiters.length !== oc || this.orbitKind !== okind) {
+      for (const m of this.orbiters) m.removeFromParent();
+      this.orbiters = [];
+      for (let i = 0; i < oc; i++) { const m = itemMesh(okind, this.element); this.scene.add(m); this.orbiters.push(m); }
+      this.orbitKind = okind;
+    }
+    for (let i = 0; i < oc; i++) {
+      const a = (k.orbitAngle || 0) + (i / oc) * Math.PI * 2;
+      this.orbiters[i].position.set(k.x + Math.cos(a) * ITEMS.orbitRadius, k.y + 0.6, k.z + Math.sin(a) * ITEMS.orbitRadius);
+      this.orbiters[i].rotation.y = t * 5;
+    }
+    // flail ball + chain
+    if (k.flail > 0) {
+      if (!this.flailBall) {
+        this.flailBall = itemMesh('ball');
+        this.scene.add(this.flailBall);
+        this.flailChain = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineDashedMaterial({ color: 0x8c8f99, dashSize: 0.25, gapSize: 0.12 }));
+        this.flailChain.frustumCulled = false;
+        this.scene.add(this.flailChain);
+      }
+      const a = (k.orbitAngle || 0) * 1.6;
+      this.flailBall.position.set(k.x + Math.cos(a) * 2.6, k.y + 0.7, k.z + Math.sin(a) * 2.6);
+      this.flailBall.rotation.set(t * 9, t * 7, 0);
+      const pa = this.flailChain.geometry.attributes.position;
+      pa.setXYZ(0, k.x, k.y + 0.9, k.z);
+      pa.setXYZ(1, this.flailBall.position.x, this.flailBall.position.y, this.flailBall.position.z);
+      pa.needsUpdate = true;
+      this.flailChain.computeLineDistances();
+    } else if (this.flailBall) {
+      this.flailBall.removeFromParent(); this.flailChain.removeFromParent();
+      this.flailBall = null;
+    }
+    // shadow clone: a dark double riding alongside
+    if (k.ghost > 0 && !this.clone) this.makeClone();
+    if (this.clone) {
+      this.clone.visible = k.ghost > 0;
+      if (k.ghost > 0) {
+        this.clone.position.set(1.9 + Math.sin(t * 3) * 0.2, 0, -0.6);
+        this.copyPose(this.fig, this.cloneFig);
+        this.copyPose(this.veh, this.cloneVeh);
+        this.cloneMat.uniforms.uOpacity.value = 0.55 + Math.sin(t * 10) * 0.1;
+      }
+    }
+    // dizzy stars circling the head after a hit
+    const dizzy = k.spin > 0 || k.tumble > 0 || k.squish > 0;
+    if (dizzy && !this.stars) {
+      this.stars = new THREE.Group();
+      const shape = new THREE.Shape();
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2, r = i % 2 ? 0.12 : 0.28;
+        if (i) shape.lineTo(Math.sin(a) * r, Math.cos(a) * r); else shape.moveTo(Math.sin(a) * r, Math.cos(a) * r);
+      }
+      const g = new THREE.ExtrudeGeometry(shape, { depth: 0.06, bevelEnabled: false });
+      const m = new THREE.MeshBasicMaterial({ color: '#ffe04f' });
+      for (let i = 0; i < 3; i++) this.stars.add(new THREE.Mesh(g, m));
+      this.root.add(this.stars);
+    }
+    if (this.stars) {
+      this.stars.visible = dizzy;
+      if (dizzy) {
+        this.stars.position.set(0, 2.3, -0.1);
+        this.stars.children.forEach((st, i) => {
+          const a = t * 6 + (i / 3) * Math.PI * 2;
+          st.position.set(Math.cos(a) * 0.7, Math.sin(t * 9 + i) * 0.08, Math.sin(a) * 0.7);
+          st.rotation.set(0, -a, 0);
+        });
+      }
+    }
+    // burrowing: hide the kart, show a moving dirt mound
+    const burrow = k.burrow > 0;
+    this.body.visible = this.body.visible && !burrow;
+    if (burrow && this.fx && Math.random() < 0.7) {
+      this.fx.smoke.emit({ x: k.x + (Math.random() - 0.5) * 1.5, y: (k.groundH ?? k.y) + 0.2, z: k.z + (Math.random() - 0.5) * 1.5, vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, life: 0.6, size: [0.8, 1.8], color: [0.55, 0.42, 0.28, 0.8], color1: [0.6, 0.5, 0.4, 0], gravity: 4 });
+      this.fx.chips.emit({ x: k.x, y: (k.groundH ?? k.y) + 0.3, z: k.z, vx: (Math.random() - 0.5) * 6, vy: 4 + Math.random() * 3, vz: (Math.random() - 0.5) * 6, life: 0.6, size: [0.3, 0.2], color: [0.45, 0.32, 0.2, 1], color1: [0.45, 0.32, 0.2, 1], gravity: 20 });
+    }
+    // magnet sparkle / golden zoom shimmer
+    if ((k.magnetTime > 0 || k.goldTime > 0) && this.fx && Math.random() < 0.5) {
+      const gold = k.goldTime > 0;
+      const a = Math.random() * Math.PI * 2, r = gold ? 1.2 : 3 + Math.random() * 6;
+      this.fx.glow.emit({ x: k.x + Math.cos(a) * r, y: k.y + 1, z: k.z + Math.sin(a) * r, vx: gold ? 0 : -Math.cos(a) * r * 2, vy: gold ? 2 : 0, vz: gold ? 0 : -Math.sin(a) * r * 2, life: 0.4, size: [0.5, 0.05], color: gold ? [1, 0.85, 0.2, 1] : [1, 0.3, 0.35, 1], color1: [1, 1, 1, 0] });
+    }
+  }
+
+  makeClone() {
+    this.cloneMat = createToyMaterial({ opacity: 0.6 });
+    this.cloneMat.uniforms.uFlash.value = 0.75;
+    this.cloneMat.uniforms.uFlashColor.value.set('#2a1640');
+    this.clone = new THREE.Group();
+    this.cloneVeh = instantiateFigure(this.veh.tpl, { material: this.cloneMat, outline: false });
+    this.clone.add(this.cloneVeh.mesh);
+    if (this.fig) {
+      this.cloneFig = instantiateFigure(this.fig.tpl, { material: this.cloneMat, outline: false });
+      this.cloneFig.mesh.position.copy(this.fig.mesh.position);
+      this.cloneFig.mesh.scale.copy(this.fig.mesh.scale);
+      this.clone.add(this.cloneFig.mesh);
+    }
+    this.body.add(this.clone);
+  }
+
+  copyPose(src, dst) {
+    if (!src || !dst) return;
+    for (const n in src.bones) {
+      const a = src.bones[n], b = dst.bones[n];
+      if (!b) continue;
+      b.position.copy(a.position); b.quaternion.copy(a.quaternion); b.scale.copy(a.scale);
+    }
   }
 
   // Puff the cloud critter carries the kart back to the track during a rescue.
@@ -436,6 +565,9 @@ export class KartView {
   }
 
   dispose() {
+    for (const m of this.orbiters || []) m.removeFromParent();
+    this.flailBall?.removeFromParent();
+    this.flailChain?.removeFromParent();
     this.puff?.mesh.removeFromParent();
     this.line?.removeFromParent();
     this.root.removeFromParent();

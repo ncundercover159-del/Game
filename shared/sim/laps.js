@@ -16,7 +16,7 @@ export class LapSystem {
 
   initKart(k) {
     const w = this.race.world;
-    const s = k.s ?? w.sAt(k.x, k.y, k.z);
+    const s = w.sAt(k.x, k.y, k.z);
     k.s = s;
     let rel = s - w.startS;
     if (rel > this.L / 2) rel -= this.L;

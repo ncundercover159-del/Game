@@ -3,6 +3,8 @@
 import { ICONS, ELEMENT_COLORS } from './icons.js';
 import { KART } from '@shared/config.js';
 import { getRacer } from '@shared/data/registry.js';
+import { ITEM_ICONS, ROULETTE_CYCLE } from './itemIcons.js';
+import { ITEM_DEFS } from '@shared/sim/items.js';
 
 export const ordinal = (n) => {
   const s = ['th', 'st', 'nd', 'rd'];
@@ -212,6 +214,61 @@ export class Hud {
     this.el.classList.toggle('boosting', k.boostTime > 0);
     if (L.ww !== k.isWrongWay) { $.wrong.classList.toggle('show', !!k.isWrongWay); L.ww = k.isWrongWay; }
     this.el.classList.toggle('no-laps', race.mode === 'battle');
+  }
+
+  // Item slot: roulette animation, held item, triple counts, golden timer.
+  updateItem(k, now) {
+    const $ = this.$, L = this.last;
+    let key, icon = '', count = '', cls = '';
+    if (k.roulette > 0) {
+      const i = Math.floor(now * 12) % ROULETTE_CYCLE.length;
+      key = 'roll' + i;
+      icon = ITEM_ICONS[ROULETTE_CYCLE[i]];
+      cls = 'rolling';
+    } else if (k.item) {
+      key = 'item:' + k.item + ':' + k.itemCount;
+      icon = ITEM_ICONS[k.item] || '';
+      const def = ITEM_DEFS[k.item];
+      if (def?.use === 'boost' && k.itemCount > 1) count = '×' + k.itemCount;
+      if (def?.sig) cls = 'signature';
+    } else if (k.orbit?.count > 0) {
+      key = 'orbit:' + k.orbit.kind + k.orbit.count;
+      icon = ITEM_ICONS[k.orbit.kind];
+      count = '×' + k.orbit.count;
+    } else if (k.goldTime > 0) {
+      key = 'gold';
+      icon = ITEM_ICONS.goldShroom;
+    } else if (k.trailing) {
+      key = 'trail:' + k.trailing;
+      icon = ITEM_ICONS[k.trailing];
+      cls = 'held';
+    } else key = 'none';
+    if (key !== L.itemKey) {
+      const wasRolling = L.itemKey?.startsWith('roll');
+      $.itemIcon.innerHTML = icon;
+      $.itemCount.textContent = count;
+      $.slot.className = `item-slot ${cls}`;
+      if (wasRolling && !key.startsWith('roll')) { void $.slot.offsetWidth; $.slot.classList.add('got'); }
+      L.itemKey = key;
+      this.onItemIcon?.(key === 'none' || key.startsWith('roll') ? null : icon);
+    }
+  }
+
+  // Warning icons for homing threats targeting the local racer.
+  updateWarnings(projectiles, localId) {
+    let seeker = 0, comet = false;
+    for (const p of projectiles || []) {
+      if (p.target !== localId) continue;
+      if (p.kind === 'comet') comet = true;
+      else if (p.kind === 'seeker' || p.kind === 'harpoon' || p.kind === 'bolt') seeker++;
+    }
+    const key = `${seeker}:${comet}`;
+    if (key === this.last.warn) return;
+    this.last.warn = key;
+    let html = '';
+    for (let i = 0; i < Math.min(3, seeker); i++) html += `<div class="w">${ITEM_ICONS.seeker}</div>`;
+    if (comet) html += `<div class="w comet">${ITEM_ICONS.comet}</div>`;
+    this.$.warn.innerHTML = html;
   }
 
   pop(el) {

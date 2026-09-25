@@ -130,6 +130,7 @@ describe('track + laps', () => {
     const p = w.at(0.575, 0);
     Object.assign(k, { x: p.x, y: p.y, z: p.z, yaw: p.yaw, hint: p.idx, speed: 25 });
     race.lapSystem.initKart(k);
+    const d0 = k.raceDist;
     const B = w.ribbons[1];
     const seen = new Set();
     for (let i = 0; i < 60 * 8; i++) {
@@ -147,7 +148,7 @@ describe('track + laps', () => {
     }
     expect(seen.has(1)).toBe(true);
     expect(k.ribbon).toBe(0);
-    expect(k.raceDist).toBeGreaterThan(100);
+    expect(k.raceDist - d0).toBeGreaterThan(100);
   });
 
   it('supports mirror mode', () => {

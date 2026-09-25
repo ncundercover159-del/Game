@@ -199,3 +199,10 @@ button { font-family: var(--font-body); }
 .results-lite td { padding: 3px 10px; }
 .results-lite tr.me { background: rgba(255,210,63,.3); }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+.item-slot.held .item-icon { opacity: .55; transform: scale(.8); }
+.warn .w svg { width: 80%; height: 80%; }
+.warn .w.comet { background: #3d7bff; width: 64px; height: 64px; }
+.tick .ic { display: inline-block; width: 18px; height: 18px; vertical-align: -4px; margin: 0 4px; }
+.tick .ic svg { width: 100%; height: 100%; }
+.tc-item .ic svg { filter: drop-shadow(0 2px 0 rgba(0,0,0,.3)); }

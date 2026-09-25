@@ -122,6 +122,7 @@ export class TouchControls {
       this.wheelInner.style.transform = `rotate(${v * 100}deg)`;
     } else if (p.name === 'item') {
       this.state.itemBack = e.clientY - p.y0 > 26;
+      this.state.itemFwd = e.clientY - p.y0 < -26;
       this.btns.item.classList.toggle('back', this.state.itemBack);
     }
   }
@@ -140,7 +141,7 @@ export class TouchControls {
     this.state[p.name] = false;
     if (p.name === 'item') {
       // keep the back flag for one more frame so the release reads it
-      setTimeout(() => { this.state.itemBack = false; this.btns.item.classList.remove('back'); }, 50);
+      setTimeout(() => { this.state.itemBack = false; this.state.itemFwd = false; this.btns.item.classList.remove('back'); }, 50);
     }
     this.btns[p.name]?.classList.remove('down');
   }

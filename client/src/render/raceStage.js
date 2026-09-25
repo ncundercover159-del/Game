@@ -5,6 +5,7 @@ import { Sky } from './sky.js';
 import { THEMES } from './themes.js';
 import { ArenaView } from './arenaView.js';
 import { TrackView } from './trackView.js';
+import { ItemView } from './itemView.js';
 import { KartView } from './kartView.js';
 import { ChaseCamera } from './camera.js';
 import { Effects } from './particles.js';
@@ -41,6 +42,7 @@ export class RaceStage {
     if (session.world.type === 'arena') this.worldView = new ArenaView(this.scene, session.world);
     else this.worldView = new TrackView(this.scene, session.world, { quality: renderer.quality.q });
 
+    this.itemView = new ItemView(this.scene, this.fx, { localId: session.localId });
     this.kartViews = new Map();
     const outlines = renderer.quality.q.outlines;
     for (const k of session.karts) {
@@ -69,14 +71,20 @@ export class RaceStage {
   }
 
   handleEvents(events) {
+    const istate = this.session.itemState?.();
     for (const e of events) {
+      if (istate) this.itemView.onEvent(e, istate);
       const kv = e.id != null ? this.kartViews.get(e.id) : null;
       const local = e.id === this.focusId;
       switch (e.type) {
         case 'miniTurbo': kv?.burst('miniTurbo', e); if (local) this.chase.shake(0.1 * e.tier); break;
         case 'boost': if (e.kind === 'pad' || e.kind === 'shroom' || e.kind === 'start') kv?.burst('boost', e); break;
         case 'mtTier': kv?.burst('mtTier', e); break;
-        case 'hit': kv?.burst('hit', e); if (local) this.chase.shake(0.8); break;
+        case 'hit': kv?.burst('hit', e); if (local) { this.chase.shake(0.8); this.damage = 1; } break;
+        case 'itemUse': if (kv && e.item && !e.trail && !e.orbit) kv.anim?.play(e.item === 'star' || e.item === 'shroom' ? 'whoo' : 'throw', 1); break;
+        case 'throw': kv?.anim?.play(e.dir < 0 ? 'throwBack' : 'throw', 1); break;
+        case 'shielded': kv?.anim?.play('block'); break;
+        case 'swap': if (local || e.target === this.focusId) this.flashT = 0.6; break;
         case 'land': kv?.burst('land', e); if (local && e.air > 0.5) this.chase.shake(Math.min(0.5, e.air * 0.3)); break;
         case 'trick': kv?.burst('trick', e); break;
         case 'wallHit': if (local) this.chase.shake(Math.min(0.6, e.impact * 0.04)); break;
@@ -97,16 +105,20 @@ export class RaceStage {
     if (focus) this.chase.update(focus, dt, { lookBack: focus.lookBack });
     this.updateIntro(focus);
     this.fx.update(dt);
+    const karts = new Map(s.karts.map((k) => [k.id, k]));
+    this.itemView.update(s.itemState?.(), dt, this.t, karts);
     this.worldView.update?.(dt, this.t, this.camera);
     this.sky.update(this.camera, this.t);
     updateLighting(this.camera, this.sunDir);
     const speed = focus ? Math.abs(focus.speed) : 0;
+    this.damage = Math.max(0, (this.damage || 0) - dt * 2.5);
+    this.flashT = Math.max(0, (this.flashT || 0) - dt);
     this.screenFx.update(dt, {
       amount: focus && focus.boostTime > 0 ? 1 : Math.max(0, (speed - 31) / 10),
       aspect: this.camera.aspect,
       ink: focus ? Math.min(1, focus.ink * 1.5) : 0,
-      blind: focus ? Math.min(1, focus.blind * 1.2) : 0,
-      damage: 0,
+      blind: Math.max(focus ? Math.min(1, focus.blind * 1.2) : 0, this.flashT > 0 ? this.flashT / 0.6 : 0),
+      damage: this.damage || 0,
     });
   }
 
@@ -151,6 +163,7 @@ export class RaceStage {
   dispose() {
     this.unsubQ?.();
     for (const kv of this.kartViews.values()) kv.dispose();
+    this.itemView.dispose();
     this.fx.dispose();
     this.worldView.dispose?.();
     this.sky.dispose();
