@@ -1,0 +1,12 @@
+[
+  { "id": "skyland", "name": "Skyland Cup", "theme": "skyland", "color": "#3db4ff", "icon": "air",
+    "tracks": ["sky_cloudtop", "sky_windmill", "sky_harbor", "sky_rainbow"] },
+  { "id": "molten", "name": "Molten Cup", "theme": "molten", "color": "#ff5a1f", "icon": "fire",
+    "tracks": ["mol_cinder", "mol_forge", "mol_caldera", "mol_obsidian"] },
+  { "id": "haunted", "name": "Haunted Cup", "theme": "haunted", "color": "#8a6ad8", "icon": "undead",
+    "tracks": ["hnt_graveyard", "hnt_woods", "hnt_carnival", "hnt_manor"] },
+  { "id": "gearworks", "name": "Gearworks Cup", "theme": "gearworks", "color": "#ffb319", "icon": "tech",
+    "tracks": ["gear_factory", "gear_conveyor", "gear_foundry", "gear_laser"] },
+  { "id": "retro", "name": "Retro Cup", "theme": "retro", "color": "#ff4fa3", "icon": "magic", "unlock": { "type": "goldAll" },
+    "tracks": ["retro_cloudtop", "retro_cinder", "retro_graveyard", "retro_factory"] }
+]

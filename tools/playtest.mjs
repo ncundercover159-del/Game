@@ -63,6 +63,23 @@ const SCRIPTS = {
     [5800, 'up', 'KeyE'],
     [5900, 'eval', "(() => { const k = __skykart.session.localKart(); return {item: k.item, held: k.itemHeld, orbit: k.orbit, btn: __skykart.lastInput.btn}; })()"],
   ],
+  menus: [
+    [1500, 'tap', [420, 300]], [2300, 'shot', 'm-main'],
+    [2400, 'click', '.tile.gp'], [3000, 'shot', 'm-class'],
+    [3100, 'click', '.choice:nth-child(3)'], [4200, 'shot', 'm-racer'],
+    [4300, 'click', '.screen:not(.covered) .bottom-bar .btn'], [5400, 'shot', 'm-kart'],
+    [5500, 'click', '.screen:not(.covered) .bottom-bar .btn'], [6200, 'shot', 'm-cup'],
+    [6300, 'click', '.screen:not(.covered) .cup'], [7500, 'shot', 'm-race'],
+  ],
+  gp1: [
+    [1500, 'tap', [420, 300]], [2400, 'click', '.tile.gp'], [3100, 'click', '.choice:nth-child(3)'],
+    [4300, 'click', '.screen:not(.covered) .bottom-bar .btn'], [5500, 'click', '.screen:not(.covered) .bottom-bar .btn'],
+    [6300, 'click', '.screen:not(.covered) .cup'],
+    [14000, 'shot', 'g-race'],
+    [14500, 'eval', "(() => { const r = __skykart.session.race; r.lapSystem.end(r); return r.phase; })()"],
+    [19000, 'shot', 'g-results'],
+    [19500, 'click', '.screen:not(.covered) .bottom-bar .btn:last-child'], [23000, 'shot', 'g-podium'],
+  ],
   lap: [
     [1500, 'shot', 'l0'], [6000, 'shot', 'l1'], [9000, 'shot', 'l2'], [12000, 'shot', 'l3'], [16000, 'shot', 'l4'],
     [20000, 'shot', 'l5'], [24000, 'shot', 'l6'], [28000, 'shot', 'l7'], [30500, 'shot', 'l8'], [33000, 'shot', 'l9'],
@@ -104,6 +121,8 @@ for (const [t, action, arg] of script) {
   else if (action === 'up') await page.keyboard.up(arg);
   else if (action === 'eval') console.log(arg, '=>', JSON.stringify(await page.evaluate(arg)));
   else if (action === 'tap') await page.mouse.click(arg[0], arg[1]);
+  else if (action === 'click') await page.click(arg, { timeout: 3000 }).catch((e) => console.log('click failed', arg, e.message));
+  else if (action === 'clickText') await page.getByText(arg, { exact: true }).first().click({ timeout: 3000 }).catch((e) => console.log('click failed', arg, e.message));
   else if (action === 'mdown') { await page.mouse.move(arg[0], arg[1]); await page.mouse.down(); }
   else if (action === 'mmove') await page.mouse.move(arg[0], arg[1], { steps: 4 });
   else if (action === 'mup') await page.mouse.up();
