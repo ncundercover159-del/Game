@@ -101,9 +101,25 @@ export class RaceStage {
     }
   }
 
+  // Spectating (joined mid-race, eliminated, or finished): follow another kart.
+  cycleFocus(dir = 1) {
+    const list = (this.session.race.ranked || this.session.karts).filter((k) => !k.eliminated);
+    if (!list.length) return;
+    const i = list.findIndex((k) => k.id === this.focusId);
+    this.focusId = list[(i + dir + list.length) % list.length].id;
+    const k = this.session.viewState(this.focusId);
+    if (k) this.chase.snap(k);
+  }
+
   update(dt, input) {
     this.t += dt;
     const s = this.session;
+    const local = s.localKart?.();
+    if (!this.focusId || !s.race.kart(this.focusId) || (this.spectating && s.race.kart(this.focusId)?.eliminated)) {
+      this.focusId = (s.race.ranked || s.karts)[0]?.id;
+      this.spectating = true;
+    }
+    if (local && local.eliminated && this.focusId === local.id) { this.spectating = true; this.cycleFocus(1); }
     for (const k of s.karts) {
       const v = s.viewState(k.id);
       if (k.id === this.focusId) v.lookBack = input ? (input.btn & BTN.LOOK) !== 0 : false;

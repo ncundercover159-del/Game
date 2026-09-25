@@ -9,6 +9,7 @@ import { makeRng } from '../math.js';
 import { LapSystem } from './laps.js';
 import { ItemSystem } from './items.js';
 import { AIController } from '../ai/driver.js';
+import { BattleSystem } from './battle.js';
 
 export class Race {
   // opts: { world, mode: 'race'|'freeplay'|'battle'|'timetrial', laps, classId,
@@ -39,6 +40,10 @@ export class Race {
     }
     this.items = new ItemSystem(this, { items: opts.items !== false && this.mode !== 'timetrial' });
     this.systems.unshift(this.items);
+    if (this.mode === 'battle') {
+      this.battle = new BattleSystem(this, { variant: opts.battle || 'balloons' });
+      this.systems.push(this.battle);
+    }
     this.ai = new AIController(this, { difficulty: opts.difficulty || this.cls.ai, seed: opts.seed || 1 });
     this.systems.unshift(this.ai);
     this.autoDriver = (k) => this.ai.drive(k, SIM.dt);

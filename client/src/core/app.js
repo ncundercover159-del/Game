@@ -17,6 +17,9 @@ import { getProfile, updateProfile, addCoins, recordTrophy, bumpStat } from './p
 import { KART, RACE, CLASSES, PROGRESSION } from '@shared/config.js';
 import { ITEM_ICONS } from '../ui/itemIcons.js';
 import { PortraitRenderer } from '../render/portraits.js';
+import { NetClient } from '../net/client.js';
+import { NetSession } from '../net/netSession.js';
+import { OnlineMenu, LobbyScreen } from '../ui/online.js';
 import { listOf } from '@shared/data/registry.js';
 import '@shared/track/track.js';
 
@@ -46,7 +49,9 @@ export class App {
     this.audio = null;
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Escape' && this.mode === 'menu') this.screens.back();
+      if (this.mode === 'race' && this.stage?.spectating && (e.code === 'ArrowRight' || e.code === 'ArrowLeft')) this.stage.cycleFocus(e.code === 'ArrowRight' ? 1 : -1);
     });
+    gameEl.addEventListener('pointerdown', () => { if (this.mode === 'race' && this.stage?.spectating) this.stage.cycleFocus(1); });
   }
 
   async start() {
@@ -148,7 +153,7 @@ export class App {
     this.endRaceView();
     this.lastRaceCfg = cfg;
     const intro = cfg.intro === false ? 0 : RACE.introTime;
-    this.session = new LocalSession({
+    const session = new LocalSession({
       trackId: cfg.trackId,
       mode: cfg.mode || 'race',
       laps: cfg.laps || 3,
@@ -160,17 +165,24 @@ export class App {
       localId: cfg.localId || 'p1',
       seed: cfg.seed || (Date.now() % 100000),
       difficulty: cfg.difficulty,
+      battle: cfg.battle,
     });
-    const race = this.session.race;
+    const race = session.race;
     if (cfg.mode === 'timetrial') {
-      const k = this.session.localKart();
+      const k = session.localKart();
       k.item = 'shroom3'; k.itemCount = 3;
     }
-    this.onSessionCreated?.(this.session, cfg);
     const p = this.params;
-    this.session.inputFn = p.has('auto')
-      ? () => { const a = race.ai.drive(this.session.localKart(), 1 / 60); a.btn |= this.lastInput.btn & (8 | 32 | 128 | 256); return a; }
+    session.inputFn = p.has('auto')
+      ? () => { const a = race.ai.drive(session.localKart(), 1 / 60); a.btn |= this.lastInput.btn & (8 | 32 | 128 | 256); return a; }
       : () => this.lastInput;
+    this.attachSession(session, cfg, intro);
+  }
+
+  // Shared by local and online sessions: stage, HUD, controls.
+  attachSession(session, cfg, intro) {
+    this.session = session;
+    this.onSessionCreated?.(session, cfg);
     this.session.onEvents = (ev) => this.onEvents(ev);
     this.stage = new RaceStage(this.renderer, this.session);
     this.mode = 'race';
@@ -234,6 +246,7 @@ export class App {
           hud.banner(`FINISH!<div style="font-size:30px">${e.place}${ordinal(e.place)} · ${fmtTime(e.time)}</div>`, 'finish', 3200);
           haptic(HAPTICS.lap);
           this.stage?.onLocalFinish?.();
+          if (this.stage) this.stage.spectating = true; // tap to watch others while the race finishes
         } break;
         case 'raceEnd': this.onRaceEnd(); break;
         case 'miniTurbo': if (mine) { haptic(e.tier >= 2 ? HAPTICS.bigBoost : HAPTICS.boost); bumpStat('miniTurbos'); if (e.tier === 3) bumpStat('purpleTurbos'); } break;
@@ -276,6 +289,7 @@ export class App {
     updateProfile((p) => {
       const s = p.stats;
       s.races++;
+      if (this.session.isOnline) s.onlineRaces++;
       if (place === 1) s.wins++;
       if (place <= 3) s.podiums++;
       s.itemsUsed += me?.itemsUsed || 0;
@@ -320,6 +334,49 @@ export class App {
     if (coins) this.toast(`+${coins} coins`);
   }
 
+  // --- online ---------------------------------------------------------------------
+  openOnline() { this.screens.push(new OnlineMenu()); }
+
+  async connectOnline() {
+    if (!this.net) {
+      this.net = new NetClient();
+      this.net.on('welcome', (m) => {
+        this.onlineId = m.id;
+        if (!m.resumed) { this.lobby = new LobbyScreen(this.net); this.screens.go(this.lobby); }
+      });
+      this.net.on('start', (m) => this.startOnlineRace(m));
+      this.net.on('results', (m) => { this.lastOnlineResults = m.results; });
+      this.net.on('room', (m) => {
+        if (m.phase === 'lobby' && this.mode === 'race' && this.session?.isOnline && this.raceEnded) this.backToLobby();
+      });
+    }
+    await this.net.connect();
+    return this.net;
+  }
+
+  startOnlineRace(start) {
+    this.screens.clear();
+    this.endRaceView();
+    this.flow = { mode: 'online' };
+    const session = new NetSession(this.net, start);
+    session.inputFn = () => this.lastInput;
+    this.lastRaceCfg = null;
+    this.attachSession(session, { mode: start.mode, battle: start.battle }, 3);
+    if (session.spectator) this.toast('Race in progress — spectating until the next one.');
+  }
+
+  backToLobby() {
+    this.endRaceView();
+    this.mode = 'menu';
+    this.hud.setVisible(false);
+    this.touch.setVisible(false);
+    if (!this.menu) this.menu = new MenuStage(this.renderer);
+    this.renderer.onResize = () => this.menu.onResize();
+    this.lobby = this.lobby || new LobbyScreen(this.net);
+    this.lobby.el = null;
+    this.screens.go(this.lobby);
+  }
+
   showPodium(gp) {
     const trophy = gp.trophy();
     let reward = 0;
@@ -353,6 +410,13 @@ export class App {
         this.hud.updateWarnings(this.session.itemState?.()?.projectiles, this.session.localId);
         this.hud.drawMinimap(this.session.karts, this.session.localId);
         this.audio?.updateRace(this.session, k, dt);
+      }
+      if (this.session?.isOnline) this.hud.setNet(this.net?.rtt || 0, this.session.lagging);
+      const spec = this.stage?.spectating && this.stage.focusId !== this.session?.localId ? this.session.race.kart(this.stage.focusId)?.name : null;
+      this.hud.setSpectate(spec);
+      if (!k && this.stage && this.session) {
+        const f = this.session.race.kart(this.stage.focusId);
+        if (f) { this.hud.update(f, this.session.race); this.hud.drawMinimap(this.session.karts, f.id); }
       }
       if (k && this.devMode) {
         const st = this.renderer.stats();

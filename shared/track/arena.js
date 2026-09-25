@@ -66,6 +66,31 @@ export class ArenaWorld {
     }
     this.spawns = def.spawns || [{ x: 0, z: 0, yaw: 0 }];
     this._tmp = { nx: 0, nz: 0, pen: 0 };
+    this.minY = this.baseHeight;
+    this.placements = {
+      itemBoxes: (def.itemBoxes || []).map((b) => ({ x: b.x, y: this.heightAt(b.x, b.z) + 1.1, z: b.z, yaw: 0 })),
+      coins: (def.coins || []).map((c) => ({ x: c.x, y: this.heightAt(c.x, c.z) + 0.9, z: c.z, yaw: 0 })),
+      pads: [],
+      treasure: null,
+    };
+  }
+
+  // Starting positions: the defined spawns first, then a ring facing the centre.
+  gridSpawns(n) {
+    const out = [];
+    const b = this.bounds;
+    const R = (b.shape === 'circle' ? b.r : Math.min(b.w, b.d) / 2) * 0.62;
+    for (let i = 0; i < n; i++) {
+      if (i < this.spawns.length && this.spawns.length >= n) {
+        const s = this.spawns[i];
+        out.push({ x: s.x, y: this.heightAt(s.x, s.z), z: s.z, yaw: s.yaw ?? Math.atan2(-s.x, -s.z) });
+      } else {
+        const a = (i / n) * Math.PI * 2;
+        const x = Math.sin(a) * R, z = Math.cos(a) * R;
+        out.push({ x, y: this.heightAt(x, z), z, yaw: Math.atan2(-x, -z) });
+      }
+    }
+    return out;
   }
 
   _prep(f) {

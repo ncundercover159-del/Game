@@ -40,6 +40,8 @@ export class Hud {
       <div class="ticker"></div>
       <div class="warn"></div>
       <div class="captions"></div>
+      <div class="netinfo"></div>
+      <div class="spectate"></div>
     `;
     root.appendChild(this.el);
     const q = (s) => this.el.querySelector(s);
@@ -48,6 +50,7 @@ export class Hud {
       pos: q('.position'), banner: q('.banner'), wrong: q('.wrongway'), ticker: q('.ticker'), mini: q('.minimap'),
       spFill: q('.sp-fill'), spDrift: q('.sp-drift'), spN: q('.sp-n'), itemIcon: q('.item-icon'), itemCount: q('.item-count'),
       slot: q('.item-slot'), warn: q('.warn'), captions: q('.captions'), pause: q('.pause-btn'), laps: q('.laps'),
+      net: q('.netinfo'), spectate: q('.spectate'),
     };
     this.$.pause.addEventListener('click', () => this.onPause?.());
     this.arcLen = 157;
@@ -269,6 +272,21 @@ export class Hud {
     for (let i = 0; i < Math.min(3, seeker); i++) html += `<div class="w">${ITEM_ICONS.seeker}</div>`;
     if (comet) html += `<div class="w comet">${ITEM_ICONS.comet}</div>`;
     this.$.warn.innerHTML = html;
+  }
+
+  setNet(rtt, lagging) {
+    const key = lagging ? 'lag' : String(Math.round(rtt / 10));
+    if (key === this.last.net) return;
+    this.last.net = key;
+    this.$.net.className = `netinfo ${lagging ? 'lag' : rtt > 180 ? 'slow' : ''}`;
+    this.$.net.textContent = lagging ? '⚠ connection lag' : `${Math.round(rtt)} ms`;
+  }
+
+  setSpectate(name) {
+    if (this.last.spec === name) return;
+    this.last.spec = name;
+    this.$.spectate.innerHTML = name ? `Spectating <b>${name}</b> · tap to switch` : '';
+    this.$.spectate.classList.toggle('show', !!name);
   }
 
   pop(el) {

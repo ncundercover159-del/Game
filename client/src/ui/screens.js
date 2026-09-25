@@ -165,7 +165,7 @@ export class KartSelect {
     this.tabs = h('div.tabs');
     this.renderTabs();
     this.renderList();
-    const label = { gp: 'Pick a cup', vs: 'Pick a track', tt: 'Pick a track', battle: 'Pick an arena', garage: 'Done' }[this.params.next] || 'Next';
+    const label = { gp: 'Pick a cup', vs: 'Pick a track', tt: 'Pick a track', battle: 'Pick an arena', garage: 'Done', online: 'Done' }[this.params.next] || 'Next';
     return h('div.dim-bg.select-screen', topbar(this, 'Garage', [coinsBadge()]),
       h('div.select-layout', h('div.select-left', this.tabs, this.list), h('div.select-mid'), h('div.select-right', this.info, button(label, () => this.next(), 'big'))));
   }
@@ -204,6 +204,7 @@ export class KartSelect {
   }
   next() {
     uiSound.confirm();
+    if (this.params.onDone) return this.params.onDone();
     const n = this.params.next;
     if (n === 'gp') this.manager.push(new CupSelect(this.params));
     else if (n === 'vs' || n === 'tt') this.manager.push(new TrackSelect(this.params));
