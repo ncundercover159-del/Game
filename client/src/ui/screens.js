@@ -107,9 +107,8 @@ export class RacerSelect {
     this.info = h('div.info-panel');
     this.confirm = button('Choose!', () => this.choose(), 'big');
     this.renderGrid();
-    return h('div.dim-bg', topbar(this, this.params.next === 'garage' ? 'Garage · Racer' : 'Choose your racer', [coinsBadge()]),
-      h('div.select-layout', h('div.select-left', this.grid, this.info), h('div', { style: { flex: 1 } })),
-      h('div.bottom-bar', this.confirm));
+    return h('div.dim-bg.select-screen', topbar(this, this.params.next === 'garage' ? 'Garage · Racer' : 'Choose your racer', [coinsBadge()]),
+      h('div.select-layout', h('div.select-left', this.grid), h('div.select-mid'), h('div.select-right', this.info, this.confirm)));
   }
   renderGrid() {
     this.grid.innerHTML = '';
@@ -135,7 +134,8 @@ export class RacerSelect {
     const sig = ITEM_DEFS[r.signature];
     this.info.innerHTML = '';
     this.info.append(
-      h('h3', h('span.el', { style: { background: ELEMENT_COLORS[r.element] }, html: ELEMENT_GLYPHS[r.element] }), r.name, h('small', { style: { fontSize: '13px', opacity: 0.8 } }, `${r.element} · ${r.size}`)),
+      h('h3', h('span.el', { style: { background: ELEMENT_COLORS[r.element] }, html: ELEMENT_GLYPHS[r.element] }), r.name),
+      h('div.sub', `${r.element} · ${r.size}`),
       h('p', locked ? '🔒 ' + unlockText(r.unlock) : r.tagline || ''),
       statBars(stats),
       sig ? h('div.sig', h('span.ic', { html: ITEM_ICONS[r.signature] || '' }), `Signature: ${sig.name}`) : null,
@@ -166,9 +166,8 @@ export class KartSelect {
     this.renderTabs();
     this.renderList();
     const label = { gp: 'Pick a cup', vs: 'Pick a track', tt: 'Pick a track', battle: 'Pick an arena', garage: 'Done' }[this.params.next] || 'Next';
-    return h('div.dim-bg', topbar(this, 'Garage', [coinsBadge()]),
-      h('div.select-layout', h('div.select-left', this.tabs, this.list, this.info), h('div', { style: { flex: 1 } })),
-      h('div.bottom-bar', button(label, () => this.next(), 'big')));
+    return h('div.dim-bg.select-screen', topbar(this, 'Garage', [coinsBadge()]),
+      h('div.select-layout', h('div.select-left', this.tabs, this.list), h('div.select-mid'), h('div.select-right', this.info, button(label, () => this.next(), 'big'))));
   }
   renderTabs() {
     this.tabs.innerHTML = '';
@@ -200,7 +199,7 @@ export class KartSelect {
     const p = getProfile().selection;
     const stats = totalStats(getRacer(p.racerId), getVehicle(p.vehicleId), getWheels(p.wheelsId), getGlider(p.gliderId));
     this.info.innerHTML = '';
-    this.info.append(h('h3', `${getVehicle(p.vehicleId)?.name} · ${getWheels(p.wheelsId)?.name} · ${getGlider(p.gliderId)?.name}`), statBars(stats));
+    this.info.append(h('h3', getVehicle(p.vehicleId)?.name), h('div.sub', `${getWheels(p.wheelsId)?.name} wheels · ${getGlider(p.gliderId)?.name}`), statBars(stats));
     this.app.menu.showRacer({ racerId: p.racerId, vehicleId: p.vehicleId, wheelsId: p.wheelsId, gliderId: p.gliderId });
   }
   next() {

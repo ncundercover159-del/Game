@@ -1,0 +1,33 @@
+{
+  "id": "boltz",
+  "name": "Boltz",
+  "element": "tech",
+  "size": "medium",
+  "order": 4,
+  "tagline": "Gadget-proud dragon in a laser-goggled battle helmet.",
+  "stats": {
+    "speed": 0.5,
+    "accel": -0.5,
+    "weight": 0.5,
+    "handling": 0,
+    "drift": 0,
+    "offroad": -0.5,
+    "miniTurbo": 0.5
+  },
+  "signature": "drone",
+  "kartColor": "#2F66C7",
+  "reactions": {
+    "hit": ["bzzt"],
+    "overtake": ["hah"],
+    "item": ["calc"],
+    "boost": ["whoo"],
+    "win": ["roar"],
+    "lose": ["grumble"],
+    "taunt": ["laser"]
+  },
+  "voice": { "pitch": 0.9, "formant": "robotic", "rasp": 0.3 },
+  "poses": { "victory": "wingsUp", "defeat": "slump", "select": "crouch", "taunt": "laser" },
+  "personality": "aggressive",
+  "unlock": { "type": "default" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

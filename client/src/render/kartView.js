@@ -7,6 +7,7 @@ import { Animator } from './animator.js';
 import { TEX } from './textures.js';
 import { PROPS } from './propDefs.js';
 import { itemMesh } from './itemView.js';
+import { loadModel } from './modelLoader.js';
 import { ITEMS } from '@shared/config.js';
 import { KART } from '@shared/config.js';
 import { getRacer, getVehicle, getWheels, getGlider } from '@shared/data/registry.js';
@@ -73,9 +74,13 @@ export class KartView {
     const detail = opts.detail ?? 1;
     this.kartMat = createToyMaterial();
     this.figMat = createToyMaterial();
-    const vt = vehicleTemplate(this.vehicle, this.wheels, this.glider, { detail, kartColor: this.racer.kartColor });
+    const vt = vehicleTemplate(this.vehicle, this.wheels, this.glider, { detail, kartColor: this.vehicle.tintable ? this.racer.kartColor : null });
     this.veh = instantiateFigure(vt, { material: this.kartMat, outline: opts.outlines !== false });
     this.body.add(this.veh.mesh);
+    // lift/lower the whole vehicle so the chosen wheel size touches the ground
+    const wb = this.vehicle.figure.bones?.wheelBL?.pos?.[1] ?? 0.34;
+    this.rideHeight = (this.wheels.radius ?? 0.3) * (this.vehicle.wheelScale?.back ?? 1) - wb;
+    this.body.position.y = this.rideHeight;
     this.gliderBone = this.veh.bones.glider;
     if (this.gliderBone) this.gliderBone.scale.setScalar(0.001);
 
@@ -87,8 +92,12 @@ export class KartView {
       this.fig.mesh.position.set(seat[0], seat[1], seat[2]);
       this.fig.mesh.scale.setScalar(SIZE_SCALE[this.racer.size] || 1);
       this.body.add(this.fig.mesh);
-      this.anim = new Animator(this.fig, { racer: this.racer });
+      this.anim = new Animator(this.fig, { racer: this.racer, bike: this.vehicle.pose === 'bike' });
     }
+
+    // real GLB models replace the procedural figure / vehicle when provided (no code changes needed)
+    if (this.racer.modelUrl) this.swapModel('fig', this.racer.modelUrl);
+    if (this.vehicle.modelUrl) this.swapModel('veh', this.vehicle.modelUrl);
 
     // blob shadow
     const sh = new THREE.Mesh(
@@ -238,6 +247,27 @@ export class KartView {
 
     this.updateEffects(k, dt, time);
     this.updateItems(k, dt, time);
+  }
+
+  async swapModel(kind, url) {
+    try {
+      const m = await loadModel(url);
+      const target = kind === 'fig' ? this.fig : this.veh;
+      if (!target || this.disposed) return;
+      m.root.position.copy(target.mesh.position);
+      m.root.scale.copy(target.mesh.scale);
+      target.mesh.visible = false;
+      this.body.add(m.root);
+      // bones with the standard names (hips/body/head/armL/…) drive the new model
+      if (kind === 'fig' && this.anim) {
+        this.anim.bones = m.bones;
+        this.anim.bind = m.bind;
+        for (const n in m.bones) this.anim.off[n] ??= { r: [0, 0, 0], p: [0, 0, 0], s: [1, 1, 1] };
+      }
+      if (kind === 'veh') Object.assign(this.veh.bones, m.bones);
+    } catch (e) {
+      console.warn('[model] failed to load', url, e);
+    }
   }
 
   // Items carried by the kart: trailing shield, orbiters, flail, clone, burrow.
@@ -565,6 +595,7 @@ export class KartView {
   }
 
   dispose() {
+    this.disposed = true;
     for (const m of this.orbiters || []) m.removeFromParent();
     this.flailBall?.removeFromParent();
     this.flailChain?.removeFromParent();

@@ -1,0 +1,175 @@
+{
+  "outline": 0.016,
+  "palette": {
+    "bark": "#6B4A2E",
+    "barkDark": "#4a3220",
+    "rings": "#D9B98A",
+    "ringLine": "#a47a48",
+    "moss": "#5DAF3A",
+    "eye": "#B6FF5A",
+    "leaf": "#5DAF3A",
+    "leaf2": "#7fc84a",
+    "mouth": "#2a1a0e"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.08, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.28, 0] },
+    "head": { "parent": "body", "pos": [0, 0.3, 0.02] },
+    "armL": { "parent": "body", "pos": [0.32, 0.06, 0.04], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.15, -0.02, 0.1], "mirror": true },
+    "earL": { "parent": "head", "pos": [0.15, 0.13, -0.02], "mirror": true }
+  },
+  "parts": [
+    { "bone": "body", "shape": "cyl", "rt": 0.3, "rb": 0.34, "h": 0.46, "c": "bark", "m": "matte" },
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.05, 0.42, 0.05],
+      "round": 0.02,
+      "p": [0, 0, 0],
+      "c": "barkDark",
+      "m": "matte",
+      "ring": { "n": 9, "r": 0.31 }
+    },
+    {
+      "bone": "head",
+      "shape": "cyl",
+      "rt": 0.27,
+      "rb": 0.3,
+      "h": 0.24,
+      "p": [0, 0.02, 0],
+      "c": "bark",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "cyl",
+      "r": 0.266,
+      "h": 0.02,
+      "p": [0, 0.14, 0],
+      "c": "rings",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "torus",
+      "r": 0.18,
+      "tube": 0.008,
+      "p": [0, 0.152, 0],
+      "rot": [90, 0, 0],
+      "c": "ringLine",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "torus",
+      "r": 0.1,
+      "tube": 0.008,
+      "p": [0, 0.152, 0],
+      "rot": [90, 0, 0],
+      "c": "ringLine",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.05,
+      "s": [1.3, 0.8, 0.5],
+      "p": [0.1, 0.03, 0.27],
+      "c": "eye",
+      "m": "glow",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "box",
+      "size": [0.12, 0.035, 0.06],
+      "round": 0.012,
+      "p": [0.1, 0.085, 0.27],
+      "rot": [0, 0, -12],
+      "c": "barkDark",
+      "mirror": true
+    },
+    { "bone": "head", "shape": "sphere", "r": 0.04, "p": [0, -0.02, 0.3], "c": "barkDark" },
+    {
+      "bone": "head",
+      "shape": "torus",
+      "r": 0.07,
+      "tube": 0.014,
+      "arc": 160,
+      "p": [0, -0.07, 0.28],
+      "rot": [10, 0, 190],
+      "c": "mouth",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.07,
+      "s": [1, 0.8, 0.7],
+      "p": [0, -0.14, 0.26],
+      "c": "moss",
+      "m": "matte",
+      "array": { "n": 3, "dp": [0, 0, 0] },
+      "mirror": false
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.06,
+      "p": [0.12, -0.12, 0.24],
+      "c": "moss",
+      "m": "matte",
+      "mirror": true
+    },
+    {
+      "bone": "earL",
+      "shape": "tube",
+      "points": [[0, 0, 0], [0.08, 0.14, 0], [0.14, 0.3, -0.04]],
+      "r0": 0.04,
+      "r1": 0.015,
+      "c": "bark"
+    },
+    {
+      "bone": "earL",
+      "shape": "tube",
+      "points": [[0.06, 0.1, 0], [0.16, 0.14, 0.02], [0.22, 0.2, 0]],
+      "r0": 0.025,
+      "r1": 0.01,
+      "c": "bark"
+    },
+    { "bone": "earL", "shape": "sphere", "r": 0.06, "p": [0.14, 0.31, -0.04], "c": "leaf" },
+    { "bone": "earL", "shape": "sphere", "r": 0.05, "p": [0.22, 0.22, 0], "c": "leaf2" },
+    { "bone": "armL", "shape": "sphere", "r": 0.1, "c": "bark", "m": "matte" },
+    {
+      "bone": "armL",
+      "shape": "capsule",
+      "r": 0.07,
+      "len": 0.12,
+      "p": [0.02, -0.06, 0.1],
+      "rot": [110, 0, -10],
+      "c": "bark",
+      "m": "matte"
+    },
+    {
+      "bone": "armL",
+      "shape": "sphere",
+      "r": 0.12,
+      "s": [1.1, 0.8, 1.2],
+      "p": [0.03, -0.1, 0.24],
+      "c": "bark",
+      "m": "matte"
+    },
+    {
+      "bone": "legL",
+      "shape": "cyl",
+      "rt": 0.08,
+      "rb": 0.1,
+      "h": 0.14,
+      "p": [0, -0.02, 0.04],
+      "c": "barkDark",
+      "m": "matte"
+    }
+  ],
+  "portrait": { "y": 0.02, "dist": 1.3 }
+}

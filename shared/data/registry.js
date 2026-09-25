@@ -20,10 +20,12 @@ export function setGameData(d) {
 }
 
 export const getData = () => DATA;
-export const getRacer = (id) => DATA.racers[id] || Object.values(DATA.racers)[0];
-export const getVehicle = (id) => DATA.vehicles[id] || Object.values(DATA.vehicles)[0];
-export const getWheels = (id) => DATA.wheels[id] || Object.values(DATA.wheels)[0];
-export const getGlider = (id) => DATA.gliders[id] || Object.values(DATA.gliders)[0];
+// Fallbacks are explicit defaults (not "first file alphabetically").
+export const DEFAULTS = { racer: 'draxo', vehicle: 'ember_roadster', wheels: 'standard', glider: 'sky_wing' };
+export const getRacer = (id) => DATA.racers[id] || DATA.racers[DEFAULTS.racer] || Object.values(DATA.racers)[0];
+export const getVehicle = (id) => DATA.vehicles[id] || DATA.vehicles[DEFAULTS.vehicle] || Object.values(DATA.vehicles)[0];
+export const getWheels = (id) => DATA.wheels[id] || DATA.wheels[DEFAULTS.wheels] || Object.values(DATA.wheels)[0];
+export const getGlider = (id) => DATA.gliders[id] || DATA.gliders[DEFAULTS.glider] || Object.values(DATA.gliders)[0];
 export const getTrackDef = (id) => DATA.tracks[id] || DATA.arenas[id];
 
 // Sorted list helpers (order field first, then name)

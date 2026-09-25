@@ -1,0 +1,33 @@
+{
+  "id": "tidepip",
+  "name": "Tidepip",
+  "element": "water",
+  "size": "light",
+  "order": 8,
+  "tagline": "A shy baby sea turtle with a bubbly water-spout curl.",
+  "stats": {
+    "speed": 0,
+    "accel": 0.5,
+    "weight": -0.5,
+    "handling": 0.5,
+    "drift": 0.5,
+    "offroad": 0,
+    "miniTurbo": 0
+  },
+  "signature": "wave",
+  "kartColor": "#1E9BFF",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 1.5, "formant": "bubbly", "rasp": 0 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "hoarder",
+  "unlock": { "type": "races", "count": 5 },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

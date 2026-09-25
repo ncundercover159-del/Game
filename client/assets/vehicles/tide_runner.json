@@ -1,0 +1,106 @@
+{
+  "id": "tide_runner",
+  "name": "Tide Runner",
+  "type": "kart",
+  "theme": "elemental",
+  "order": 2,
+  "stats": {
+    "speed": 0,
+    "accel": 0.5,
+    "weight": 0,
+    "handling": 0.5,
+    "drift": 0,
+    "offroad": -0.5,
+    "miniTurbo": 0
+  },
+  "seat": [0, 0.36, -0.22],
+  "pose": "kart",
+  "wheelScale": { "front": 0.88, "back": 1.05 },
+  "exhausts": [[0.24, 0.5, -1.12], [-0.24, 0.5, -1.12]],
+  "unlock": { "type": "default" },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#1E9BFF",
+      "secondary": "#FFFFFF",
+      "accent": "#FFC21A"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.66, 0.36], "rot": [-50, 0, 0] },
+      "wheelFL": { "pos": [0.62, 0.3, 0.72], "mirror": true },
+      "wheelBL": { "pos": [0.66, 0.34, -0.7], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.25, -0.35] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.6,
+        "s": [0.95, 0.34, 1.75],
+        "p": [0, 0.36, 0.05],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1, 0.08, 1.4],
+        "round": 0.04,
+        "p": [0, 0.46, -0.1],
+        "c": "secondary"
+      },
+      {
+        "bone": "body",
+        "shape": "extrude",
+        "points": [[0, 0], [0.3, 0.36], [0.44, 0.36], [0.3, 0]],
+        "depth": 0.05,
+        "p": [0, 0.46, -0.9],
+        "rot": [0, 90, 0],
+        "c": "accent"
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.14,
+        "s": [1, 0.6, 1.6],
+        "p": [0.62, 0.3, -0.1],
+        "c": "secondary",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.62, 0.44, 0.14],
+        "round": 0.06,
+        "p": [0, 0.6, -0.5],
+        "rot": [-12, 0, 0],
+        "c": "seat"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.6, 0.1, 0.5],
+        "round": 0.04,
+        "p": [0, 0.44, -0.24],
+        "c": "seat"
+      },
+      { "bone": "steer", "shape": "torus", "r": 0.15, "tube": 0.03, "c": "dark" },
+      { "bone": "steer", "shape": "cyl", "r": 0.04, "h": 0.05, "rot": [90, 0, 0], "c": "secondary" },
+      {
+        "bone": "body",
+        "shape": "cyl",
+        "r": 0.085,
+        "h": 0.34,
+        "p": [0.22, 0.46, -1],
+        "rot": [90, 0, 0],
+        "c": "chrome",
+        "m": "metal",
+        "mirror": true
+      }
+    ]
+  }
+}

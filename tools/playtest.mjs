@@ -80,6 +80,14 @@ const SCRIPTS = {
     [19000, 'shot', 'g-results'],
     [19500, 'click', '.screen:not(.covered) .bottom-bar .btn:last-child'], [23000, 'shot', 'g-podium'],
   ],
+  select: [
+    [1500, 'tap', [420, 300]], [2400, 'click', '.tile.gp'], [3100, 'click', '.choice:nth-child(3)'],
+    [4500, 'click', '.rcard[data-id=grimchain]'], [5600, 'shot', 's-racer'],
+    [5700, 'click', '.rcard[data-id=gobbles]'], [6800, 'shot', 's-racer2'],
+    [6900, 'click', '.screen:not(.covered) .select-right .btn'], [8000, 'shot', 's-kart'],
+    [8100, 'click', '.part:nth-child(8)'], [9200, 'shot', 's-kart2'],
+  ],
+  grid: [[1500, 'shot', 'gr-intro'], [6800, 'shot', 'gr-grid'], [7600, 'eval', "(() => { const s = __skykart.renderer.stats(); return s; })()"], [14000, 'shot', 'gr-race'], [18000, 'shot', 'gr-race2']],
   lap: [
     [1500, 'shot', 'l0'], [6000, 'shot', 'l1'], [9000, 'shot', 'l2'], [12000, 'shot', 'l3'], [16000, 'shot', 'l4'],
     [20000, 'shot', 'l5'], [24000, 'shot', 'l6'], [28000, 'shot', 'l7'], [30500, 'shot', 'l8'], [33000, 'shot', 'l9'],

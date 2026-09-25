@@ -147,6 +147,15 @@ export class Animator {
       // hands on the wheel: steering turns arms
       A.rot('armL', steer * 0.25, 0, steer * 0.25);
       A.rot('armR', -steer * 0.25, 0, steer * 0.25);
+      if (this.opts.bike) {
+        // riding position: lean forward, arms reaching for the handlebars
+        A.rot('body', 0.28, 0, lean * 0.6);
+        A.rot('head', -0.2, 0, 0);
+        A.rot('armL', -0.55, 0, 0.1);
+        A.rot('armR', -0.55, 0, -0.1);
+        A.rot('legL', 0, 0, 0.25);
+        A.rot('legR', 0, 0, -0.25);
+      }
       A.rot('tail', Math.sin(t * 3) * 0.08, -steer * 0.5 + Math.sin(t * 4.2) * 0.12 - drift * 0.4, 0);
       A.rot('tail2', 0, -steer * 0.3 + Math.sin(t * 4.2 - 0.8) * 0.2, 0);
       if (s.spin) {

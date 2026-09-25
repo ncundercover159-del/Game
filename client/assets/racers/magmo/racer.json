@@ -1,0 +1,33 @@
+{
+  "id": "magmo",
+  "name": "Magmo",
+  "element": "fire",
+  "size": "heavy",
+  "order": 7,
+  "tagline": "A slow, proud lava golem whose landings shake the track.",
+  "stats": {
+    "speed": 0.5,
+    "accel": -0.5,
+    "weight": 1,
+    "handling": -0.5,
+    "drift": 0,
+    "offroad": 0.5,
+    "miniTurbo": 0
+  },
+  "signature": "eruption",
+  "kartColor": "#3B3036",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 0.55, "formant": "rumble", "rasp": 0.5 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "clean",
+  "unlock": { "type": "coins", "cost": 800 },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

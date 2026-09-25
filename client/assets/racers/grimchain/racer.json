@@ -1,0 +1,33 @@
+{
+  "id": "grimchain",
+  "name": "Grimchain",
+  "element": "undead",
+  "size": "medium",
+  "order": 5,
+  "tagline": "A cackling skull-ghoul dragging a spiked ball wherever he haunts.",
+  "stats": {
+    "speed": 0.5,
+    "accel": 0,
+    "weight": 0,
+    "handling": -0.5,
+    "drift": 0.5,
+    "offroad": 0,
+    "miniTurbo": 0
+  },
+  "signature": "flail",
+  "kartColor": "#2a2530",
+  "reactions": {
+    "hit": ["hiss"],
+    "overtake": ["cackle"],
+    "item": ["cackle"],
+    "boost": ["howl"],
+    "win": ["cackle"],
+    "lose": ["moan"],
+    "taunt": ["cackle"]
+  },
+  "voice": { "pitch": 0.75, "formant": "ghoul", "rasp": 0.6 },
+  "poses": { "victory": "clawSpread", "defeat": "fade", "select": "grin", "taunt": "swing" },
+  "personality": "aggressive",
+  "unlock": { "type": "default" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

@@ -158,9 +158,9 @@ export class MenuStage {
       c.position.set(Math.cos(a) * 36, 12 + Math.sin(t * 0.2) * 2, Math.sin(a) * 36);
       c.lookAt(0, 1, 0);
     } else if (this.mode === 'select' || this.mode === 'garage') {
-      // subject sits on the right half; UI panel on the left
-      c.position.set(-2.4, 2.1, 6.6);
-      c.lookAt(-1.1, 1.1, 0);
+      // subject sits in the middle column between the grid and the info panel
+      c.position.set(-0.9, 2.0, 6.6);
+      c.lookAt(-0.45, 1.0, 0);
     } else if (this.mode === 'podium') {
       c.position.set(Math.sin(t * 0.15) * 2, 4.2, 11);
       c.lookAt(0, 2.6, 0);

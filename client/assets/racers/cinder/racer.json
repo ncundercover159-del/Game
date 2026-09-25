@@ -1,0 +1,33 @@
+{
+  "id": "cinder",
+  "name": "Cinder",
+  "element": "fire",
+  "size": "light",
+  "order": 6,
+  "tagline": "A hyperactive salamander imp who never stops bouncing.",
+  "stats": {
+    "speed": 0,
+    "accel": 0.5,
+    "weight": 0,
+    "handling": 0.5,
+    "drift": 0,
+    "offroad": -0.5,
+    "miniTurbo": 0.5
+  },
+  "signature": "flame",
+  "kartColor": "#FF5A1F",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 1.4, "formant": "squeaky", "rasp": 0.15 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "chaotic",
+  "unlock": { "type": "default" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

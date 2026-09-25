@@ -1,0 +1,269 @@
+{
+  "outline": 0.014,
+  "palette": {
+    "skull": "#E9C65A",
+    "skullDark": "#b8923a",
+    "eye": "#FF8A1A",
+    "socket": "#1a1016",
+    "collar": "#C2262E",
+    "lining": "#1A1A22",
+    "wisp": "#22202A",
+    "wisp2": "#3a3448",
+    "claw": "#E0C070",
+    "chain": "#8C8F99",
+    "ball": "#3A3A44",
+    "spike": "#9A9DA8",
+    "tooth": "#fff3cf"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.06, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.22, 0] },
+    "head": { "parent": "body", "pos": [0, 0.33, 0.08] },
+    "jaw": { "parent": "head", "pos": [0, -0.12, 0.08] },
+    "armL": { "parent": "body", "pos": [0.17, 0.1, 0.04], "mirror": true },
+    "tail": { "parent": "hips", "pos": [0, 0.08, -0.2] },
+    "tail2": { "parent": "tail", "pos": [0, 0.1, -0.62] }
+  },
+  "parts": [
+    { "bone": "body", "shape": "sphere", "r": 0.17, "s": [1.05, 1.15, 0.9], "c": "wisp" },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.12,
+      "s": [1, 1, 0.6],
+      "p": [0, -0.02, 0.08],
+      "c": "wisp2"
+    },
+    {
+      "bone": "body",
+      "shape": "cone",
+      "r": 0.03,
+      "h": 0.1,
+      "p": [0.05, -0.02, 0.13],
+      "rot": [70, 0, 0],
+      "c": "skullDark",
+      "mirror": true,
+      "array": { "n": 3, "dp": [0, 0.05, 0.01] }
+    },
+    {
+      "bone": "hips",
+      "shape": "tube",
+      "points": [[0, 0.14, 0], [0, 0.02, -0.08], [0, 0, -0.2]],
+      "r0": 0.15,
+      "r1": 0.05,
+      "c": "wisp"
+    },
+    {
+      "bone": "body",
+      "shape": "torus",
+      "r": 0.15,
+      "tube": 0.06,
+      "p": [0, 0.2, 0.02],
+      "rot": [80, 0, 0],
+      "c": "collar"
+    },
+    {
+      "bone": "body",
+      "shape": "tube",
+      "points": [[0.05, 0.22, 0], [0.18, 0.3, -0.02], [0.33, 0.26, -0.06], [0.4, 0.1, -0.02]],
+      "r0": 0.09,
+      "r1": 0.015,
+      "c": "collar",
+      "mirror": true
+    },
+    {
+      "bone": "body",
+      "shape": "tube",
+      "points": [[0.06, 0.2, 0.02], [0.17, 0.26, 0], [0.3, 0.22, -0.03]],
+      "r0": 0.05,
+      "r1": 0.012,
+      "p": [0, -0.03, 0.02],
+      "c": "lining",
+      "mirror": true
+    },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.035,
+      "p": [0.4, 0.09, -0.02],
+      "c": "skull",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.21,
+      "s": [1, 1.08, 1.05],
+      "p": [0, 0.04, 0],
+      "c": "skull"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.085,
+      "s": [1, 1.1, 0.5],
+      "p": [0.08, 0.06, 0.17],
+      "c": "socket",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.07,
+      "s": [1, 1, 0.5],
+      "p": [-0.085, 0.05, 0.175],
+      "c": "socket",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "eye",
+      "r": 0.075,
+      "p": [0.08, 0.06, 0.16],
+      "white": "#ffd27a",
+      "iris": "eye",
+      "iris_size": 0.8,
+      "pupil_size": 0.3,
+      "look": [-3, 0]
+    },
+    { "bone": "head", "shape": "sphere", "r": 0.018, "p": [-0.085, 0.05, 0.2], "c": "eye", "m": "glow" },
+    {
+      "bone": "head",
+      "shape": "capsule",
+      "r": 0.03,
+      "len": 0.12,
+      "p": [0.08, 0.15, 0.17],
+      "rot": [0, 0, 70],
+      "c": "skullDark",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.05,
+      "s": [1.4, 0.8, 0.8],
+      "p": [0.14, -0.04, 0.12],
+      "c": "skullDark",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.014,
+      "h": 0.05,
+      "p": [0, -0.06, 0.21],
+      "c": "socket",
+      "rot": [180, 0, 0],
+      "m": "matte"
+    },
+    {
+      "bone": "jaw",
+      "shape": "sphere",
+      "r": 0.16,
+      "s": [1.05, 0.45, 0.9],
+      "p": [0, -0.02, 0.02],
+      "c": "skull"
+    },
+    {
+      "bone": "jaw",
+      "shape": "cone",
+      "r": 0.022,
+      "h": 0.09,
+      "p": [-0.11, 0.02, 0.12],
+      "c": "tooth",
+      "array": { "n": 6, "dp": [0.044, 0, 0.006], "dr": [0, 0, 0] }
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.02,
+      "h": 0.07,
+      "p": [-0.1, -0.08, 0.17],
+      "rot": [180, 0, 0],
+      "c": "tooth",
+      "array": { "n": 6, "dp": [0.04, 0, 0.006] }
+    },
+    {
+      "bone": "armL",
+      "shape": "capsule",
+      "r": 0.035,
+      "len": 0.14,
+      "p": [0.03, -0.05, 0.08],
+      "rot": [110, 0, -20],
+      "c": "wisp"
+    },
+    { "bone": "armL", "shape": "sphere", "r": 0.045, "p": [0.05, -0.1, 0.19], "c": "skull" },
+    {
+      "bone": "armL",
+      "shape": "cone",
+      "r": 0.014,
+      "h": 0.1,
+      "p": [0.02, -0.11, 0.22],
+      "rot": [80, 0, 0],
+      "c": "claw",
+      "array": { "n": 3, "dp": [0.022, 0, 0], "dr": [0, 0, -8] }
+    },
+    {
+      "bone": "tail",
+      "shape": "torus",
+      "r": 0.035,
+      "tube": 0.012,
+      "p": [0, 0, -0.04],
+      "rot": [0, 0, 0],
+      "c": "chain",
+      "m": "metal",
+      "array": { "n": 7, "dp": [0, 0.012, -0.085], "dr": [0, 90, 0] }
+    },
+    { "bone": "tail2", "shape": "sphere", "r": 0.12, "c": "ball", "m": "metal" },
+    {
+      "bone": "tail2",
+      "shape": "cone",
+      "r": 0.035,
+      "h": 0.1,
+      "p": [0, 0.1, 0],
+      "c": "spike",
+      "m": "metal"
+    },
+    {
+      "bone": "tail2",
+      "shape": "cone",
+      "r": 0.035,
+      "h": 0.1,
+      "p": [0, -0.1, 0],
+      "rot": [180, 0, 0],
+      "c": "spike",
+      "m": "metal"
+    },
+    {
+      "bone": "tail2",
+      "shape": "cone",
+      "r": 0.035,
+      "h": 0.1,
+      "p": [0.1, 0, 0],
+      "rot": [0, 0, -90],
+      "c": "spike",
+      "m": "metal",
+      "mirror": true
+    },
+    {
+      "bone": "tail2",
+      "shape": "cone",
+      "r": 0.035,
+      "h": 0.1,
+      "p": [0, 0, 0.1],
+      "rot": [90, 0, 0],
+      "c": "spike",
+      "m": "metal"
+    },
+    {
+      "bone": "tail2",
+      "shape": "cone",
+      "r": 0.035,
+      "h": 0.1,
+      "p": [0, 0, -0.1],
+      "rot": [-90, 0, 0],
+      "c": "spike",
+      "m": "metal"
+    }
+  ]
+}

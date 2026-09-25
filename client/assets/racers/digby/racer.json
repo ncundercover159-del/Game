@@ -1,0 +1,25 @@
+{
+  "id": "digby",
+  "name": "Digby",
+  "element": "earth",
+  "size": "medium",
+  "order": 10,
+  "tagline": "A chuckling mole miner who squints at bright lights.",
+  "stats": { "speed": 0, "accel": 0, "weight": 0, "handling": 0, "drift": 0, "offroad": 1, "miniTurbo": 0 },
+  "signature": "tunnel",
+  "kartColor": "#FFC21A",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 1, "formant": "chuckle", "rasp": 0.2 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "hoarder",
+  "unlock": { "type": "treasures", "count": 2 },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

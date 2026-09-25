@@ -1,0 +1,39 @@
+{
+  "id": "bat_wing",
+  "name": "Bat Wing",
+  "stats": {
+    "speed": 0.5,
+    "accel": 0,
+    "weight": 0,
+    "handling": -0.5,
+    "drift": 0,
+    "offroad": 0,
+    "miniTurbo": 0
+  },
+  "unlock": { "type": "cup", "cup": "haunted" },
+  "figure": {
+    "palette": { "cloth": "#2B1F4A", "cloth2": "#D33FBF", "frame": "#1a1426" },
+    "parts": [
+      {
+        "shape": "extrude",
+        "points": [
+          [-1.2, 0], [-0.9, 0.3], [-0.6, 0.12], [-0.3, 0.34], [0, 0.2], [0.3, 0.34], [0.6, 0.12], [0.9, 0.3],
+          [1.2, 0], [0.4, 0.06], [0, 0.1], [-0.4, 0.06]
+        ],
+        "depth": 0.55,
+        "bevel": 0.02,
+        "c": "cloth"
+      },
+      { "shape": "box", "size": [0.5, 0.03, 0.52], "p": [0, 0.035, 0], "c": "cloth2" },
+      {
+        "shape": "cyl",
+        "r": 0.02,
+        "h": 0.7,
+        "p": [0.3, -0.35, 0],
+        "rot": [0, 0, 20],
+        "c": "frame",
+        "mirror": true
+      }
+    ]
+  }
+}

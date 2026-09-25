@@ -1,0 +1,133 @@
+{
+  "outline": 0.013,
+  "palette": {
+    "fur": "#2A2240",
+    "fur2": "#3a2f5a",
+    "rim": "#7A4CFF",
+    "eye": "#E07BFF",
+    "sclera": "#1a1030",
+    "nose": "#5a2a7a",
+    "tooth": "#F5F0FF",
+    "wisp": "#4a2a7a",
+    "wisp2": "#D33FBF",
+    "mouth": "#120a20"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.07, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.2, 0] },
+    "head": { "parent": "body", "pos": [0, 0.34, 0.08] },
+    "jaw": { "parent": "head", "pos": [0, -0.1, 0.12] },
+    "armL": { "parent": "body", "pos": [0.16, 0.08, 0.05], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.12, 0, 0.08], "mirror": true },
+    "earL": { "parent": "head", "pos": [0.12, 0.15, -0.02], "mirror": true },
+    "tail": { "parent": "hips", "pos": [0, 0.04, -0.15] }
+  },
+  "parts": [
+    { "bone": "body", "shape": "sphere", "r": 0.18, "s": [0.95, 1.15, 1], "c": "fur" },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.12,
+      "s": [0.9, 1, 0.5],
+      "p": [0, 0.02, 0.1],
+      "c": "fur2"
+    },
+    { "bone": "head", "shape": "sphere", "r": 0.21, "s": [1.1, 0.95, 1], "c": "fur" },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.1,
+      "s": [1.3, 0.72, 0.9],
+      "p": [0, -0.07, 0.15],
+      "c": "fur2"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.03,
+      "s": [1.4, 0.8, 0.8],
+      "p": [0, -0.03, 0.24],
+      "c": "nose"
+    },
+    {
+      "bone": "head",
+      "shape": "eye",
+      "r": 0.085,
+      "p": [0.09, 0.05, 0.155],
+      "iris": "eye",
+      "iris_size": 0.8,
+      "pupil_size": 0.3,
+      "mirror": true,
+      "rot": [0, 16, 0],
+      "look": [-4, 0],
+      "lid": { "c": "fur", "cover": 0.52, "pitch": 40, "tilt": 12 },
+      "s": [1.1, 1, 0.8],
+      "white": "sclera"
+    },
+    {
+      "bone": "head",
+      "shape": "torus",
+      "r": 0.085,
+      "tube": 0.012,
+      "arc": 160,
+      "p": [0, -0.07, 0.2],
+      "rot": [15, 0, 190],
+      "c": "tooth"
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.014,
+      "h": 0.04,
+      "p": [-0.06, -0.115, 0.215],
+      "rot": [180, 0, 0],
+      "c": "tooth",
+      "array": { "n": 5, "dp": [0.03, 0, 0.004] }
+    },
+    {
+      "bone": "earL",
+      "shape": "extrude",
+      "points": [[0, 0], [0.07, 0.14], [0.03, 0.27], [0.14, 0.17], [0.11, 0.03]],
+      "depth": 0.035,
+      "rot": [0, -10, -10],
+      "c": "fur"
+    },
+    {
+      "bone": "earL",
+      "shape": "extrude",
+      "points": [[0.02, 0.03], [0.07, 0.13], [0.05, 0.22], [0.11, 0.15], [0.09, 0.05]],
+      "depth": 0.02,
+      "p": [0, 0, 0.012],
+      "rot": [0, -10, -10],
+      "c": "rim",
+      "m": "glow"
+    },
+    {
+      "bone": "armL",
+      "shape": "capsule",
+      "r": 0.045,
+      "len": 0.12,
+      "p": [0.03, -0.04, 0.08],
+      "rot": [110, 0, -15],
+      "c": "fur"
+    },
+    { "bone": "armL", "shape": "sphere", "r": 0.055, "p": [0.05, -0.08, 0.19], "c": "fur2" },
+    { "bone": "legL", "shape": "sphere", "r": 0.075, "s": [1, 0.8, 1.3], "p": [0, 0, 0.05], "c": "fur" },
+    {
+      "bone": "tail",
+      "shape": "tube",
+      "points": [[0, 0, 0], [0, -0.02, -0.16], [0.04, 0.1, -0.28], [-0.02, 0.24, -0.3], [0.02, 0.32, -0.22]],
+      "r0": 0.06,
+      "r1": 0.02,
+      "c": "wisp"
+    },
+    {
+      "bone": "tail",
+      "shape": "sphere",
+      "r": 0.05,
+      "p": [0.02, 0.33, -0.21],
+      "c": "wisp2",
+      "m": "glow"
+    }
+  ]
+}

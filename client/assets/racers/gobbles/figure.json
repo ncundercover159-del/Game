@@ -1,0 +1,144 @@
+{
+  "outline": 0.016,
+  "palette": {
+    "body": "#2F6FD6",
+    "belly": "#7FB2FF",
+    "spike": "#2A2F8F",
+    "iris": "#9BE22D",
+    "tusk": "#FFF7E6",
+    "tongue": "#E8394F",
+    "tongue2": "#C22A40",
+    "mohawk": "#E23A3A",
+    "mouth": "#3a0f2a",
+    "foot": "#2456a8"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.06, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.27, 0] },
+    "head": { "parent": "body", "pos": [0, 0.06, 0.04] },
+    "jaw": { "parent": "head", "pos": [0, -0.08, 0.26] },
+    "extra": { "parent": "jaw", "pos": [0, -0.03, 0.04] },
+    "armL": { "parent": "body", "pos": [0.3, -0.04, 0.08], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.16, 0, 0.14], "mirror": true }
+  },
+  "parts": [
+    { "bone": "body", "shape": "sphere", "r": 0.34, "s": [1.06, 0.96, 1], "c": "body" },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.27,
+      "s": [1, 0.85, 0.6],
+      "p": [0, -0.08, 0.16],
+      "c": "belly"
+    },
+    {
+      "bone": "body",
+      "shape": "cone",
+      "r": 0.05,
+      "h": 0.12,
+      "p": [0, 0.24, -0.24],
+      "rot": [-55, 0, 0],
+      "c": "spike",
+      "array": { "n": 3, "dp": [0, -0.11, -0.05], "dr": [-12, 0, 0] }
+    },
+    {
+      "bone": "body",
+      "shape": "cone",
+      "r": 0.045,
+      "h": 0.1,
+      "p": [0.2, 0.16, -0.22],
+      "rot": [-50, -30, -20],
+      "c": "spike",
+      "mirror": true,
+      "array": { "n": 3, "dp": [0.02, -0.11, -0.03] }
+    },
+    {
+      "bone": "head",
+      "shape": "eye",
+      "r": 0.135,
+      "s": [1, 1, 0.9],
+      "p": [0.13, 0.25, 0.12],
+      "rot": [-12, 16, 0],
+      "iris": "iris",
+      "iris_size": 0.66,
+      "pupil_size": 0.34,
+      "look": [-6, -8],
+      "lid": { "c": "body", "cover": 0.12, "pitch": 5, "tilt": -5 },
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.06,
+      "h": 0.2,
+      "p": [0, 0.3, 0.02],
+      "rot": [-10, 0, 0],
+      "c": "mohawk",
+      "array": { "n": 4, "dp": [0, -0.015, -0.08], "dr": [-14, 0, 0], "ds": 0.92 }
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.2,
+      "s": [1.25, 0.62, 0.5],
+      "p": [0, -0.06, 0.24],
+      "c": "mouth",
+      "m": "matte"
+    },
+    {
+      "bone": "jaw",
+      "shape": "sphere",
+      "r": 0.16,
+      "s": [1.4, 0.42, 0.9],
+      "p": [0, -0.05, -0.02],
+      "c": "body"
+    },
+    {
+      "bone": "jaw",
+      "shape": "cone",
+      "r": 0.035,
+      "h": 0.13,
+      "p": [0.14, -0.02, 0.06],
+      "rot": [18, 0, -12],
+      "c": "tusk",
+      "mirror": true
+    },
+    {
+      "bone": "extra",
+      "shape": "tube",
+      "points": [[0, 0, 0], [0, -0.03, 0.16], [0.03, -0.12, 0.32], [-0.02, -0.2, 0.44], [0.02, -0.24, 0.52]],
+      "r0": 0.075,
+      "r1": 0.055,
+      "s": [1.4, 0.55, 1],
+      "c": "tongue"
+    },
+    {
+      "bone": "extra",
+      "shape": "tube",
+      "points": [[0, 0.01, 0.02], [0, -0.02, 0.16], [0.03, -0.1, 0.3]],
+      "r0": 0.012,
+      "r1": 0.008,
+      "c": "tongue2"
+    },
+    { "bone": "armL", "shape": "sphere", "r": 0.07, "s": [1, 0.8, 1.2], "c": "body" },
+    {
+      "bone": "legL",
+      "shape": "sphere",
+      "r": 0.085,
+      "s": [1.1, 0.7, 1.3],
+      "p": [0, -0.02, 0.04],
+      "c": "foot"
+    },
+    {
+      "bone": "legL",
+      "shape": "cone",
+      "r": 0.02,
+      "h": 0.05,
+      "p": [-0.02, -0.04, 0.14],
+      "rot": [95, 0, 0],
+      "c": "tusk",
+      "array": { "n": 3, "dp": [0.025, 0, 0] }
+    }
+  ],
+  "portrait": { "y": 0.2, "dist": 1.3 }
+}

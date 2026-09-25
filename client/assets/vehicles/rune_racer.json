@@ -1,0 +1,115 @@
+{
+  "id": "rune_racer",
+  "name": "Rune Racer",
+  "type": "kart",
+  "theme": "mystic",
+  "order": 10,
+  "stats": {
+    "speed": 0.5,
+    "accel": 0,
+    "weight": 0,
+    "handling": 0.5,
+    "drift": 1,
+    "offroad": -0.5,
+    "miniTurbo": 1
+  },
+  "seat": [0, 0.36, -0.22],
+  "pose": "kart",
+  "wheelScale": { "front": 0.88, "back": 1.05 },
+  "exhausts": [[0.24, 0.5, -1.12], [-0.24, 0.5, -1.12]],
+  "unlock": { "type": "coins", "cost": 900 },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#3d3a9a",
+      "secondary": "#FF9BF5",
+      "accent": "#3DE0FF"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.66, 0.36], "rot": [-50, 0, 0] },
+      "wheelFL": { "pos": [0.62, 0.3, 0.72], "mirror": true },
+      "wheelBL": { "pos": [0.66, 0.34, -0.7], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.25, -0.35] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.9, 0.22, 2],
+        "round": 0.1,
+        "p": [0, 0.32, 0],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "extrude",
+        "points": [[-0.45, 0], [0.45, 0], [0.3, 0.2], [-0.3, 0.2]],
+        "depth": 0.9,
+        "p": [0, 0.4, 0.6],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.03, 0.03, 1.6],
+        "p": [0.46, 0.4, 0],
+        "c": "secondary",
+        "m": "glow",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "torus",
+        "r": 0.14,
+        "tube": 0.015,
+        "p": [0, 0.64, 0.62],
+        "rot": [90, 0, 0],
+        "c": "accent",
+        "m": "glow"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1.1, 0.05, 0.26],
+        "round": 0.02,
+        "p": [0, 0.8, -1],
+        "c": "secondary"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.62, 0.44, 0.14],
+        "round": 0.06,
+        "p": [0, 0.6, -0.5],
+        "rot": [-12, 0, 0],
+        "c": "seat"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.6, 0.1, 0.5],
+        "round": 0.04,
+        "p": [0, 0.44, -0.24],
+        "c": "seat"
+      },
+      { "bone": "steer", "shape": "torus", "r": 0.15, "tube": 0.03, "c": "dark" },
+      { "bone": "steer", "shape": "cyl", "r": 0.04, "h": 0.05, "rot": [90, 0, 0], "c": "secondary" },
+      {
+        "bone": "body",
+        "shape": "cyl",
+        "r": 0.085,
+        "h": 0.34,
+        "p": [0.22, 0.46, -1.05],
+        "rot": [90, 0, 0],
+        "c": "chrome",
+        "m": "metal",
+        "mirror": true
+      }
+    ]
+  }
+}

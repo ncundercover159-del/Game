@@ -1,0 +1,33 @@
+{
+  "id": "sprout",
+  "name": "Sprout",
+  "element": "life",
+  "size": "light",
+  "order": 12,
+  "tagline": "A sweet little plant sprite who waves at everybody.",
+  "stats": {
+    "speed": 0,
+    "accel": 0.5,
+    "weight": 0,
+    "handling": 0.5,
+    "drift": 0,
+    "offroad": 0.5,
+    "miniTurbo": 0
+  },
+  "signature": "vine",
+  "kartColor": "#4CCB3C",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 1.45, "formant": "sweet", "rasp": 0 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "clean",
+  "unlock": { "type": "default" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

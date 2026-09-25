@@ -1,0 +1,80 @@
+{
+  "id": "turbo_toaster",
+  "name": "Turbo Toaster",
+  "type": "kart",
+  "theme": "tech",
+  "order": 8,
+  "stats": { "speed": -0.5, "accel": 1, "weight": 0, "handling": 0, "drift": 0, "offroad": 0, "miniTurbo": 1 },
+  "seat": [0, 0.56, 0.05],
+  "pose": "kart",
+  "wheelScale": { "front": 0.88, "back": 1.05 },
+  "exhausts": [[0, 0.5, -0.9]],
+  "unlock": { "type": "coins", "cost": 500 },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#D8DEE6",
+      "secondary": "#FF8A1E",
+      "accent": "#FFE04F",
+      "bread": "#e0a060"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.66, 0.36], "rot": [-50, 0, 0] },
+      "wheelFL": { "pos": [0.62, 0.3, 0.72], "mirror": true },
+      "wheelBL": { "pos": [0.66, 0.34, -0.7], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.25, -0.35] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1, 0.62, 1.4],
+        "round": 0.2,
+        "p": [0, 0.56, -0.15],
+        "c": "primary",
+        "m": "metal"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.7, 0.2, 0.3],
+        "round": 0.04,
+        "p": [0, 0.62, 0.62],
+        "c": "primary",
+        "m": "metal"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.16, 0.14, 0.8],
+        "round": 0.04,
+        "p": [0.22, 0.9, -0.2],
+        "c": "bread",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.08, 0.3, 0.08],
+        "p": [0.52, 0.66, 0.2],
+        "c": "secondary"
+      },
+      { "bone": "body", "shape": "sphere", "r": 0.05, "p": [0.52, 0.84, 0.2], "c": "secondary" },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1.02, 0.08, 0.3],
+        "round": 0.03,
+        "p": [0, 0.34, 0.7],
+        "c": "dark"
+      },
+      { "bone": "steer", "shape": "torus", "r": 0.15, "tube": 0.03, "c": "dark" },
+      { "bone": "steer", "shape": "cyl", "r": 0.04, "h": 0.05, "rot": [90, 0, 0], "c": "secondary" }
+    ]
+  }
+}

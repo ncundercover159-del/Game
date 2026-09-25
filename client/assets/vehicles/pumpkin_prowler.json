@@ -1,0 +1,107 @@
+{
+  "id": "pumpkin_prowler",
+  "name": "Pumpkin Prowler",
+  "type": "kart",
+  "theme": "mystic",
+  "order": 11,
+  "stats": {
+    "speed": 0,
+    "accel": 0,
+    "weight": 0.5,
+    "handling": 0,
+    "drift": 0,
+    "offroad": 1,
+    "miniTurbo": -0.5
+  },
+  "seat": [0, 0.36, -0.22],
+  "pose": "kart",
+  "wheelScale": { "front": 0.88, "back": 1.05 },
+  "exhausts": [[0, 0.5, -0.85]],
+  "unlock": { "type": "coins", "cost": 700 },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#FF8A1E",
+      "secondary": "#2f7a2f",
+      "accent": "#FFD23F",
+      "inside": "#ffe066"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.66, 0.36], "rot": [-50, 0, 0] },
+      "wheelFL": { "pos": [0.62, 0.3, 0.72], "mirror": true },
+      "wheelBL": { "pos": [0.66, 0.34, -0.7], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.25, -0.35] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.55,
+        "s": [1, 0.7, 1.35],
+        "p": [0, 0.46, 0.1],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.52,
+        "s": [0.55, 0.72, 1.34],
+        "p": [0.3, 0.46, 0.1],
+        "c": "primary",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "cyl",
+        "r": 0.06,
+        "h": 0.2,
+        "p": [0, 0.9, 0.5],
+        "rot": [20, 0, 0],
+        "c": "secondary"
+      },
+      {
+        "bone": "body",
+        "shape": "extrude",
+        "points": [[0, 0], [0.08, 0.1], [0.16, 0]],
+        "depth": 0.03,
+        "p": [0.18, 0.62, 0.78],
+        "c": "inside",
+        "m": "glow",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "extrude",
+        "points": [[-0.18, 0], [0.18, 0], [0.1, 0.06], [0, 0.02], [-0.1, 0.06]],
+        "depth": 0.03,
+        "p": [0, 0.4, 0.8],
+        "c": "inside",
+        "m": "glow"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.62, 0.44, 0.14],
+        "round": 0.06,
+        "p": [0, 0.68, -0.56],
+        "rot": [-12, 0, 0],
+        "c": "seat"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.6, 0.1, 0.5],
+        "round": 0.04,
+        "p": [0, 0.52, -0.3],
+        "c": "seat"
+      },
+      { "bone": "steer", "shape": "torus", "r": 0.15, "tube": 0.03, "c": "dark" },
+      { "bone": "steer", "shape": "cyl", "r": 0.04, "h": 0.05, "rot": [90, 0, 0], "c": "secondary" }
+    ]
+  }
+}

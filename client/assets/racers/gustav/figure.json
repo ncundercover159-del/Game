@@ -1,0 +1,110 @@
+{
+  "outline": 0.014,
+  "palette": {
+    "feather": "#DDEFFF",
+    "shade": "#A9CFF5",
+    "fluff": "#ffffff",
+    "face": "#ffffff",
+    "beak": "#FFB23F",
+    "iris": "#3FA9FF",
+    "foot": "#FFB23F",
+    "cloud": "#f4fbff",
+    "lid": "#c2dcf5"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.08, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.24, 0] },
+    "head": { "parent": "body", "pos": [0, 0.2, 0.04] },
+    "armL": { "parent": "body", "pos": [0.26, 0, 0.02], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.1, 0, 0.14], "mirror": true },
+    "earL": { "parent": "head", "pos": [0.13, 0.26, 0.02], "mirror": true }
+  },
+  "parts": [
+    { "bone": "body", "shape": "sphere", "r": 0.3, "s": [1, 1.05, 0.95], "c": "feather" },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.2,
+      "s": [1, 1, 0.5],
+      "p": [0, -0.07, 0.2],
+      "c": "fluff"
+    },
+    {
+      "bone": "body",
+      "shape": "cone",
+      "r": 0.03,
+      "h": 0.05,
+      "p": [0.06, -0.04, 0.28],
+      "rot": [180, 0, 0],
+      "c": "shade",
+      "array": { "n": 3, "dp": [-0.06, -0.06, 0] }
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.2,
+      "s": [1.25, 1, 0.4],
+      "p": [0, 0.1, 0.21],
+      "c": "face"
+    },
+    {
+      "bone": "head",
+      "shape": "eye",
+      "r": 0.1,
+      "p": [0.1, 0.12, 0.26],
+      "iris": "iris",
+      "iris_size": 0.72,
+      "pupil_size": 0.46,
+      "mirror": true,
+      "look": [-3, 0],
+      "lid": { "c": "lid", "cover": 0.3, "pitch": 24, "tilt": 14 }
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.045,
+      "h": 0.11,
+      "p": [0, 0.03, 0.31],
+      "rot": [112, 0, 0],
+      "c": "beak"
+    },
+    {
+      "bone": "earL",
+      "shape": "tube",
+      "points": [[0, 0, 0], [0.04, 0.12, 0], [0.1, 0.16, -0.04], [0.11, 0.1, -0.06]],
+      "r0": 0.05,
+      "r1": 0.015,
+      "c": "shade"
+    },
+    {
+      "bone": "armL",
+      "shape": "extrude",
+      "points": [[0, 0], [0.08, 0.1], [0.2, 0.07], [0.27, -0.05], [0.2, -0.12], [0.06, -0.1]],
+      "depth": 0.03,
+      "p": [-0.02, 0, 0.02],
+      "rot": [0, -70, -20],
+      "c": "shade"
+    },
+    {
+      "bone": "legL",
+      "shape": "cone",
+      "r": 0.03,
+      "h": 0.08,
+      "p": [0, -0.04, 0.06],
+      "rot": [100, 0, 0],
+      "c": "foot",
+      "array": { "n": 3, "dp": [0.03, 0, 0], "dr": [0, -10, 0] }
+    },
+    {
+      "bone": "hips",
+      "shape": "sphere",
+      "r": 0.12,
+      "p": [0.2, -0.04, -0.12],
+      "c": "cloud",
+      "m": "soft",
+      "mirror": true
+    },
+    { "bone": "hips", "shape": "sphere", "r": 0.1, "p": [0, -0.05, -0.24], "c": "cloud", "m": "soft" }
+  ],
+  "portrait": { "y": 0.12, "dist": 1.3 }
+}

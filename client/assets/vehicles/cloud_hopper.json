@@ -1,0 +1,75 @@
+{
+  "id": "cloud_hopper",
+  "name": "Cloud Hopper",
+  "type": "bike",
+  "theme": "elemental",
+  "order": 17,
+  "stats": {
+    "speed": -0.5,
+    "accel": 0.5,
+    "weight": -1,
+    "handling": 1,
+    "drift": 0.5,
+    "offroad": 0,
+    "miniTurbo": 0.5
+  },
+  "seat": [0, 0.62, -0.18],
+  "pose": "bike",
+  "wheelScale": { "front": 1.05, "back": 1.12 },
+  "exhausts": [[0.14, 0.5, -0.95], [-0.14, 0.5, -0.95]],
+  "unlock": { "type": "cup", "cup": "skyland" },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#ffffff",
+      "secondary": "#7FE7F2",
+      "accent": "#3DB4FF"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.95, 0.42], "rot": [-20, 0, 0] },
+      "wheelFL": { "pos": [0.001, 0.34, 0.8], "mirror": true },
+      "wheelBL": { "pos": [0.001, 0.36, -0.72], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.4, -0.3] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.3,
+        "s": [0.8, 0.7, 2.2],
+        "p": [0, 0.6, 0.05],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.18,
+        "p": [0.2, 0.55, -0.4],
+        "c": "secondary",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.16,
+        "p": [0.2, 0.6, 0.4],
+        "c": "secondary",
+        "mirror": true
+      },
+      { "bone": "steer", "shape": "cyl", "r": 0.03, "h": 0.8, "rot": [0, 0, 90], "c": "dark" },
+      {
+        "bone": "steer",
+        "shape": "sphere",
+        "r": 0.05,
+        "p": [0.4, 0, 0],
+        "c": "secondary",
+        "mirror": true
+      }
+    ]
+  }
+}

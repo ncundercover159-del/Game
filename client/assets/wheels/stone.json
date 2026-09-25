@@ -1,0 +1,23 @@
+{
+  "id": "stone",
+  "name": "Stone",
+  "stats": {
+    "speed": 0,
+    "accel": -0.5,
+    "weight": 0.5,
+    "handling": 0,
+    "drift": 0,
+    "offroad": 1,
+    "miniTurbo": 0
+  },
+  "radius": 0.32,
+  "unlock": { "type": "treasures", "count": 3 },
+  "figure": {
+    "palette": { "tire": "#8a8078", "hub": "#6a6058", "rim": "#9a8a7a" },
+    "parts": [
+      { "shape": "cyl", "r": 0.32, "h": 0.3, "rot": [0, 0, 90], "c": "tire", "m": "soft" },
+      { "shape": "cyl", "r": 0.14, "h": 0.32, "rot": [0, 0, 90], "c": "rim", "m": "gloss" },
+      { "shape": "cyl", "r": 0.08, "h": 0.33999999999999997, "rot": [0, 0, 90], "c": "hub", "m": "metal" }
+    ]
+  }
+}

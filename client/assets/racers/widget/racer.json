@@ -1,0 +1,33 @@
+{
+  "id": "widget",
+  "name": "Widget",
+  "element": "tech",
+  "size": "light",
+  "order": 14,
+  "tagline": "A tiny robot whose screen shows every emotion.",
+  "stats": {
+    "speed": 0,
+    "accel": 0.5,
+    "weight": -0.5,
+    "handling": 0.5,
+    "drift": 0,
+    "offroad": 0,
+    "miniTurbo": 0.5
+  },
+  "signature": "emp",
+  "kartColor": "#FF8A1E",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 1.3, "formant": "robotic", "rasp": 0.2 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "chaotic",
+  "unlock": { "type": "cup", "cup": "gearworks" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

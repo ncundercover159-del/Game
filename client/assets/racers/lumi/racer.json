@@ -1,0 +1,33 @@
+{
+  "id": "lumi",
+  "name": "Lumi",
+  "element": "light",
+  "size": "light",
+  "order": 15,
+  "tagline": "A serene star bunny who sparkles when overtaking.",
+  "stats": {
+    "speed": 0,
+    "accel": 0.5,
+    "weight": -0.5,
+    "handling": 0.5,
+    "drift": 0.5,
+    "offroad": 0,
+    "miniTurbo": 0
+  },
+  "signature": "flash",
+  "kartColor": "#FFE45C",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 1.35, "formant": "airy", "rasp": 0 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "clean",
+  "unlock": { "type": "cup", "cup": "haunted" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

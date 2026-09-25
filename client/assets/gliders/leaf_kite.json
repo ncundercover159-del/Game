@@ -1,0 +1,28 @@
+{
+  "id": "leaf_kite",
+  "name": "Leaf Kite",
+  "stats": { "speed": 0, "accel": 0.5, "weight": 0, "handling": 0, "drift": 0, "offroad": 0, "miniTurbo": 0 },
+  "unlock": { "type": "coins", "cost": 250 },
+  "figure": {
+    "palette": { "cloth": "#58c24a", "cloth2": "#2f9e3a", "frame": "#8a5a32" },
+    "parts": [
+      {
+        "shape": "extrude",
+        "points": [[-1.1, 0], [-0.6, 0.25], [0, 0.32], [0.6, 0.25], [1.1, 0], [0.5, 0.08], [0, 0.1], [-0.5, 0.08]],
+        "depth": 0.55,
+        "bevel": 0.02,
+        "c": "cloth"
+      },
+      { "shape": "box", "size": [0.5, 0.03, 0.52], "p": [0, 0.035, 0], "c": "cloth2" },
+      {
+        "shape": "cyl",
+        "r": 0.02,
+        "h": 0.7,
+        "p": [0.3, -0.35, 0],
+        "rot": [0, 0, 20],
+        "c": "frame",
+        "mirror": true
+      }
+    ]
+  }
+}

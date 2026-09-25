@@ -227,7 +227,7 @@ function expandBones(def) {
   const src = def.bones || {};
   for (const name in src) {
     const b = src[name];
-    bones[name] = { parent: b.parent || 'root', pos: vec3(b.pos, 0), rot: vec3(b.rot, 0) };
+    bones[name] = { parent: b.parent || 'root', pos: vec3(b.pos, 0), rot: vec3(b.rot, 0), autoMirror: !!b.mirror };
     if (b.mirror) {
       const rn = counterpart(name);
       bones[rn] = {
@@ -241,9 +241,24 @@ function expandBones(def) {
 }
 
 // Expand mirrors and arrays into a flat list of {bone, matrix, part}.
-function expandParts(parts, bones, prefixBone) {
+// "ring": { n, r, a0, tilt } places n copies on a circle (XZ plane) facing outward.
+function expandRings(parts) {
   const out = [];
   for (const part of parts) {
+    if (!part.ring) { out.push(part); continue; }
+    const { n = 6, r = 0.2, a0 = 0, tilt = 0 } = part.ring;
+    const p = vec3(part.p, 0), rot = vec3(part.rot, 0);
+    for (let i = 0; i < n; i++) {
+      const a = (a0 + (360 * i) / n) * DEG;
+      out.push({ ...part, ring: undefined, p: [p[0] + Math.sin(a) * r, p[1], p[2] + Math.cos(a) * r], rot: [rot[0] + tilt, rot[1] + a / DEG, rot[2]] });
+    }
+  }
+  return out;
+}
+
+function expandParts(parts, bones, prefixBone) {
+  const out = [];
+  for (const part of expandRings(parts)) {
     const n = part.array?.n || 1;
     for (let i = 0; i < n; i++) {
       let pp = part;
@@ -263,7 +278,9 @@ function expandParts(parts, bones, prefixBone) {
       const bone = prefixBone || pp.bone || 'root';
       const m = partMatrix(pp);
       out.push({ bone: bones[bone] ? bone : 'root', m, part: pp });
-      if (pp.mirror) {
+      // parts on an auto-mirrored "...L" bone are mirrored onto "...R" automatically
+      const autoMirror = !prefixBone && bones[bone]?.autoMirror && pp.mirror !== false;
+      if (pp.mirror || autoMirror) {
         const mb = counterpart(bone);
         const mm = MIRROR.clone().multiply(m).multiply(MIRROR);
         out.push({ bone: bones[mb] ? mb : bone, m: mm, part: pp });

@@ -1,0 +1,144 @@
+{
+  "outline": 0.013,
+  "palette": {
+    "chrome": "#E9EEF3",
+    "panel": "#FF8A1E",
+    "screen": "#1a2a3a",
+    "eye": "#3DE0FF",
+    "eye2": "#b8f6ff",
+    "bulb": "#FF3D6E",
+    "metal": "#8a93a3",
+    "dark": "#3a3f4a",
+    "btnA": "#56d23e",
+    "btnB": "#ffd23f"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.08, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.16, 0] },
+    "head": { "parent": "body", "pos": [0, 0.3, 0.04] },
+    "armL": { "parent": "body", "pos": [0.17, 0.04, 0.04], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.09, -0.01, 0.08], "mirror": true },
+    "extra": { "parent": "head", "pos": [0, 0.16, -0.02] }
+  },
+  "parts": [
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.3, 0.26, 0.26],
+      "round": 0.08,
+      "c": "chrome",
+      "m": "metal"
+    },
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.2, 0.14, 0.02],
+      "round": 0.02,
+      "p": [0, 0, 0.135],
+      "c": "panel"
+    },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.018,
+      "p": [-0.05, 0.02, 0.15],
+      "c": "btnA",
+      "m": "glow"
+    },
+    { "bone": "body", "shape": "sphere", "r": 0.018, "p": [0, 0.02, 0.15], "c": "btnB", "m": "glow" },
+    { "bone": "body", "shape": "sphere", "r": 0.018, "p": [0.05, 0.02, 0.15], "c": "bulb", "m": "glow" },
+    {
+      "bone": "head",
+      "shape": "box",
+      "size": [0.4, 0.32, 0.32],
+      "round": 0.1,
+      "c": "chrome",
+      "m": "metal"
+    },
+    {
+      "bone": "head",
+      "shape": "box",
+      "size": [0.32, 0.22, 0.02],
+      "round": 0.04,
+      "p": [0, 0, 0.16],
+      "c": "screen"
+    },
+    {
+      "bone": "head",
+      "shape": "cyl",
+      "r": 0.075,
+      "h": 0.02,
+      "p": [0, 0.01, 0.172],
+      "rot": [90, 0, 0],
+      "c": "eye",
+      "m": "glow"
+    },
+    {
+      "bone": "head",
+      "shape": "cyl",
+      "r": 0.035,
+      "h": 0.022,
+      "p": [0, 0.01, 0.176],
+      "rot": [90, 0, 0],
+      "c": "eye2",
+      "m": "glow"
+    },
+    {
+      "bone": "head",
+      "shape": "cyl",
+      "r": 0.05,
+      "h": 0.04,
+      "p": [0.2, 0, 0],
+      "rot": [0, 0, 90],
+      "c": "panel",
+      "mirror": true
+    },
+    {
+      "bone": "extra",
+      "shape": "cyl",
+      "r": 0.012,
+      "h": 0.14,
+      "p": [0, 0.02, 0],
+      "c": "metal",
+      "m": "metal"
+    },
+    { "bone": "extra", "shape": "sphere", "r": 0.042, "p": [0, 0.1, 0], "c": "bulb", "m": "glow" },
+    {
+      "bone": "armL",
+      "shape": "cyl",
+      "r": 0.03,
+      "h": 0.14,
+      "p": [0.02, -0.03, 0.07],
+      "rot": [100, 0, 0],
+      "c": "metal",
+      "m": "metal"
+    },
+    {
+      "bone": "armL",
+      "shape": "box",
+      "size": [0.03, 0.05, 0.07],
+      "round": 0.01,
+      "p": [0, -0.05, 0.16],
+      "c": "panel",
+      "array": { "n": 2, "dp": [0.045, 0, 0] }
+    },
+    {
+      "bone": "legL",
+      "shape": "cyl",
+      "r": 0.035,
+      "h": 0.08,
+      "p": [0, 0, 0.04],
+      "rot": [60, 0, 0],
+      "c": "metal",
+      "m": "metal"
+    },
+    {
+      "bone": "legL",
+      "shape": "box",
+      "size": [0.08, 0.05, 0.12],
+      "round": 0.02,
+      "p": [0, -0.04, 0.1],
+      "c": "dark"
+    }
+  ]
+}

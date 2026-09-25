@@ -1,0 +1,33 @@
+{
+  "id": "gillby",
+  "name": "Gillby",
+  "element": "water",
+  "size": "medium",
+  "order": 2,
+  "tagline": "Earnest fish-man who never leaves home without his harpoon.",
+  "stats": {
+    "speed": 0,
+    "accel": 0.5,
+    "weight": 0.5,
+    "handling": 0,
+    "drift": 0,
+    "offroad": 0.5,
+    "miniTurbo": -0.5
+  },
+  "signature": "harpoon",
+  "kartColor": "#1E9BFF",
+  "reactions": {
+    "hit": ["glub"],
+    "overtake": ["cheer"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["sob"],
+    "taunt": ["glub"]
+  },
+  "voice": { "pitch": 0.85, "formant": "bubbly", "rasp": 0.1 },
+  "poses": { "victory": "harpoonRaise", "defeat": "slump", "select": "aim", "taunt": "flap" },
+  "personality": "clean",
+  "unlock": { "type": "default" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

@@ -1,13 +1,14 @@
 {
   "id": "standard",
   "name": "Standard",
-  "stats": { "speed": 0, "accel": 0, "handling": 0, "offroad": 0, "miniTurbo": 0 },
+  "stats": { "speed": 0, "accel": 0, "weight": 0, "handling": 0, "drift": 0, "offroad": 0, "miniTurbo": 0 },
+  "radius": 0.3,
   "unlock": { "type": "default" },
   "figure": {
     "palette": { "tire": "#262228", "hub": "#D8DEE6", "rim": "#FFB12A" },
     "parts": [
       { "shape": "cyl", "r": 0.3, "h": 0.28, "rot": [0, 0, 90], "c": "tire", "m": "soft" },
-      { "shape": "cyl", "r": 0.19, "h": 0.3, "rot": [0, 0, 90], "c": "rim" },
+      { "shape": "cyl", "r": 0.19, "h": 0.30000000000000004, "rot": [0, 0, 90], "c": "rim", "m": "gloss" },
       { "shape": "cyl", "r": 0.08, "h": 0.32, "rot": [0, 0, 90], "c": "hub", "m": "metal" }
     ]
   }

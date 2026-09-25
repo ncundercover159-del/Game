@@ -1,0 +1,181 @@
+{
+  "outline": 0.014,
+  "palette": {
+    "body": "#FF5A1F",
+    "belly": "#FFC34D",
+    "flame": "#FFD23F",
+    "flame2": "#FF8A1E",
+    "iris": "#FFB020",
+    "brow": "#7A1E0A",
+    "tooth": "#FFFDF4",
+    "mouth": "#4a1004",
+    "horn": "#7A1E0A"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.06, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.18, 0] },
+    "head": { "parent": "body", "pos": [0, 0.31, 0.06] },
+    "jaw": { "parent": "head", "pos": [0, -0.1, 0.14] },
+    "armL": { "parent": "body", "pos": [0.14, 0.06, 0.05], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.1, 0, 0.08], "mirror": true },
+    "tail": { "parent": "hips", "pos": [0, 0.02, -0.12] }
+  },
+  "parts": [
+    { "bone": "body", "shape": "sphere", "r": 0.15, "s": [1, 1.1, 0.95], "c": "body" },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.12,
+      "s": [0.9, 1, 0.55],
+      "p": [0, -0.02, 0.07],
+      "c": "belly"
+    },
+    { "bone": "head", "shape": "sphere", "r": 0.23, "s": [1.1, 0.95, 1], "c": "body" },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.14,
+      "s": [1.35, 0.65, 1],
+      "p": [0, -0.07, 0.14],
+      "c": "body"
+    },
+    {
+      "bone": "head",
+      "shape": "eye",
+      "r": 0.092,
+      "p": [0.095, 0.05, 0.165],
+      "iris": "iris",
+      "iris_size": 0.66,
+      "pupil_size": 0.4,
+      "mirror": true,
+      "rot": [0, 14, 0],
+      "look": [-4, 4],
+      "s": [1, 1.1, 0.8]
+    },
+    {
+      "bone": "head",
+      "shape": "capsule",
+      "r": 0.022,
+      "len": 0.09,
+      "p": [0.1, 0.16, 0.17],
+      "rot": [0, 0, -70],
+      "c": "brow",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "box",
+      "size": [0.045, 0.055, 0.02],
+      "round": 0.01,
+      "p": [0.026, -0.115, 0.268],
+      "c": "tooth",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "torus",
+      "r": 0.09,
+      "tube": 0.014,
+      "arc": 160,
+      "p": [0, -0.07, 0.25],
+      "rot": [20, 0, 190],
+      "c": "mouth",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.03,
+      "h": 0.07,
+      "p": [0.12, 0.15, 0.02],
+      "rot": [-20, 0, -30],
+      "c": "horn",
+      "mirror": true
+    },
+    { "bone": "head", "shape": "sphere", "r": 0.075, "p": [0, 0.2, -0.02], "c": "flame2", "m": "glow" },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.072,
+      "h": 0.22,
+      "p": [0, 0.24, -0.03],
+      "rot": [-25, 0, 0],
+      "c": "flame2",
+      "m": "glow"
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.045,
+      "h": 0.14,
+      "p": [0, 0.24, -0.01],
+      "rot": [-25, 0, 0],
+      "c": "flame",
+      "m": "glow"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.055,
+      "p": [0.1, 0.17, -0.04],
+      "c": "flame",
+      "m": "glow",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.054,
+      "h": 0.15,
+      "p": [0.11, 0.2, -0.05],
+      "rot": [-20, 0, -28],
+      "c": "flame",
+      "m": "glow",
+      "mirror": true
+    },
+    {
+      "bone": "armL",
+      "shape": "capsule",
+      "r": 0.04,
+      "len": 0.09,
+      "p": [0.02, -0.03, 0.07],
+      "rot": [110, 0, -15],
+      "c": "body"
+    },
+    { "bone": "armL", "shape": "sphere", "r": 0.05, "p": [0.03, -0.06, 0.15], "c": "body" },
+    {
+      "bone": "legL",
+      "shape": "sphere",
+      "r": 0.065,
+      "s": [1, 0.8, 1.3],
+      "p": [0, -0.01, 0.06],
+      "c": "body"
+    },
+    {
+      "bone": "legL",
+      "shape": "sphere",
+      "r": 0.055,
+      "s": [1, 0.6, 1.4],
+      "p": [0.01, -0.06, 0.17],
+      "c": "belly"
+    },
+    {
+      "bone": "tail",
+      "shape": "tube",
+      "points": [[0, 0, 0], [0, -0.03, -0.14], [0, 0.06, -0.26], [0, 0.18, -0.28]],
+      "r0": 0.06,
+      "r1": 0.03,
+      "c": "body"
+    },
+    { "bone": "tail", "shape": "sphere", "r": 0.05, "p": [0, 0.2, -0.28], "c": "flame2", "m": "glow" },
+    {
+      "bone": "tail",
+      "shape": "cone",
+      "r": 0.045,
+      "h": 0.12,
+      "p": [0, 0.22, -0.28],
+      "c": "flame",
+      "m": "glow"
+    }
+  ]
+}

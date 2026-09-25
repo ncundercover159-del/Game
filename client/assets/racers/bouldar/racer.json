@@ -1,0 +1,25 @@
+{
+  "id": "bouldar",
+  "name": "Bouldar",
+  "element": "earth",
+  "size": "heavy",
+  "order": 9,
+  "tagline": "A stubborn rock armadillo with a boulder of a brow.",
+  "stats": { "speed": 0, "accel": 0, "weight": 0.5, "handling": 0, "drift": 0, "offroad": 0.5, "miniTurbo": 0 },
+  "signature": "boulder",
+  "kartColor": "#B8793A",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 0.65, "formant": "grumble", "rasp": 0.4 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "aggressive",
+  "unlock": { "type": "default" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

@@ -1,0 +1,103 @@
+{
+  "id": "gale_glider",
+  "name": "Gale Glider",
+  "type": "kart",
+  "theme": "elemental",
+  "order": 4,
+  "stats": {
+    "speed": -0.5,
+    "accel": 1,
+    "weight": -1,
+    "handling": 1,
+    "drift": 0.5,
+    "offroad": 0,
+    "miniTurbo": 0.5
+  },
+  "seat": [0, 0.36, -0.22],
+  "pose": "kart",
+  "wheelScale": { "front": 0.88, "back": 1.05 },
+  "exhausts": [[0, 0.44, -1]],
+  "unlock": { "type": "default" },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#7FE7F2",
+      "secondary": "#FFFFFF",
+      "accent": "#3DB4FF"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.66, 0.36], "rot": [-50, 0, 0] },
+      "wheelFL": { "pos": [0.62, 0.3, 0.72], "mirror": true },
+      "wheelBL": { "pos": [0.66, 0.34, -0.7], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.25, -0.35] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.8, 0.16, 1.8],
+        "round": 0.08,
+        "p": [0, 0.3, 0],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.34,
+        "s": [1, 0.45, 1.3],
+        "p": [0, 0.36, 0.75],
+        "c": "secondary"
+      },
+      {
+        "bone": "body",
+        "shape": "extrude",
+        "points": [[0, 0], [0.55, 0.12], [0.6, 0.2], [0, 0.12]],
+        "depth": 0.3,
+        "p": [0.36, 0.38, -0.3],
+        "rot": [90, 0, 0],
+        "c": "accent",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1.2, 0.05, 0.3],
+        "round": 0.02,
+        "p": [0, 0.82, -1],
+        "c": "secondary"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.05, 0.3, 0.12],
+        "p": [0.4, 0.66, -1],
+        "c": "accent",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.62, 0.44, 0.14],
+        "round": 0.06,
+        "p": [0, 0.56, -0.5],
+        "rot": [-12, 0, 0],
+        "c": "seat"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.6, 0.1, 0.5],
+        "round": 0.04,
+        "p": [0, 0.4, -0.24],
+        "c": "seat"
+      },
+      { "bone": "steer", "shape": "torus", "r": 0.15, "tube": 0.03, "c": "dark" },
+      { "bone": "steer", "shape": "cyl", "r": 0.04, "h": 0.05, "rot": [90, 0, 0], "c": "secondary" }
+    ]
+  }
+}

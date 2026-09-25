@@ -1,0 +1,30 @@
+{
+  "id": "monster",
+  "name": "Monster",
+  "stats": {
+    "speed": 0,
+    "accel": -0.5,
+    "weight": 1,
+    "handling": -0.5,
+    "drift": 0,
+    "offroad": 1,
+    "miniTurbo": -0.5
+  },
+  "radius": 0.4,
+  "unlock": { "type": "coins", "cost": 300 },
+  "figure": {
+    "palette": { "tire": "#2a2a2e", "hub": "#5A5F6E", "rim": "#FFC21A" },
+    "parts": [
+      { "shape": "cyl", "r": 0.4, "h": 0.36, "rot": [0, 0, 90], "c": "tire", "m": "soft" },
+      { "shape": "cyl", "r": 0.2, "h": 0.38, "rot": [0, 0, 90], "c": "rim", "m": "gloss" },
+      { "shape": "cyl", "r": 0.08, "h": 0.39999999999999997, "rot": [0, 0, 90], "c": "hub", "m": "metal" },
+      {
+        "shape": "box",
+        "size": [0.38, 0.06, 0.1],
+        "p": [0, 0.38, 0],
+        "c": "tire",
+        "ring": { "n": 1 }
+      }
+    ]
+  }
+}

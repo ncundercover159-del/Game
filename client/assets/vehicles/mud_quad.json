@@ -1,0 +1,93 @@
+{
+  "id": "mud_quad",
+  "name": "Mud Quad",
+  "type": "quad",
+  "theme": "elemental",
+  "order": 18,
+  "stats": {
+    "speed": 0,
+    "accel": 0,
+    "weight": 1,
+    "handling": -0.5,
+    "drift": -0.5,
+    "offroad": 1.5,
+    "miniTurbo": 0
+  },
+  "seat": [0, 0.5, -0.2],
+  "pose": "bike",
+  "wheelScale": { "front": 1.1, "back": 1.15 },
+  "exhausts": [[0.3, 0.55, -1], [-0.3, 0.55, -1]],
+  "unlock": { "type": "coins", "cost": 800 },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#8a5a32",
+      "secondary": "#FFC21A",
+      "accent": "#6FAF3A"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.95, 0.35], "rot": [-20, 0, 0] },
+      "wheelFL": { "pos": [0.66, 0.36, 0.7], "mirror": true },
+      "wheelBL": { "pos": [0.7, 0.38, -0.7], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.35, -0.3] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.9, 0.34, 1.6],
+        "round": 0.14,
+        "p": [0, 0.56, 0],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1.4, 0.08, 0.5],
+        "round": 0.04,
+        "p": [0, 0.76, 0.6],
+        "c": "secondary"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1.4, 0.08, 0.5],
+        "round": 0.04,
+        "p": [0, 0.76, -0.6],
+        "c": "secondary"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.36, 0.1, 0.5],
+        "round": 0.04,
+        "p": [0, 0.8, -0.2],
+        "c": "seat"
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.1,
+        "s": [2, 0.5, 1.3],
+        "p": [0, 0.9, 0.72],
+        "c": "accent",
+        "m": "matte"
+      },
+      { "bone": "steer", "shape": "cyl", "r": 0.03, "h": 0.8, "rot": [0, 0, 90], "c": "dark" },
+      {
+        "bone": "steer",
+        "shape": "sphere",
+        "r": 0.05,
+        "p": [0.4, 0, 0],
+        "c": "secondary",
+        "mirror": true
+      }
+    ]
+  },
+  "tintable": true
+}

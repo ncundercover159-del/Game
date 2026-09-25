@@ -1,0 +1,33 @@
+{
+  "id": "umbra",
+  "name": "Umbra",
+  "element": "dark",
+  "size": "medium",
+  "order": 16,
+  "tagline": "A lazy shadow panther with a very sharp grin.",
+  "stats": {
+    "speed": 0.5,
+    "accel": 0,
+    "weight": 0,
+    "handling": 0,
+    "drift": 0.5,
+    "offroad": -0.5,
+    "miniTurbo": 0
+  },
+  "signature": "clone",
+  "kartColor": "#2B1F4A",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 0.8, "formant": "purr", "rasp": 0.3 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "aggressive",
+  "unlock": { "type": "cup", "cup": "molten" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

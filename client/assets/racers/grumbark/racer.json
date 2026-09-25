@@ -1,0 +1,33 @@
+{
+  "id": "grumbark",
+  "name": "Grumbark",
+  "element": "life",
+  "size": "heavy",
+  "order": 13,
+  "tagline": "An old tree-stump ent with a slow blink and a creaky laugh.",
+  "stats": {
+    "speed": 0.5,
+    "accel": 0,
+    "weight": 0.5,
+    "handling": -0.5,
+    "drift": 0,
+    "offroad": 0.5,
+    "miniTurbo": -0.5
+  },
+  "signature": "roots",
+  "kartColor": "#6B4A2E",
+  "reactions": {
+    "hit": ["ouch"],
+    "overtake": ["hah"],
+    "item": ["hup"],
+    "boost": ["whoo"],
+    "win": ["cheer"],
+    "lose": ["huff"],
+    "taunt": ["taunt"]
+  },
+  "voice": { "pitch": 0.6, "formant": "creak", "rasp": 0.35 },
+  "poses": { "victory": "cheer", "defeat": "slump", "select": "wave", "taunt": "taunt" },
+  "personality": "hoarder",
+  "unlock": { "type": "coins", "cost": 1200 },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

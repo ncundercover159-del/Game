@@ -1,0 +1,23 @@
+{
+  "id": "button",
+  "name": "Button",
+  "stats": {
+    "speed": -0.5,
+    "accel": 1,
+    "weight": -0.5,
+    "handling": 0.5,
+    "drift": 0,
+    "offroad": 0,
+    "miniTurbo": 0
+  },
+  "radius": 0.24,
+  "unlock": { "type": "coins", "cost": 200 },
+  "figure": {
+    "palette": { "tire": "#3a2f45", "hub": "#ffffff", "rim": "#ff7fb0" },
+    "parts": [
+      { "shape": "cyl", "r": 0.24, "h": 0.24, "rot": [0, 0, 90], "c": "tire", "m": "soft" },
+      { "shape": "cyl", "r": 0.16, "h": 0.26, "rot": [0, 0, 90], "c": "rim", "m": "gloss" },
+      { "shape": "cyl", "r": 0.08, "h": 0.27999999999999997, "rot": [0, 0, 90], "c": "hub", "m": "metal" }
+    ]
+  }
+}

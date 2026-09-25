@@ -1,0 +1,117 @@
+{
+  "id": "stone_crusher",
+  "name": "Stone Crusher",
+  "type": "kart",
+  "theme": "elemental",
+  "order": 3,
+  "stats": {
+    "speed": 1,
+    "accel": -1,
+    "weight": 1.5,
+    "handling": -0.5,
+    "drift": 0,
+    "offroad": 0.5,
+    "miniTurbo": -0.5
+  },
+  "seat": [0, 0.36, -0.22],
+  "pose": "kart",
+  "wheelScale": { "front": 0.95, "back": 1.12 },
+  "exhausts": [[0.24, 0.5, -1.12], [-0.24, 0.5, -1.12]],
+  "unlock": { "type": "default" },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#9A6B3F",
+      "secondary": "#C89A5E",
+      "accent": "#6FAF3A"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.66, 0.36], "rot": [-50, 0, 0] },
+      "wheelFL": { "pos": [0.62, 0.3, 0.72], "mirror": true },
+      "wheelBL": { "pos": [0.66, 0.34, -0.7], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.25, -0.35] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1.2, 0.36, 1.9],
+        "round": 0.16,
+        "p": [0, 0.36, 0],
+        "c": "primary",
+        "m": "matte"
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.22,
+        "s": [1.2, 0.7, 1],
+        "p": [0.45, 0.5, 0.7],
+        "c": "secondary",
+        "m": "matte",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.26,
+        "s": [1.3, 0.7, 1],
+        "p": [0, 0.46, 0.95],
+        "c": "secondary",
+        "m": "matte"
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.18,
+        "s": [1.4, 0.3, 1],
+        "p": [0.3, 0.56, 0.35],
+        "c": "accent",
+        "m": "matte"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1.3, 0.14, 0.22],
+        "round": 0.06,
+        "p": [0, 0.24, 1.15],
+        "c": "dark"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.62, 0.44, 0.14],
+        "round": 0.06,
+        "p": [0, 0.68, -0.5],
+        "rot": [-12, 0, 0],
+        "c": "seat"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.6, 0.1, 0.5],
+        "round": 0.04,
+        "p": [0, 0.52, -0.24],
+        "c": "seat"
+      },
+      { "bone": "steer", "shape": "torus", "r": 0.15, "tube": 0.03, "c": "dark" },
+      { "bone": "steer", "shape": "cyl", "r": 0.04, "h": 0.05, "rot": [90, 0, 0], "c": "secondary" },
+      {
+        "bone": "body",
+        "shape": "cyl",
+        "r": 0.085,
+        "h": 0.34,
+        "p": [0.3, 0.58, -1.05],
+        "rot": [90, 0, 0],
+        "c": "metal",
+        "m": "metal",
+        "mirror": true
+      }
+    ]
+  }
+}

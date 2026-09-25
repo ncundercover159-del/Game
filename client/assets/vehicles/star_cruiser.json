@@ -1,0 +1,102 @@
+{
+  "id": "star_cruiser",
+  "name": "Star Cruiser",
+  "type": "kart",
+  "theme": "mystic",
+  "order": 12,
+  "stats": { "speed": 0.5, "accel": 0.5, "weight": 0, "handling": 0, "drift": 0, "offroad": 0, "miniTurbo": 0 },
+  "seat": [0, 0.36, -0.22],
+  "pose": "kart",
+  "wheelScale": { "front": 0.88, "back": 1.05 },
+  "exhausts": [[0.24, 0.5, -1.12], [-0.24, 0.5, -1.12]],
+  "unlock": { "type": "cup", "cup": "skyland" },
+  "figure": {
+    "outline": 0.02,
+    "palette": {
+      "dark": "#2A2530",
+      "chrome": "#D8DEE6",
+      "metal": "#5A5F6E",
+      "seat": "#3A2F45",
+      "primary": "#FFF4D6",
+      "secondary": "#FFD23F",
+      "accent": "#6A5CFF"
+    },
+    "bones": {
+      "body": { "pos": [0, 0, 0] },
+      "steer": { "parent": "body", "pos": [0, 0.66, 0.36], "rot": [-50, 0, 0] },
+      "wheelFL": { "pos": [0.62, 0.3, 0.72], "mirror": true },
+      "wheelBL": { "pos": [0.66, 0.34, -0.7], "mirror": true },
+      "glider": { "parent": "body", "pos": [0, 1.25, -0.35] }
+    },
+    "parts": [
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [1, 0.24, 1.9],
+        "round": 0.12,
+        "p": [0, 0.33, 0],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "sphere",
+        "r": 0.34,
+        "s": [1.2, 0.4, 1.2],
+        "p": [0, 0.38, 0.72],
+        "c": "primary"
+      },
+      {
+        "bone": "body",
+        "shape": "extrude",
+        "points": [
+          [0, 0.2], [0.05, 0.06], [0.19, 0.06], [0.08, -0.03], [0.12, -0.17], [0, -0.08], [-0.12, -0.17],
+          [-0.08, -0.03], [-0.19, 0.06], [-0.05, 0.06]
+        ],
+        "depth": 0.04,
+        "p": [0, 0.52, 0.9],
+        "rot": [-60, 0, 0],
+        "c": "secondary",
+        "m": "glow"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.26, 0.2, 0.9],
+        "round": 0.08,
+        "p": [0.6, 0.3, 0],
+        "c": "secondary",
+        "mirror": true
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.62, 0.44, 0.14],
+        "round": 0.06,
+        "p": [0, 0.6, -0.5],
+        "rot": [-12, 0, 0],
+        "c": "seat"
+      },
+      {
+        "bone": "body",
+        "shape": "box",
+        "size": [0.6, 0.1, 0.5],
+        "round": 0.04,
+        "p": [0, 0.44, -0.24],
+        "c": "seat"
+      },
+      { "bone": "steer", "shape": "torus", "r": 0.15, "tube": 0.03, "c": "dark" },
+      { "bone": "steer", "shape": "cyl", "r": 0.04, "h": 0.05, "rot": [90, 0, 0], "c": "secondary" },
+      {
+        "bone": "body",
+        "shape": "cyl",
+        "r": 0.085,
+        "h": 0.34,
+        "p": [0.24, 0.5, -1.05],
+        "rot": [90, 0, 0],
+        "c": "chrome",
+        "m": "metal",
+        "mirror": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,237 @@
+{
+  "outline": 0.014,
+  "palette": {
+    "skin": "#2FB5A8",
+    "dark": "#1E8078",
+    "fin": "#3CC7C0",
+    "membrane": "#7FE0D6",
+    "belly": "#A6E8D8",
+    "iris": "#FFC21A",
+    "lip": "#1A6A62",
+    "metal": "#3A3F4A",
+    "tip": "#D8DEE6",
+    "strap": "#8a5a32",
+    "mouth": "#0f3a36"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.08, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.2, 0] },
+    "head": { "parent": "body", "pos": [0, 0.33, 0.06] },
+    "jaw": { "parent": "head", "pos": [0, -0.12, 0.12] },
+    "armL": { "parent": "body", "pos": [0.22, 0.12, 0.04], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.13, 0, 0.08], "mirror": true },
+    "earL": { "parent": "head", "pos": [0.28, 0.02, -0.02], "mirror": true },
+    "extra": { "parent": "body", "pos": [0, 0, 0.3] }
+  },
+  "parts": [
+    { "bone": "body", "shape": "sphere", "r": 0.21, "s": [1.18, 1, 0.95], "c": "skin" },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.17,
+      "s": [1, 1, 0.55],
+      "p": [0, -0.03, 0.1],
+      "c": "belly"
+    },
+    {
+      "bone": "body",
+      "shape": "extrude",
+      "points": [[0, 0], [0.08, 0.14], [0.2, 0.18], [0.26, 0.02]],
+      "depth": 0.02,
+      "p": [0, 0.08, -0.14],
+      "rot": [0, 90, 0],
+      "c": "fin"
+    },
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.5, 0.05, 0.05],
+      "p": [0, 0.08, 0.13],
+      "rot": [0, 0, 35],
+      "c": "strap",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.26,
+      "s": [1.28, 0.86, 1],
+      "p": [0, 0.03, 0.02],
+      "c": "skin"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.2,
+      "s": [1.2, 0.6, 0.9],
+      "p": [0, -0.07, 0.1],
+      "c": "belly"
+    },
+    {
+      "bone": "head",
+      "shape": "capsule",
+      "r": 0.034,
+      "len": 0.3,
+      "p": [0, -0.11, 0.24],
+      "rot": [0, 0, 90],
+      "c": "lip"
+    },
+    {
+      "bone": "head",
+      "shape": "sphere",
+      "r": 0.012,
+      "p": [0.04, 0, 0.28],
+      "c": "mouth",
+      "m": "matte",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "eye",
+      "r": 0.105,
+      "s": [1, 1, 0.85],
+      "p": [0.17, 0.13, 0.13],
+      "rot": [0, 26, 0],
+      "iris": "iris",
+      "iris_size": 0.74,
+      "pupil_size": 0.34,
+      "look": [-8, -4],
+      "lid": { "c": "skin", "cover": 0.22, "pitch": 12, "tilt": -12 },
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "extrude",
+      "points": [[0.06, 0], [0.1, 0.18], [0.2, 0.28], [0.32, 0.26], [0.4, 0.12], [0.42, 0]],
+      "depth": 0.022,
+      "p": [0, 0.17, 0.2],
+      "rot": [0, 90, 0],
+      "c": "fin"
+    },
+    {
+      "bone": "head",
+      "shape": "tube",
+      "points": [[0, 0.19, 0.12], [0, 0.34, 0.02], [0, 0.38, -0.08]],
+      "r0": 0.016,
+      "r1": 0.008,
+      "c": "dark"
+    },
+    {
+      "bone": "head",
+      "shape": "extrude",
+      "points": [[0, 0], [0.06, 0.16], [0.16, 0.22], [0.26, 0.14], [0.3, 0]],
+      "depth": 0.02,
+      "p": [0.12, 0.15, 0.1],
+      "rot": [0, 90, -30],
+      "c": "membrane",
+      "mirror": true
+    },
+    {
+      "bone": "earL",
+      "shape": "extrude",
+      "points": [[0, 0], [0.12, 0.12], [0.2, 0.08], [0.2, -0.04], [0.1, -0.08]],
+      "depth": 0.02,
+      "rot": [0, -20, 10],
+      "c": "fin"
+    },
+    {
+      "bone": "earL",
+      "shape": "tube",
+      "points": [[0, 0, 0], [0.12, 0.1, -0.02], [0.2, 0.07, -0.04]],
+      "r0": 0.012,
+      "r1": 0.006,
+      "c": "dark",
+      "p": [0, 0, 0.012]
+    },
+    { "bone": "armL", "shape": "sphere", "r": 0.1, "c": "skin" },
+    {
+      "bone": "armL",
+      "shape": "capsule",
+      "r": 0.065,
+      "len": 0.12,
+      "p": [0, -0.05, 0.09],
+      "rot": [108, 0, 12],
+      "c": "skin"
+    },
+    { "bone": "armL", "shape": "sphere", "r": 0.07, "p": [-0.02, -0.08, 0.21], "c": "skin" },
+    {
+      "bone": "armL",
+      "shape": "capsule",
+      "r": 0.018,
+      "len": 0.05,
+      "p": [-0.03, -0.1, 0.27],
+      "rot": [100, 0, 0],
+      "c": "dark",
+      "array": { "n": 3, "dp": [0.025, 0, 0] }
+    },
+    { "bone": "legL", "shape": "sphere", "r": 0.09, "s": [1, 0.8, 1.2], "p": [0, 0, 0.04], "c": "skin" },
+    {
+      "bone": "legL",
+      "shape": "sphere",
+      "r": 0.08,
+      "s": [1.3, 0.35, 1.6],
+      "p": [0.03, -0.08, 0.2],
+      "c": "dark"
+    },
+    {
+      "bone": "extra",
+      "shape": "cyl",
+      "r": 0.06,
+      "h": 0.5,
+      "p": [0.05, 0, 0.16],
+      "rot": [90, 0, 0],
+      "c": "metal",
+      "m": "metal"
+    },
+    {
+      "bone": "extra",
+      "shape": "cyl",
+      "r": 0.075,
+      "h": 0.08,
+      "p": [0.05, 0, 0],
+      "rot": [90, 0, 0],
+      "c": "tip",
+      "m": "metal"
+    },
+    {
+      "bone": "extra",
+      "shape": "cone",
+      "r": 0.085,
+      "h": 0.18,
+      "p": [0.05, 0, 0.42],
+      "rot": [90, 0, 0],
+      "c": "tip",
+      "m": "metal"
+    },
+    {
+      "bone": "extra",
+      "shape": "cone",
+      "r": 0.03,
+      "h": 0.1,
+      "p": [0.11, 0, 0.44],
+      "rot": [-50, 0, -90],
+      "c": "tip",
+      "m": "metal"
+    },
+    {
+      "bone": "extra",
+      "shape": "cone",
+      "r": 0.03,
+      "h": 0.1,
+      "p": [-0.01, 0, 0.44],
+      "rot": [-50, 0, 90],
+      "c": "tip",
+      "m": "metal"
+    },
+    {
+      "bone": "extra",
+      "shape": "box",
+      "size": [0.1, 0.14, 0.2],
+      "round": 0.03,
+      "p": [0.05, -0.03, -0.12],
+      "c": "metal",
+      "m": "metal"
+    }
+  ],
+  "portrait": { "y": 0.06, "dist": 1.3 }
+}

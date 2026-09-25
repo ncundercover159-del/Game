@@ -85,6 +85,14 @@ export class RaceStage {
         case 'throw': kv?.anim?.play(e.dir < 0 ? 'throwBack' : 'throw', 1); break;
         case 'shielded': kv?.anim?.play('block'); break;
         case 'swap': if (local || e.target === this.focusId) this.flashT = 0.6; break;
+        case 'place':
+          if (e.place === 1 && e.old > 1) kv?.anim?.play('smug');
+          else if (e.place === this.session.karts.length && e.old < e.place) kv?.anim?.play('sad');
+          else if (e.place < e.old && Math.random() < 0.3) kv?.anim?.play('cheer');
+          break;
+        case 'finish': if (kv?.anim) kv.anim.mode = e.place <= 3 ? 'victory' : 'defeat'; break;
+        case 'rescue': kv?.anim?.play('hit'); break;
+        case 'countdown': if (e.n === 2) for (const v of this.kartViews.values()) if (Math.random() < 0.4) v.anim?.play('taunt'); break;
         case 'land': kv?.burst('land', e); if (local && e.air > 0.5) this.chase.shake(Math.min(0.5, e.air * 0.3)); break;
         case 'trick': kv?.burst('trick', e); break;
         case 'wallHit': if (local) this.chase.shake(Math.min(0.6, e.impact * 0.04)); break;

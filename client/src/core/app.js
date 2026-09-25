@@ -16,6 +16,8 @@ import { GrandPrix, buildField } from './grandprix.js';
 import { getProfile, updateProfile, addCoins, recordTrophy, bumpStat } from './profile.js';
 import { KART, RACE, CLASSES, PROGRESSION } from '@shared/config.js';
 import { ITEM_ICONS } from '../ui/itemIcons.js';
+import { PortraitRenderer } from '../render/portraits.js';
+import { listOf } from '@shared/data/registry.js';
 import '@shared/track/track.js';
 
 export class App {
@@ -57,6 +59,14 @@ export class App {
       this.audio = new AudioManager();
     } catch (e) {
       console.warn('[audio] unavailable', e);
+    }
+    // render racer portraits once (HUD minimap, select cards, results, lobby)
+    try {
+      this.portraits = new PortraitRenderer(this.renderer);
+      this.portraits.renderAll();
+      this.hud.portraits = new Map(listOf('racers').map((r) => [r.id, this.portraits.get(r.id)?.image]));
+    } catch (e) {
+      console.warn('[portraits] failed, falling back to element glyphs', e);
     }
     document.getElementById('boot')?.classList.add('gone');
     this.loop.start();

@@ -1,0 +1,23 @@
+{
+  "id": "neon",
+  "name": "Neon",
+  "stats": {
+    "speed": 0,
+    "accel": 0,
+    "weight": 0,
+    "handling": 0,
+    "drift": 0.5,
+    "offroad": -0.5,
+    "miniTurbo": 1
+  },
+  "radius": 0.3,
+  "unlock": { "type": "cup", "cup": "gearworks" },
+  "figure": {
+    "palette": { "tire": "#1a1426", "hub": "#3DE0FF", "rim": "#3DE0FF" },
+    "parts": [
+      { "shape": "cyl", "r": 0.3, "h": 0.28, "rot": [0, 0, 90], "c": "tire", "m": "soft" },
+      { "shape": "cyl", "r": 0.21, "h": 0.30000000000000004, "rot": [0, 0, 90], "c": "rim", "m": "glow" },
+      { "shape": "cyl", "r": 0.08, "h": 0.32, "rot": [0, 0, 90], "c": "hub", "m": "metal" }
+    ]
+  }
+}

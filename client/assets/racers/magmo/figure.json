@@ -1,0 +1,159 @@
+{
+  "outline": 0.016,
+  "palette": {
+    "basalt": "#3B3036",
+    "basalt2": "#4a3c44",
+    "crack": "#FF7A1A",
+    "crack2": "#FFB347",
+    "eye": "#FFD23F",
+    "mouth": "#FF5A12"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.08, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.26, 0] },
+    "head": { "parent": "body", "pos": [0, 0.26, 0.14] },
+    "jaw": { "parent": "head", "pos": [0, -0.08, 0.1] },
+    "armL": { "parent": "body", "pos": [0.3, 0.1, 0.02], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.16, -0.02, 0.1], "mirror": true }
+  },
+  "parts": [
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.56, 0.44, 0.4],
+      "round": 0.13,
+      "c": "basalt",
+      "m": "matte"
+    },
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.02, 0.3, 0.02],
+      "p": [0.12, 0.02, 0.2],
+      "rot": [0, 0, 18],
+      "c": "crack",
+      "m": "glow"
+    },
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.02, 0.2, 0.02],
+      "p": [-0.1, -0.06, 0.2],
+      "rot": [0, 0, -30],
+      "c": "crack",
+      "m": "glow"
+    },
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.18, 0.02, 0.02],
+      "p": [-0.04, 0.1, 0.2],
+      "rot": [0, 0, 8],
+      "c": "crack",
+      "m": "glow"
+    },
+    {
+      "bone": "body",
+      "shape": "sphere",
+      "r": 0.06,
+      "p": [0, 0.02, 0.19],
+      "s": [1, 1, 0.5],
+      "c": "crack2",
+      "m": "glow"
+    },
+    {
+      "bone": "body",
+      "shape": "box",
+      "size": [0.02, 0.3, 0.02],
+      "p": [0.2, 0, -0.18],
+      "rot": [0, 0, -20],
+      "c": "crack",
+      "m": "glow"
+    },
+    {
+      "bone": "head",
+      "shape": "box",
+      "size": [0.28, 0.22, 0.26],
+      "round": 0.08,
+      "p": [0, 0.02, 0.02],
+      "c": "basalt2",
+      "m": "matte"
+    },
+    {
+      "bone": "head",
+      "shape": "box",
+      "size": [0.075, 0.026, 0.02],
+      "round": 0.008,
+      "p": [0.065, 0.04, 0.155],
+      "rot": [0, 0, -14],
+      "c": "eye",
+      "m": "glow",
+      "mirror": true
+    },
+    {
+      "bone": "head",
+      "shape": "box",
+      "size": [0.12, 0.02, 0.02],
+      "round": 0.006,
+      "p": [0, -0.05, 0.155],
+      "c": "mouth",
+      "m": "glow"
+    },
+    {
+      "bone": "head",
+      "shape": "cone",
+      "r": 0.035,
+      "h": 0.11,
+      "p": [0, 0.13, 0.02],
+      "c": "crack2",
+      "m": "glow",
+      "ring": { "n": 5, "r": 0.09, "tilt": -18 }
+    },
+    { "bone": "armL", "shape": "sphere", "r": 0.16, "s": [1, 0.95, 1], "c": "basalt2", "m": "matte" },
+    {
+      "bone": "armL",
+      "shape": "box",
+      "size": [0.15, 0.15, 0.2],
+      "round": 0.05,
+      "p": [0.03, -0.1, 0.12],
+      "rot": [30, 0, 0],
+      "c": "basalt",
+      "m": "matte"
+    },
+    {
+      "bone": "armL",
+      "shape": "box",
+      "size": [0.24, 0.22, 0.24],
+      "round": 0.08,
+      "p": [0.02, -0.16, 0.29],
+      "c": "basalt",
+      "m": "matte"
+    },
+    {
+      "bone": "armL",
+      "shape": "box",
+      "size": [0.2, 0.02, 0.02],
+      "p": [0.02, -0.1, 0.41],
+      "c": "crack",
+      "m": "glow"
+    },
+    {
+      "bone": "armL",
+      "shape": "box",
+      "size": [0.02, 0.14, 0.02],
+      "p": [0.1, -0.16, 0.41],
+      "c": "crack",
+      "m": "glow"
+    },
+    {
+      "bone": "legL",
+      "shape": "box",
+      "size": [0.16, 0.14, 0.22],
+      "round": 0.05,
+      "p": [0, 0, 0.06],
+      "c": "basalt2",
+      "m": "matte"
+    }
+  ],
+  "portrait": { "y": 0.02, "dist": 1.25 }
+}

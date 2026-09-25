@@ -1,0 +1,33 @@
+{
+  "id": "gobbles",
+  "name": "Gobbles",
+  "element": "magic",
+  "size": "light",
+  "order": 3,
+  "tagline": "A bottomless ball of appetite with a tongue to match.",
+  "stats": {
+    "speed": 0,
+    "accel": 0.5,
+    "weight": 0.5,
+    "handling": 0,
+    "drift": 0.5,
+    "offroad": 0,
+    "miniTurbo": 0
+  },
+  "signature": "tongue",
+  "kartColor": "#A84CFF",
+  "reactions": {
+    "hit": ["blorp"],
+    "overtake": ["giggle"],
+    "item": ["nom"],
+    "boost": ["wheee"],
+    "win": ["giggle"],
+    "lose": ["whine"],
+    "taunt": ["blep"]
+  },
+  "voice": { "pitch": 1.35, "formant": "goofy", "rasp": 0.05 },
+  "poses": { "victory": "tongueWave", "defeat": "deflate", "select": "tongueOut", "taunt": "lick" },
+  "personality": "chaotic",
+  "unlock": { "type": "default" },
+  "assets": { "figure": "figure.json", "model": null, "barks": null }
+}

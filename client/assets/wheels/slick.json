@@ -1,0 +1,15 @@
+{
+  "id": "slick",
+  "name": "Slick",
+  "stats": { "speed": 0.5, "accel": 0, "weight": 0, "handling": 0, "drift": 0, "offroad": -1, "miniTurbo": 0 },
+  "radius": 0.28,
+  "unlock": { "type": "default" },
+  "figure": {
+    "palette": { "tire": "#1a1a1e", "hub": "#D8DEE6", "rim": "#E8402A" },
+    "parts": [
+      { "shape": "cyl", "r": 0.28, "h": 0.34, "rot": [0, 0, 90], "c": "tire", "m": "soft" },
+      { "shape": "cyl", "r": 0.2, "h": 0.36000000000000004, "rot": [0, 0, 90], "c": "rim", "m": "gloss" },
+      { "shape": "cyl", "r": 0.08, "h": 0.38, "rot": [0, 0, 90], "c": "hub", "m": "metal" }
+    ]
+  }
+}
