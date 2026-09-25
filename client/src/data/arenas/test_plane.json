@@ -1,0 +1,38 @@
+{
+  "id": "test_plane",
+  "name": "Test Plane",
+  "type": "arena",
+  "dev": true,
+  "theme": "skyland",
+  "bounds": { "shape": "rect", "w": 320, "d": 320 },
+  "baseSurface": "road",
+  "floors": [
+    { "shape": "rect", "x": 60, "z": 30, "w": 40, "d": 50, "surface": "offroad" },
+    { "shape": "rect", "x": -70, "z": -40, "w": 30, "d": 60, "surface": "ice" },
+    { "shape": "ramp", "x": 0, "z": 70, "w": 12, "d": 16, "rot": 0, "h0": 0, "h1": 2.6 },
+    { "shape": "ramp", "x": -60, "z": 70, "w": 16, "d": 22, "rot": 0, "h0": 0, "h1": 4.5, "glider": true },
+    { "shape": "rect", "x": 80, "z": -80, "w": 36, "d": 36, "h": 3.2 },
+    { "shape": "ramp", "x": 80, "z": -52, "w": 12, "d": 20, "rot": 3.14159, "h0": 0, "h1": 3.2 },
+    { "shape": "circle", "x": 20, "z": -20, "r": 2.2, "h": 6 },
+    { "shape": "circle", "x": -20, "z": -20, "r": 2.2, "h": 6 },
+    { "shape": "circle", "x": 0, "z": 130, "r": 4, "h": 8 },
+    { "shape": "circle", "x": -30, "z": -110, "r": 0.4, "h": 0.9, "prop": "cone" },
+    { "shape": "circle", "x": -26, "z": -96, "r": 0.4, "h": 0.9, "prop": "cone" },
+    { "shape": "circle", "x": -30, "z": -82, "r": 0.4, "h": 0.9, "prop": "cone" },
+    { "shape": "circle", "x": -26, "z": -68, "r": 0.4, "h": 0.9, "prop": "cone" },
+    { "shape": "circle", "x": -30, "z": -54, "r": 0.4, "h": 0.9, "prop": "cone" },
+    { "shape": "circle", "x": -26, "z": -40, "r": 0.4, "h": 0.9, "prop": "cone" }
+  ],
+  "pads": [
+    { "x": 0, "z": 20, "rot": 0 },
+    { "x": 0, "z": 45, "rot": 0 },
+    { "x": 110, "z": 0, "rot": 1.5708 }
+  ],
+  "decals": [
+    { "type": "ring", "x": 0, "z": -30, "r": 22 },
+    { "type": "ring", "x": 0, "z": -30, "r": 34 }
+  ],
+  "spawns": [{ "x": 0, "z": -120, "yaw": 0 }],
+  "itemBoxes": [],
+  "coins": []
+}

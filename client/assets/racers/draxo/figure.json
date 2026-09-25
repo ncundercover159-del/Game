@@ -1,0 +1,50 @@
+{
+  "outline": 0.014,
+  "palette": {
+    "body": "#6B3FA0", "dark": "#4A2A78", "gold": "#F2A93B", "goldDark": "#D9822B",
+    "membrane": "#E8892B", "claw": "#F4F1E8", "iris": "#A8322D", "mouth": "#3a1030"
+  },
+  "bones": {
+    "hips": { "pos": [0, 0.08, 0] },
+    "body": { "parent": "hips", "pos": [0, 0.2, 0.02] },
+    "head": { "parent": "body", "pos": [0, 0.36, 0.1] },
+    "jaw": { "parent": "head", "pos": [0, -0.1, 0.12] },
+    "armL": { "parent": "body", "pos": [0.17, 0.1, 0.06], "mirror": true },
+    "legL": { "parent": "hips", "pos": [0.13, 0.0, 0.08], "mirror": true },
+    "wingL": { "parent": "body", "pos": [0.09, 0.16, -0.13], "rot": [0, 35, 10], "mirror": true },
+    "tail": { "parent": "hips", "pos": [0, 0.02, -0.16] },
+    "tail2": { "parent": "tail", "pos": [0, 0.06, -0.4] }
+  },
+  "parts": [
+    { "bone": "body", "shape": "sphere", "r": 0.2, "s": [1, 1.12, 0.95], "c": "body" },
+    { "bone": "body", "shape": "sphere", "r": 0.16, "s": [0.9, 1.05, 0.6], "p": [0, -0.02, 0.1], "c": "gold" },
+    { "bone": "body", "shape": "box", "size": [0.2, 0.03, 0.05], "p": [0, 0.1, 0.15], "c": "goldDark", "array": { "n": 4, "dp": [0, -0.06, 0.004] } },
+    { "bone": "body", "shape": "capsule", "r": 0.09, "len": 0.14, "p": [0, 0.2, 0.06], "rot": [20, 0, 0], "c": "body" },
+    { "bone": "body", "shape": "cone", "r": 0.03, "h": 0.08, "p": [0, 0.17, -0.17], "rot": [-60, 0, 0], "c": "gold", "array": { "n": 3, "dp": [0, -0.1, -0.015], "ds": 0.9 } },
+
+    { "bone": "head", "shape": "sphere", "r": 0.24, "s": [1, 0.92, 1], "p": [0, 0.02, 0], "c": "body" },
+    { "bone": "head", "shape": "sphere", "r": 0.16, "s": [1, 0.72, 1.3], "p": [0, -0.05, 0.19], "c": "body" },
+    { "bone": "head", "shape": "sphere", "r": 0.022, "p": [0.05, -0.01, 0.39], "c": "dark", "mirror": true },
+    { "bone": "head", "shape": "eye", "r": 0.1, "p": [0.1, 0.07, 0.15], "rot": [0, 14, 0], "iris": "iris", "iris_size": 0.6, "look": [-6, 0], "lid": { "c": "body", "cover": 0.36, "pitch": 32, "tilt": 16 }, "mirror": true },
+    { "bone": "head", "shape": "tube", "points": [[0, 0, 0], [0.03, 0.1, -0.1], [0.07, 0.14, -0.28], [0.08, 0.1, -0.38]], "r0": 0.06, "r1": 0.008, "p": [0.11, 0.14, -0.02], "c": "gold", "mirror": true },
+    { "bone": "head", "shape": "cone", "r": 0.035, "h": 0.12, "p": [0, 0.2, 0.04], "rot": [-35, 0, 0], "c": "gold", "array": { "n": 3, "dp": [0, -0.015, -0.1], "ds": 0.88 } },
+    { "bone": "head", "shape": "cone", "r": 0.045, "h": 0.14, "p": [0.19, -0.04, -0.02], "rot": [0, 30, -100], "c": "gold", "mirror": true },
+    { "bone": "head", "shape": "capsule", "r": 0.012, "len": 0.1, "p": [0.03, -0.1, 0.3], "rot": [0, 0, 100], "c": "mouth", "m": "matte" },
+    { "bone": "head", "shape": "cone", "r": 0.018, "h": 0.045, "p": [0.07, -0.1, 0.31], "rot": [180, 0, 0], "c": "claw" },
+    { "bone": "jaw", "shape": "sphere", "r": 0.12, "s": [1, 0.45, 1.25], "p": [0, -0.01, 0.07], "c": "body" },
+
+    { "bone": "armL", "shape": "capsule", "r": 0.055, "len": 0.13, "p": [0.03, -0.03, 0.08], "rot": [110, 0, -15], "c": "body" },
+    { "bone": "armL", "shape": "sphere", "r": 0.065, "p": [0.05, -0.07, 0.2], "c": "body" },
+    { "bone": "armL", "shape": "cone", "r": 0.017, "h": 0.05, "p": [0.02, -0.09, 0.25], "rot": [100, 0, 0], "c": "claw", "array": { "n": 3, "dp": [0.025, 0, 0] } },
+
+    { "bone": "legL", "shape": "sphere", "r": 0.09, "s": [1, 0.85, 1.2], "p": [0, 0, 0.05], "c": "body" },
+    { "bone": "legL", "shape": "sphere", "r": 0.07, "s": [1, 0.7, 1.4], "p": [0.02, -0.09, 0.22], "c": "body" },
+    { "bone": "legL", "shape": "cone", "r": 0.02, "h": 0.05, "p": [-0.005, -0.11, 0.31], "rot": [95, 0, 0], "c": "claw", "array": { "n": 3, "dp": [0.025, 0, 0] } },
+
+    { "bone": "wingL", "shape": "tube", "points": [[0, 0, 0], [0.14, 0.2, 0], [0.32, 0.36, 0], [0.46, 0.3, 0]], "r0": 0.035, "r1": 0.014, "c": "body" },
+    { "bone": "wingL", "shape": "extrude", "points": [[0, -0.02], [0.14, 0.2], [0.32, 0.36], [0.46, 0.3], [0.42, 0.16], [0.34, 0.06], [0.24, 0.02], [0.12, -0.06]], "depth": 0.015, "c": "membrane" },
+
+    { "bone": "tail", "shape": "tube", "points": [[0, 0, 0], [0, -0.04, -0.18], [0, 0.02, -0.34], [0, 0.07, -0.42]], "r0": 0.08, "r1": 0.03, "c": "body" },
+    { "bone": "tail2", "shape": "extrude", "points": [[0, 0.16], [0.09, 0.0], [0.03, 0.02], [0, -0.05], [-0.03, 0.02], [-0.09, 0.0]], "depth": 0.03, "rot": [-80, 0, 0], "c": "gold" }
+  ]
+}

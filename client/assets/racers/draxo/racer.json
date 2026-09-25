@@ -1,0 +1,28 @@
+{
+  "id": "draxo",
+  "name": "Draxo",
+  "element": "magic",
+  "size": "medium",
+  "tagline": "Cocky little dragon with a magic swap trick.",
+  "stats": { "speed": 0.5, "accel": 0, "weight": 0, "handling": 0.5, "drift": 0.5, "offroad": -0.5, "miniTurbo": 0 },
+  "signature": "swap",
+  "palette": {},
+  "reactions": {
+    "hit": ["growl", "yelp"],
+    "overtake": ["smirk"],
+    "item": ["cheer"],
+    "boost": ["whoo"],
+    "win": ["roar"],
+    "lose": ["huff"],
+    "taunt": ["roar"]
+  },
+  "voice": { "pitch": 1.0, "formant": "dragon", "rasp": 0.25 },
+  "poses": { "victory": "wingFlare", "defeat": "slump", "select": "clawRaise", "taunt": "roar" },
+  "personality": "aggressive",
+  "unlock": { "type": "default" },
+  "assets": {
+    "figure": "figure.json",
+    "model": null,
+    "barks": null
+  }
+}
