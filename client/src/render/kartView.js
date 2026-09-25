@@ -5,6 +5,7 @@ import { buildFigureTemplate, instantiateFigure } from './figure.js';
 import { createToyMaterial } from './toyMaterial.js';
 import { Animator } from './animator.js';
 import { TEX } from './textures.js';
+import { PROPS } from './propDefs.js';
 import { KART } from '@shared/config.js';
 import { getRacer, getVehicle, getWheels, getGlider } from '@shared/data/registry.js';
 import { clamp, damp } from '@shared/math.js';
@@ -111,6 +112,7 @@ export class KartView {
       this.flames.push({ outer, core });
     }
 
+    this.puff = null;
     this.wheelSpin = 0;
     this.visDrift = 0;
     this.visLean = 0;
@@ -133,6 +135,7 @@ export class KartView {
     if (hidden) return;
 
     this.root.position.set(k.x, k.y, k.z);
+    this.updateRescue(k, dt);
 
     // tilt to ground normal (smoothed), yaw from heading
     _v.set(k.gnx ?? 0, k.gny ?? 1, k.gnz ?? 0);
@@ -232,6 +235,55 @@ export class KartView {
     }
 
     this.updateEffects(k, dt, time);
+  }
+
+  // Puff the cloud critter carries the kart back to the track during a rescue.
+  updateRescue(k, dt) {
+    const T = KART.rescueTime;
+    if (k.rescue > 0 && !this.puff) {
+      const tpl = buildFigureTemplate(PROPS.puff, { key: 'prop:puff', detail: 0.7 });
+      this.puff = instantiateFigure(tpl, { outline: true });
+      this.scene.add(this.puff.mesh);
+      const lg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+      this.line = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: 0x1a1426 }));
+      this.line.frustumCulled = false;
+      this.scene.add(this.line);
+      this.puffT = 0;
+    }
+    if (!this.puff) return;
+    const active = k.rescue > 0;
+    this.puffT += dt;
+    let lift = 0;
+    let py;
+    if (active && k.rescuePhase === 0) {
+      const f = 1 - (k.rescue - T * 0.45) / (T * 0.55); // 0..1 during pickup
+      lift = Math.max(0, f - 0.35) * 5;
+      py = k.y + 9 - Math.min(1, f * 2.2) * 4.5 + lift;
+    } else if (active) {
+      py = k.y + 4.6;
+    } else {
+      this.puffAway = (this.puffAway || 0) + dt;
+      py = this.puff.mesh.position.y + dt * 14;
+      if (this.puffAway > 1.2) {
+        this.puff.mesh.removeFromParent();
+        this.line.removeFromParent();
+        this.line.geometry.dispose();
+        this.puff = null;
+        this.puffAway = 0;
+        return;
+      }
+    }
+    if (active) this.puffAway = 0;
+    this.root.position.y += lift;
+    const pm = this.puff.mesh;
+    pm.position.set(k.x + (active ? 0 : this.puffAway * 4), py, k.z);
+    pm.rotation.y = k.yaw + Math.PI + Math.sin(this.puffT * 3) * 0.2;
+    pm.rotation.z = Math.sin(this.puffT * 5) * 0.1;
+    const a = this.line.geometry.attributes.position;
+    a.setXYZ(0, pm.position.x, pm.position.y - 0.3, pm.position.z);
+    a.setXYZ(1, k.x, k.y + lift + 1.6, k.z);
+    a.needsUpdate = true;
+    this.line.visible = active;
   }
 
   worldPoint(x, y, z, out) {
@@ -384,6 +436,8 @@ export class KartView {
   }
 
   dispose() {
+    this.puff?.mesh.removeFromParent();
+    this.line?.removeFromParent();
     this.root.removeFromParent();
     this.shadow.removeFromParent();
     this.shadow.geometry.dispose();

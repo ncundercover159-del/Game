@@ -1,0 +1,71 @@
+{
+  "id": "sky_cloudtop",
+  "name": "Cloudtop Circuit",
+  "type": "track",
+  "cup": "skyland",
+  "order": 1,
+  "theme": "skyland",
+  "music": "skyland",
+  "laps": 3,
+  "width": 22,
+  "offroad": 8,
+  "autoBank": 7,
+  "start": 0.06,
+  "points": [
+    [0, 0, -40], [0, 0, 60], [0, 0, 120], [-15, 1, 185], [-60, 3, 220], [-130, 5, 228], [-190, 6, 205],
+    [-218, 6, 150], [-205, 4, 90], [-170, 2, 50], [-160, 2, 0], [-215, 4, -60], [-165, 8, -125],
+    [-110, 11, -152], [-40, 5, -150], [10, 3, -120], [22, 1, -80]
+  ],
+  "sections": [
+    { "from": 0.79, "to": 0.845, "wallsL": false, "wallsR": false, "off": 3, "cliff": true },
+    { "from": 0.808, "to": 0.82, "gap": true }
+  ],
+  "ramps": [
+    { "t": 0.806, "len": 14, "h": 2.6, "kick": 2.5, "boost": true }
+  ],
+  "pads": [
+    { "t": 0.3, "lane": 0.45 },
+    { "t": 0.555, "lane": -0.35 },
+    { "t": 0.93, "lane": 0.3 }
+  ],
+  "itemRows": [
+    { "t": 0.13, "lanes": [-0.66, -0.22, 0.22, 0.66] },
+    { "t": 0.35, "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": 0.62, "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": 0.885, "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": 0.09, "t1": 0.115, "lane": 0.5, "n": 5 },
+    { "t0": 0.33, "t1": 0.345, "lane": -0.5, "n": 4 },
+    { "t0": 0.47, "t1": 0.51, "lane": 0.4, "lane1": -0.4, "n": 6 },
+    { "t0": 0.86, "t1": 0.875, "lane": 0, "n": 4 },
+    { "t0": 0.2, "t1": 0.6, "lane": 0, "n": 5, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Cloud-hop cut",
+      "points": [[-161, 2, 4], [-160, 2.5, -30], [-158, 4, -65], [-160, 6.5, -100], [-166, 8, -126]],
+      "width": 9,
+      "offroad": 1.5,
+      "surface": "road",
+      "walls": false,
+      "pads": [
+        { "t": 0.3, "lane": 0 }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.55, "lane": 0.2, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": 0.06 },
+    { "type": "windmill", "t": 0.2, "lane": 3.2 },
+    { "type": "rainbowArch", "t": 0.5 },
+    { "type": "windmill", "t": 0.7, "lane": -4 },
+    { "type": "skyship", "t": 0.82, "lane": 5, "dy": 25 },
+    { "type": "tower", "t": 0.95, "lane": -3 }
+  ],
+  "scatter": [
+    { "type": "tree", "density": 0.07, "dist": [2, 20] },
+    { "type": "bush", "density": 0.05, "dist": [0.5, 6] },
+    { "type": "cloudPuff", "density": 0.02, "dist": [30, 90], "dy": -20 }
+  ]
+}

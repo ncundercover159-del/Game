@@ -6,6 +6,7 @@ import { totalStats, statsToPhysics } from '../physics/stats.js';
 import { getRacer, getVehicle, getWheels, getGlider } from '../data/registry.js';
 import { emptyInput } from '../physics/input.js';
 import { makeRng } from '../math.js';
+import { LapSystem } from './laps.js';
 
 export class Race {
   // opts: { world, mode: 'race'|'freeplay'|'battle'|'timetrial', laps, classId,
@@ -29,6 +30,10 @@ export class Race {
     const spawns = this.world.gridSpawns ? this.world.gridSpawns(opts.entrants.length) : null;
     opts.entrants.forEach((e, i) => this.addKart(e, spawns ? spawns[i] : this.world.respawnPoint({ x: 0, z: 0 })));
     this.emit = (type, id, data) => this.events.push({ type, id, t: this.tick, ...data });
+    if (this.world.type === 'track' && this.mode !== 'battle') {
+      this.lapSystem = new LapSystem(this);
+      this.systems.push(this.lapSystem);
+    }
   }
 
   addKart(e, spawn) {
@@ -66,6 +71,7 @@ export class Race {
     const dt = SIM.dt;
     this.tick++;
     if (this.phase === 'countdown') {
+      if (this.tick === 1 && this.countdown <= RACE.countdown + 1e-6) this.emit('countdown', null, { n: 3 });
       const before = this.countdown;
       this.countdown -= dt;
       const whole = Math.ceil(this.countdown);
@@ -78,7 +84,7 @@ export class Race {
     }
     if (this.phase !== 'countdown') this.time += dt;
 
-    const ctx = { emit: this.emit, countdown: this.countdown, racing: this.phase !== 'finished' || true, race: this };
+    const ctx = { emit: this.emit, countdown: this.countdown, racing: true, race: this };
     for (const sys of this.systems) sys.preStep?.(this, dt);
     for (const k of this.karts) {
       if (k.eliminated) continue;

@@ -15,6 +15,7 @@ export class LocalSession {
     this.def = opts.trackDef || getTrackDef(opts.trackId);
     this.world = createWorld(this.def, { mirror: opts.mirror });
     this.race = new Race({ ...opts, world: this.world });
+    this.introTime = opts.introTime || 0;
     this.localId = opts.localId;
     this.acc = 0;
     this.paused = false;

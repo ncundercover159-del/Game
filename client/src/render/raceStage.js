@@ -4,12 +4,15 @@ import * as THREE from 'three';
 import { Sky } from './sky.js';
 import { THEMES } from './themes.js';
 import { ArenaView } from './arenaView.js';
+import { TrackView } from './trackView.js';
 import { KartView } from './kartView.js';
 import { ChaseCamera } from './camera.js';
 import { Effects } from './particles.js';
 import { ScreenFx } from './speedLines.js';
 import { updateLighting } from './toyMaterial.js';
 import { BTN } from '@shared/physics/input.js';
+import { RACE } from '@shared/config.js';
+import { smoothstep } from '@shared/math.js';
 
 export class RaceStage {
   constructor(renderer, session, opts = {}) {
@@ -36,7 +39,7 @@ export class RaceStage {
     this.scene.add(this.screenFx.mesh);
 
     if (session.world.type === 'arena') this.worldView = new ArenaView(this.scene, session.world);
-    else this.worldView = opts.makeTrackView(this.scene, session.world);
+    else this.worldView = new TrackView(this.scene, session.world, { quality: renderer.quality.q });
 
     this.kartViews = new Map();
     const outlines = renderer.quality.q.outlines;
@@ -92,6 +95,7 @@ export class RaceStage {
     }
     const focus = s.viewState(this.focusId);
     if (focus) this.chase.update(focus, dt, { lookBack: focus.lookBack });
+    this.updateIntro(focus);
     this.fx.update(dt);
     this.worldView.update?.(dt, this.t, this.camera);
     this.sky.update(this.camera, this.t);
@@ -104,6 +108,40 @@ export class RaceStage {
       blind: focus ? Math.min(1, focus.blind * 1.2) : 0,
       damage: 0,
     });
+  }
+
+  // Cinematic fly-in before the countdown: sweep along the track to the grid.
+  updateIntro(focus) {
+    const s = this.session;
+    const introLeft = s.phase === 'countdown' ? s.countdown - RACE.countdown : 0;
+    const total = s.introTime || 0;
+    if (introLeft <= 0 || total <= 0 || !focus) { this.introActive = false; return; }
+    this.introActive = true;
+    const u = 1 - introLeft / total;
+    const w = s.world;
+    let pos, look;
+    if (w.at) {
+      const back = 340 * Math.pow(1 - u, 1.4) + 12;
+      const st = w.startS - back;
+      const p = w.at(st / w.length, 0);
+      const q = w.at((st + 45) / w.length, 0);
+      const h = 3 + 34 * Math.pow(1 - u, 2);
+      const side = 14 * Math.sin(u * Math.PI);
+      pos = { x: p.x + p.rx * side, y: p.y + h, z: p.z + p.rz * side };
+      look = { x: q.x, y: q.y + 1, z: q.z };
+    } else {
+      const a = u * Math.PI * 1.2;
+      const r = 90 - 60 * u;
+      pos = { x: Math.sin(a) * r, y: 40 - 30 * u, z: Math.cos(a) * r };
+      look = { x: 0, y: 0, z: 0 };
+    }
+    const b = smoothstep(0.82, 1, u);
+    const c = this.chase;
+    this._ip ??= new THREE.Vector3(); this._il ??= new THREE.Vector3();
+    this._ip.set(pos.x, pos.y, pos.z).lerp(c.pos, b);
+    this._il.set(look.x, look.y, look.z).lerp(c.look, b);
+    this.camera.position.copy(this._ip);
+    this.camera.lookAt(this._il);
   }
 
   render() {

@@ -33,6 +33,15 @@ const SCRIPTS = {
     [10300, 'shot', 'mt-boost'],
     [12000, 'shot', 'after'],
   ],
+  flow: [
+    [800, 'shot', 'f-intro1'], [2500, 'shot', 'f-intro2'], [4400, 'shot', 'f-intro3'], [5600, 'shot', 'f-count'],
+    [8200, 'shot', 'f-go'], [14000, 'shot', 'f-race'],
+  ],
+  results: [[38000, 'shot', 'r-finish'], [45000, 'shot', 'r-results']],
+  lap: [
+    [1500, 'shot', 'l0'], [6000, 'shot', 'l1'], [9000, 'shot', 'l2'], [12000, 'shot', 'l3'], [16000, 'shot', 'l4'],
+    [20000, 'shot', 'l5'], [24000, 'shot', 'l6'], [28000, 'shot', 'l7'], [30500, 'shot', 'l8'], [33000, 'shot', 'l9'],
+  ],
   touch: [
     [1500, 'shot', 't-start'],
     [4200, 'eval', 'JSON.stringify({yaw: __skykart.session.localKart().yaw, speed: __skykart.session.localKart().speed})'],

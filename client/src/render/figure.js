@@ -32,7 +32,9 @@ function resolveColor(c, palette) {
 }
 
 function seg(r, detail, min = 6, max = 18) {
-  return Math.max(min, Math.min(max, Math.round((7 + r * 32) * detail)));
+  const lo = detail < 0.5 ? Math.max(5, Math.round(min * 0.75)) : min;
+  const hi = Math.max(lo, Math.round(max * Math.min(1, detail * 1.2)));
+  return Math.max(lo, Math.min(hi, Math.round((7 + r * 32) * detail)));
 }
 
 // Tapered tube along a Catmull-Rom curve (horns, tails, tongues, antennas).

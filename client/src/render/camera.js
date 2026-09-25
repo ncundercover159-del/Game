@@ -45,23 +45,21 @@ export class ChaseCamera {
     this.yaw = wrapAngle(this.yaw);
 
     const speed = Math.abs(k.speed || 0);
-    const dist = 4.45 + clamp(speed / 30, 0, 1.3) * 0.25 + (k.boostTime > 0 ? 0.3 : 0);
-    const h = 2.15 + clamp(speed / 30, 0, 1) * 0.15;
+    // distance grows a little with speed/boost (sense of speed without lag)
+    this.distX = damp(this.distX ?? 5.0, 5.0 + clamp(speed / 30, 0, 1.3) * 0.5 + (k.boostTime > 0 ? 0.6 : 0), 4, dt);
+    const dist = this.distX;
+    const h = 2.3 + clamp(speed / 30, 0, 1) * 0.15;
     const fx = Math.sin(this.yaw), fz = Math.cos(this.yaw);
     // vertical follow is softer while airborne so jumps feel big
     const yTarget = k.y;
     this.height = this.initialized ? damp(this.height, yTarget, k.grounded ? 9 : 3.5, dt) : yTarget;
 
     const px = k.x - fx * dist, pz = k.z - fz * dist, py = this.height + h;
-    if (!this.initialized) {
-      this.pos.set(px, py, pz);
-      this.initialized = true;
-    } else {
-      this.pos.x = damp(this.pos.x, px, 14, dt);
-      this.pos.y = damp(this.pos.y, py, 10, dt);
-      this.pos.z = damp(this.pos.z, pz, 14, dt);
-    }
-    this.look.set(k.x + fx * 7, this.height + 1.05, k.z + fz * 7);
+    // horizontal position is rigidly kart-relative (smoothing comes from the yaw),
+    // so speed never changes framing; vertical follows softly
+    this.pos.set(px, this.initialized ? damp(this.pos.y, py, 10, dt) : py, pz);
+    this.initialized = true;
+    this.look.set(k.x + fx * 8, this.height + 1.15, k.z + fz * 8);
 
     // FOV punch
     const boost = k.boostTime > 0 ? (k.boostMul || 1) - 1 : 0;

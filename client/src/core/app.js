@@ -1,4 +1,5 @@
-// App shell (M1): renderer, input, touch controls and a test-drive session.
+// App shell: renderer, input, touch controls, race sessions and HUD.
+// (Menus and screens arrive in M4/M5; for now we boot straight into a race.)
 import { Renderer } from '../render/renderer.js';
 import { QualityGovernor } from './quality.js';
 import { InputManager } from './input.js';
@@ -6,8 +7,11 @@ import { TouchControls } from '../ui/touchControls.js';
 import { Loop } from './loop.js';
 import { LocalSession } from './session.js';
 import { RaceStage } from '../render/raceStage.js';
+import { Hud, fmtTime, ordinal } from '../ui/hud.js';
 import { settings } from './settings.js';
-import { KART } from '@shared/config.js';
+import { haptic, HAPTICS } from './haptics.js';
+import { KART, RACE } from '@shared/config.js';
+import '@shared/track/track.js';
 
 export class App {
   constructor(gameEl, uiEl) {
@@ -16,6 +20,8 @@ export class App {
     this.quality = new QualityGovernor();
     this.renderer = new Renderer(gameEl, this.quality);
     this.input = new InputManager();
+    this.hud = new Hud(uiEl);
+    this.hud.setVisible(false);
     this.touch = new TouchControls(uiEl);
     this.input.attachTouch(this.touch);
     this.loop = new Loop((dt, t) => this.frame(dt, t), this.quality);
@@ -23,53 +29,94 @@ export class App {
     this.stage = null;
     this.lastInput = { steer: 0, btn: 0 };
     this.params = new URLSearchParams(location.search);
+    this.devMode = this.params.has('dev');
   }
 
   async start() {
     this.dev = document.createElement('div');
     this.dev.className = 'dev-panel';
+    this.dev.style.display = this.devMode ? '' : 'none';
     this.uiEl.appendChild(this.dev);
-    this.banner = document.createElement('div');
-    this.banner.style.cssText = 'position:absolute;left:0;right:0;top:30%;text-align:center;font-family:var(--font-display);font-size:90px;-webkit-text-stroke:4px #1a1426;paint-order:stroke fill;color:#ffd23f;pointer-events:none;text-shadow:0 6px 0 #1a1426';
-    this.uiEl.appendChild(this.banner);
-    window.addEventListener('keydown', (e) => { if (e.code === 'KeyR') this.startTestDrive(); });
-    this.startTestDrive();
-    this.touch.setVisible(true);
+    window.addEventListener('keydown', (e) => { if (e.code === 'KeyR' && this.devMode) this.startRace(); });
+    this.startRace();
     document.getElementById('boot')?.classList.add('gone');
     this.loop.start();
   }
 
-  startTestDrive() {
+  startRace(cfg = {}) {
     this.stage?.dispose();
+    this.results?.remove();
     const p = this.params;
+    const trackId = cfg.trackId || p.get('track') || 'sky_cloudtop';
+    const intro = p.has('nointro') || trackId === 'test_plane' ? 0 : RACE.introTime;
     this.session = new LocalSession({
-      trackId: p.get('track') || 'test_plane',
-      mode: 'freeplay',
-      laps: 3,
+      trackId,
+      mode: trackId === 'test_plane' ? 'freeplay' : 'race',
+      laps: +(p.get('laps') || 3),
       classId: p.get('cc') || '150cc',
-      entrants: [{ id: 'p1', racerId: p.get('racer') || 'draxo', vehicleId: p.get('kart') || 'ember_roadster', wheelsId: 'standard', gliderId: 'sky_wing', human: true }],
+      introTime: intro,
+      entrants: [{ id: 'p1', racerId: p.get('racer') || 'draxo', vehicleId: p.get('kart') || 'ember_roadster', wheelsId: 'standard', gliderId: 'sky_wing', human: true, name: 'You' }],
       localId: 'p1',
     });
-    this.session.inputFn = () => this.lastInput;
+    this.session.inputFn = p.has('auto') ? () => this.autopilot() : () => this.lastInput;
     this.session.onEvents = (ev) => this.onEvents(ev);
     this.stage = new RaceStage(this.renderer, this.session);
+    this.hud.setWorld(this.session.world);
+    this.hud.setVisible(true);
+    this.hud.last = {};
+    this.touch.setVisible(true);
+    if (intro) this.hud.banner(`<div style="font-size:26px">${this.session.def.name}</div>`, 'title', intro * 1000 - 400);
+  }
+
+  // dev autopilot (pure pursuit on the centre line); replaced by the real AI in M4
+  autopilot() {
+    const k = this.session.localKart();
+    const w = this.session.world;
+    if (!w.at || k.s === undefined) return { steer: 0, btn: 1 };
+    const tgt = w.at((k.s + 14 + Math.abs(k.speed) * 0.5) / w.length, 0);
+    let d = Math.atan2(tgt.x - k.x, tgt.z - k.z) - k.yaw;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return { steer: Math.max(-1, Math.min(1, -d * 2.5)), btn: 1 | 64 };
   }
 
   onEvents(ev) {
     this.stage?.handleEvents(ev);
+    const me = this.session.localId;
+    const hud = this.hud;
     for (const e of ev) {
-      if (e.type === 'countdown') this.flash(String(e.n));
-      if (e.type === 'go') this.flash('GO!');
-      if (e.type === 'startBoost') this.flash('ROCKET START!', 26);
-      if (e.type === 'burnout') this.flash('Too early!', 30);
+      const mine = e.id === me;
+      switch (e.type) {
+        case 'countdown': hud.countdown(e.n); break;
+        case 'go': hud.countdown(0); break;
+        case 'startBoost': if (mine) { hud.banner('ROCKET START!', 'go', 900); haptic(HAPTICS.bigBoost); } break;
+        case 'burnout': if (mine) hud.banner('Too early!', '', 900); break;
+        case 'lap': if (mine) {
+          hud.banner(e.final ? 'FINAL LAP!' : `LAP ${e.lap}`, e.final ? 'final' : '', 1500);
+          hud.split(`Lap ${e.lap - 1}: ${fmtTime(e.time)}`);
+          haptic(HAPTICS.lap);
+        } break;
+        case 'finish': if (mine) {
+          hud.banner(`FINISH!<div style="font-size:30px">${e.place}${ordinal(e.place)} · ${fmtTime(e.time)}</div>`, 'finish', 3500);
+          haptic(HAPTICS.lap);
+        } break;
+        case 'raceEnd': setTimeout(() => this.showResults(), 1800); break;
+        case 'miniTurbo': if (mine) haptic(e.tier >= 2 ? HAPTICS.bigBoost : HAPTICS.boost); break;
+        case 'hit': if (mine) haptic(HAPTICS.hit); break;
+        default: break;
+      }
     }
   }
 
-  flash(text, size = 90) {
-    this.banner.textContent = text;
-    this.banner.style.fontSize = size + 'px';
-    clearTimeout(this.bannerT);
-    this.bannerT = setTimeout(() => { this.banner.textContent = ''; }, 800);
+  showResults() {
+    const race = this.session.race;
+    const el = document.createElement('div');
+    el.className = 'results-lite';
+    const rows = (race.ranked || race.karts).map((k) => `<tr class="${k.id === this.session.localId ? 'me' : ''}"><td>${k.place}${ordinal(k.place)}</td><td>${k.name}</td><td>${fmtTime(k.finishTime)}${k.estimated ? '*' : ''}</td></tr>`).join('');
+    el.innerHTML = `<div class="panel"><h2>Results</h2><table>${rows}</table><button class="btn big">Race again</button></div>`;
+    el.querySelector('button').onclick = () => this.startRace();
+    this.uiEl.appendChild(el);
+    this.results = el;
   }
 
   frame(dt) {
@@ -80,7 +127,11 @@ export class App {
       this.stage.render();
     }
     const k = this.session?.localKart();
-    if (k && (this.params.has('dev') || settings().showFps || true)) {
+    if (k) {
+      this.hud.update(k, this.session.race);
+      this.hud.drawMinimap(this.session.karts, this.session.localId);
+    }
+    if (k && this.devMode) {
       const st = this.renderer.stats();
       const bar = (v, n = 20) => '#'.repeat(Math.round(Math.min(1, v) * n)).padEnd(n, '.');
       this.dev.textContent =
@@ -91,3 +142,5 @@ export class App {
     }
   }
 }
+
+export { settings };

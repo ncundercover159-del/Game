@@ -365,51 +365,52 @@ export function stepKart(k, input, world, dt, ctx) {
     }
   }
 
-  if (probe.ground) {
-    if (k.grounded) {
-      const moved = Math.hypot(k.x - px, k.z - pz);
-      const allowDrop = KART.maxStepDown * moved + 0.02;
-      if (probe.h >= k.y - allowDrop && probe.h <= k.y + 2.5) {
-        k.vyGround = clamp((probe.h - k.y) / dt, -40, 40);
-        k.y = probe.h;
-        k.gliderAvail = probe.glider;
-        k.rampKick = probe.rampBoost;
-      } else if (probe.h < k.y - allowDrop) {
-        // the ground fell away (ramp lip, crest, ledge): take off
-        k.grounded = false;
-        k.vy = Math.max(k.vyGround, 0) + (k.rampKick || 0);
-        k.airTime = 0;
-        k.trickable = true;
-        k.trickDone = false;
-        k.glider = probe.glider || k.gliderAvail;
-        if (k.glider && emit) emit('glider', k.id, {});
-        if (emit) emit('takeoff', k.id, { glider: k.glider });
-      } else {
-        k.y = probe.h;
-      }
-    } else if (k.y <= probe.h) {
-      // landing (also catches the ground rising into us while still going up)
-      const impactV = Math.max(0, -k.vy);
+  const takeoff = () => {
+    // the ground fell away (ramp lip, crest, ledge, gap): take off
+    k.grounded = false;
+    k.vy = Math.max(k.vyGround, 0) + (k.rampKick || 0);
+    k.airTime = 0;
+    k.trickable = true;
+    k.trickDone = false;
+    k.glider = probe.glider || k.gliderAvail;
+    if (k.glider && emit) emit('glider', k.id, {});
+    if (emit) emit('takeoff', k.id, { glider: k.glider });
+  };
+  if (k.grounded) {
+    const moved = Math.hypot(k.x - px, k.z - pz);
+    const allowDrop = KART.maxStepDown * moved + 0.02;
+    if (probe.ground && probe.h >= k.y - allowDrop) {
+      k.vyGround = clamp((probe.h - k.y) / dt, -40, 40);
       k.y = probe.h;
-      const wasHop = k.hopping;
-      k.hopping = false;
-      if (!wasHop && impactV > 10 && k.tumble <= 0) {
-        k.vy = impactV * KART.landingBounce;
-      } else {
-        k.vy = 0;
-        k.grounded = true;
-      }
-      k.vyGround = 0;
-      if (k.trickDone && k.airTime >= KART.trickMinAir) {
-        applyBoost(k, KART.trickBoostTime, KART.trickBoostMul, 'trick', emit);
-      }
-      if (!wasHop && emit) emit('land', k.id, { air: k.airTime, impact: impactV });
-      k.airTime = 0;
-      k.trickDone = false;
-      k.trickable = false;
-      k.glider = false;
-      k.gliderAvail = false;
+      k.gliderAvail = probe.glider;
+      k.rampKick = probe.rampBoost;
+    } else {
+      takeoff();
     }
+  } else if (probe.ground && k.y <= probe.h && k.y >= probe.h - Math.max(1.2, -k.vy * dt * 2.5)) {
+    // landing (also catches the ground rising into us while still going up)
+    const impactV = Math.max(0, -k.vy);
+    k.y = probe.h;
+    const wasHop = k.hopping;
+    k.hopping = false;
+    if (!wasHop && impactV > 15 && k.tumble <= 0 && k.airTime > 0.3) {
+      k.vy = Math.min(2.2, impactV * KART.landingBounce);
+    } else {
+      k.vy = 0;
+      k.grounded = true;
+    }
+    k.vyGround = 0;
+    if (k.trickDone && k.airTime >= KART.trickMinAir) {
+      applyBoost(k, KART.trickBoostTime, KART.trickBoostMul, 'trick', emit);
+    }
+    if (!wasHop && emit) emit('land', k.id, { air: k.airTime, impact: impactV });
+    k.airTime = 0;
+    k.trickDone = false;
+    k.trickable = false;
+    k.glider = false;
+    k.gliderAvail = false;
+  }
+  if (probe.ground) {
     k.groundH = probe.h;
     if (k.grounded) {
       k.gnx = probe.nx; k.gny = probe.ny; k.gnz = probe.nz;
@@ -420,11 +421,6 @@ export function stepKart(k, input, world, dt, ctx) {
         k.safeHint = k.hint;
       }
     }
-  } else if (k.grounded) {
-    k.grounded = false;
-    k.vy = Math.max(k.vyGround, 0);
-    k.airTime = 0;
-    k.trickable = true;
   }
 
   // tricks: tap TRICK while airborne off a ramp or ledge
