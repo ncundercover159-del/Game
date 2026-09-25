@@ -6,6 +6,8 @@
 import { KART } from '../config.js';
 import { denseSpline, resample } from './spline.js';
 import { registerTrackWorld } from './world.js';
+import { buildHazards, probeDynamic } from './hazardState.js';
+import { resolveTrackDef } from './resolve.js';
 
 const DS = 2.0;              // sample spacing (m)
 const DEG = Math.PI / 180;
@@ -32,6 +34,8 @@ export function mirrorDef(def) {
   const flipLane = (o) => {
     if (!o) return;
     if (o.lane !== undefined) o.lane = -o.lane;
+    if (o.lane0 !== undefined) o.lane0 = -o.lane0;
+    if (o.lane1 !== undefined) o.lane1 = -o.lane1;
     if (o.lanes) o.lanes = o.lanes.map((l) => -l).reverse();
     if (o.x !== undefined) o.x = -o.x;
     if (o.dir !== undefined && o.type !== 'conveyor') o.dir = -o.dir;
@@ -133,6 +137,7 @@ function sampleRange(R, t0, t1) {
 
 export class TrackWorld {
   constructor(def, opts = {}) {
+    if (!def._resolved) def = resolveTrackDef(def);
     this.def = opts.mirror ? mirrorDef(def) : def;
     def = this.def;
     this.type = 'track';
@@ -220,6 +225,11 @@ export class TrackWorld {
     this.minY = Math.min(...main.y);
     this._tmp = {};
     this.placements = this.computePlacements();
+    // hazards (timed state is a function of this.time, set by the race each tick)
+    this.time = 0;
+    this.hazards = buildHazards(this);
+    this.dynamic = this.hazards.filter((h) => h.type === 'door' || h.type === 'piston' || h.type === 'collapse' || h.type === 'carousel');
+    this.hazardRace = null;
   }
 
   applySection(R, i, sec) {
@@ -233,14 +243,16 @@ export class TrackWorld {
     if (sec.offSurface) R.offSurf[i] = sec.offSurface;
     if (sec.gap) R.gap[i] = 1;
     const vis = {};
-    for (const k of ['bridge', 'tunnel', 'noKerb', 'noRail', 'neon', 'cliff', 'water', 'deco']) if (sec[k] !== undefined) vis[k] = sec[k];
+    for (const k of ['bridge', 'tunnel', 'canyon', 'noKerb', 'noRail', 'neon', 'cliff', 'water', 'deco']) if (sec[k] !== undefined) vis[k] = sec[k];
     if (Object.keys(vis).length) R.flags[i] = { ...(R.flags[i] || {}), ...vis };
   }
 
   // Ramp: {t, len, h, lanes:[a,b], glider, kick, type:'kicker'|'hill'}
   addRamp(R, r) {
-    const s1 = (r.t ?? 0) * (R.closed ? this.length : R.total);
+    const total = R.closed ? this.length : R.total;
     const len = r.len ?? 12;
+    // reversed (remix) ramps keep their footprint but face the other way
+    const s1 = r._reverse ? (1 - (r.t ?? 0)) * total + len : (r.t ?? 0) * total;
     const lanes = r.lanes || [-1, 1];
     R.ramps.push({ s0: s1 - len, s1, h: r.h ?? 2.2, lanes, glider: !!r.glider, kick: r.kick ?? 0, type: r.type || 'kicker', boost: !!r.boost });
   }
@@ -460,6 +472,7 @@ export class TrackWorld {
       }
     }
     out.surface = surface;
+    if (this.dynamic.length) probeDynamic(this, x, y, z, R.closed ? pj.s : R.mainS[pj.a], pj.L, out, rad);
     out.glider = t.ramp.glider;
     out.ramp = t.ramp.h > 0.1;
     out.rampBoost = t.ramp.kick;

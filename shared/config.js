@@ -178,10 +178,10 @@ export const BATTLE = {
 
 export const AI = {
   difficulties: {
-    easy:   { lineNoise: 0.45, lookAhead: 0.95, driftTier: 1, reaction: 0.9, itemDelay: [2.5, 6], mistake: 0.06, shortcuts: false, brakeTurns: 0.7 },
-    normal: { lineNoise: 0.28, lookAhead: 1.0,  driftTier: 2, reaction: 0.55, itemDelay: [1.2, 4], mistake: 0.03, shortcuts: false, brakeTurns: 0.85 },
-    hard:   { lineNoise: 0.14, lookAhead: 1.05, driftTier: 2, reaction: 0.3, itemDelay: [0.6, 2.5], mistake: 0.012, shortcuts: true, brakeTurns: 1.0 },
-    expert: { lineNoise: 0.08, lookAhead: 1.1,  driftTier: 3, reaction: 0.18, itemDelay: [0.3, 1.6], mistake: 0.005, shortcuts: true, brakeTurns: 1.0 },
+    easy:   { lineNoise: 0.45, lookAhead: 0.95, driftTier: 1, reaction: 0.9, itemDelay: [2.5, 6], mistake: 0.06, shortcuts: false, brakeTurns: 0.7, pace: 0.94 },
+    normal: { lineNoise: 0.28, lookAhead: 1.0,  driftTier: 2, reaction: 0.55, itemDelay: [1.2, 4], mistake: 0.03, shortcuts: false, brakeTurns: 0.85, pace: 0.97 },
+    hard:   { lineNoise: 0.14, lookAhead: 1.05, driftTier: 2, reaction: 0.3, itemDelay: [0.6, 2.5], mistake: 0.012, shortcuts: true, brakeTurns: 1.0, pace: 1.0 },
+    expert: { lineNoise: 0.08, lookAhead: 1.1,  driftTier: 3, reaction: 0.18, itemDelay: [0.3, 1.6], mistake: 0.005, shortcuts: true, brakeTurns: 1.0, pace: 1.025 },
   },
   personalities: {
     aggressive: { fireForward: 0.9, holdShield: 0.2, bumpiness: 0.8, itemEagerness: 1.5 },

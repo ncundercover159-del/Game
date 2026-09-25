@@ -1,0 +1,76 @@
+{
+  "id": "sky_windmill",
+  "name": "Windmill Meadows",
+  "type": "track",
+  "cup": "skyland",
+  "order": 2,
+  "theme": "skyland",
+  "music": "skyland",
+  "laps": 3,
+  "width": 21,
+  "offroad": 7,
+  "autoBank": 6,
+  "start": "@0+40",
+  "path": [
+    ["S", 70], ["L", 90, 22], ["R", 90, 22], ["S", 60], ["R", 40, 90, 2], ["S", 60, 4], ["L", 50, 50], ["S", 100], ["R", 50, 50], ["R", 40, 90], ["S", 50],
+    ["R", 60, 45], ["L", 60, 45], ["S", 120, -6], ["S", 70], ["R", 45, 90], ["S", 83], ["L", 35, 60], ["R", 40, 150], ["S", 58]
+  ],
+  "sections": [
+    { "from": "@6+20", "to": "@8+10", "wallsL": false, "wallsR": false, "off": 2.5, "cliff": true },
+    { "from": "@13+95", "to": "@14+62", "wallsL": false, "wallsR": false, "off": 2, "cliff": true },
+    { "from": "@14+4", "to": "@14+52", "gap": true }
+  ],
+  "ramps": [
+    { "t": "@13+120", "len": 16, "h": 2.8, "kick": 2.5, "glider": true, "boost": true }
+  ],
+  "hazards": [
+    { "type": "windGust", "t0": "@7", "t1": "@7+100", "dir": 1, "period": 5, "on": 2.2, "force": 10 },
+    { "type": "windGust", "t0": "@6+20", "t1": "@6+44", "dir": -1, "period": 5, "phase": 2.5, "on": 2, "force": 8 }
+  ],
+  "pads": [
+    { "t": "@10+25", "lane": 0.4 },
+    { "t": "@16+40", "lane": -0.35 },
+    { "t": "@13+60", "lane": 0 }
+  ],
+  "itemRows": [
+    { "t": "@5+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@9+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@15+20", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@19+30", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@0+90", "t1": "@0+130", "lane": -0.5, "n": 5 },
+    { "t0": "@7+20", "t1": "@7+80", "lane": 0.5, "lane1": -0.5, "n": 6 },
+    { "t0": "@11+10", "t1": "@11+40", "lane": 0, "n": 4 },
+    { "t0": "@16+50", "t1": "@16+80", "lane": 0.5, "n": 4 },
+    { "t0": 0.25, "t1": 0.75, "lane": 0, "n": 5, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Barn run",
+      "from": "@16+50", "to": "@19+20",
+      "via": [[0.35, 4], [0.65, 4]],
+      "width": 9, "offroad": 2, "surface": "offroad", "walls": false,
+      "pads": [{ "t": 0.18, "lane": 0 }]
+    }
+  ],
+  "treasure": { "t": 0.5, "lane": 0.3, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+40" },
+    { "type": "windmill", "t": "@0+110", "lane": 3.2 },
+    { "type": "windmill", "t": "@5+30", "lane": -3.4 },
+    { "type": "windmill", "t": "@7+50", "lane": 4, "spin": 3 },
+    { "type": "windmill", "t": "@10+20", "lane": 3.6 },
+    { "type": "balloon", "t": "@14+30", "lane": 3, "dy": 14 },
+    { "type": "balloon", "t": "@14+10", "lane": -4, "dy": 22 },
+    { "type": "barn", "t": 0.5, "ribbon": 1, "rot": 0 },
+    { "type": "tower", "t": "@15+40", "lane": 3.2 },
+    { "type": "skyship", "t": "@9+20", "lane": -5, "dy": 30 }
+  ],
+  "scatter": [
+    { "type": "tree", "density": 0.05, "dist": [2, 22] },
+    { "type": "hayBale", "density": 0.04, "dist": [0.5, 8] },
+    { "type": "bush", "density": 0.05, "dist": [0.5, 6] },
+    { "type": "cloudPuff", "density": 0.02, "dist": [30, 90], "dy": -20 }
+  ]
+}

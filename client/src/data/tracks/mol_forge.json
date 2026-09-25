@@ -1,0 +1,108 @@
+{
+  "id": "mol_forge",
+  "name": "Forge Falls",
+  "type": "track",
+  "cup": "molten",
+  "order": 2,
+  "theme": "molten",
+  "music": "molten",
+  "laps": 3,
+  "width": 20,
+  "offroad": 5,
+  "autoBank": 6,
+  "start": "@0+30",
+  "surface": "road",
+  "offSurface": "sand",
+  "look": { "canyonGlow": "#ff7a1a", "road": "#3e3234" },
+  "path": [
+    ["S", 80], ["L", 45, 90], ["S", 70, 4], ["R", 35, 90, 2], ["L", 40, 180, 4], ["S", 60, 2],
+    ["R", 50, 45], ["S", 70], ["S", 50, -16], ["S", 80], ["L", 40, 100], ["S", 70], ["R", 45, 70],
+    ["CLOSE", 45]
+  ],
+  "sections": [
+    { "from": "@2", "to": "@3+40", "canyon": 8 },
+    { "from": "@7+30", "to": "@9+10", "wallsL": false, "wallsR": false, "off": 2, "cliff": true },
+    { "from": "@8+2", "to": "@8+42", "gap": true },
+    { "from": "@5", "to": "@5+60", "surface": "metal" }
+  ],
+  "ramps": [
+    { "t": "@7+70", "len": 16, "h": 2.6, "kick": 2, "glider": true, "boost": true }
+  ],
+  "hazards": [
+    { "type": "crusher", "t": "@5+18", "lane": -0.45, "w": 9, "d": 4, "period": 3.6, "down": 0.9 },
+    {
+      "type": "crusher",
+      "t": "@5+42",
+      "lane": 0.45,
+      "w": 9,
+      "d": 4,
+      "period": 3.6,
+      "down": 0.9,
+      "phase": 1.8
+    },
+    { "type": "geyser", "t": "@11+15", "lane": 0.5, "period": 4.6, "phase": 0 },
+    { "type": "geyser", "t": "@11+35", "lane": -0.4, "period": 4.6, "phase": 1.3 },
+    { "type": "geyser", "t": "@11+55", "lane": 0.2, "period": 4.6, "phase": 2.6 },
+    {
+      "type": "boulder",
+      "t0": "@10+10",
+      "t1": "@10+10",
+      "lane0": 1.8,
+      "lane1": -1.8,
+      "duration": 3,
+      "period": 8,
+      "r": 2.2
+    }
+  ],
+  "pads": [
+    { "t": "@0+55", "lane": 0.3 },
+    { "t": "@6+20", "lane": 0 },
+    { "t": "@13+50", "lane": -0.3 }
+  ],
+  "itemRows": [
+    { "t": "@1+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@4+60", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@10+50", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@13+100", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@2+10", "t1": "@2+60", "lane": -0.5, "n": 5 },
+    { "t0": "@7+10", "t1": "@7+50", "lane": 0, "n": 4 },
+    { "t0": "@11+5", "t1": "@11+65", "lane": -0.5, "lane1": 0.5, "n": 6 },
+    { "t0": 0.2, "t1": 0.8, "lane": 0, "n": 5, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Hammer hop",
+      "from": "@4+6",
+      "to": "@4+120",
+      "via": [[0.5, 0, 1]],
+      "lead": 10,
+      "width": 9,
+      "offroad": 1,
+      "surface": "metal",
+      "walls": false,
+      "sections": [
+        { "from": 0.45, "to": 0.58, "gap": true }
+      ],
+      "ramps": [
+        { "t": 0.44, "len": 10, "h": 1.8, "kick": 2.5, "boost": true }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.75, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "lavaFall", "t": "@8+24", "lane": -3, "rot": 1.5708, "scale": 1.6 },
+    { "type": "lavaFall", "t": "@8+24", "lane": 3, "rot": -1.5708, "scale": 1.6 },
+    { "type": "forge", "t": "@5+30", "lane": -2.6, "rot": 1.5708 },
+    { "type": "smokestack", "t": "@3+30", "lane": 3 },
+    { "type": "volcano", "t": "@12+30", "lane": -18 },
+    { "type": "forge", "t": "@13+40", "lane": 3, "rot": -1.5708 }
+  ],
+  "scatter": [
+    { "type": "lavaRock", "density": 0.05, "dist": [1, 22] },
+    { "type": "crystal", "density": 0.025, "dist": [0.5, 10] },
+    { "type": "crate", "density": 0.02, "dist": [0.5, 5] }
+  ]
+}

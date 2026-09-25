@@ -1,0 +1,104 @@
+{
+  "id": "mol_cinder",
+  "name": "Cinder Canyon",
+  "type": "track",
+  "cup": "molten",
+  "order": 1,
+  "theme": "molten",
+  "music": "molten",
+  "laps": 3,
+  "width": 20,
+  "offroad": 5,
+  "autoBank": 5,
+  "start": "@0+30",
+  "offSurface": "sand",
+  "path": [
+    ["S", 90], ["R", 50, 60], ["S", 70], ["L", 45, 80], ["R", 40, 110], ["S", 100, 6], ["R", 55, 90],
+    ["S", 60], ["L", 35, 120], ["R", 45, 150], ["S", 80, -6], ["CLOSE", 50]
+  ],
+  "look": { "canyonGlow": "#ff7a1a" },
+  "sections": [
+    { "from": "@1+10", "to": "@5+90", "canyon": 10 },
+    { "from": "@6+40", "to": "@7+60", "canyon": 7 }
+  ],
+  "ramps": [
+    { "t": "@10+40", "len": 14, "h": 2.2, "kick": 1.5 }
+  ],
+  "hazards": [
+    { "type": "geyser", "t": "@2+15", "lane": -0.5, "period": 4.5, "phase": 0 },
+    { "type": "geyser", "t": "@2+38", "lane": 0.45, "period": 4.5, "phase": 1.5 },
+    { "type": "geyser", "t": "@2+60", "lane": -0.1, "period": 4.5, "phase": 3 },
+    {
+      "type": "boulder",
+      "t0": "@5+35",
+      "t1": "@5+35",
+      "lane0": -1.7,
+      "lane1": 1.7,
+      "duration": 3.2,
+      "period": 7,
+      "r": 2.4
+    },
+    {
+      "type": "boulder",
+      "t0": "@5+75",
+      "t1": "@5+75",
+      "lane0": 1.7,
+      "lane1": -1.7,
+      "duration": 3.2,
+      "period": 7,
+      "phase": 3.5,
+      "r": 2.4
+    },
+    { "type": "geyser", "t": "@12+120", "lane": 0.3, "period": 5, "phase": 1 }
+  ],
+  "pads": [
+    { "t": "@0+60", "lane": -0.3 },
+    { "t": "@6+10", "lane": 0.4 },
+    { "t": "@12+60", "lane": 0 }
+  ],
+  "itemRows": [
+    { "t": "@1+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@4+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@8+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@12+160", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@2+5", "t1": "@2+65", "lane": 0.6, "n": 5 },
+    { "t0": "@5+10", "t1": "@5+90", "lane": 0, "n": 6 },
+    { "t0": "@12+80", "t1": "@12+140", "lane": -0.4, "lane1": 0.4, "n": 5 },
+    { "t0": 0.2, "t1": 0.8, "lane": 0, "n": 5, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Lava tube",
+      "from": "@8+5",
+      "to": "@10+10",
+      "via": [[0.5, 0, 0]],
+      "lead": 12,
+      "width": 9,
+      "offroad": 1,
+      "surface": "road",
+      "offSurface": "sand",
+      "sections": [
+        { "from": 0.15, "to": 0.85, "tunnel": true }
+      ],
+      "pads": [
+        { "t": 0.3, "lane": 0 }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.55, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "volcano", "t": "@12+200", "lane": 16 },
+    { "type": "lavaFall", "t": "@2+30", "lane": 2.2, "rot": -1.5708 },
+    { "type": "forge", "t": "@11+40", "lane": -3.5 },
+    { "type": "lavaRock", "t": "@7+20", "lane": 2.5, "scale": 2 },
+    { "type": "crystal", "t": "@4+20", "lane": -2.2, "scale": 1.6 }
+  ],
+  "scatter": [
+    { "type": "lavaRock", "density": 0.05, "dist": [1, 20] },
+    { "type": "crystal", "density": 0.03, "dist": [0.5, 10] },
+    { "type": "rock", "density": 0.04, "dist": [0.5, 12] }
+  ]
+}

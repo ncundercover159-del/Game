@@ -1,0 +1,101 @@
+{
+  "id": "mol_caldera",
+  "name": "Caldera Loop",
+  "type": "track",
+  "cup": "molten",
+  "order": 3,
+  "theme": "molten",
+  "music": "molten",
+  "laps": 3,
+  "width": 22,
+  "offroad": 5,
+  "autoBank": 8,
+  "start": "@0+30",
+  "offSurface": "sand",
+  "look": { "canyonGlow": "#ff7a1a", "fogFar": 620 },
+  "path": [
+    ["S", 100], ["L", 105, 150, 10], ["S", 50, 2], ["S", 110, -12], ["L", 55, 90], ["S", 60],
+    ["R", 45, 80], ["CLOSE", 50]
+  ],
+  "sections": [
+    { "from": "@1+20", "to": "@1+250", "wallsR": false, "off": 3, "cliff": true, "canyon": 6 },
+    { "from": "@2+30", "to": "@3+100", "wallsL": false, "wallsR": false, "off": 2, "cliff": true },
+    { "from": "@3+3", "to": "@3+68", "gap": true }
+  ],
+  "ramps": [
+    { "t": "@2+50", "len": 18, "h": 3, "kick": 3, "glider": true, "boost": true },
+    { "t": "@6+40", "len": 12, "h": 1.6, "type": "hill" }
+  ],
+  "hazards": [
+    { "type": "geyser", "t": "@1+60", "lane": 0.5, "period": 5, "phase": 0 },
+    { "type": "geyser", "t": "@1+130", "lane": -0.4, "period": 5, "phase": 2 },
+    { "type": "geyser", "t": "@1+200", "lane": 0.3, "period": 5, "phase": 3.5 },
+    {
+      "type": "boulder",
+      "t0": "@5+20",
+      "t1": "@5+20",
+      "lane0": -1.8,
+      "lane1": 1.8,
+      "duration": 3,
+      "period": 7.5,
+      "r": 2.3
+    },
+    {
+      "type": "boulder",
+      "t0": "@7+60",
+      "t1": "@7+60",
+      "lane0": 1.8,
+      "lane1": -1.8,
+      "duration": 3,
+      "period": 7.5,
+      "phase": 3.7,
+      "r": 2.3
+    }
+  ],
+  "pads": [
+    { "t": "@0+60", "lane": -0.35 },
+    { "t": "@1+100", "lane": 0.35 },
+    { "t": "@2+20", "lane": 0 },
+    { "t": "@7+30", "lane": 0.3 }
+  ],
+  "itemRows": [
+    { "t": "@1+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@1+170", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@4+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@7+100", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@1+40", "t1": "@1+110", "lane": -0.6, "n": 6 },
+    { "t0": "@3+20", "t1": "@3+50", "lane": 0, "n": 4 },
+    { "t0": "@5+10", "t1": "@5+50", "lane": 0.5, "lane1": -0.5, "n": 5 }
+  ],
+  "branches": [
+    {
+      "name": "Ash ridge",
+      "from": "@6+40",
+      "to": "@7+170",
+      "via": [[0.5, 0, 1]],
+      "lead": 10,
+      "width": 8,
+      "offroad": 2,
+      "surface": "sand",
+      "walls": false,
+      "pads": [
+        { "t": 0.25, "lane": 0 }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.6, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "volcano", "t": "@1+137", "lane": -8.5, "dy": -14, "scale": 1.2 },
+    { "type": "lavaFall", "t": "@3+40", "lane": -4, "rot": 1.5708, "scale": 1.5 },
+    { "type": "forge", "t": "@5+30", "lane": 3.2, "rot": -1.5708 },
+    { "type": "smokestack", "t": "@0+70", "lane": -3 },
+    { "type": "crystal", "t": "@6+20", "lane": 2, "scale": 2.2 }
+  ],
+  "scatter": [
+    { "type": "lavaRock", "density": 0.05, "dist": [1, 22] },
+    { "type": "crystal", "density": 0.03, "dist": [0.5, 10] }
+  ]
+}

@@ -440,7 +440,9 @@ export function stepKart(k, input, world, dt, ctx) {
   }
 
   // --- falls and stuck detection -------------------------------------------------------
-  if (k.rescue <= 0 && k.y < k.lastGroundY - KART.fallDepth) startRescue(k, emit);
+  // falling into the void (no ground below), or somehow ending up under the surface
+  const overGround = probe.ground && k.y > probe.h - 2;
+  if (k.rescue <= 0 && k.y < k.lastGroundY - KART.fallDepth && !overGround) startRescue(k, emit);
   if (k.rescue <= 0 && control && (btn & BTN.ACCEL) && Math.abs(k.speed) < 1.2 && k.grounded) {
     k.stuckTime += dt;
     if (k.stuckTime > KART.stuckTime) { k.stuckTime = 0; startRescue(k, emit); }

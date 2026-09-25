@@ -1,7 +1,8 @@
 // AI drivers. They only produce input frames (steer + buttons), so they obey
 // exactly the same physics and item rules as humans. Racing line, drifting,
 // shortcuts, avoidance and item tactics depend on difficulty and personality.
-import { AI, RUBBER_BAND } from '../config.js';
+import { hazardState } from '../track/hazardState.js';
+import { AI, RUBBER_BAND, KART } from '../config.js';
 import { BTN } from '../physics/input.js';
 import { ITEM_DEFS } from '../sim/items.js';
 import { clamp, wrapAngle, makeRng, fwdX, fwdZ } from '../math.js';
@@ -123,6 +124,8 @@ export class AIController {
           mul -= RB.leaderPenalty * lead * (k.human ? RB.humanScale : 1);
         }
       }
+      // AI pace by difficulty (engine skill), on top of the rubber band
+      if (!k.human || k.finished) mul *= this.stateFor(k).diff.pace ?? 1;
       k.rubberMul = mul;
     }
   }
@@ -155,8 +158,8 @@ export class AIController {
         if (B.closed) continue;
         let d = B.mainFrom - (k.s ?? 0);
         if (d < -w.length / 2) d += w.length;
-        if (d > 0 && d < 70) {
-          if (st.shortcutLap !== `${k.lap}:${B.id}`) {
+        if (d > -Math.min(B.total * 0.7, 120) && d < 70) {
+          if (d > 0 && st.shortcutLap !== `${k.lap}:${B.id}`) {
             st.shortcutLap = `${k.lap}:${B.id}`;
             const hasBoost = ['shroom', 'shroom3', 'goldShroom'].includes(k.item) || k.goldTime > 0 || k.star > 0;
             const offroadBranch = B.surf[Math.floor(B.n / 2)] !== 'road';
@@ -172,13 +175,20 @@ export class AIController {
     const look = (8 + speed * 0.42) * D.lookAhead * (impaired ? 0.6 : 1);
     let tgt;
     if (targetRibbon !== R) {
-      tgt = w.at(Math.min(0.99, 12 / targetRibbon.total), 0, targetRibbon.id);
+      // steer onto the branch: nearest branch sample + look-ahead along it
+      const B = targetRibbon;
+      st.branchHint = w.climb(B, st.branchHint >= 0 && st.branchHint < B.n ? st.branchHint : 0, k.x, k.z);
+      const bi = Math.min(B.n - 1, st.branchHint + Math.max(6, Math.round(look / B.step)));
+      tgt = w.at(bi / (B.n - 1), 0, B.id);
     } else if (R.closed) {
       const sAhead = (k.s ?? 0) + look;
       const i = Math.floor(((sAhead % w.length) + w.length) % w.length / R.step) % R.n;
       let lane = line.lane[i] + st.laneBias * 0.4 + st.noise + (st.avoid || 0);
       if (impaired) lane += Math.sin(this.race.time * 2.3 + k.id.length) * 0.5;
-      tgt = w.at(sAhead / w.length, clamp(lane, -0.85, 0.85));
+      // deadly off-road (lava/void) without walls: keep well inside the road
+      const deadly = !R.wallL[i] && !R.wallR[i] && (R.offSurf[i] === 'lava' || R.offSurf[i] === 'void');
+      const lim = deadly ? 0.6 : 0.85;
+      tgt = w.at(sAhead / w.length, clamp(lane, -lim, lim));
     } else {
       const i = Math.min(R.n - 1, (k.hint >= 0 ? k.hint : 0) + Math.round(look / R.step));
       tgt = w.at(i / (R.n - 1), clamp(st.noise * 0.5, -0.5, 0.5), R.id);
@@ -238,6 +248,14 @@ export class AIController {
 
     // obstacle avoidance: hazards and slower karts ahead
     st.avoid = this.avoidance(k, st);
+    // timed gates (lasers, crushers, doors): lift off if we'd arrive while it's deadly
+    // timed gates: coast early, brake if we can still stop short, otherwise commit
+    const gate = w.hazards?.length ? this.gateAhead(k, st, speed) : 0;
+    if (gate) {
+      const stop = (speed * speed) / (2 * KART.brakeDecel * 0.8) + 3;
+      if (gate > stop + 8) btn &= ~BTN.ACCEL;
+      else if (gate > stop - 1) btn = (btn & ~BTN.ACCEL) | BTN.BRAKE;
+    }
 
     btn |= this.itemLogic(k, st, dt, turnAhead);
     return { steer, btn };
@@ -247,19 +265,72 @@ export class AIController {
     const items = this.race.items;
     const fx = fwdX(k.yaw), fz = fwdZ(k.yaw);
     let push = 0;
-    const consider = (x, z, r, weight) => {
+    const skill = 1 - st.diff.lineNoise; // sloppier drivers dodge late and weakly
+    const consider = (x, z, r, weight, range = 28) => {
       const dx = x - k.x, dz = z - k.z;
       const along = dx * fx + dz * fz;
-      if (along < 2 || along > 28) return;
-      const side = dx * -fz + dz * fx; // + = left of us
+      if (along < -r || along > range) return;
+      const side = dx * -fz + dz * fx; // + = obstacle to our right (right vector is (-fz, fx))
       if (Math.abs(side) > r + 2.2) return;
-      push += (side > 0 ? 1 : -1) * weight * (1 - along / 30);
+      // dead ahead: commit to a stable side instead of dithering
+      const dir = Math.abs(side) < 0.8 ? (st.dodgeSide ??= (k.id.charCodeAt(k.id.length - 1) % 2 ? 1 : -1)) : side > 0 ? -1 : 1;
+      push += dir * weight * skill * Math.min(1, 1.2 - Math.max(0, along) / (range + 2));
     };
     if (items && st.diff.lineNoise < 0.4) {
       for (const h of items.hazards) if (h.owner !== k.id || h.kind !== 'peel') consider(h.x, h.z, h.r, 0.8);
     }
     for (const o of this.race.karts) if (o !== k && !o.eliminated && o.speed < k.speed - 3) consider(o.x, o.z, 1.2, 0.35);
-    return clamp(push, -0.6, 0.6);
+    // track hazards (smarter drivers read them better)
+    const w = this.world;
+    if (w.hazards?.length && st.diff.lineNoise < 0.6) {
+      const time = this.race.time;
+      for (const h of w.hazards) {
+        if (h.type === 'geyser') { const hs = hazardState(h, time, this.race); if (hs.active || hs.warning) consider(h.x, h.z, h.r ?? 2.8, 1); }
+        else if (h.type === 'boulder') { const hs = hazardState(h, time, this.race); if (hs.active) consider(hs.x, hs.z, h.r ?? 2.4, 1.2); }
+        else if (h.type === 'conveyor' && (h.dir ?? 1) < 0 && h.lane0 !== undefined && h.s0 !== undefined) {
+          // belts running backwards: move to the other lanes
+          let d = h.s0 - (k.s ?? 0);
+          if (d < -w.length / 2) d += w.length;
+          const inside = h.s1 >= h.s0 ? k.s >= h.s0 && k.s <= h.s1 : k.s >= h.s0 || k.s <= h.s1;
+          if (inside || (d > 0 && d < 40)) push += ((h.lane0 + h.lane1) / 2 > 0 ? -1 : 1) * 0.8 * skill;
+        }
+        else if (h.type === 'piston') {
+          const hs = hazardState(h, time + 0.4, this.race);
+          if (hs.ext > 0.05) { const sd = h.side === 'left' ? -1 : 1; const p = w.at(h.t, sd * 0.7); consider(p.x, p.z, (h.hw || 10) * 0.4, 1.1); }
+        }
+        else if (h.type === 'carousel') consider(h.x, h.z, (h.r ?? 8) + 1, 1.6, 50);
+        else if (h.type === 'crusher') { const hs = hazardState(h, time + 0.6, this.race); if (hs.active || hs.warning) consider(h.x, h.z, (h.w ?? 7) / 2, 1.1); }
+        else if (h.type === 'ghost') { const hs = hazardState(h, time, this.race); const p = w.at(h.t, hs.lane, h.ribbon || 0); consider(p.x, p.z, 1.4, 0.9); }
+        else if (h.type === 'collapse' && h.s0 !== undefined) {
+          const hs = hazardState(h, time, this.race);
+          let d = h.s0 - (k.s ?? 0);
+          if (d < -w.length / 2) d += w.length;
+          const inside = h.s1 >= h.s0 ? k.s >= h.s0 && k.s <= h.s1 : k.s >= h.s0 || k.s <= h.s1;
+          if (hs.active && (inside || (d > 0 && d < 60))) push += clamp(-(k.lane ?? 0) * 2, -1, 1) - (st.laneBias * 0.4 + st.noise);
+        }
+      }
+    }
+    return clamp(push, -0.9, 0.9);
+  }
+
+  gateAhead(k, st, speed) {
+    const w = this.world;
+    if (st.diff.lineNoise > 0.5 || speed < 6) return false;
+    const fx = fwdX(k.yaw), fz = fwdZ(k.yaw);
+    for (const h of w.hazards) {
+      if (h.type !== 'laser' && h.type !== 'door' && !(h.type === 'crusher' && (h.w ?? 7) > (h.hw || 10) * 1.6)) continue;
+      const dx = h.x - k.x, dz = h.z - k.z;
+      const d = dx * fx + dz * fz;                 // distance ahead
+      if (d < 0.5 || d > Math.max(36, speed * 1.7)) continue;
+      const side = Math.abs(dx * -fz + dz * fx);   // sideways offset of the gate centre
+      const half = h.type === 'laser' ? (h.hw || 10) + 2 : (h.w ?? (h.type === 'door' ? (h.hw || 5) * 2 : 7)) / 2;
+      if (side > half + 1.6) continue;             // we'd pass beside it
+      const eta = d / Math.max(4, speed);
+      const hs = hazardState(h, this.race.time + eta, this.race);
+      const hs2 = hazardState(h, this.race.time + eta + 0.25, this.race);
+      if (hs.active || hs2.active) return d;
+    }
+    return 0;
   }
 
   // ---------------------------------------------------------------------------

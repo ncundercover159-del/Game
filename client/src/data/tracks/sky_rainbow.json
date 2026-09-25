@@ -1,0 +1,102 @@
+{
+  "id": "sky_rainbow",
+  "name": "Rainbow Spire",
+  "type": "track",
+  "cup": "skyland",
+  "order": 4,
+  "theme": "skyland",
+  "music": "skyland",
+  "laps": 3,
+  "width": 20,
+  "offroad": 3,
+  "surface": "rainbow",
+  "autoBank": 8,
+  "start": "@0+30",
+  "path": [
+    ["S", 80], ["L", 40, 90], ["S", 119], ["R", 45, 90], ["S", 40], ["L", 34, 300, 16], ["S", 60, 2],
+    ["R", 50, 120], ["S", 90, -10], ["L", 80, 20], ["R", 80, 20], ["S", 90, -8], ["L", 42, 180],
+    ["S", 72]
+  ],
+  "look": {
+    "neonRails": true,
+    "rail": "#ff5ad8",
+    "railTrim": "#ffffff",
+    "kerbA": "#ffffff",
+    "kerbB": "#a84cff",
+    "skyTop": "#3a2f9a",
+    "skyHorizon": "#ffc6ec",
+    "fog": "#e8d4ff",
+    "bridge": "#ffffff",
+    "pillar": "#e8dcff"
+  },
+  "sections": [
+    { "from": "@5+60", "to": "@11+50", "bridge": true },
+    { "from": "@8", "to": "@11", "wallsL": false, "wallsR": false, "off": 1.5 },
+    { "from": "@12", "to": "@13", "offSurface": "snow" }
+  ],
+  "hazards": [
+    { "type": "windGust", "t0": "@8+10", "t1": "@8+80", "dir": 1, "period": 5.5, "on": 2, "force": 8 },
+    {
+      "type": "windGust",
+      "t0": "@10",
+      "t1": "@11+60",
+      "dir": -1,
+      "period": 5.5,
+      "phase": 2.7,
+      "on": 2,
+      "force": 8
+    }
+  ],
+  "ramps": [
+    { "t": "@11+30", "len": 12, "h": 1.8, "type": "hill" }
+  ],
+  "pads": [
+    { "t": "@0+60", "lane": 0.35 },
+    { "t": "@7+30", "lane": -0.4 },
+    { "t": "@9+10", "lane": 0 }
+  ],
+  "itemRows": [
+    { "t": "@2+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@5+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@8+20", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@13+20", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@5+100", "t1": "@5+160", "lane": 0.5, "n": 6 },
+    { "t0": "@8+30", "t1": "@8+80", "lane": -0.5, "lane1": 0.5, "n": 5 },
+    { "t0": "@2+60", "t1": "@2+100", "lane": 0, "n": 4 },
+    { "t0": 0.2, "t1": 0.8, "lane": 0, "n": 6, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Cloud hop",
+      "from": "@12+8",
+      "to": "@12+124",
+      "via": [[0.5, 0]],
+      "lead": 10,
+      "width": 9,
+      "offroad": 2,
+      "surface": "snow",
+      "walls": false,
+      "pads": [
+        { "t": 0.2, "lane": 0 }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.6, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "tower", "t": "@5+89", "lane": -3.4, "dy": -8, "scale": 2.6 },
+    { "type": "rainbowArch", "t": "@8+40" },
+    { "type": "rainbowArch", "t": "@11+10", "scale": 1.1 },
+    { "type": "rainbowArch", "t": "@2+50" },
+    { "type": "balloon", "t": "@4+10", "lane": 3.5, "dy": 20 },
+    { "type": "balloon", "t": "@12+60", "lane": 4, "dy": 10 },
+    { "type": "skyship", "t": "@1+20", "lane": -6, "dy": 35 }
+  ],
+  "scatter": [
+    { "type": "cloudPuff", "density": 0.05, "dist": [15, 90], "dy": -14 },
+    { "type": "bush", "density": 0.03, "dist": [0.5, 6] },
+    { "type": "tree", "density": 0.02, "dist": [3, 14] }
+  ]
+}

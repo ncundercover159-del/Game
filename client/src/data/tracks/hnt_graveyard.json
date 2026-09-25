@@ -1,0 +1,83 @@
+{
+  "id": "hnt_graveyard",
+  "name": "Grimstone Graveyard",
+  "type": "track",
+  "cup": "haunted",
+  "order": 1,
+  "theme": "haunted",
+  "music": "haunted",
+  "laps": 3,
+  "width": 20,
+  "offroad": 6,
+  "autoBank": 6,
+  "start": "@0+30",
+  "surface": "cobble",
+  "path": [
+    ["S", 90], ["R", 40, 90], ["S", 70], ["L", 32, 180], ["R", 42, 180], ["S", 70], ["R", 45, 90],
+    ["L", 50, 60, 3], ["S", 60, 2], ["R", 40, 90, -5], ["CLOSE", 45]
+  ],
+  "sections": [
+    { "from": "@5", "to": "@6+60", "canyon": 5 }
+  ],
+  "ramps": [
+    { "t": "@8+40", "len": 14, "h": 2.2, "kick": 1.5 }
+  ],
+  "hazards": [
+    { "type": "ghost", "t": "@2+20", "lane0": -0.8, "lane1": 0.8, "speed": 0.8 },
+    { "type": "ghost", "t": "@2+45", "lane0": 0.8, "lane1": -0.8, "speed": 0.8, "phase": 1.2 },
+    { "type": "ghost", "t": "@6+40", "lane0": -0.7, "lane1": 0.7, "speed": 1 },
+    { "type": "ghost", "t": "@10+80", "lane0": 0.75, "lane1": -0.75, "speed": 0.7 },
+    { "type": "fog", "t0": "@5", "t1": "@7+20", "density": 0.8 },
+    { "type": "door", "t": 0.5, "ribbon": 1, "period": 6, "open": 3.5, "w": 9 }
+  ],
+  "pads": [
+    { "t": "@0+55", "lane": -0.3 },
+    { "t": "@5+30", "lane": 0.35 },
+    { "t": "@10+40", "lane": 0 }
+  ],
+  "itemRows": [
+    { "t": "@1+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@5+10", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@8+10", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@10+120", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@2+5", "t1": "@2+55", "lane": 0, "n": 5 },
+    { "t0": "@5+20", "t1": "@5+60", "lane": -0.5, "n": 4 },
+    { "t0": "@8+5", "t1": "@8+35", "lane": 0.5, "lane1": -0.5, "n": 4 },
+    { "t0": 0.15, "t1": 0.4, "lane": 0, "n": 3, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Crypt door",
+      "from": "@3+4",
+      "to": "@3+96",
+      "via": [[0.5, 0, 0]],
+      "lead": 8,
+      "width": 9,
+      "offroad": 1,
+      "surface": "cobble",
+      "walls": true,
+      "sections": [
+        { "from": 0.3, "to": 0.72, "tunnel": true }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.62, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "mansion", "t": "@6+60", "lane": 6, "rot": -1.5708 },
+    { "type": "deadTree", "t": "@1+40", "lane": 2.2, "scale": 1.6 },
+    { "type": "deadTree", "t": "@7+20", "lane": -2.4, "scale": 1.8 },
+    { "type": "crypt", "t": "@9+30", "lane": 2.6, "rot": -1.5708 },
+    { "type": "lantern", "t": "@0+50", "lane": 1.15 },
+    { "type": "lantern", "t": "@0+70", "lane": -1.15 },
+    { "type": "crypt", "t": "@3+50", "lane": -3.2, "rot": 1.5708 }
+  ],
+  "scatter": [
+    { "type": "gravestone", "density": 0.09, "dist": [0.5, 14] },
+    { "type": "deadTree", "density": 0.04, "dist": [2, 22] },
+    { "type": "pumpkin", "density": 0.04, "dist": [0.3, 5] },
+    { "type": "lantern", "density": 0.02, "dist": [0.2, 1] }
+  ]
+}

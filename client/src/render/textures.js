@@ -177,6 +177,28 @@ export const TEX = {
     }
     return toTex(c);
   }),
+  planks: (a = '#a0703e') => cached('planks' + a, () => {
+    const [c, ctx] = canvas(256, 256);
+    ctx.fillStyle = '#4a3020'; ctx.fillRect(0, 0, 256, 256);
+    const rng = makeRng(13);
+    for (let y = 0; y < 8; y++) {
+      ctx.fillStyle = shade(a, 0.85 + rng() * 0.3);
+      ctx.fillRect(0, y * 32 + 2, 256, 28);
+      ctx.fillStyle = 'rgba(60,35,20,0.35)';
+      for (let k = 0; k < 3; k++) ctx.fillRect(0, y * 32 + 8 + k * 7 + rng() * 3, 256, 1.5);
+      ctx.fillStyle = '#3a2618';
+      for (const x of [24 + rng() * 40, 150 + rng() * 60]) { ctx.beginPath(); ctx.arc(x, y * 32 + 16, 2.4, 0, Math.PI * 2); ctx.fill(); }
+    }
+    return toTex(c);
+  }),
+  rainbow: () => cached('rainbow', () => {
+    const [c, ctx] = canvas(256, 64);
+    const cols = ['#ff4f4f', '#ff9a1e', '#ffe04f', '#56d23e', '#3db4ff', '#a84cff'];
+    cols.forEach((col, i) => { ctx.fillStyle = col; ctx.fillRect((i * 256) / 6, 0, 256 / 6 + 1, 64); });
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(0, 0, 256, 6);
+    return toTex(c);
+  }),
   lava: () => cached('lava', () => {
     const [c, ctx] = canvas(256, 256);
     const rng = makeRng(21);

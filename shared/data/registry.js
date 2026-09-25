@@ -1,5 +1,7 @@
 // Central registry for data-driven content. The client fills it via Vite globs,
 // the server/tests via the fs-based loader in nodeLoader.js.
+import { resolveAllTracks } from '../track/resolve.js';
+
 const DATA = {
   racers: {},     // id -> racer.json (+ figure under .figure when loaded by the client)
   vehicles: {},   // id -> vehicle json
@@ -16,6 +18,8 @@ export function setGameData(d) {
   for (const k of Object.keys(DATA)) {
     if (d[k] !== undefined) DATA[k] = d[k];
   }
+  // tracks may be authored as turtle paths / remixes: resolve to control points once
+  if (d.tracks) DATA.tracks = resolveAllTracks(d.tracks);
   return DATA;
 }
 

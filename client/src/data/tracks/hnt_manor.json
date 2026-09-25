@@ -1,0 +1,86 @@
+{
+  "id": "hnt_manor",
+  "name": "Moonlit Manor",
+  "type": "track",
+  "cup": "haunted",
+  "order": 4,
+  "theme": "haunted",
+  "music": "haunted",
+  "laps": 3,
+  "width": 20,
+  "offroad": 5,
+  "autoBank": 6,
+  "start": "@0+30",
+  "surface": "cobble",
+  "look": { "tunnel": "#3a2c4a", "tunnelLight": "#ffe45c" },
+  "path": [
+    ["S", 80], ["R", 40, 90], ["S", 60, 6], ["L", 35, 90], ["S", 90], ["R", 32, 180], ["S", 50],
+    ["L", 40, 90], ["S", 90, -12], ["R", 45, 70], ["CLOSE", 45]
+  ],
+  "sections": [
+    { "from": "@4", "to": "@6+45", "tunnel": true, "surface": "wood", "noKerb": true },
+    { "from": "@8+22", "to": "@8+25", "gap": true },
+    { "from": "@8+42", "to": "@8+45", "gap": true },
+    { "from": "@8+62", "to": "@8+65", "gap": true },
+    { "from": "@8", "to": "@8+90", "wallsL": true, "wallsR": true, "noKerb": true }
+  ],
+  "hazards": [
+    { "type": "door", "t": "@4+30", "lane": -0.5, "w": 10, "period": 4.4, "open": 2.2 },
+    { "type": "door", "t": "@4+30", "lane": 0.5, "w": 10, "period": 4.4, "open": 2.2, "phase": 2.2 },
+    { "type": "door", "t": "@6+20", "lane": 0, "w": 20, "period": 5, "open": 3.6, "phase": 1 },
+    { "type": "ghost", "t": "@4+65", "lane0": -0.8, "lane1": 0.8, "speed": 1.1 },
+    { "type": "ghost", "t": "@5+50", "lane0": 0.8, "lane1": -0.8, "speed": 0.9 },
+    { "type": "fog", "t0": "@9", "t1": "@10+60", "density": 0.8 },
+    { "type": "door", "t": 0.5, "ribbon": 1, "w": 9, "period": 5, "open": 2.5 }
+  ],
+  "pads": [
+    { "t": "@0+55", "lane": 0.3 },
+    { "t": "@2+20", "lane": -0.3 },
+    { "t": "@8+5", "lane": 0 }
+  ],
+  "itemRows": [
+    { "t": "@1+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@4+10", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@7+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@10+60", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@2+10", "t1": "@2+50", "lane": 0.5, "n": 4 },
+    { "t0": "@8+5", "t1": "@8+85", "lane": 0, "n": 7 },
+    { "t0": "@10+20", "t1": "@10+60", "lane": -0.5, "lane1": 0.5, "n": 4 },
+    { "t0": 0.2, "t1": 0.4, "lane": 0, "n": 3, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Secret passage",
+      "from": "@5+4",
+      "to": "@5+96",
+      "via": [[0.5, 0, 0]],
+      "lead": 8,
+      "width": 8,
+      "offroad": 0.5,
+      "surface": "wood",
+      "walls": true,
+      "sections": [
+        { "from": 0.1, "to": 0.9, "tunnel": true }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.65, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "mansion", "t": "@4+45", "lane": 3.2, "rot": -1.5708, "scale": 1.4 },
+    { "type": "mansion", "t": "@2+30", "lane": -4.5, "rot": 1.5708 },
+    { "type": "deadTree", "t": "@1+20", "lane": 2, "scale": 2 },
+    { "type": "gravestone", "t": "@9+20", "lane": 1.4 },
+    { "type": "gravestone", "t": "@9+25", "lane": 1.6 },
+    { "type": "lantern", "t": "@8+10", "lane": 1.1 },
+    { "type": "lantern", "t": "@8+50", "lane": -1.1 },
+    { "type": "lantern", "t": "@8+80", "lane": 1.1 }
+  ],
+  "scatter": [
+    { "type": "deadTree", "density": 0.05, "dist": [2, 22] },
+    { "type": "gravestone", "density": 0.05, "dist": [1, 14] },
+    { "type": "pumpkin", "density": 0.04, "dist": [0.3, 5] }
+  ]
+}

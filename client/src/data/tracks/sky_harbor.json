@@ -1,0 +1,110 @@
+{
+  "id": "sky_harbor",
+  "name": "Airship Harbor",
+  "type": "track",
+  "cup": "skyland",
+  "order": 3,
+  "theme": "skyland",
+  "music": "skyland",
+  "laps": 3,
+  "width": 20,
+  "offroad": 5,
+  "autoBank": 6,
+  "start": "@0+30",
+  "path": [
+    ["S", 92], ["L", 45, 90], ["S", 80], ["R", 35, 70], ["L", 38, 160], ["S", 70], ["R", 50, 50],
+    ["S", 60, 6], ["L", 50, 90], ["S", 60, 6], ["S", 60, -12], ["L", 60, 60], ["S", 90], ["L", 40, 70],
+    ["R", 45, 50], ["L", 50, 60], ["S", 60]
+  ],
+  "sections": [
+    {
+      "from": "@2",
+      "to": "@5+70",
+      "surface": "wood",
+      "wallsL": false,
+      "wallsR": false,
+      "off": 1.2,
+      "cliff": true,
+      "noKerb": true
+    },
+    { "from": "@12+10", "to": "@12+80", "surface": "wood", "wallsR": false, "off": 1.5, "cliff": true }
+  ],
+  "ramps": [
+    { "t": "@10+20", "len": 12, "h": 1.6, "type": "hill" },
+    { "t": "@10+48", "len": 12, "h": 1.8, "type": "hill" }
+  ],
+  "hazards": [
+    {
+      "type": "ghost",
+      "model": "crate",
+      "t": "@5+30",
+      "lane0": -0.75,
+      "lane1": 0.75,
+      "speed": 0.9,
+      "hang": true
+    },
+    {
+      "type": "ghost",
+      "model": "crate",
+      "t": "@12+45",
+      "lane0": 0.7,
+      "lane1": -0.7,
+      "speed": 0.7,
+      "phase": 1.5,
+      "hang": true
+    },
+    { "type": "windGust", "t0": "@2+10", "t1": "@2+70", "dir": -1, "period": 6, "on": 2, "force": 7 }
+  ],
+  "pads": [
+    { "t": "@7+20", "lane": -0.3 },
+    { "t": "@15+30", "lane": 0.3 }
+  ],
+  "itemRows": [
+    { "t": "@1+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@6+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@11+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@14+20", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@2+10", "t1": "@2+70", "lane": 0, "n": 6 },
+    { "t0": "@9+10", "t1": "@9+50", "lane": -0.5, "n": 4 },
+    { "t0": "@12+20", "t1": "@12+70", "lane": 0.4, "lane1": -0.4, "n": 5 },
+    { "t0": 0.55, "t1": 0.85, "lane": 0, "n": 4, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Deck jump",
+      "from": "@8+20",
+      "to": "@11+55",
+      "via": [[0.3, 0, 1.5], [0.5, 0, 1], [0.75, 0, 0.5]],
+      "width": 10,
+      "offroad": 1,
+      "surface": "wood",
+      "walls": false,
+      "sections": [
+        { "from": 0.34, "to": 0.46, "gap": true }
+      ],
+      "ramps": [
+        { "t": 0.33, "len": 12, "h": 2.4, "kick": 3, "boost": true }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.7, "lane": -0.3, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "lighthouse", "t": "@4+60", "lane": 3.2 },
+    { "type": "skyship", "t": "@3+20", "lane": -4, "dy": 6 },
+    { "type": "skyship", "t": 0.6, "ribbon": 1, "dy": -4.5, "scale": 1.4 },
+    { "type": "balloon", "t": "@7+20", "lane": 4, "dy": 16 },
+    { "type": "tower", "t": "@9+30", "lane": -3 },
+    { "type": "tower", "t": "@12+50", "lane": 3.4 },
+    { "type": "windmill", "t": "@15+20", "lane": -3.2 },
+    { "type": "balloon", "t": "@13+10", "lane": -5, "dy": 26 }
+  ],
+  "scatter": [
+    { "type": "crate", "density": 0.05, "dist": [0.5, 6] },
+    { "type": "dockPost", "density": 0.04, "dist": [0.2, 2] },
+    { "type": "tree", "density": 0.03, "dist": [3, 18] },
+    { "type": "cloudPuff", "density": 0.025, "dist": [25, 90], "dy": -18 }
+  ]
+}

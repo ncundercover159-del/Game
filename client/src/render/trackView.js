@@ -109,7 +109,11 @@ export class TrackView {
       water: new THREE.MeshLambertMaterial({ color: '#4fb8ff', transparent: true, opacity: 0.85 }),
       checker: new THREE.MeshLambertMaterial({ map: tex(TEX.checker(8)), polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }),
       pad: new THREE.MeshBasicMaterial({ map: tex(TEX.chevrons()), transparent: true, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }),
+      wood: new THREE.MeshLambertMaterial({ map: tex(TEX.planks(t.wood || '#a0703e')) }),
+      rainbow: new THREE.MeshBasicMaterial({ map: tex(TEX.rainbow()), color: '#e8e8ff' }),
+      cobble: new THREE.MeshLambertMaterial({ map: tex(TEX.cobble(t.cobble || '#6d6478')) }),
       toy: createToyMaterial(),
+      toyDouble: createToyMaterial({ side: THREE.DoubleSide }),
     };
     this.mats.pad.map.wrapT = THREE.RepeatWrapping;
     this.animTex.push({ tex: this.mats.pad.map, speed: 1.8 });
@@ -125,7 +129,10 @@ export class TrackView {
     const w = this.world;
     const t = this.theme;
     const G = this.group;
-    const notGap = (i) => !R.gap[i] && !R.gap[(i + 1) % R.n];
+    // collapsing bridges are drawn plank by plank by the hazard view
+    const bridgeZones = R === w.main ? (w.hazards || []).filter((h) => h.type === 'collapse' && h.s0 !== undefined) : [];
+    const inBridge = (i) => bridgeZones.some((h) => (h.s1 >= h.s0 ? R.s[i] >= h.s0 - 1 && R.s[i] <= h.s1 + 1 : R.s[i] >= h.s0 - 1 || R.s[i] <= h.s1 + 1));
+    const notGap = (i) => !R.gap[i] && !R.gap[(i + 1) % R.n] && !(bridgeZones.length && (inBridge(i) || inBridge((i + 1) % R.n)));
     const isBranch = !R.closed;
 
     // road surface, grouped by surface type
@@ -175,7 +182,7 @@ export class TrackView {
     const neon = !!t.neonRails;
     for (const side of [1, -1]) {
       const wallFlag = side > 0 ? R.wallR : R.wallL;
-      const inc = (i) => notGap(i) && wallFlag[i] && wallFlag[(i + 1) % R.n] && !R.flags[i]?.noRail;
+      const inc = (i) => notGap(i) && wallFlag[i] && wallFlag[(i + 1) % R.n] && !R.flags[i]?.noRail && !R.flags[i]?.canyon;
       const e = (i) => R.hw[i] + R.off[i];
       let cols = [
         { L: (i) => e(i), dy: -0.3, u: 0, noRamp: true },
@@ -190,6 +197,40 @@ export class TrackView {
       G.add(strip(w, R, cols, { include: inc, colors: colorFn, mat: this.mats.toy }));
     }
 
+    // canyon walls: tall leaning rock faces instead of rails
+    if (R.flags.some((f) => f?.canyon)) {
+      const rock = col3(t.cliff || '#c9a46c'), rockD = col3(t.cliffDark || '#8a6a40'), glow = col3(t.canyonGlow || t.cliff || '#c9a46c');
+      const H = (i) => (typeof R.flags[i]?.canyon === 'number' ? R.flags[i].canyon : 9);
+      for (const side of [1, -1]) {
+        const wallFlag = side > 0 ? R.wallR : R.wallL;
+        const e = (i) => R.hw[i] + R.off[i];
+        let cols = [
+          { L: (i) => e(i), dy: -0.3, u: 0, noRamp: true },
+          { L: (i) => e(i) + 0.4, dy: 0.6, u: 0, noRamp: true },
+          { L: (i) => e(i) + 1.6, dy: (i) => H(i) * 0.45, u: 0, noRamp: true },
+          { L: (i) => e(i) + 2.4 + H(i) * 0.3, dy: (i) => H(i), u: 0, noRamp: true },
+          { L: (i) => e(i) + 8 + H(i) * 0.5, dy: (i) => H(i) * 1.05, u: 0, noRamp: true },
+        ];
+        const colors = [[...glow, 0.2, t.canyonGlow ? 1 : 0], [...rockD, 0, 0], [...rock, 0, 0], [...rock, 0, 0], [...rockD, 0, 0]];
+        let colorFn = (i, c) => colors[c];
+        if (side < 0) { cols = leftOf(cols); colorFn = (i, c) => colors[colors.length - 1 - c]; }
+        G.add(strip(w, R, cols, { include: (i) => notGap(i) && R.flags[i]?.canyon && wallFlag[i], colors: colorFn, mat: this.mats.toy }));
+      }
+    }
+
+    // tunnels: an arched tube over the road
+    if (R.flags.some((f) => f?.tunnel)) {
+      const c1 = col3(t.tunnel || t.cliffDark || '#6a4a2a'), c2 = col3(t.tunnelLight || t.rail || '#ffd23f');
+      const cols = [];
+      const n = 9;
+      for (let k = 0; k <= n; k++) {
+        const a = Math.PI * (k / n);
+        cols.push({ L: (i) => -Math.cos(a) * (R.hw[i] + R.off[i] + 0.8), dy: (i) => Math.sin(a) * 8 + 0.1, u: 0, noRamp: true });
+      }
+      const colorFn = (i, c) => (c === 4 || c === 5 ? (Math.floor(R.s[i] / 10) % 2 ? [...c2, 0.2, 1] : [...c1, 0, 0]) : [...c1, 0, 0]);
+      G.add(strip(w, R, cols, { include: (i) => R.flags[i]?.tunnel && R.flags[(i + 1) % R.n]?.tunnel, colors: colorFn, mat: this.mats.toyDouble }));
+    }
+
     // island ledge + cliff skirt (floating islands) or embankment down to the ground plane
     {
       const under = t.under || 'island';
@@ -199,7 +240,7 @@ export class TrackView {
         const wallFlag = side > 0 ? R.wallR : R.wallL;
         const e = (i) => R.hw[i] + R.off[i] + (wallFlag[i] ? 0.6 : 0);
         const lw = (i) => (wallFlag[i] && !R.flags[i]?.cliff ? ledge : 0);
-        const inc = (i) => notGap(i) && !R.flags[i]?.junction;
+        const inc = (i) => notGap(i) && !R.flags[i]?.junction && !R.flags[i]?.bridge;
         let cols, colors;
         if (under === 'island') {
           const depth = t.skirtDepth ?? 22;
@@ -224,14 +265,40 @@ export class TrackView {
         if (side < 0) { cols = leftOf(cols); colorFn = (i, c) => colors[colors.length - 1 - c]; }
         G.add(strip(w, R, cols, { include: inc, colors: colorFn, mat: this.mats.toy }));
       }
-      // underside of the road slab (visible from jumps / below)
-      if (under === 'island') {
+      // underside of the road slab (visible from jumps / below); bridges get a deck edge
+      const isBridge = (i) => !!R.flags[i]?.bridge;
+      if (under === 'island' || R.flags.some((f) => f?.bridge)) {
+        const edge = (i) => R.hw[i] + R.off[i] + ((R.wallR[i] || R.wallL[i]) ? 0.6 : 0);
         const cols = [
-          { L: (i) => R.hw[i] + R.off[i], dy: -0.1, u: 0, noRamp: true },
-          { L: (i) => -(R.hw[i] + R.off[i]), dy: -0.1, u: 0, noRamp: true },
+          { L: (i) => edge(i), dy: -0.1, u: 0, noRamp: true },
+          { L: (i) => edge(i), dy: (i) => (isBridge(i) ? -1.4 : -0.1), u: 0, noRamp: true },
+          { L: (i) => -edge(i), dy: (i) => (isBridge(i) ? -1.4 : -0.1), u: 0, noRamp: true },
+          { L: (i) => -edge(i), dy: -0.1, u: 0, noRamp: true },
         ];
-        const cf = () => [...col3(t.cliffDark || '#8a6a40'), 0, 0];
-        G.add(strip(w, R, cols, { include: (i) => !R.gap[i], colors: cf, mat: this.mats.toy }));
+        const dark = [...col3(t.cliffDark || '#8a6a40'), 0, 0], deck = [...col3(t.bridge || t.rail), 0.4, 0];
+        const cf = (i, c) => (isBridge(i) && (c === 0 || c === 3) ? deck : dark);
+        G.add(strip(w, R, cols, { include: (i) => notGap(i) && (under === 'island' || isBridge(i)), colors: cf, mat: this.mats.toy }));
+        // support pillars under bridges
+        const pil = [];
+        for (let i = 0; i < R.n; i += 12) if (isBridge(i) && notGap(i)) pil.push(i);
+        if (pil.length) {
+          const g = new THREE.CylinderGeometry(1.1, 1.5, 1, 8);
+          g.translate(0, -0.5, 0);
+          const pc = col3(t.pillar || t.cliff || '#c9a46c');
+          g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(g.attributes.position.count).fill(0).flatMap(() => pc), 3));
+          const im = new THREE.InstancedMesh(g, this.mats.toy, pil.length);
+          const d = new THREE.Object3D();
+          const gy = under === 'island' ? null : this.world.minY - 0.9;
+          pil.forEach((i, k) => {
+            const top = R.y[i] - 1.3;
+            d.position.set(R.x[i], top, R.z[i]);
+            d.scale.set(1, gy === null ? 60 : Math.max(0.5, top - gy), 1);
+            d.updateMatrix();
+            im.setMatrixAt(k, d.matrix);
+          });
+          im.computeBoundingSphere();
+          G.add(im);
+        }
       }
     }
 
@@ -341,7 +408,13 @@ export class TrackView {
         let blocked = false;
         for (const O of w.ribbons) { if (w.claim(O, x, z, R.y[i], -1, tmp)) { blocked = true; break; } }
         if (blocked) continue;
-        const y = floating ? R.y[i] + sc.dy + (rng() - 0.5) * 10 : R.y[i] + (R.hw[i] + R.off[i]) * R.bank[i] * side;
+        let y = floating ? R.y[i] + sc.dy + (rng() - 0.5) * 10 : R.y[i] + (R.hw[i] + R.off[i]) * R.bank[i] * side;
+        if (!floating && under !== 'island') {
+          // follow the embankment down to the ground plane
+          const gy = w.minY - 0.9;
+          const slopeW = 3 + Math.max(0, R.y[i] - gy) * 1.2;
+          y = d + 0.6 >= slopeW ? gy : y + (gy - y) * ((d + 0.6) / slopeW);
+        }
         const list = byType.get(sc.type) || [];
         list.push({ x, y, z, rot: rng() * Math.PI * 2, s: (sc.scale || 1) * (0.75 + rng() * 0.5) });
         byType.set(sc.type, list);

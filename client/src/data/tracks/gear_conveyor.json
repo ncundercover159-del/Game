@@ -1,0 +1,129 @@
+{
+  "id": "gear_conveyor",
+  "name": "Conveyor Chaos",
+  "type": "track",
+  "cup": "gearworks",
+  "order": 2,
+  "theme": "gearworks",
+  "music": "gearworks",
+  "laps": 3,
+  "width": 21,
+  "offroad": 4,
+  "autoBank": 5,
+  "start": "@0+30",
+  "surface": "metal",
+  "look": { "tunnel": "#4a8a5a", "tunnelLight": "#ffc21a" },
+  "path": [
+    ["S", 70], ["R", 35, 90], ["S", 100], ["L", 40, 90], ["R", 30, 150], ["S", 110], ["L", 45, 60],
+    ["S", 50], ["R", 40, 120, 5], ["S", 70, -5], ["L", 40, 50], ["CLOSE", 40]
+  ],
+  "sections": [
+    { "from": "@2", "to": "@2+90", "canyon": 6 },
+    { "from": "@8+20", "to": "@9+60", "bridge": true, "off": 1 }
+  ],
+  "hazards": [
+    { "type": "piston", "t": "@2+15", "side": "left", "period": 3, "out": 1.3, "reach": 0.55, "d": 3 },
+    {
+      "type": "piston",
+      "t": "@2+35",
+      "side": "right",
+      "period": 3,
+      "out": 1.3,
+      "reach": 0.55,
+      "d": 3,
+      "phase": 1
+    },
+    {
+      "type": "piston",
+      "t": "@2+55",
+      "side": "left",
+      "period": 3,
+      "out": 1.3,
+      "reach": 0.55,
+      "d": 3,
+      "phase": 2
+    },
+    { "type": "piston", "t": "@2+75", "side": "right", "period": 3, "out": 1.3, "reach": 0.55, "d": 3 },
+    {
+      "type": "conveyor",
+      "t0": "@5+5",
+      "t1": "@5+95",
+      "lane0": -1,
+      "lane1": -0.35,
+      "speed": 10,
+      "dir": 1
+    },
+    {
+      "type": "conveyor",
+      "t0": "@5+5",
+      "t1": "@5+95",
+      "lane0": -0.3,
+      "lane1": 0.3,
+      "speed": 6,
+      "dir": -1
+    },
+    {
+      "type": "conveyor",
+      "t0": "@5+5",
+      "t1": "@5+95",
+      "lane0": 0.35,
+      "lane1": 1,
+      "speed": 10,
+      "dir": 1
+    },
+    { "type": "crusher", "t": "@11+60", "lane": 0, "w": 8, "d": 4, "period": 3.2, "down": 0.8 }
+  ],
+  "pads": [
+    { "t": "@0+50", "lane": 0.3 },
+    { "t": "@3+20", "lane": -0.3 },
+    { "t": "@8+10", "lane": 0 }
+  ],
+  "itemRows": [
+    { "t": "@1+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@4+60", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@6+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@11+100", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@2+5", "t1": "@2+85", "lane": 0, "n": 6 },
+    { "t0": "@5+10", "t1": "@5+90", "lane": -0.7, "n": 6 },
+    { "t0": "@5+10", "t1": "@5+90", "lane": 0.7, "n": 6 },
+    { "t0": 0.2, "t1": 0.8, "lane": 0, "n": 5, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Pipe run",
+      "from": "@4+4",
+      "to": "@4+74",
+      "via": [[0.5, 0, 0]],
+      "lead": 8,
+      "width": 8,
+      "offroad": 0.5,
+      "surface": "metal",
+      "walls": true,
+      "sections": [
+        { "from": 0.1, "to": 0.9, "tunnel": true }
+      ],
+      "pads": [
+        { "t": 0.3, "lane": 0 }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.65, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "gear", "t": "@1+40", "lane": 2.8, "spin": 0.8, "scale": 1.3, "rot": -1.5708 },
+    { "type": "smokestack", "t": "@3+20", "lane": -3 },
+    { "type": "crane", "t": "@5+50", "lane": -2.6 },
+    { "type": "pipeArch", "t": "@5+20" },
+    { "type": "pipeArch", "t": "@5+80" },
+    { "type": "tank", "t": "@6+30", "lane": 3.2 },
+    { "type": "robot", "t": "@11+30", "lane": 2.4, "rot": -1.5708, "scale": 1.4 },
+    { "type": "gear", "t": "@11+120", "lane": -2.8, "spin": -0.6, "rot": 1.5708 }
+  ],
+  "scatter": [
+    { "type": "crate", "density": 0.06, "dist": [0.5, 10] },
+    { "type": "tank", "density": 0.012, "dist": [6, 24], "scale": 0.8 },
+    { "type": "smokestack", "density": 0.006, "dist": [10, 30], "scale": 0.7 }
+  ]
+}

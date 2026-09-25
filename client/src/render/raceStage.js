@@ -5,6 +5,7 @@ import { Sky } from './sky.js';
 import { THEMES } from './themes.js';
 import { ArenaView } from './arenaView.js';
 import { TrackView } from './trackView.js';
+import { HazardView } from './hazardView.js';
 import { ItemView } from './itemView.js';
 import { KartView } from './kartView.js';
 import { ChaseCamera } from './camera.js';
@@ -41,6 +42,7 @@ export class RaceStage {
 
     if (session.world.type === 'arena') this.worldView = new ArenaView(this.scene, session.world);
     else this.worldView = new TrackView(this.scene, session.world, { quality: renderer.quality.q });
+    this.hazardView = session.world.hazards?.length ? new HazardView(this.scene, session.world, this.fx, theme) : null;
 
     this.itemView = new ItemView(this.scene, this.fx, { localId: session.localId });
     this.kartViews = new Map();
@@ -132,6 +134,7 @@ export class RaceStage {
     const karts = new Map(s.karts.map((k) => [k.id, k]));
     this.itemView.update(s.itemState?.(), dt, this.t, karts);
     this.worldView.update?.(dt, this.t, this.camera);
+    this.hazardView?.update(dt, this.t, this.camera);
     this.sky.update(this.camera, this.t);
     updateLighting(this.camera, this.sunDir);
     const speed = focus ? Math.abs(focus.speed) : 0;
@@ -190,6 +193,7 @@ export class RaceStage {
     this.itemView.dispose();
     this.fx.dispose();
     this.worldView.dispose?.();
+    this.hazardView?.dispose();
     this.sky.dispose();
     this.renderer.onResize = null;
   }

@@ -75,6 +75,7 @@ export class NetSession {
       kart: (id) => this.byId.get(id),
       battle: null,
     };
+    this.world.hazardRace = this.race;
     this.unsub = [
       client.on('s', (m) => this.onSnapshot(m)),
     ];
@@ -106,6 +107,7 @@ export class NetSession {
     // advance the countdown/time estimate between snapshots
     if (this.race.phase === 'countdown') this.race.countdown = Math.max(0, this.race.countdown - realDt);
     else if (this.race.phase === 'racing') this.race.time += realDt;
+    this.world.time = this.race.time;
     return steps;
   }
 
@@ -141,6 +143,7 @@ export class NetSession {
     this.race.phase = m.ph;
     this.race.countdown = m.cd;
     this.race.time = m.tm;
+    this.world.time = m.tm;
     this.pings = m.pg || {};
     if (m.bt) this.race.battle = { variant: m.bt.v, timeLeft: m.bt.tl };
 

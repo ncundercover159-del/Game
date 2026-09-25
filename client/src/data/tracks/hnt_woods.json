@@ -1,0 +1,104 @@
+{
+  "id": "hnt_woods",
+  "name": "Whispering Woods",
+  "type": "track",
+  "cup": "haunted",
+  "order": 2,
+  "theme": "haunted",
+  "music": "haunted",
+  "laps": 3,
+  "width": 19,
+  "offroad": 7,
+  "autoBank": 7,
+  "start": "@0+30",
+  "look": { "grassA": "#3e5234", "grassB": "#475c3a", "fogNear": 40, "fogFar": 300 },
+  "path": [
+    ["S", 70], ["L", 35, 70], ["R", 30, 110], ["L", 40, 80], ["S", 50, 3], ["R", 35, 140],
+    ["L", 45, 70, -3], ["S", 60], ["R", 30, 100], ["L", 35, 60], ["S", 50], ["R", 40, 90],
+    ["L", 40, 70], ["R", 35, 80], ["S", 50], ["CLOSE", 40]
+  ],
+  "sections": [
+    { "from": "@4", "to": "@5+40", "offSurface": "offroad" }
+  ],
+  "hazards": [
+    { "type": "fog", "t0": "@3", "t1": "@6+30", "density": 1 },
+    { "type": "fog", "t0": "@8", "t1": "@9+40", "density": 0.7 },
+    { "type": "ghost", "t": "@4+25", "lane0": -0.8, "lane1": 0.8, "speed": 0.9 },
+    { "type": "ghost", "t": "@7+30", "lane0": 0.8, "lane1": -0.8, "speed": 0.7, "phase": 2 },
+    {
+      "type": "boulder",
+      "model": "log",
+      "t0": "@7+10",
+      "t1": "@7+10",
+      "lane0": -1.7,
+      "lane1": 1.7,
+      "duration": 3.2,
+      "period": 7,
+      "r": 1.4
+    },
+    {
+      "type": "boulder",
+      "model": "log",
+      "t0": "@10+60",
+      "t1": "@10+60",
+      "lane0": 1.7,
+      "lane1": -1.7,
+      "duration": 3.2,
+      "period": 7.5,
+      "r": 1.4,
+      "phase": 3
+    }
+  ],
+  "pads": [
+    { "t": "@0+50", "lane": 0.3 },
+    { "t": "@4+20", "lane": -0.3 },
+    { "t": "@10+30", "lane": 0 }
+  ],
+  "itemRows": [
+    { "t": "@1+20", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@4+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@7+45", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@10+90", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@2+10", "t1": "@2+50", "lane": -0.5, "lane1": 0.5, "n": 5 },
+    { "t0": "@7+5", "t1": "@7+55", "lane": 0.4, "n": 5 },
+    { "t0": 0.3, "t1": 0.7, "lane": 0, "n": 4, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Log ramp",
+      "from": "@5+4",
+      "to": "@5+84",
+      "via": [[0.5, 0, 0.5]],
+      "lead": 8,
+      "width": 8,
+      "offroad": 2,
+      "surface": "offroad",
+      "walls": false,
+      "sections": [
+        { "from": 0.46, "to": 0.58, "gap": true }
+      ],
+      "ramps": [
+        { "t": 0.45, "len": 8, "h": 1.6, "kick": 3, "boost": true }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.75, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "mansion", "t": "@8+50", "lane": -5, "rot": 1.5708 },
+    { "type": "deadTree", "t": "@1+30", "lane": 2, "scale": 2.2 },
+    { "type": "deadTree", "t": "@5+40", "lane": -2.2, "scale": 2 },
+    { "type": "crypt", "t": "@9+20", "lane": 2.4, "rot": -1.5708 },
+    { "type": "lantern", "t": "@0+60", "lane": 1.1 },
+    { "type": "lantern", "t": "@4+10", "lane": -1.1 },
+    { "type": "lantern", "t": "@7+30", "lane": 1.1 }
+  ],
+  "scatter": [
+    { "type": "pine", "density": 0.14, "dist": [1, 26] },
+    { "type": "deadTree", "density": 0.05, "dist": [1, 20] },
+    { "type": "pumpkin", "density": 0.03, "dist": [0.3, 5] },
+    { "type": "log", "density": 0.02, "dist": [1, 8] }
+  ]
+}

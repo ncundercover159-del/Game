@@ -10,6 +10,7 @@ import { LapSystem } from './laps.js';
 import { ItemSystem } from './items.js';
 import { AIController } from '../ai/driver.js';
 import { BattleSystem } from './battle.js';
+import { HazardSystem } from './hazards.js';
 
 export class Race {
   // opts: { world, mode: 'race'|'freeplay'|'battle'|'timetrial', laps, classId,
@@ -44,6 +45,11 @@ export class Race {
       this.battle = new BattleSystem(this, { variant: opts.battle || 'balloons' });
       this.systems.push(this.battle);
     }
+    if (this.world.hazards?.length) {
+      this.hazards = new HazardSystem(this);
+      this.systems.push(this.hazards);
+    }
+    this.world.time = 0;
     this.ai = new AIController(this, { difficulty: opts.difficulty || this.cls.ai, seed: opts.seed || 1 });
     this.systems.unshift(this.ai);
     this.autoDriver = (k) => this.ai.drive(k, SIM.dt);
@@ -97,6 +103,7 @@ export class Race {
       }
     }
     if (this.phase !== 'countdown') this.time += dt;
+    this.world.time = this.time;
 
     const ctx = { emit: this.emit, countdown: this.countdown, racing: true, race: this };
     for (const sys of this.systems) sys.preStep?.(this, dt);

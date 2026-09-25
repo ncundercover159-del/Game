@@ -1,0 +1,124 @@
+{
+  "id": "mol_obsidian",
+  "name": "Obsidian Bridge",
+  "type": "track",
+  "cup": "molten",
+  "order": 4,
+  "theme": "molten",
+  "music": "molten",
+  "laps": 3,
+  "width": 20,
+  "offroad": 4,
+  "autoBank": 6,
+  "start": "@0+30",
+  "offSurface": "sand",
+  "look": { "canyonGlow": "#ff7a1a", "bridge": "#2a2226", "pillar": "#241c20", "road": "#2e2a30" },
+  "path": [
+    ["S", 90],
+    ["R", 50, 90],
+    [
+      "S",
+      130,
+      3,
+      { "w": 16 }
+    ],
+    ["L", 40, 90],
+    ["R", 45, 180, 2],
+    [
+      "S",
+      110,
+      0,
+      { "w": 16 }
+    ],
+    ["L", 60, 60, -3],
+    ["R", 50, 120],
+    ["S", 60],
+    ["CLOSE", 50]
+  ],
+  "sections": [
+    {
+      "from": "@2",
+      "to": "@2+130",
+      "bridge": true,
+      "off": 0.5,
+      "wallsL": false,
+      "wallsR": false,
+      "noKerb": true
+    },
+    {
+      "from": "@5",
+      "to": "@5+110",
+      "bridge": true,
+      "off": 0.5,
+      "wallsL": false,
+      "wallsR": false,
+      "noKerb": true
+    },
+    { "from": "@8", "to": "@8+60", "bridge": true, "off": 1 }
+  ],
+  "hazards": [
+    { "type": "collapse", "t0": "@2+30", "t1": "@2+105", "safeLane": 0.3 },
+    { "type": "collapse", "t0": "@5+20", "t1": "@5+90", "safeLane": 0.3 },
+    { "type": "geyser", "t": "@4+40", "lane": 0.4, "period": 5, "phase": 1 },
+    { "type": "geyser", "t": "@4+100", "lane": -0.4, "period": 5, "phase": 3 },
+    {
+      "type": "boulder",
+      "t0": "@7+40",
+      "t1": "@7+40",
+      "lane0": -1.8,
+      "lane1": 1.8,
+      "duration": 3,
+      "period": 8,
+      "r": 2.3
+    }
+  ],
+  "ramps": [
+    { "t": "@9+60", "len": 12, "h": 1.7, "type": "hill" }
+  ],
+  "pads": [
+    { "t": "@0+60", "lane": 0.3 },
+    { "t": "@3+20", "lane": -0.3 },
+    { "t": "@9+100", "lane": 0 }
+  ],
+  "itemRows": [
+    { "t": "@1+40", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@4+20", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@6+30", "lanes": [-0.6, -0.2, 0.2, 0.6] },
+    { "t": "@9+140", "lanes": [-0.6, -0.2, 0.2, 0.6] }
+  ],
+  "coins": [
+    { "t0": "@2+10", "t1": "@2+120", "lane": 0, "n": 7 },
+    { "t0": "@5+10", "t1": "@5+100", "lane": 0, "n": 6 },
+    { "t0": "@8+10", "t1": "@8+50", "lane": 0.5, "lane1": -0.5, "n": 4 },
+    { "t0": 0.2, "t1": 0.8, "lane": 0, "n": 5, "ribbon": 1 }
+  ],
+  "branches": [
+    {
+      "name": "Magma ridge",
+      "from": "@4+8",
+      "to": "@4+132",
+      "via": [[0.5, 0, 1]],
+      "lead": 10,
+      "width": 8,
+      "offroad": 1,
+      "surface": "sand",
+      "walls": false,
+      "pads": [
+        { "t": 0.3, "lane": 0 }
+      ]
+    }
+  ],
+  "treasure": { "t": 0.55, "lane": 0, "ribbon": 1 },
+  "landmarks": [
+    { "type": "startArch", "t": "@0+30" },
+    { "type": "volcano", "t": "@6+30", "lane": 14, "scale": 1.1 },
+    { "type": "lavaFall", "t": "@2+60", "lane": -5, "rot": 1.5708, "scale": 1.8 },
+    { "type": "lavaFall", "t": "@5+50", "lane": 5, "rot": -1.5708, "scale": 1.8 },
+    { "type": "forge", "t": "@9+40", "lane": 3, "rot": -1.5708 },
+    { "type": "smokestack", "t": "@1+30", "lane": 3 }
+  ],
+  "scatter": [
+    { "type": "lavaRock", "density": 0.05, "dist": [1, 20] },
+    { "type": "crystal", "density": 0.03, "dist": [0.5, 10] }
+  ]
+}
