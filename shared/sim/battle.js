@@ -53,9 +53,16 @@ export class BattleSystem {
         const w = race.world;
         const b = w.bounds || { shape: 'circle', r: 60 };
         const r = (b.shape === 'circle' ? b.r : Math.min(b.w, b.d) / 2) * 0.8;
-        const a = race.rng() * Math.PI * 2, d = Math.sqrt(race.rng()) * r;
-        const x = Math.cos(a) * d, z = Math.sin(a) * d;
-        if (race.items.loose.length < 40) race.items.loose.push({ id: race.items.nextId++, x, y: w.heightAt ? w.heightAt(x, z) + 0.9 : 0.9, z, t: 30, delay: 0 });
+        let x = 0, z = 0, ok = false;
+        const probe = {}, agent = { radius: 1.5 };
+        for (let tries = 0; tries < 8 && !ok; tries++) {
+          const a = race.rng() * Math.PI * 2, d = Math.sqrt(race.rng()) * r;
+          x = Math.cos(a) * d; z = Math.sin(a) * d;
+          // never drop coins into lava/pits or inside pillars
+          w.probe(agent, x, 50, z, probe);
+          ok = probe.ground && probe.pen <= 0 && probe.surface !== 'lava' && probe.surface !== 'void';
+        }
+        if (ok && race.items.loose.length < 40) race.items.loose.push({ id: race.items.nextId++, x, y: w.heightAt ? w.heightAt(x, z) + 0.9 : 0.9, z, t: 30, delay: 0 });
       }
       for (const k of race.karts) k.score = k.coins;
     }

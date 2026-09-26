@@ -281,10 +281,12 @@ export class HazardView {
       }
       case 'conveyor': {
         const R = w.main;
-        const tex = TEX.chevrons().clone();
+        const tex = TEX.belt().clone();
         tex.needsUpdate = true;
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        const mat = new THREE.MeshBasicMaterial({ map: tex, color: '#ffd23f', transparent: true, opacity: 0.7, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+        // dark belt with moving chevrons (arrows flip for belts running backwards)
+        if ((h.dir ?? 1) < 0) tex.repeat.set(1, -1);
+        const mat = new THREE.MeshBasicMaterial({ map: tex, color: (h.dir ?? 1) < 0 ? '#ffb0b0' : '#d8ffd8', transparent: true, opacity: 0.92, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
         const l0 = Math.min(h.lane0 ?? -1, h.lane1 ?? 1), l1 = Math.max(h.lane0 ?? -1, h.lane1 ?? 1);
         const pos = [], uv = [], idx = [];
         const s0 = h.s0, s1 = h.s1 >= h.s0 ? h.s1 : h.s1 + w.length;

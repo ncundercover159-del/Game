@@ -1,0 +1,27 @@
+{
+ "id": "menu",
+ "name": "Garage Groove",
+ "bpm": 112,
+ "root": 60,
+ "scale": "mixolydian",
+ "chords": [
+  0,
+  6,
+  3,
+  4
+ ],
+ "swing": 0.12,
+ "bass": {
+  "style": "walk",
+  "wave": "triangle"
+ },
+ "drums": {
+  "kick": "x.....x.x.......",
+  "snare": "....x.......x...",
+  "hat": "x.x.x.x.x.x.x.x."
+ },
+ "lead": {
+  "wave": "square",
+  "vol": 0.06
+ }
+}

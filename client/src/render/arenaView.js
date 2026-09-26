@@ -1,5 +1,7 @@
 // Visuals for an arena world (battle arenas and the test plane).
 import * as THREE from 'three';
+import { PROPS } from './propDefs.js';
+import { buildFigureTemplate, instantiateFigure } from './figure.js';
 import { TEX } from './textures.js';
 import { createToyMaterial } from './toyMaterial.js';
 import { THEMES } from './themes.js';
@@ -144,6 +146,39 @@ export class ArenaView {
     }
 
     // decals
+    // decorative props and landmarks around the arena (visual only)
+    this.spinners = [];
+    for (const pr of def.props || []) {
+      const pd = PROPS[pr.type];
+      if (!pd) { console.warn('[arena] unknown prop', pr.type); continue; }
+      const fig = instantiateFigure(buildFigureTemplate(pd, { key: `lm:${pr.type}:${def.theme}`, detail: 0.5 }), { outline: true });
+      fig.mesh.position.set(pr.x, (pr.y ?? 0) + world.baseHeight, pr.z);
+      fig.mesh.rotation.y = pr.rot ?? Math.atan2(-pr.x, -pr.z);
+      fig.mesh.scale.setScalar(pr.scale || 1);
+      this.group.add(fig.mesh);
+      if (fig.bones.spin) this.spinners.push({ bone: fig.bones.spin, speed: pr.spin ?? 1 });
+    }
+    // what's below the arena: cloud sea for sky islands, lava or ground otherwise
+    {
+      const big = size * 6;
+      const under = theme.under || 'island';
+      const mat = under === 'island' ? new THREE.MeshBasicMaterial({ color: theme.cloudSea || '#e8f6ff' })
+        : theme.groundTex === 'lava' ? new THREE.MeshBasicMaterial({ map: rep(TEX.lava(), 1) })
+          : new THREE.MeshLambertMaterial({ color: theme.grassA });
+      if (mat.map) { mat.map.wrapS = mat.map.wrapT = THREE.RepeatWrapping; mat.map.repeat.set(big / 20, big / 20); this.lavaTex = mat.map; }
+      const g = new THREE.Mesh(new THREE.PlaneGeometry(big, big), mat);
+      g.rotation.x = -Math.PI / 2;
+      g.position.y = world.baseHeight - (under === 'island' ? 60 : 1.2);
+      this.group.add(g);
+      if (under === 'island') {
+        const it = instantiateFigure(buildFigureTemplate(PROPS.island, { key: 'prop:island', detail: 0.5 }), { outline: false });
+        const sc = (size / 2 + 6) / 9;
+        it.mesh.scale.set(sc, sc * 0.6, sc);
+        it.mesh.position.y = world.baseHeight - 0.2;
+        this.group.add(it.mesh);
+      }
+    }
+
     for (const d of def.decals || []) {
       if (d.type === 'ring') {
         const m = new THREE.Mesh(new THREE.PlaneGeometry(d.r * 2, d.r * 2), new THREE.MeshBasicMaterial({ map: TEX.ring(), transparent: true, depthWrite: false, opacity: 0.8 }));
@@ -156,6 +191,8 @@ export class ArenaView {
 
   update(dt, t) {
     if (this.padTex) this.padTex.offset.y = -t * 1.6;
+    if (this.lavaTex) this.lavaTex.offset.y = -t * 0.02;
+    for (const s of this.spinners || []) s.bone.rotation.z = t * s.speed;
   }
 
   dispose() {

@@ -64,7 +64,7 @@ export class ArenaWorld {
     for (const p of def.pads || []) {
       this.floors.push(this._prep({ shape: 'rect', x: p.x, z: p.z, w: p.w || 4, d: p.d || 6, rot: p.rot || 0, h: p.h ?? this.baseHeight, surface: 'boost', pad: true }));
     }
-    this.spawns = def.spawns || [{ x: 0, z: 0, yaw: 0 }];
+    this.spawns = def.spawns?.length ? def.spawns : [];
     this._tmp = { nx: 0, nz: 0, pen: 0 };
     this.minY = this.baseHeight;
     this.placements = {
@@ -81,12 +81,23 @@ export class ArenaWorld {
     const b = this.bounds;
     const R = (b.shape === 'circle' ? b.r : Math.min(b.w, b.d) / 2) * 0.62;
     for (let i = 0; i < n; i++) {
-      if (i < this.spawns.length && this.spawns.length >= n) {
+      if (this.spawns.length >= n) {
         const s = this.spawns[i];
         out.push({ x: s.x, y: this.heightAt(s.x, s.z), z: s.z, yaw: s.yaw ?? Math.atan2(-s.x, -s.z) });
       } else {
-        const a = (i / n) * Math.PI * 2;
-        const x = Math.sin(a) * R, z = Math.cos(a) * R;
+        // ring facing the centre, nudged clear of pillars, platforms and lava
+        let a = (i / n) * Math.PI * 2, x, z;
+        for (let tries = 0; tries < 60; tries++) {
+          x = Math.sin(a) * R; z = Math.cos(a) * R;
+          // the spot and the first 22 m driven toward the centre must be clear
+          const blocked = [0, 0.5, 1].some((u) => {
+            const px = x * (1 - (u * 22) / R), pz = z * (1 - (u * 22) / R);
+            return this.floors.some((f) => (u === 0 ? (f.h > this.baseHeight + 0.01 || f.shape === 'ramp' || f.surface === 'lava') : f.surface === 'lava')
+              && floorContains({ ...f, r: (f.r ?? 0) + 2.5, w: (f.w ?? 0) + 5, d: (f.d ?? 0) + 5 }, px, pz));
+          });
+          if (!blocked) break;
+          a += 0.035;
+        }
         out.push({ x, y: this.heightAt(x, z), z, yaw: Math.atan2(-x, -z) });
       }
     }
@@ -172,8 +183,10 @@ export class ArenaWorld {
 
   // nearest spawn point
   respawnPoint(k) {
-    let best = this.spawns[0], bd = Infinity;
-    for (const s of this.spawns) {
+    // authored spawns, else the (obstacle-free) ring used for the start grid
+    const list = this.spawns.length ? this.spawns : (this._ring ??= this.gridSpawns(12));
+    let best = list[0], bd = Infinity;
+    for (const s of list) {
       const d = (s.x - k.x) ** 2 + (s.z - k.z) ** 2;
       if (d < bd) { bd = d; best = s; }
     }

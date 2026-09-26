@@ -1,0 +1,39 @@
+{
+ "id": "gearworks",
+ "name": "Clockwork Chase",
+ "bpm": 146,
+ "root": 58,
+ "scale": "dorian",
+ "chords": [
+  0,
+  3,
+  0,
+  4,
+  0,
+  3,
+  6,
+  4
+ ],
+ "bass": {
+  "style": "pulse",
+  "wave": "square",
+  "vol": 0.12
+ },
+ "drums": {
+  "kick": "x...x...x...x...",
+  "snare": "..x...x...x...x.",
+  "hat": "xxxxxxxxxxxxxxxx"
+ },
+ "lead": {
+  "wave": "square",
+  "vol": 0.065
+ },
+ "arp": {
+  "pattern": [
+   0,
+   1,
+   2
+  ],
+  "every": 1
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "id": "battle",
+ "name": "Arena Brawl",
+ "bpm": 160,
+ "root": 59,
+ "scale": "minor",
+ "chords": [
+  0,
+  0,
+  5,
+  6
+ ],
+ "bass": {
+  "style": "gallop",
+  "wave": "sawtooth",
+  "vol": 0.12
+ },
+ "drums": {
+  "kick": "x.x.x.x.x.x.x.x.",
+  "snare": "....x.......x...",
+  "hat": "xxxxxxxxxxxxxxxx"
+ },
+ "lead": {
+  "wave": "square",
+  "vol": 0.07,
+  "lp": 3500
+ }
+}

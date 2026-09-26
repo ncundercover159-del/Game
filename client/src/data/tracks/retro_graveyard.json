@@ -1,0 +1,5 @@
+{
+  "id": "retro_graveyard", "name": "Retro Graveyard (Blood Moon Reverse)", "type": "track", "cup": "retro", "order": 3,
+  "remixOf": "hnt_graveyard", "reverse": true, "music": "retro",
+  "look": { "skyTop": "#2a0a14", "skyHorizon": "#b83a3a", "fog": "#5a1a2a", "sunColor": "#ff6a5a", "rail": "#ff8a1e", "hemiSky": "#d08a8a" }
+}

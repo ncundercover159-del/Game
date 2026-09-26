@@ -1,0 +1,5 @@
+{
+  "id": "retro_factory", "name": "Retro Factory (Night Shift Reverse)", "type": "track", "cup": "retro", "order": 4,
+  "remixOf": "gear_factory", "reverse": true, "music": "retro",
+  "look": { "skyTop": "#0a1020", "skyHorizon": "#2a4a7a", "fog": "#1a2a44", "fogFar": 460, "lightIntensity": 1.5, "neonRails": true, "rail": "#2ad8ff", "railTrim": "#6dfff0" }
+}

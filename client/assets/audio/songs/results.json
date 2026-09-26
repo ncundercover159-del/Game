@@ -1,0 +1,26 @@
+{
+ "id": "results",
+ "name": "Cool Down",
+ "bpm": 100,
+ "root": 60,
+ "scale": "major",
+ "chords": [
+  0,
+  5,
+  3,
+  4
+ ],
+ "swing": 0.15,
+ "bass": {
+  "style": "sparse"
+ },
+ "drums": {
+  "kick": "x.........x.....",
+  "snare": "....x.......x...",
+  "hat": "x...x...x...x..."
+ },
+ "lead": {
+  "wave": "triangle",
+  "vol": 0.08
+ }
+}

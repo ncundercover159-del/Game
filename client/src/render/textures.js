@@ -177,6 +177,21 @@ export const TEX = {
     }
     return toTex(c);
   }),
+  belt: () => cached('belt', () => {
+    const [c, ctx] = canvas(128, 128);
+    ctx.fillStyle = '#2e323c'; ctx.fillRect(0, 0, 128, 128);
+    ctx.fillStyle = '#3a3f4a';
+    for (let y = 0; y < 128; y += 16) ctx.fillRect(0, y, 128, 3);
+    ctx.fillStyle = '#e8ecf4';
+    for (let i = 0; i < 2; i++) {
+      const y = i * 64 + 14;
+      ctx.beginPath();
+      ctx.moveTo(30, y + 30); ctx.lineTo(64, y); ctx.lineTo(98, y + 30);
+      ctx.lineTo(98, y + 40); ctx.lineTo(64, y + 12); ctx.lineTo(30, y + 40);
+      ctx.closePath(); ctx.fill();
+    }
+    return toTex(c);
+  }),
   planks: (a = '#a0703e') => cached('planks' + a, () => {
     const [c, ctx] = canvas(256, 256);
     ctx.fillStyle = '#4a3020'; ctx.fillRect(0, 0, 256, 256);

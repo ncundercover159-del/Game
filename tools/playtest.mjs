@@ -73,7 +73,7 @@ const SCRIPTS = {
   ],
   gp1: [
     [1500, 'tap', [420, 300]], [2400, 'click', '.tile.gp'], [3100, 'click', '.choice:nth-child(3)'],
-    [4300, 'click', '.screen:not(.covered) .bottom-bar .btn'], [5500, 'click', '.screen:not(.covered) .bottom-bar .btn'],
+    [4300, 'click', '.screen:not(.covered) .btn.big'], [5500, 'click', '.screen:not(.covered) .btn.big'],
     [6300, 'click', '.screen:not(.covered) .cup'],
     [14000, 'shot', 'g-race'],
     [14500, 'eval', "(() => { const r = __skykart.session.race; r.lapSystem.end(r); return r.phase; })()"],

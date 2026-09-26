@@ -1,0 +1,39 @@
+{
+ "id": "retro",
+ "name": "Retro Remix",
+ "bpm": 156,
+ "root": 64,
+ "scale": "minor",
+ "chords": [
+  0,
+  5,
+  2,
+  6,
+  0,
+  5,
+  3,
+  4
+ ],
+ "bass": {
+  "style": "octaves",
+  "wave": "square",
+  "vol": 0.12
+ },
+ "drums": {
+  "kick": "x..x..x...x..x..",
+  "snare": "....x.......x...",
+  "hat": "x.x.x.x.x.x.x.x."
+ },
+ "lead": {
+  "wave": "square",
+  "vol": 0.07
+ },
+ "arp": {
+  "pattern": [
+   0,
+   1,
+   2,
+   1
+  ]
+ }
+}

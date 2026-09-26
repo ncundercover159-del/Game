@@ -1,0 +1,5 @@
+{
+  "id": "retro_cinder", "name": "Retro Cinder (Midnight Reverse)", "type": "track", "cup": "retro", "order": 2,
+  "remixOf": "mol_cinder", "reverse": true, "music": "retro",
+  "look": { "skyTop": "#0a0612", "skyHorizon": "#6a1a3a", "fog": "#3a0a1a", "fogFar": 420, "lightIntensity": 1.4, "rail": "#ff2a8a", "canyonGlow": "#ff2a8a" }
+}

@@ -62,6 +62,7 @@ export class App {
     try {
       const { AudioManager } = await import('../audio/audio.js');
       this.audio = new AudioManager();
+      this.audio.onCaption = (text) => { if (this.mode === 'race') this.hud.caption(text); };
     } catch (e) {
       console.warn('[audio] unavailable', e);
     }
@@ -116,6 +117,7 @@ export class App {
   }
 
   endRaceView() {
+    this.audio?.endRace();
     this.stage?.dispose();
     this.stage = null;
     this.session?.dispose?.();

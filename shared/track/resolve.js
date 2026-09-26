@@ -205,8 +205,15 @@ export function reverseDef(def) {
       if (!o.ribbon) flipLane(o);
     }
   }
-  // ramps: a ramp ending at t with length len now ends at 1 - (t - len/total)
-  for (const r of d.ramps || []) r._reverse = true;
+  // ramps: a ramp ending at t with length len now ends at 1 - (t - len/total).
+  // A ramp that launches over a gap moves to the far side of that gap instead.
+  const gapJump = (r, sections, flip) => {
+    const g = (sections || []).find((sec) => sec.gap && Math.abs(sec.from - r.t) < 0.015);
+    if (!g) return false;
+    r.t = flip(g.to);
+    return true;
+  };
+  for (const r of d.ramps || []) if (!gapJump(r, def.sections, flipT)) r._reverse = true;
   for (const s of d.sections || []) {
     const a = flipT(s.to), b = flipT(s.from);
     s.from = a; s.to = b < a ? b + 1 : b;
@@ -216,7 +223,9 @@ export function reverseDef(def) {
   }
   for (const b of d.branches || []) {
     b.points = [...b.points].reverse();
-    for (const r of b.ramps || []) r._reverse = true;
+    const origSecs = structuredClone(b.sections || []);
+    for (const sec of b.sections || []) { const a = 1 - sec.to, c = 1 - sec.from; sec.from = a; sec.to = c; }
+    for (const r of b.ramps || []) if (!gapJump(r, origSecs, (t) => 1 - t)) r._reverse = true;
     for (const p of b.pads || []) p.t = 1 - p.t;
   }
   if (d.treasure && !d.treasure.ribbon) { d.treasure.t = flipT(d.treasure.t); flipLane(d.treasure); }

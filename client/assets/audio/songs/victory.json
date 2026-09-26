@@ -1,0 +1,26 @@
+{
+ "id": "victory",
+ "name": "Trophy Fanfare",
+ "bpm": 128,
+ "root": 65,
+ "scale": "major",
+ "chords": [
+  0,
+  3,
+  4,
+  0
+ ],
+ "bass": {
+  "style": "octaves"
+ },
+ "drums": {
+  "kick": "x...x...x...x...",
+  "snare": "....x.......x.xx",
+  "hat": "x.x.x.x.x.x.x.x."
+ },
+ "lead": {
+  "wave": "square",
+  "vol": 0.08,
+  "rhythm": "x.x.x...x.x.xxx."
+ }
+}

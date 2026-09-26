@@ -8,6 +8,7 @@ import { ITEM_DEFS } from '../sim/items.js';
 import { clamp, wrapAngle, makeRng, fwdX, fwdZ } from '../math.js';
 
 const PERSONALITIES = Object.keys(AI.personalities);
+const SURFACE_KILL = new Set(['lava', 'void']);
 
 // ---------------------------------------------------------------------------
 // Racing line: apex-hugging lane offsets with anticipation, per ribbon.
@@ -166,6 +167,8 @@ export class AIController {
             const chance = !D.shortcuts ? 0 : offroadBranch ? (hasBoost ? 0.95 : 0.1) : (st.diff === AI.difficulties.expert ? 0.9 : 0.55);
             st.shortcut = this.rng() < chance ? B.id : null;
           }
+          // missed the entrance (heading well across the road while still on main): give up
+          if (st.shortcut === B.id && d < -12 && Math.abs(wrapAngle(k.yaw - Math.atan2(k.tdx ?? 0, k.tdz ?? 1))) > 1.1) st.shortcut = null;
           if (st.shortcut === B.id && d < 45) targetRibbon = B;
         }
       }
@@ -207,7 +210,7 @@ export class AIController {
     // stuck: back up and turn
     if (speed < 2 && k.grounded && k.rescue <= 0 && k.spin <= 0 && this.race.phase === 'racing') st.stuck += dt;
     else st.stuck = Math.max(0, st.stuck - dt * 2);
-    if (st.stuck > 1.2) { st.reverse = 0.9; st.stuck = 0; }
+    if (st.stuck > 1.2) { st.reverse = 0.9; st.stuck = 0; st.shortcut = null; } // stuck: give up any shortcut this lap
     if (st.reverse > 0) {
       st.reverse -= dt;
       return { steer: -steer, btn: BTN.BRAKE };
@@ -439,30 +442,54 @@ export class AIController {
       if (items) for (const c of items.loose) opts.push({ x: c.x, z: c.z, w: 1.4 });
       if (race.mode === 'battle' && race.battle?.variant === 'coins' && items) for (const c of items.coins) if (c.active) opts.push({ x: c.x, z: c.z, w: 1.3 });
       let best = null, bs = -Infinity;
+      const pr = {}, ag = { radius: 1 };
+      const pathDeadly = (o) => {
+        for (let i = 1; i <= 8; i++) {
+          const u = i / 8;
+          this.world.probe(ag, k.x + (o.x - k.x) * u, k.y + 1, k.z + (o.z - k.z) * u, pr);
+          if (!pr.ground || SURFACE_KILL.has(pr.surface)) return true;
+        }
+        return false;
+      };
       for (const o of opts) {
+        if (this.world.floors?.some((f) => f.surface === 'lava') && pathDeadly(o)) continue;
         const d = Math.hypot(o.x - k.x, o.z - k.z);
         const sc = o.w * 60 / (d + 10) + this.rng() * 0.8;
         if (sc > bs) { bs = sc; best = o; }
       }
-      st.goal = best || { x: 0, z: 0 };
+      st.goal = best || { x: -k.x * 0.3, z: -k.z * 0.3 };
     }
     // wall feelers: steer away from walls using the world probe
     const want = Math.atan2(st.goal.x - k.x, st.goal.z - k.z);
     let err = wrapAngle(want - k.yaw);
     const probe = {};
     const agent = { radius: 1 };
-    for (const side of [-1, 1]) {
-      const a = k.yaw + side * 0.5;
-      const px = k.x + Math.sin(a) * 9, pz = k.z + Math.cos(a) * 9;
+    const danger = (a, dist) => {
+      const px = k.x + Math.sin(a) * dist, pz = k.z + Math.cos(a) * dist;
       this.world.probe(agent, px, k.y + 1, pz, probe);
-      if (probe.pen > 0.2) err -= side * 0.6;
-    }
+      return { wall: probe.pen > 0.2, deadly: !probe.ground || SURFACE_KILL.has(probe.surface) };
+    };
+    // yaw - a looks to the right (positive steer turns right, decreasing yaw)
+    const dR = danger(k.yaw - 0.5, 9), dL = danger(k.yaw + 0.5, 9);
+    if (dR.wall || dR.deadly) err += 0.6 * (dR.deadly ? 1.4 : 1); // steer left
+    if (dL.wall || dL.deadly) err -= 0.6 * (dL.deadly ? 1.4 : 1); // steer right
+    const speedLook = 6 + Math.abs(k.speed) * 0.45;
     let steer = clamp(-err * 2.2, -1, 1);
+    let deadlyAhead = false;
+    for (const f of [0.4, 0.75, 1]) if (danger(k.yaw, speedLook * f).deadly) { deadlyAhead = true; break; }
+    if (deadlyAhead) {
+      // hard swerve toward whichever side is clear
+      const right = danger(k.yaw - 0.9, 10).deadly || dR.deadly, left = danger(k.yaw + 0.9, 10).deadly || dL.deadly;
+      const goRight = right && !left ? false : left && !right ? true : (st.dodgeSide ??= 1) > 0;
+      steer = goRight ? 1 : -1;
+      st.lavaBrake = 0.25;
+    }
     let btn = BTN.ACCEL;
     if (Math.abs(k.speed) < 2 && race.phase === 'racing') st.stuck = (st.stuck || 0) + dt; else st.stuck = 0;
     if (st.stuck > 1) { st.reverse = 0.8; st.stuck = 0; }
     if (st.reverse > 0) { st.reverse -= dt; return { steer: -steer, btn: BTN.BRAKE }; }
     if (Math.abs(err) > 1.2 && k.speed > 12) btn |= BTN.DRIFT;
+    if ((st.lavaBrake = (st.lavaBrake || 0) - dt) > 0 && k.speed > 14) btn = BTN.BRAKE;
     btn |= this.itemLogic(k, st, dt, 0);
     return { steer, btn };
   }

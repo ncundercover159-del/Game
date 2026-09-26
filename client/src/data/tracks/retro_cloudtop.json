@@ -1,0 +1,5 @@
+{
+  "id": "retro_cloudtop", "name": "Retro Cloudtop (Sunset Reverse)", "type": "track", "cup": "retro", "order": 1,
+  "remixOf": "sky_cloudtop", "reverse": true, "music": "retro",
+  "look": { "skyTop": "#3a2a7a", "skyHorizon": "#ffb070", "skyBottom": "#ff8a6a", "fog": "#ffc0a0", "sunColor": "#ffd0a0", "light": "#ffd8b0", "grassA": "#7ab84a", "grassB": "#8ac85a", "rail": "#ff5a8a", "kerbA": "#ffd23f" }
+}

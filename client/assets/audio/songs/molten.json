@@ -1,0 +1,40 @@
+{
+ "id": "molten",
+ "name": "Magma Run",
+ "bpm": 150,
+ "root": 57,
+ "scale": "harmonicMinor",
+ "chords": [
+  0,
+  5,
+  3,
+  4,
+  0,
+  5,
+  6,
+  4
+ ],
+ "bass": {
+  "style": "gallop",
+  "wave": "sawtooth",
+  "vol": 0.14
+ },
+ "drums": {
+  "kick": "x..x..x.x..x..x.",
+  "snare": "....x.......x...",
+  "hat": "x.x.x.x.x.x.x.x."
+ },
+ "lead": {
+  "wave": "sawtooth",
+  "vol": 0.06,
+  "lp": 3200
+ },
+ "arp": {
+  "pattern": [
+   0,
+   2,
+   1,
+   2
+  ]
+ }
+}
