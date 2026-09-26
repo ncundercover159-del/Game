@@ -24,6 +24,10 @@ import { listOf } from '@shared/data/registry.js';
 import '@shared/track/track.js';
 import { installTimeTrial } from '../modes/timeTrial.js';
 import { installBattle } from '../modes/battle.js';
+import { installProgression } from '../modes/progression.js';
+import { installSettings } from '../ui/settingsScreen.js';
+import { installVersus } from '../modes/versus.js';
+import { initAccessibility } from './accessibility.js';
 
 export class App {
   constructor(gameEl, uiEl) {
@@ -57,6 +61,9 @@ export class App {
   }
 
   async start() {
+    initAccessibility();
+    this.fpsEl = h('div.fps');
+    this.uiEl.appendChild(this.fpsEl);
     this.dev = h('div.dev-panel', { style: { display: this.devMode ? '' : 'none' } });
     this.uiEl.appendChild(this.dev);
     this.toastEl = h('div.toast');
@@ -142,6 +149,8 @@ export class App {
   startVersus(cfg) {
     const player = this.playerEntrant();
     const field = buildField(player, { count: cfg.count || 12, seed: Date.now() % 100000 });
+    if (cfg.teams) field.forEach((e, i) => { e.team = i % 2; }); // player (index 0) is Red
+    if (cfg.difficulty) field.forEach((e) => { if (!e.human) e.difficulty = cfg.difficulty; });
     this.flow = { mode: 'versus', cfg };
     this.startRace({ trackId: cfg.trackId, classId: cfg.classId || '150cc', mirror: CLASSES[cfg.classId]?.mirror, laps: cfg.laps || 3, items: cfg.items !== false, mode: 'race', entrants: field, localId: 'p1', intro: true, teams: cfg.teams });
   }
@@ -197,6 +206,7 @@ export class App {
     this.touch.setVisible(true);
     this.touch.reset();
     this.raceEnded = false;
+    this.raceStats = { hits: 0, mts: 0 };
     if (intro) this.hud.banner(`<div style="font-size:26px">${this.session.def.name}</div>`, 'title', intro * 1000 - 400);
     this.audio?.startRace(this.session.def);
   }
@@ -253,9 +263,11 @@ export class App {
           if (this.stage) this.stage.spectating = true; // tap to watch others while the race finishes
         } break;
         case 'raceEnd': this.onRaceEnd(); break;
-        case 'miniTurbo': if (mine) { haptic(e.tier >= 2 ? HAPTICS.bigBoost : HAPTICS.boost); bumpStat('miniTurbos'); if (e.tier === 3) bumpStat('purpleTurbos'); } break;
+        case 'miniTurbo': if (mine) {
+          this.raceStats.mts++; haptic(e.tier >= 2 ? HAPTICS.bigBoost : HAPTICS.boost); bumpStat('miniTurbos'); if (e.tier === 3) bumpStat('purpleTurbos'); } break;
         case 'trick': if (mine) bumpStat('tricks'); break;
-        case 'hit': if (mine) { haptic(HAPTICS.hit); bumpStat('timesHit'); } break;
+        case 'hit': if (mine) {
+          this.raceStats.hits++; haptic(HAPTICS.hit); bumpStat('timesHit'); } break;
         case 'rescue': if (mine) bumpStat('falls'); break;
         case 'itemHit': {
           const by = e.by != null ? race.kart(e.by) : null;
@@ -397,11 +409,15 @@ export class App {
     this.mode = 'menu';
     this.screens.go(new PodiumScreen({ gp, trophy, reward, unlocks, onNext: () => this.goMenu() }));
     this.audio?.playMusic(trophy ? 'victory' : 'results');
+    setTimeout(() => this.checkProgress?.(), 1500);
   }
 
   // ---------------------------------------------------------------------------
   frame(dt) {
     this.lastInput = this.input.sample();
+    const sh = settings().showFps;
+    this.fpsEl.style.display = sh ? '' : 'none';
+    if (sh && (this._fpsT = (this._fpsT || 0) + dt) > 0.5) { this._fpsT = 0; this.fpsEl.textContent = `${Math.round(this.renderer.quality.fps)} fps · ${this.renderer.quality.q.name}`; }
     if (this.mode === 'race' && this.session) {
       this.session.update(dt);
       if (this.stage) {
@@ -442,5 +458,8 @@ export class App {
 
 installTimeTrial(App);
 installBattle(App);
+installProgression(App);
+installSettings(App);
+installVersus(App);
 
 export { settings };

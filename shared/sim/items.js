@@ -468,6 +468,8 @@ export class ItemSystem {
   // Central hit resolution with shields. Returns true if the hit landed.
   hit(o, kind, opts = {}) {
     if (o.eliminated || o.rescue > 0 || o.burrow > 0) return false;
+    // team races: no friendly fire from items
+    if (opts.by != null && o.team !== undefined && opts.by !== o.id && this.race.kart(opts.by)?.team === o.team) return false;
     if (o.star > 0 && kind !== 'shrink') return false;
     if (opts.projectile && o.flail > 0) { this.emit('shielded', o.id, { by: opts.by, kind: 'flail' }); return false; }
     if (o.cloneShield > 0 && kind !== 'shrink') {

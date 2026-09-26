@@ -14,6 +14,7 @@ import { ScreenFx } from './speedLines.js';
 import { updateLighting } from './toyMaterial.js';
 import { BTN } from '@shared/physics/input.js';
 import { RACE } from '@shared/config.js';
+import { settings } from '../core/settings.js';
 import { smoothstep } from '@shared/math.js';
 import { ghostPose } from '@shared/sim/ghost.js';
 import { fakeKart } from './menuStage.js';
@@ -175,10 +176,12 @@ export class RaceStage {
     this.sky.update(this.camera, this.t);
     updateLighting(this.camera, this.sunDir);
     const speed = focus ? Math.abs(focus.speed) : 0;
+    const calm = settings().reduceMotion;
+    this.chase.reduceMotion = calm;
     this.damage = Math.max(0, (this.damage || 0) - dt * 2.5);
     this.flashT = Math.max(0, (this.flashT || 0) - dt);
     this.screenFx.update(dt, {
-      amount: focus && focus.boostTime > 0 ? 1 : Math.max(0, (speed - 31) / 10),
+      amount: (focus && focus.boostTime > 0 ? 1 : Math.max(0, (speed - 31) / 10)) * (calm ? 0.3 : 1),
       aspect: this.camera.aspect,
       ink: focus ? Math.min(1, focus.ink * 1.5) : 0,
       blind: Math.max(focus ? Math.min(1, focus.blind * 1.2) : 0, this.flashT > 0 ? this.flashT / 0.6 : 0),

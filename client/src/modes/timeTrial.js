@@ -147,6 +147,7 @@ export function installTimeTrial(App) {
     bumpStat('timeTrials');
     if (this.ttResult.newBest) this.toast(prev ? `New record! −${(prev.time - time).toFixed(3)} s` : 'First time set!');
     if (medal) this.toast(`${MEDAL[medal]} ${medal[0].toUpperCase() + medal.slice(1)} medal!`);
+    this.checkProgress?.();
   };
 
   P.timeTrialButtons = function () {

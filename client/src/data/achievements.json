@@ -1,0 +1,390 @@
+[
+ {
+  "id": "first_race",
+  "name": "Rookie",
+  "desc": "Finish your first race",
+  "check": {
+   "stat": "races",
+   "gte": 1
+  },
+  "reward": 30,
+  "icon": "\ud83c\udfc1"
+ },
+ {
+  "id": "races_10",
+  "name": "Regular",
+  "desc": "Finish 10 races",
+  "check": {
+   "stat": "races",
+   "gte": 10
+  },
+  "reward": 60,
+  "icon": "\ud83c\udfc1"
+ },
+ {
+  "id": "races_50",
+  "name": "Veteran",
+  "desc": "Finish 50 races",
+  "check": {
+   "stat": "races",
+   "gte": 50
+  },
+  "reward": 150,
+  "icon": "\ud83c\udfc1"
+ },
+ {
+  "id": "races_200",
+  "name": "Road Legend",
+  "desc": "Finish 200 races",
+  "check": {
+   "stat": "races",
+   "gte": 200
+  },
+  "reward": 400,
+  "icon": "\ud83c\udfc1"
+ },
+ {
+  "id": "first_win",
+  "name": "Winner!",
+  "desc": "Win a race",
+  "check": {
+   "stat": "wins",
+   "gte": 1
+  },
+  "reward": 50,
+  "icon": "\ud83e\udd47"
+ },
+ {
+  "id": "wins_10",
+  "name": "Hot Streak",
+  "desc": "Win 10 races",
+  "check": {
+   "stat": "wins",
+   "gte": 10
+  },
+  "reward": 120,
+  "icon": "\ud83e\udd47"
+ },
+ {
+  "id": "wins_50",
+  "name": "Unstoppable",
+  "desc": "Win 50 races",
+  "check": {
+   "stat": "wins",
+   "gte": 50
+  },
+  "reward": 300,
+  "icon": "\ud83e\udd47"
+ },
+ {
+  "id": "podiums_25",
+  "name": "Podium Regular",
+  "desc": "Finish on the podium 25 times",
+  "check": {
+   "stat": "podiums",
+   "gte": 25
+  },
+  "reward": 100,
+  "icon": "\ud83c\udfc6"
+ },
+ {
+  "id": "gp_1",
+  "name": "Cup Runner",
+  "desc": "Complete a Grand Prix",
+  "check": {
+   "stat": "gpCompleted",
+   "gte": 1
+  },
+  "reward": 60,
+  "icon": "\ud83c\udfc6"
+ },
+ {
+  "id": "gold_1",
+  "name": "Golden",
+  "desc": "Win a gold trophy",
+  "check": {
+   "trophies": "gold",
+   "gte": 1
+  },
+  "reward": 80,
+  "icon": "\ud83c\udfc6"
+ },
+ {
+  "id": "gold_all",
+  "name": "Grand Champion",
+  "desc": "Gold trophies in all four main cups",
+  "check": {
+   "goldCups": 4
+  },
+  "reward": 400,
+  "icon": "\ud83d\udc51"
+ },
+ {
+  "id": "gold_mirror",
+  "name": "Through the Looking Glass",
+  "desc": "Gold in any Mirror cup",
+  "check": {
+   "trophyClass": "mirror"
+  },
+  "reward": 200,
+  "icon": "\ud83e\ude9e"
+ },
+ {
+  "id": "gold_200",
+  "name": "Light Speed",
+  "desc": "Gold in any 200cc cup",
+  "check": {
+   "trophyClass": "200cc"
+  },
+  "reward": 250,
+  "icon": "\u26a1"
+ },
+ {
+  "id": "mt_100",
+  "name": "Spark Plug",
+  "desc": "Fire 100 mini-turbos",
+  "check": {
+   "stat": "miniTurbos",
+   "gte": 100
+  },
+  "reward": 60,
+  "icon": "\ud83d\udd25"
+ },
+ {
+  "id": "purple_25",
+  "name": "Ultra Violet",
+  "desc": "Fire 25 purple mini-turbos",
+  "check": {
+   "stat": "purpleTurbos",
+   "gte": 25
+  },
+  "reward": 100,
+  "icon": "\ud83d\udc9c"
+ },
+ {
+  "id": "tricks_50",
+  "name": "Show-off",
+  "desc": "Land 50 tricks",
+  "check": {
+   "stat": "tricks",
+   "gte": 50
+  },
+  "reward": 60,
+  "icon": "\ud83e\udd38"
+ },
+ {
+  "id": "rocket_10",
+  "name": "Rocket Science",
+  "desc": "Nail 10 rocket starts",
+  "check": {
+   "stat": "rocketStarts",
+   "gte": 10
+  },
+  "reward": 80,
+  "icon": "\ud83d\ude80"
+ },
+ {
+  "id": "items_100",
+  "name": "Quartermaster",
+  "desc": "Use 100 items",
+  "check": {
+   "stat": "itemsUsed",
+   "gte": 100
+  },
+  "reward": 60,
+  "icon": "\ud83c\udf81"
+ },
+ {
+  "id": "hits_50",
+  "name": "Sharpshooter",
+  "desc": "Hit rivals 50 times",
+  "check": {
+   "stat": "hitsLanded",
+   "gte": 50
+  },
+  "reward": 100,
+  "icon": "\ud83c\udfaf"
+ },
+ {
+  "id": "coins_500",
+  "name": "Coin Collector",
+  "desc": "Collect 500 coins in races",
+  "check": {
+   "stat": "coinsCollected",
+   "gte": 500
+  },
+  "reward": 100,
+  "icon": "\ud83e\ude99"
+ },
+ {
+  "id": "distance_100k",
+  "name": "Globetrotter",
+  "desc": "Drive 100 km",
+  "check": {
+   "stat": "distance",
+   "gte": 100000
+  },
+  "reward": 150,
+  "icon": "\ud83c\udf0d"
+ },
+ {
+  "id": "treasure_1",
+  "name": "Treasure Hunter",
+  "desc": "Find a hidden treasure chest",
+  "check": {
+   "treasures": 1
+  },
+  "reward": 50,
+  "icon": "\ud83d\udddd\ufe0f"
+ },
+ {
+  "id": "treasure_8",
+  "name": "Map Maker",
+  "desc": "Find 8 treasure chests",
+  "check": {
+   "treasures": 8
+  },
+  "reward": 150,
+  "icon": "\ud83d\uddfa\ufe0f"
+ },
+ {
+  "id": "treasure_all",
+  "name": "X Marks Every Spot",
+  "desc": "Find the treasure on all 16 tracks",
+  "check": {
+   "treasures": 16
+  },
+  "reward": 400,
+  "icon": "\ud83d\udc8e"
+ },
+ {
+  "id": "tt_1",
+  "name": "Against the Clock",
+  "desc": "Finish a time trial",
+  "check": {
+   "stat": "timeTrials",
+   "gte": 1
+  },
+  "reward": 30,
+  "icon": "\u23f1\ufe0f"
+ },
+ {
+  "id": "medal_gold",
+  "name": "Staff Beater",
+  "desc": "Beat a staff ghost",
+  "check": {
+   "medals": "gold",
+   "gte": 1
+  },
+  "reward": 100,
+  "icon": "\ud83e\udd47"
+ },
+ {
+  "id": "medal_gold_8",
+  "name": "Ghostbuster",
+  "desc": "Beat 8 staff ghosts",
+  "check": {
+   "medals": "gold",
+   "gte": 8
+  },
+  "reward": 250,
+  "icon": "\ud83d\udc7b"
+ },
+ {
+  "id": "medal_any_16",
+  "name": "Medal Cabinet",
+  "desc": "Earn a medal on 16 tracks",
+  "check": {
+   "medals": "any",
+   "gte": 16
+  },
+  "reward": 250,
+  "icon": "\ud83c\udf96\ufe0f"
+ },
+ {
+  "id": "battle_1",
+  "name": "Brawler",
+  "desc": "Play a battle",
+  "check": {
+   "stat": "battles",
+   "gte": 1
+  },
+  "reward": 30,
+  "icon": "\ud83c\udf88"
+ },
+ {
+  "id": "battle_win_5",
+  "name": "Arena Champ",
+  "desc": "Win 5 battles",
+  "check": {
+   "stat": "battleWins",
+   "gte": 5
+  },
+  "reward": 120,
+  "icon": "\ud83c\udf88"
+ },
+ {
+  "id": "online_1",
+  "name": "Hello World",
+  "desc": "Finish an online race",
+  "check": {
+   "stat": "onlineRaces",
+   "gte": 1
+  },
+  "reward": 50,
+  "icon": "\ud83c\udf10"
+ },
+ {
+  "id": "online_10",
+  "name": "Netizen",
+  "desc": "Finish 10 online races",
+  "check": {
+   "stat": "onlineRaces",
+   "gte": 10
+  },
+  "reward": 120,
+  "icon": "\ud83c\udf10"
+ },
+ {
+  "id": "racers_all",
+  "name": "Full Roster",
+  "desc": "Unlock every racer",
+  "check": {
+   "unlockedAll": "racers"
+  },
+  "reward": 300,
+  "icon": "\ud83e\uddd1\u200d\ud83e\udd1d\u200d\ud83e\uddd1"
+ },
+ {
+  "id": "daily_1",
+  "name": "Daily Driver",
+  "desc": "Complete a daily challenge",
+  "check": {
+   "stat": "dailies",
+   "gte": 1
+  },
+  "reward": 40,
+  "icon": "\ud83d\udcc5"
+ },
+ {
+  "id": "daily_streak_7",
+  "name": "Week Warrior",
+  "desc": "7-day daily challenge streak",
+  "check": {
+   "dailyStreak": 7
+  },
+  "reward": 200,
+  "icon": "\ud83d\udcc5"
+ },
+ {
+  "id": "falls_10",
+  "name": "Butterfingers",
+  "desc": "Fall off the track 10 times (it happens!)",
+  "check": {
+   "stat": "falls",
+   "gte": 10
+  },
+  "reward": 20,
+  "icon": "\ud83e\ude82"
+ }
+]

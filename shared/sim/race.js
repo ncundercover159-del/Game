@@ -70,6 +70,7 @@ export class Race {
     k.human = !!e.human;
     k.name = e.name || racer?.name || e.id;
     k.place = this.karts.length + 1;
+    if (e.team !== undefined) k.team = e.team;
     k.finished = false;
     k.finishTime = 0;
     this.karts.push(k);

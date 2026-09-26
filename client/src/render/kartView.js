@@ -110,6 +110,18 @@ export class KartView {
     if (this.racer.modelUrl) this.swapModel('fig', this.racer.modelUrl);
     if (this.vehicle.modelUrl) this.swapModel('veh', this.vehicle.modelUrl);
 
+    // team flag (team races)
+    if (entrant.team !== undefined) {
+      const col = entrant.team === 0 ? '#ff4f4f' : '#3d8bff';
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.3, 5), new THREE.MeshLambertMaterial({ color: '#eeeeee' }));
+      pole.position.set(0.55, 1.1, -0.85);
+      const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.36), new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide }));
+      flag.position.set(0.28, 0.45, 0);
+      pole.add(flag);
+      this.body.add(pole);
+      this.teamFlag = flag;
+    }
+
     // battle balloons (shown while k.balloons > 0)
     this.balloons = [];
     {

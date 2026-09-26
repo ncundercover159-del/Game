@@ -6,7 +6,7 @@ import { ITEM_ICONS } from './itemIcons.js';
 import { getData, listOf, getRacer, getVehicle, getWheels, getGlider, getTrackDef } from '@shared/data/registry.js';
 import { totalStats } from '@shared/physics/stats.js';
 import { ITEM_DEFS } from '@shared/sim/items.js';
-import { CLASSES } from '@shared/config.js';
+import { CLASSES, RACE } from '@shared/config.js';
 import { getProfile, updateProfile, isUnlocked } from '../core/profile.js';
 import { fmtTime, ordinal } from './hud.js';
 
@@ -312,6 +312,12 @@ export class ResultsScreen {
     };
     const left = h('div.panel', h('h2', race.mode === 'battle' ? 'Battle results' : 'Race results'), h('table.rtable', (race.ranked || race.karts).map((k, i) => row(k, i, gained?.[k.id]))));
     const panels = [left];
+    if (!gp && race.karts.some((k) => k.team !== undefined)) {
+      const pts = [0, 0];
+      for (const k of race.karts) if (k.team !== undefined) pts[k.team] += RACE.points[(k.place || 12) - 1] || 0;
+      const win = pts[0] === pts[1] ? 'Draw!' : pts[0] > pts[1] ? 'Red team wins!' : 'Blue team wins!';
+      panels.push(h('div.panel', h('h2', win), h('div.team-score', h('span', { style: { color: '#ff4f4f' } }, `Red ${pts[0]}`), ' – ', h('span', { style: { color: '#3d8bff' } }, `Blue ${pts[1]}`))));
+    }
     if (gp) {
       const st = gp.standings();
       panels.push(h('div.panel', h('h2', `Standings · Race ${gp.index}/${gp.tracks.length}`),
