@@ -180,8 +180,21 @@ export class KartView {
   }
 
   // k: kart state (possibly interpolated) ; dt: render delta
+  // Level of detail by camera distance: outlines only up close, far karts hidden.
+  setLod(dist, outlinesAllowed) {
+    const ol = outlinesAllowed && dist < 45;
+    if (ol !== this._ol) {
+      this._ol = ol;
+      if (this.veh.outline) this.veh.outline.visible = ol;
+      if (this.fig?.outline) this.fig.outline.visible = ol;
+    }
+    this.far = dist > 70;
+    this.culled = dist > 260;
+  }
+
   update(k, dt, time) {
     this.state = k;
+    if (this.culled) { this.root.visible = false; this.shadow.visible = false; return; }
     const hidden = k.eliminated;
     this.root.visible = !hidden;
     this.shadow.visible = !hidden && k.rescuePhase !== 0 || (!hidden && k.rescue <= 0);
@@ -289,9 +302,10 @@ export class KartView {
     this.shadow.scale.set(ss, ss, 1);
     this.shadow.material.opacity = Math.max(0.15, 1 - height * 0.1);
 
-    // character animation
-    if (this.anim) {
-      this.anim.update(dt, {
+    // character animation (far karts animate at half rate)
+    this._animSkip = this.far ? !this._animSkip : false;
+    if (this.anim && !this._animSkip) {
+      this.anim.update(this.far ? dt * 2 : dt, {
         steer, drift: k.drift || 0, speed01: clamp(Math.abs(k.speed) / 30, 0, 1),
         air: !k.grounded, boost: k.boostTime > 0, spin: k.spin > 0 || k.tumble > 0,
         dizzy: k.spin <= 0 && k.invuln > 0.6 && k.star <= 0, look: k.lookBack, glide: k.glider,

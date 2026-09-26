@@ -198,6 +198,7 @@ export class App {
     this.onSessionCreated?.(session, cfg);
     this.session.onEvents = (ev) => this.onEvents(ev);
     this.stage = new RaceStage(this.renderer, this.session);
+    this.stage.onReplay = (on) => { this.hud.el.classList.toggle('replaying', on); this.touch.setVisible(!on); };
     this.mode = 'race';
     this.hud.setWorld(this.session.world);
     this.hud.last = {};

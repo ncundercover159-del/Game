@@ -14,3 +14,8 @@ app.start().catch((e) => {
   console.error(e);
   document.getElementById('boot').innerHTML = `<div class="boot-logo">Oops!</div><pre style="max-width:80vw;white-space:pre-wrap">${String(e?.stack || e)}</pre>`;
 });
+
+// PWA: offline support in production builds (the dev server stays uncached)
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('[pwa] service worker failed', e)));
+}

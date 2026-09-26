@@ -6,6 +6,8 @@ import { THEMES } from './themes.js';
 import { ArenaView } from './arenaView.js';
 import { TrackView } from './trackView.js';
 import { HazardView } from './hazardView.js';
+import { SkidMarks } from './skidMarks.js';
+import { ReplayBuffer, ReplayPlayer } from './replay.js';
 import { ItemView } from './itemView.js';
 import { KartView } from './kartView.js';
 import { ChaseCamera } from './camera.js';
@@ -47,6 +49,10 @@ export class RaceStage {
     else this.worldView = new TrackView(this.scene, session.world, { quality: renderer.quality.q });
     this.hazardView = session.world.hazards?.length ? new HazardView(this.scene, session.world, this.fx, theme) : null;
 
+    this.skids = new SkidMarks(this.scene);
+    this.replayBuf = new ReplayBuffer();
+    this.replay = null;
+    this.replayStates = new Map();
     this.itemView = new ItemView(this.scene, this.fx, { localId: session.localId });
     this.kartViews = new Map();
     const outlines = renderer.quality.q.outlines;
@@ -61,10 +67,7 @@ export class RaceStage {
     this.unsubQ = renderer.quality.onChange((q) => {
       this.fx.setBudget(q.particles);
       this.fx.setViewport(renderer.gl.getDrawingBufferSize(new THREE.Vector2()).y, this.chase.baseFov);
-      for (const kv of this.kartViews.values()) {
-        if (kv.veh.outline) kv.veh.outline.visible = q.outlines;
-        if (kv.fig?.outline) kv.fig.outline.visible = q.outlines;
-      }
+      for (const kv of this.kartViews.values()) kv._ol = undefined; // re-evaluated by setLod next frame
     });
     renderer.onResize = () => {
       this.camera.aspect = renderer.aspect;
@@ -131,6 +134,16 @@ export class RaceStage {
     }
   }
 
+  onLocalFinish() { if (this.session.localId && !this.session.isOnline) this.replayPending = 1.4; }
+
+  endReplay() {
+    this.replay = null;
+    this.chase.setAspect(this.camera.aspect);
+    const f = this.session.viewState(this.focusId);
+    if (f) this.chase.snap(f);
+    this.onReplay?.(false);
+  }
+
   popBalloon(kv) {
     const p = kv.root.position;
     const c = new THREE.Color(kv.racer.kartColor || '#ff5a8a');
@@ -159,15 +172,40 @@ export class RaceStage {
       this.spectating = true;
     }
     if (local && local.eliminated && this.focusId === local.id) { this.spectating = true; this.cycleFocus(1); }
-    for (const k of s.karts) {
-      const v = s.viewState(k.id);
-      if (k.id === this.focusId) v.lookBack = input ? (input.btn & BTN.LOOK) !== 0 : false;
-      this.kartViews.get(k.id)?.update(v, dt, this.t);
+    // finish replay: starts shortly after the local player crosses the line
+    if (this.replayPending !== undefined && (this.replayPending -= dt) <= 0) {
+      this.replayPending = undefined;
+      const clip = this.replayBuf.clip(7.5);
+      if (clip.length > 40) { this.replay = new ReplayPlayer(clip, s.world, s.localId); this.onReplay?.(true); }
     }
+    const rp = this.replay;
+    const views = this._views || (this._views = new Map());
+    for (const k of s.karts) {
+      let v = s.viewState(k.id);
+      views.set(k.id, v);
+      if (rp) {
+        let st = this.replayStates.get(k.id);
+        if (!st) { st = fakeKart({ element: k.element, id: k.id }); this.replayStates.set(k.id, st); }
+        v = rp.stateAt(k.id, st) || v;
+      } else if (dt > 0) this.skids.update(v);
+      if (k.id === this.focusId) v.lookBack = input ? (input.btn & BTN.LOOK) !== 0 : false;
+      const kv = this.kartViews.get(k.id);
+      if (kv) {
+        kv.setLod(Math.hypot(v.x - this.camera.position.x, v.z - this.camera.position.z), this.renderer.quality.q.outlines);
+        kv.update(v, dt, this.t);
+      }
+    }
+    if (!rp && dt > 0) this.replayBuf.record(s.karts, (id) => views.get(id), dt);
     const focus = s.viewState(this.focusId);
-    if (focus) this.chase.update(focus, dt, { lookBack: focus.lookBack });
+    if (rp) {
+      rp.step(dt);
+      const f = this.replayStates.get(rp.focusId);
+      if (f) rp.camera(f, this.camera);
+      if (rp.done) this.endReplay();
+    } else if (focus) this.chase.update(focus, dt, { lookBack: focus.lookBack });
     this.updateIntro(focus);
     this.updateGhosts(dt);
+    this.skids.flush(dt);
     this.fx.update(dt);
     const karts = new Map(s.karts.map((k) => [k.id, k]));
     this.itemView.update(s.itemState?.(), dt, this.t, karts);
@@ -232,6 +270,7 @@ export class RaceStage {
     for (const kv of this.kartViews.values()) kv.dispose();
     for (const g of this.ghosts || []) g.kv.dispose();
     this.itemView.dispose();
+    this.skids.dispose();
     this.fx.dispose();
     this.worldView.dispose?.();
     this.hazardView?.dispose();
