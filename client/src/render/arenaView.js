@@ -93,6 +93,7 @@ export class ArenaView {
     };
     topMats.boost.map.needsUpdate = true;
     this.padTex = topMats.boost.map;
+    this.topMats = topMats;
     const sideMat = createToyMaterial({ vertexColors: false, color: theme.cliff || '#c9a46c' });
     const propMat = createToyMaterial({ vertexColors: false, color: '#ff7a1a', spec: 1 });
     for (const f of world.floors) {
@@ -199,6 +200,7 @@ export class ArenaView {
     this.group.traverse((o) => {
       if (o.geometry) o.geometry.dispose();
     });
+    for (const m of Object.values(this.topMats || {})) { m.map?.dispose(); m.dispose(); }
     this.group.removeFromParent();
   }
 }

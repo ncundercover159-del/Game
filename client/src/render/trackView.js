@@ -496,6 +496,6 @@ export class TrackView {
   dispose() {
     this.group.traverse((o) => { if (o.geometry && !o.isSkinnedMesh) o.geometry.dispose(); });
     this.group.removeFromParent();
-    for (const m of Object.values(this.mats)) m.dispose();
+    for (const m of Object.values(this.mats)) { m.map?.dispose(); m.dispose(); } // incl. unused surface materials
   }
 }

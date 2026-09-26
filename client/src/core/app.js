@@ -86,7 +86,10 @@ export class App {
     document.getElementById('boot')?.classList.add('gone');
     this.loop.start();
     const p = this.params;
-    if (p.get('race') || p.get('track')) {
+    if (p.get('edit')) {
+      const { TrackEditor } = await import('../dev/editor.js');
+      this.editor = new TrackEditor(this, p.get('edit'));
+    } else if (p.get('race') || p.get('track')) {
       // dev shortcut: jump straight into a race
       const trackId = p.get('race') || p.get('track');
       const player = { ...getProfile().selection, racerId: p.get('racer') || getProfile().selection.racerId, name: 'You' };

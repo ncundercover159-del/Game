@@ -675,6 +675,8 @@ export class KartView {
     this.shadow.material.dispose();
     this.kartMat.dispose();
     this.figMat.dispose();
+    this.veh.mesh.skeleton?.dispose();
+    this.fig?.mesh.skeleton?.dispose();
     for (const f of this.flames) { f.outer.material.dispose(); f.core.material.dispose(); }
     this.veh.outline?.material.dispose();
     this.fig?.outline?.material.dispose();

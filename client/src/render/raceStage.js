@@ -8,6 +8,7 @@ import { TrackView } from './trackView.js';
 import { HazardView } from './hazardView.js';
 import { SkidMarks } from './skidMarks.js';
 import { ReplayBuffer, ReplayPlayer } from './replay.js';
+import { disposeTree } from './dispose.js';
 import { ItemView } from './itemView.js';
 import { KartView } from './kartView.js';
 import { ChaseCamera } from './camera.js';
@@ -202,6 +203,8 @@ export class RaceStage {
       const f = this.replayStates.get(rp.focusId);
       if (f) rp.camera(f, this.camera);
       if (rp.done) this.endReplay();
+    } else if (this.editor?.updateCamera(this.camera, dt)) {
+      // dev track editor owns the camera
     } else if (focus) this.chase.update(focus, dt, { lookBack: focus.lookBack });
     this.updateIntro(focus);
     this.updateGhosts(dt);
@@ -267,6 +270,7 @@ export class RaceStage {
 
   dispose() {
     this.unsubQ?.();
+    disposeTree(this.scene); // everything still attached to the scene (views remove themselves below)
     for (const kv of this.kartViews.values()) kv.dispose();
     for (const g of this.ghosts || []) g.kv.dispose();
     this.itemView.dispose();
@@ -275,6 +279,7 @@ export class RaceStage {
     this.worldView.dispose?.();
     this.hazardView?.dispose();
     this.sky.dispose();
+    this.scene.clear();
     this.renderer.onResize = null;
   }
 }

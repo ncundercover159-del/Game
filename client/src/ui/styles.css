@@ -466,3 +466,14 @@ body.editing-layout .layout-editor { background: rgba(10,6,20,.15); }
 .hud.replaying::after { content: '● REPLAY'; position: absolute; left: calc(var(--sal) + 18px); top: calc(var(--sat) + 14px); font-family: var(--font-display); font-size: 26px;
   color: #fff; -webkit-text-stroke: 1.5px #1a1426; paint-order: stroke fill; animation: blink 1s steps(2) infinite; }
 .hud.replaying::before { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 6px rgba(255,255,255,.12), inset 0 -40px 60px rgba(0,0,0,.35); }
+/* ---------- dev track editor ---------- */
+.editor-panel { position: absolute; right: calc(var(--sar) + 8px); top: calc(var(--sat) + 8px); bottom: calc(var(--sab) + 8px); width: 250px; z-index: 30;
+  background: rgba(26,20,38,.88); border: 3px solid var(--ink); border-radius: 14px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; font-size: 12px; }
+.ed-title { font-family: var(--font-display); font-size: 18px; }
+.ed-tools { display: flex; flex-wrap: wrap; gap: 4px; }
+.ed-tool { font: 700 11px var(--font-body); padding: 4px 7px; border-radius: 8px; border: 2px solid var(--ink); background: #e8e2ff; color: #1a1426; }
+.ed-tool.on { background: var(--gold); }
+.ed-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.ed-row .btn { font-size: 13px; min-height: 32px; padding: 3px 10px; }
+.ed-status { color: var(--gold); min-height: 30px; }
+.ed-list { opacity: .85; }
