@@ -29,6 +29,7 @@ export class Hud {
         <div class="pills">
           <div class="pill coins"><span class="ic">${ICONS.coin}</span><b class="coin-n">00</b></div>
           <div class="pill laps"><span class="ic">${ICONS.flag}</span><b class="lap-n">1/3</b></div>
+          <div class="pill balloons"><b class="bal-n"></b></div>
         </div>
       </div>
       <div class="hud-top"><button class="pause-btn" aria-label="Pause">${ICONS.pause}</button><div class="timer">0:00.000</div><div class="split"></div></div>
@@ -41,6 +42,7 @@ export class Hud {
       <div class="warn"></div>
       <div class="captions"></div>
       <div class="netinfo"></div>
+      <div class="battleboard"></div>
       <div class="spectate"></div>
     `;
     root.appendChild(this.el);
@@ -50,7 +52,7 @@ export class Hud {
       pos: q('.position'), banner: q('.banner'), wrong: q('.wrongway'), ticker: q('.ticker'), mini: q('.minimap'),
       spFill: q('.sp-fill'), spDrift: q('.sp-drift'), spN: q('.sp-n'), itemIcon: q('.item-icon'), itemCount: q('.item-count'),
       slot: q('.item-slot'), warn: q('.warn'), captions: q('.captions'), pause: q('.pause-btn'), laps: q('.laps'),
-      net: q('.netinfo'), spectate: q('.spectate'),
+      net: q('.netinfo'), spectate: q('.spectate'), balN: q('.bal-n'), board: q('.battleboard'),
     };
     this.$.pause.addEventListener('click', () => this.onPause?.());
     this.arcLen = 157;
@@ -202,8 +204,10 @@ export class Hud {
       }
       L.place = place;
     }
-    const t = k.finished ? k.finishTime : Math.max(0, race.time);
-    const tt = fmtTime(t);
+    const battle = race.mode === 'battle' && race.battle;
+    const t = battle ? Math.max(0, race.battle.timeLeft ?? 0) : k.finished ? k.finishTime : Math.max(0, race.time);
+    const tt = battle ? `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}` : fmtTime(t);
+    if (battle) this.updateBattle(k, race, t);
     if (L.time !== tt) { $.timer.textContent = tt; L.time = tt; }
     // speedometer + drift charge ring
     const sp = Math.abs(k.speed);
@@ -217,6 +221,21 @@ export class Hud {
     this.el.classList.toggle('boosting', k.boostTime > 0);
     if (L.ww !== k.isWrongWay) { $.wrong.classList.toggle('show', !!k.isWrongWay); L.ww = k.isWrongWay; }
     this.el.classList.toggle('no-laps', race.mode === 'battle');
+  }
+
+  // Battle: balloons / coin score pill, low-time warning and a live top-4 board.
+  updateBattle(k, race, timeLeft) {
+    const $ = this.$, L = this.last;
+    const coins = race.battle.variant === 'coins';
+    const bal = coins ? `🪙 ${k.coins}` : (k.eliminated ? '💥 OUT' : '🎈'.repeat(Math.max(0, k.balloons ?? 0)) || '—');
+    if (L.bal !== bal) { $.balN.textContent = bal; if (L.bal) this.pop($.balN.parentElement); L.bal = bal; }
+    this.el.classList.toggle('low-time', timeLeft < 15 && timeLeft > 0);
+    const ranked = (race.ranked || race.karts).slice(0, 4);
+    const key = ranked.map((o) => `${o.id}:${coins ? o.coins : o.balloons}:${o.eliminated}`).join('|');
+    if (L.board !== key) {
+      L.board = key;
+      $.board.innerHTML = ranked.map((o, i) => `<div class="${o.id === k.id ? 'me' : ''}${o.eliminated ? ' out' : ''}"><b>${i + 1}</b> ${o.name} <span>${coins ? `🪙${o.coins}` : o.eliminated ? '💥' : '🎈'.repeat(o.balloons || 0)}</span></div>`).join('');
+    }
   }
 
   // Item slot: roulette animation, held item, triple counts, golden timer.

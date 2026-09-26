@@ -12,6 +12,8 @@ const DATA = {
   cups: [],
   songs: {},
   achievements: [],
+  staffTimes: {}, // trackId -> staff ghost time
+  staff: {},      // trackId -> async loader of the staff ghost (client) 
 };
 
 export function setGameData(d) {

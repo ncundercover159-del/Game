@@ -84,6 +84,17 @@ export class KartView {
     this.gliderBone = this.veh.bones.glider;
     if (this.gliderBone) this.gliderBone.scale.setScalar(0.001);
 
+    this.ghostColor = opts.ghost ? opts.ghostColor || '#8fd0ff' : null;
+    if (opts.ghost) {
+      // translucent blue-ish time-trial ghost
+      for (const m of [this.kartMat, this.figMat]) {
+        m.transparent = true;
+        m.depthWrite = false;
+        m.uniforms.uOpacity.value = 0.42;
+        m.uniforms.uFlash.value = 0.35;
+        m.uniforms.uFlashColor.value.set(opts.ghostColor || '#8fd0ff');
+      }
+    }
     this.fig = null;
     if (this.racer.figure) {
       const rt = racerTemplate(this.racer, detail);
@@ -98,6 +109,25 @@ export class KartView {
     // real GLB models replace the procedural figure / vehicle when provided (no code changes needed)
     if (this.racer.modelUrl) this.swapModel('fig', this.racer.modelUrl);
     if (this.vehicle.modelUrl) this.swapModel('veh', this.vehicle.modelUrl);
+
+    // battle balloons (shown while k.balloons > 0)
+    this.balloons = [];
+    {
+      const col = new THREE.Color(this.racer.kartColor || '#ff5a8a');
+      for (let i = 0; i < 3; i++) {
+        const grp = new THREE.Group();
+        const b = new THREE.Mesh(new THREE.SphereGeometry(0.27, 12, 9), new THREE.MeshLambertMaterial({ color: col.clone().offsetHSL(i * 0.06, 0, 0.05), emissive: col, emissiveIntensity: 0.25 }));
+        b.scale.set(1, 1.2, 1);
+        b.position.y = 1.15;
+        const str = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.95, 3), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
+        str.position.y = 0.5;
+        grp.add(b, str);
+        grp.position.set((i - 1) * 0.32, 0.7, -1.15);
+        grp.visible = false;
+        this.body.add(grp);
+        this.balloons.push(grp);
+      }
+    }
 
     // blob shadow
     const sh = new THREE.Mesh(
@@ -205,6 +235,17 @@ export class KartView {
       B.steer.quaternion.copy(bind.steer.quat);
       B.steer.rotateZ(steer * 0.9);
     }
+    // battle balloons sway behind the kart
+    if (this.balloons.length) {
+      const n = k.balloons > 0 && !k.eliminated ? k.balloons : 0;
+      this.balloons.forEach((g, i) => {
+        g.visible = i < n;
+        if (!g.visible) return;
+        g.rotation.x = -0.45 - Math.min(0.5, Math.abs(k.speed || 0) * 0.012) + Math.sin(time * 3 + i) * 0.08;
+        g.rotation.z = Math.sin(time * 2.2 + i * 1.7) * 0.15 + (i - 1) * 0.2;
+      });
+    }
+
     // glider
     this.gliderOpen = damp(this.gliderOpen, k.glider ? 1 : 0, 8, dt);
     if (this.gliderBone) this.gliderBone.scale.setScalar(Math.max(0.001, this.gliderOpen));
@@ -220,6 +261,7 @@ export class KartView {
       fc.setRGB(1, 1, 1);
       flash = this.flashT * 2;
     }
+    if (this.ghostColor) { flash = 0.35; fc.set(this.ghostColor); }
     this.figMat.uniforms.uFlash.value = flash;
     this.kartMat.uniforms.uFlash.value = flash;
     this.kartMat.uniforms.uFlashColor.value.copy(fc);

@@ -11,6 +11,11 @@ export function defaultServerUrl() {
   return `${secure ? 'wss' : 'ws'}://${host}/ws`;
 }
 
+// HTTP base of the game server (ghost sharing API etc.)
+export function httpBase() {
+  return defaultServerUrl().replace(/^ws/, 'http').replace(/\/ws$/, '');
+}
+
 export class NetClient {
   constructor(url = defaultServerUrl()) {
     this.url = url;

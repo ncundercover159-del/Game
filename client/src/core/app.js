@@ -22,6 +22,8 @@ import { NetSession } from '../net/netSession.js';
 import { OnlineMenu, LobbyScreen } from '../ui/online.js';
 import { listOf } from '@shared/data/registry.js';
 import '@shared/track/track.js';
+import { installTimeTrial } from '../modes/timeTrial.js';
+import { installBattle } from '../modes/battle.js';
 
 export class App {
   constructor(gameEl, uiEl) {
@@ -293,6 +295,7 @@ export class App {
       s.races++;
       if (this.session.isOnline) s.onlineRaces++;
       if (place === 1) s.wins++;
+      if (this.flow?.mode === 'battle' && place === 1) s.battleWins++;
       if (place <= 3) s.podiums++;
       s.itemsUsed += me?.itemsUsed || 0;
       s.hitsLanded += me?.hitsLanded || 0;
@@ -436,5 +439,8 @@ export class App {
     }
   }
 }
+
+installTimeTrial(App);
+installBattle(App);
 
 export { settings };

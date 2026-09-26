@@ -15,6 +15,8 @@ import { updateLighting } from './toyMaterial.js';
 import { BTN } from '@shared/physics/input.js';
 import { RACE } from '@shared/config.js';
 import { smoothstep } from '@shared/math.js';
+import { ghostPose } from '@shared/sim/ghost.js';
+import { fakeKart } from './menuStage.js';
 
 export class RaceStage {
   constructor(renderer, session, opts = {}) {
@@ -72,6 +74,29 @@ export class RaceStage {
     renderer.onResize();
   }
 
+  // Time-trial ghost: a translucent kart replaying recorded poses.
+  addGhost(ghost, color) {
+    const kv = new KartView(this.scene, { racerId: ghost.racer, vehicleId: ghost.vehicle, wheelsId: ghost.wheels, gliderId: ghost.glider }, this.fx, { outlines: false, ghost: true, ghostColor: color });
+    kv.shadow.visible = false;
+    const g = { ghost, kv, state: fakeKart({ element: kv.element }), prevX: null, prevZ: null };
+    (this.ghosts ||= []).push(g);
+    return g;
+  }
+
+  updateGhosts(dt) {
+    const time = this.session.phase === 'countdown' ? 0 : this.session.time;
+    for (const g of this.ghosts || []) {
+      const st = g.state;
+      const p = ghostPose(g.ghost, time, st);
+      if (!p) continue;
+      st.speed = g.prevX === null || dt <= 0 ? 0 : Math.hypot(st.x - g.prevX, st.z - g.prevZ) / dt;
+      g.prevX = st.x; g.prevZ = st.z;
+      st.steer = st.drift * 0.6;
+      g.kv.root.visible = !p.done || time < 2;
+      g.kv.update(st, dt, this.t);
+    }
+  }
+
   handleEvents(events) {
     const istate = this.session.itemState?.();
     for (const e of events) {
@@ -94,12 +119,23 @@ export class RaceStage {
           break;
         case 'finish': if (kv?.anim) kv.anim.mode = e.place <= 3 ? 'victory' : 'defeat'; break;
         case 'rescue': kv?.anim?.play('hit'); break;
+        case 'balloonPop': if (kv) this.popBalloon(kv); break;
+        case 'eliminated': kv?.anim?.play('sad'); break;
         case 'countdown': if (e.n === 2) for (const v of this.kartViews.values()) if (Math.random() < 0.4) v.anim?.play('taunt'); break;
         case 'land': kv?.burst('land', e); if (local && e.air > 0.5) this.chase.shake(Math.min(0.5, e.air * 0.3)); break;
         case 'trick': kv?.burst('trick', e); break;
         case 'wallHit': if (local) this.chase.shake(Math.min(0.6, e.impact * 0.04)); break;
         default: break;
       }
+    }
+  }
+
+  popBalloon(kv) {
+    const p = kv.root.position;
+    const c = new THREE.Color(kv.racer.kartColor || '#ff5a8a');
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2;
+      this.fx.chips.emit({ x: p.x, y: p.y + 2.2, z: p.z, vx: Math.cos(a) * 6, vy: 3 + Math.random() * 4, vz: Math.sin(a) * 6, gravity: 12, life: 0.8, size: [0.35, 0.2], color: [c.r, c.g, c.b, 1] });
     }
   }
 
@@ -130,6 +166,7 @@ export class RaceStage {
     const focus = s.viewState(this.focusId);
     if (focus) this.chase.update(focus, dt, { lookBack: focus.lookBack });
     this.updateIntro(focus);
+    this.updateGhosts(dt);
     this.fx.update(dt);
     const karts = new Map(s.karts.map((k) => [k.id, k]));
     this.itemView.update(s.itemState?.(), dt, this.t, karts);
@@ -190,6 +227,7 @@ export class RaceStage {
   dispose() {
     this.unsubQ?.();
     for (const kv of this.kartViews.values()) kv.dispose();
+    for (const g of this.ghosts || []) g.kv.dispose();
     this.itemView.dispose();
     this.fx.dispose();
     this.worldView.dispose?.();

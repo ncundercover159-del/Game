@@ -11,8 +11,8 @@ import { getProfile, updateProfile, isUnlocked } from '../core/profile.js';
 import { fmtTime, ordinal } from './hud.js';
 
 const backBtn = (screen) => h('button.back-btn', { onclick: () => { uiSound.back(); screen.manager.back(); }, 'aria-label': 'Back' }, h('span', { html: ICONS.back }));
-const coinsBadge = () => h('div.coins-badge', { html: `${ICONS.coin}<b>${getProfile().coins}</b>` });
-const topbar = (screen, title, extra = []) => h('div.topbar', backBtn(screen), h('h1', title), ...extra);
+export const coinsBadge = () => h('div.coins-badge', { html: `${ICONS.coin}<b>${getProfile().coins}</b>` });
+export const topbar = (screen, title, extra = []) => h('div.topbar', backBtn(screen), h('h1', title), ...extra);
 
 export function racerCard(r, { selected, locked, onClick } = {}) {
   const img = r.portrait ? h('img', { src: r.portrait, alt: r.name }) : h('div.ph', { html: ELEMENT_GLYPHS[r.element] || '' });
@@ -280,7 +280,7 @@ export class TrackSelect {
           onclick: () => {
             if (!def) return this.app.toast('This track is still under construction.');
             uiSound.confirm();
-            if (this.params.next === 'tt') this.app.startTimeTrial({ trackId: id });
+            if (this.params.next === 'tt') this.app.openTimeTrialSetup?.(this.manager, id) ?? this.app.startTimeTrial({ trackId: id });
             else this.app.openVersusRules?.(this.manager, { ...this.params, trackId: id }) ?? this.app.startVersus({ ...this.params, trackId: id });
           },
         }, c, def?.name || 'Under construction', best ? h('div', { style: { fontSize: '11px', opacity: 0.85 } }, `Best ${fmtTime(best.time)}`) : null);
@@ -304,11 +304,13 @@ export class ResultsScreen {
       const tr = h(`tr${k.id === localId ? '.me' : ''}`, { style: { animationDelay: `${i * 0.05}s` } },
         h('td', `${k.place ?? i + 1}`),
         h('td', h('span.el', { style: { color: ELEMENT_COLORS[r?.element] }, html: ELEMENT_GLYPHS[r?.element] || '' }), k.id === localId ? `${k.name} (You)` : k.name),
-        h('td', k.finishTime !== undefined ? fmtTime(k.finishTime) + (k.estimated ? '*' : '') : ''),
+        h('td', race.mode === 'battle'
+          ? (race.battle?.variant === 'coins' ? `🪙 ${k.coins}` : `🎈 ${k.balloons ?? 0} · ${k.score ?? 0} pops`)
+          : k.finishTime !== undefined ? fmtTime(k.finishTime) + (k.estimated ? '*' : '') : ''),
         h('td.pts', pts !== undefined ? `+${pts}` : ''));
       return tr;
     };
-    const left = h('div.panel', h('h2', 'Race results'), h('table.rtable', (race.ranked || race.karts).map((k, i) => row(k, i, gained?.[k.id]))));
+    const left = h('div.panel', h('h2', race.mode === 'battle' ? 'Battle results' : 'Race results'), h('table.rtable', (race.ranked || race.karts).map((k, i) => row(k, i, gained?.[k.id]))));
     const panels = [left];
     if (gp) {
       const st = gp.standings();

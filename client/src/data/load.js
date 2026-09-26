@@ -36,5 +36,9 @@ export function loadClientData() {
     cups: Object.values(cups)[0] || [],
     achievements: Object.values(ach)[0] || [],
     songs: g(songs),
+    // staff ghosts are big: loaded lazily (id -> () => Promise<{ id, time, racer, code }>)
+    staffTimes: Object.values(import.meta.glob('./staffTimes.json', { eager: true, import: 'default' }))[0] || {},
+    staff: Object.fromEntries(Object.entries(import.meta.glob('./staff/*.json', { import: 'default' }))
+      .map(([p, fn]) => [p.split('/').pop().replace('.json', ''), fn])),
   });
 }

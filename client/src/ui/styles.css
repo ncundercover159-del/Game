@@ -175,6 +175,16 @@ button { font-family: var(--font-body); }
   font-family: var(--font-body); font-size: 14px; font-weight: 600; }
 .captions div { background: rgba(0,0,0,.55); padding: 2px 10px; border-radius: 8px; }
 .hud.no-laps .laps { display: none; }
+.pill.balloons { display: none; font-style: normal; -webkit-text-stroke: 0; font-size: 22px; padding: 3px 12px; }
+.hud[data-mode=battle] .pill.balloons { display: flex; }
+.battleboard { display: none; position: absolute; right: calc(var(--sar) + 10px); top: calc(var(--sat) + 86px); font-family: var(--font-body); font-size: 12px;
+  font-weight: 700; background: rgba(26,20,38,.55); border-radius: 10px; padding: 4px 8px; min-width: 120px; }
+.hud[data-mode=battle] .battleboard { display: block; }
+.battleboard div { display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+.battleboard div span { margin-left: auto; }
+.battleboard .me { color: var(--gold); }
+.battleboard .out { opacity: .45; text-decoration: line-through; }
+.hud.low-time .timer { color: #ff5a5a; animation: blink .5s steps(2) infinite; }
 @media (max-height: 360px) {
   .item-slot { width: 64px; height: 64px; }
   .pill { font-size: 21px; }
