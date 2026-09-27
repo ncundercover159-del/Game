@@ -40,3 +40,11 @@ meta tags, so "Add to Home Screen" gives you a fullscreen, chrome-free launcher.
 ## Files
 
 - `index.html` — the whole game: markup, styles, and logic.
+
+---
+
+# Also in this repo: SQUISHY
+
+[`squishy/`](squishy/) is a gentle two-player online co-op exploration game (Three.js +
+Node WebSockets): two squishy creatures explore a Japanese forest shrine together, solve
+co-op puzzles and answer trivia. See [`squishy/README.md`](squishy/README.md).

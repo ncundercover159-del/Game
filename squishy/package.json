@@ -1,0 +1,25 @@
+{
+  "name": "squishy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SQUISHY — a gentle two-player co-op exploration game set in a Japanese forest shrine.",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:client": "vite",
+    "dev:server": "node --watch server/index.js",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "test": "node scripts/smoke-test.js"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "three": "^0.186.1",
+    "vite": "^8.3.1"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

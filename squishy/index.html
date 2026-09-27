@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f3c99a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="SQUISHY — two squishy friends explore a forest shrine together.">
+<title>SQUISHY</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='38' rx='26' ry='20' fill='%23f6b3c4'/%3E%3Ccircle cx='24' cy='36' r='3' fill='%233b2f2a'/%3E%3Ccircle cx='40' cy='36' r='3' fill='%233b2f2a'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --cream: #fff7ec;
+    --paper: rgba(255, 248, 238, 0.94);
+    --ink: #3b2f2a;
+    --ink-soft: rgba(59, 47, 42, 0.62);
+    --pink: #f4a9bd;
+    --pink-deep: #e0869f;
+    --matcha: #9ccc84;
+    --matcha-deep: #6fa65a;
+    --vermilion: #d9573b;
+    --gold: #f2c46d;
+    --shadow: 0 10px 30px rgba(80, 45, 20, 0.22);
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #f0c595; }
+  body {
+    font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  canvas#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  button { font: inherit; color: inherit; border: 0; cursor: pointer; }
+  .hidden { display: none !important; }
+
+  /* ---- lobby ---------------------------------------------------------- */
+  .screen {
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: calc(var(--safe-t) + 24px) 20px calc(var(--safe-b) + 24px);
+    background: radial-gradient(120% 90% at 50% 20%, rgba(255, 236, 206, 0.55), rgba(240, 180, 130, 0.35) 60%, rgba(160, 100, 80, 0.45));
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    text-align: center;
+  }
+  .title {
+    margin: 0; font-size: clamp(54px, 17vw, 104px); font-weight: 800; letter-spacing: 0.04em; line-height: 0.95;
+    color: var(--cream);
+    text-shadow: 0 4px 0 var(--pink-deep), 0 10px 26px rgba(120, 50, 30, 0.35);
+  }
+  .title span { display: inline-block; animation: bob 2.6s ease-in-out infinite; }
+  .title span:nth-child(2n) { animation-delay: -0.4s; }
+  .title span:nth-child(3n) { animation-delay: -0.9s; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) scale(1, 1); } 45% { transform: translateY(-5px) scale(0.97, 1.04); } 55% { transform: translateY(0) scale(1.05, 0.94); } }
+  .subtitle { margin: 12px 0 30px; font-size: 16px; color: var(--cream); text-shadow: 0 1px 6px rgba(90, 40, 20, 0.5); max-width: 320px; }
+  .card {
+    background: var(--paper); border-radius: 26px; box-shadow: var(--shadow);
+    padding: 22px; width: min(360px, 100%);
+  }
+  .btn {
+    display: block; width: 100%; min-height: 56px; margin: 0 0 12px; border-radius: 18px;
+    font-size: 19px; font-weight: 700; letter-spacing: 0.02em;
+    background: var(--pink); color: #fff; box-shadow: 0 5px 0 var(--pink-deep);
+    transition: transform 0.08s, box-shadow 0.08s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--pink-deep); }
+  .btn.green { background: var(--matcha); box-shadow: 0 5px 0 var(--matcha-deep); }
+  .btn.green:active { box-shadow: 0 1px 0 var(--matcha-deep); }
+  .btn.ghost { background: transparent; color: var(--ink-soft); box-shadow: none; min-height: 40px; font-size: 15px; margin: 4px 0 0; }
+  .btn:disabled { opacity: 0.5; }
+  .join-row { display: flex; gap: 10px; }
+  .join-row .btn { margin: 0; flex: 0 0 96px; }
+  .code-input {
+    flex: 1; min-width: 0; height: 56px; border-radius: 18px; border: 3px solid rgba(59, 47, 42, 0.12);
+    background: #fff; text-align: center; font: inherit; font-size: 28px; font-weight: 800; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--ink); padding: 0 0 0 0.3em; outline: none;
+    -webkit-user-select: text; user-select: text;
+  }
+  .code-input:focus { border-color: var(--matcha); }
+  .divider { margin: 14px 0; font-size: 13px; color: var(--ink-soft); letter-spacing: 0.1em; }
+  .err { min-height: 20px; margin: 12px 0 0; color: var(--vermilion); font-size: 14px; }
+  .howto { margin-top: 18px; font-size: 13px; color: var(--cream); opacity: 0.95; text-shadow: 0 1px 4px rgba(90, 40, 20, 0.6); line-height: 1.5; max-width: 340px; }
+
+  .big-code { font-size: clamp(64px, 22vw, 96px); font-weight: 800; letter-spacing: 0.16em; margin: 6px 0 4px; padding-left: 0.16em; color: var(--ink); }
+  .label { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  .dots span { display: inline-block; width: 8px; height: 8px; margin: 0 3px; border-radius: 50%; background: var(--matcha); animation: dot 1.2s ease-in-out infinite; }
+  .dots span:nth-child(2) { animation-delay: 0.15s; } .dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes dot { 0%, 100% { transform: translateY(0) scale(1.2, 0.8); } 50% { transform: translateY(-7px) scale(0.9, 1.1); } }
+  .waiting-line { margin: 16px 0 18px; color: var(--ink-soft); font-size: 15px; }
+
+  /* ---- HUD ------------------------------------------------------------ */
+  #hud { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+  .chip {
+    position: absolute; pointer-events: auto;
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px 7px 14px; border-radius: 999px; background: var(--paper); box-shadow: 0 4px 14px rgba(80, 45, 20, 0.18);
+    font-size: 14px; font-weight: 700; letter-spacing: 0.08em;
+  }
+  #codeChip { top: calc(var(--safe-t) + 12px); left: calc(var(--safe-l) + 12px); }
+  #codeChip button { width: 26px; height: 26px; border-radius: 50%; background: rgba(59, 47, 42, 0.08); font-size: 14px; line-height: 1; }
+  #moments { top: calc(var(--safe-t) + 12px); right: calc(var(--safe-r) + 12px); padding: 7px 14px; pointer-events: none; }
+  #moments .spark { color: var(--gold); text-shadow: 0 0 6px rgba(242, 196, 109, 0.8); }
+  #moments.pop { animation: pop 0.5s ease; }
+  @keyframes pop { 30% { transform: scale(1.18); } }
+  .dot-me { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+  #zoneToast {
+    position: absolute; top: calc(var(--safe-t) + 64px); left: 50%; transform: translate(-50%, -8px);
+    text-align: center; color: #fff; opacity: 0; transition: opacity 0.9s, transform 0.9s;
+    text-shadow: 0 2px 10px rgba(60, 25, 10, 0.55);
+  }
+  #zoneToast.show { opacity: 1; transform: translate(-50%, 0); }
+  #zoneToast .jp { font-size: 30px; font-weight: 700; letter-spacing: 0.2em; padding-left: 0.2em; }
+  #zoneToast .en { font-size: 13px; letter-spacing: 0.28em; text-transform: uppercase; margin-top: 2px; }
+
+  #hint {
+    position: absolute; left: 50%; bottom: calc(var(--safe-b) + 176px); transform: translateX(-50%);
+    width: min(440px, calc(100% - 32px)); text-align: center;
+    padding: 10px 16px; border-radius: 16px; background: rgba(255, 248, 238, 0.86);
+    font-size: 15px; line-height: 1.35; box-shadow: 0 4px 14px rgba(80, 45, 20, 0.15);
+    opacity: 0; transition: opacity 0.5s;
+  }
+  #hint.show { opacity: 1; }
+  @media (orientation: landscape) { #hint { bottom: calc(var(--safe-b) + 22px); width: min(440px, calc(100% - 340px)); font-size: 14px; } }
+  @media (orientation: landscape) and (max-width: 560px) { #hint { bottom: calc(var(--safe-b) + 150px); width: calc(100% - 32px); } }
+
+  #timerRing { position: absolute; left: 50%; top: calc(var(--safe-t) + 14px); transform: translateX(-50%); opacity: 0; transition: opacity 0.4s; }
+  #timerRing.show { opacity: 1; }
+
+  #stick {
+    position: absolute; left: calc(var(--safe-l) + 28px); bottom: calc(var(--safe-b) + 28px);
+    width: 132px; height: 132px; border-radius: 50%;
+    background: rgba(255, 248, 238, 0.28); border: 2px solid rgba(255, 248, 238, 0.55);
+    box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.25);
+    transition: opacity 0.3s;
+  }
+  #stick .knob {
+    position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%;
+    background: rgba(255, 248, 238, 0.9); box-shadow: 0 4px 10px rgba(80, 45, 20, 0.25);
+  }
+  #stick.floating { transition: none; }
+  #actionBtn {
+    position: absolute; right: calc(var(--safe-r) + 30px); bottom: calc(var(--safe-b) + 40px);
+    width: 104px; height: 104px; border-radius: 50%; pointer-events: auto;
+    background: radial-gradient(circle at 40% 35%, #fff 0%, var(--pink) 55%, var(--pink-deep) 100%);
+    box-shadow: 0 7px 0 rgba(170, 80, 100, 0.55), 0 12px 24px rgba(80, 45, 20, 0.25);
+    font-size: 15px; font-weight: 800; letter-spacing: 0.08em; color: #fff; text-shadow: 0 1px 3px rgba(150, 50, 70, 0.6);
+    transition: transform 0.08s, box-shadow 0.08s, border-radius 0.12s;
+  }
+  #actionBtn.down { transform: translateY(6px) scale(1.08, 0.86); box-shadow: 0 1px 0 rgba(170, 80, 100, 0.55), 0 6px 12px rgba(80, 45, 20, 0.2); border-radius: 46% 46% 40% 40%; }
+  #actionBtn.me1 { background: radial-gradient(circle at 40% 35%, #fff 0%, var(--matcha) 55%, var(--matcha-deep) 100%); box-shadow: 0 7px 0 rgba(80, 130, 60, 0.6), 0 12px 24px rgba(80, 45, 20, 0.25); text-shadow: 0 1px 3px rgba(50, 90, 40, 0.6); }
+  #touchZone { position: absolute; left: 0; top: 0; bottom: 0; width: 55%; pointer-events: auto; }
+  .modal-open #stick, .modal-open #actionBtn, .modal-open #hint, .modal-open #timerRing { opacity: 0 !important; pointer-events: none; }
+  .desktop #stick { opacity: 0.0; }
+  .desktop #actionBtn { opacity: 0.0; pointer-events: none; }
+  .keys-help { position: absolute; bottom: calc(var(--safe-b) + 14px); right: 16px; font-size: 12px; color: #fff; opacity: 0.85; text-shadow: 0 1px 4px rgba(60, 25, 10, 0.7); }
+
+  /* ---- trivia --------------------------------------------------------- */
+  #trivia {
+    position: fixed; inset: 0; z-index: 12; display: flex; align-items: center; justify-content: center;
+    padding: calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 16px);
+    background: rgba(60, 30, 20, 0.28);
+    animation: fadein 0.4s ease;
+  }
+  @keyframes fadein { from { opacity: 0; } }
+  .tcard {
+    width: min(460px, 100%); max-height: 100%; overflow-y: auto; background: var(--paper); border-radius: 28px; box-shadow: var(--shadow);
+    padding: 22px 18px 18px; text-align: center; animation: rise 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+    border-top: 8px solid var(--vermilion);
+  }
+  @keyframes rise { from { transform: translateY(30px) scale(0.94); opacity: 0; } }
+  .tgate { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--vermilion); font-weight: 800; }
+  .tq { font-size: clamp(19px, 5.2vw, 23px); font-weight: 700; line-height: 1.3; margin: 10px 4px 18px; }
+  .topt {
+    position: relative; display: flex; align-items: center; width: 100%; min-height: 62px; margin: 0 0 10px; padding: 12px 70px 12px 18px;
+    border-radius: 18px; background: #fff; border: 3px solid rgba(59, 47, 42, 0.1); text-align: left; font-size: 17px; font-weight: 600;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  }
+  .topt:active { transform: scale(0.98); }
+  .topt.mine { border-color: var(--ink); }
+  .topt.correct { background: #eaf6e2; border-color: var(--matcha-deep); }
+  .topt.dim { opacity: 0.55; }
+  .topt:disabled { cursor: default; }
+  .avatars { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; }
+  .av { width: 26px; height: 22px; border-radius: 50% 50% 46% 46%; position: relative; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.1); animation: plop 0.35s cubic-bezier(0.2, 1.6, 0.4, 1); }
+  .av::before, .av::after { content: ''; position: absolute; top: 9px; width: 3px; height: 4px; border-radius: 2px; background: var(--ink); }
+  .av::before { left: 8px; } .av::after { right: 8px; }
+  .av.p0 { background: var(--pink); } .av.p1 { background: var(--matcha); }
+  @keyframes plop { from { transform: scale(0.2, 1.6); } }
+  .tstatus { min-height: 44px; font-size: 15px; color: var(--ink-soft); margin: 8px 6px 0; line-height: 1.4; }
+  .tstatus .ready { display: inline-flex; align-items: center; gap: 6px; }
+  .tfact { margin: 6px 4px 14px; padding: 12px 14px; border-radius: 16px; background: rgba(242, 196, 109, 0.2); font-size: 15px; line-height: 1.45; text-align: left; }
+  .tresult { font-size: 20px; font-weight: 800; margin: 2px 0 8px; }
+
+  /* ---- overlays ------------------------------------------------------- */
+  #overlay { position: fixed; inset: 0; z-index: 15; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(50, 30, 25, 0.4); }
+  #overlay .card { text-align: center; }
+  #overlay h2, #finale h2 { margin: 4px 0 8px; font-size: 24px; }
+  #overlay p { margin: 0 0 16px; color: var(--ink-soft); line-height: 1.45; }
+
+  #fade { position: fixed; inset: 0; z-index: 9; pointer-events: none; background: radial-gradient(circle at 50% 45%, rgba(255, 226, 170, 0.5), rgba(40, 25, 40, 0.85)); opacity: 0; transition: opacity 3.5s ease; }
+  #fade.show { opacity: 1; }
+  #finale { position: fixed; inset: 0; z-index: 14; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadein 1.2s ease; }
+  #finale .card { text-align: center; }
+  .thanks { font-size: 34px; font-weight: 800; margin: 6px 0 4px; }
+  .thanks-jp { font-size: 15px; letter-spacing: 0.3em; color: var(--vermilion); }
+  .stats { display: flex; justify-content: center; gap: 10px; margin: 18px 0; flex-wrap: wrap; }
+  .stat { flex: 1 1 90px; background: #fff; border-radius: 16px; padding: 10px 6px; }
+  .stat b { display: block; font-size: 24px; }
+  .stat span { font-size: 12px; color: var(--ink-soft); letter-spacing: 0.06em; }
+  .pair { font-size: 40px; margin: 4px 0 2px; }
+  #finale .card, #overlay .card { max-height: 100%; overflow-y: auto; }
+  @media (max-height: 520px) {
+    .thanks { font-size: 26px; } .pair { display: none; }
+    .stats { margin: 10px 0; flex-wrap: nowrap; } .stat { padding: 6px 4px; } .stat b { font-size: 19px; }
+    #finale .card { padding: 14px 18px; width: min(520px, 100%); }
+    #finale .btn { min-height: 46px; }
+  }
+
+  #audioBtn { position: fixed; z-index: 6; top: calc(var(--safe-t) + 56px); right: calc(var(--safe-r) + 12px); width: 36px; height: 36px; border-radius: 50%; background: var(--paper); box-shadow: 0 4px 14px rgba(80, 45, 20, 0.18); font-size: 16px; }
+</style>
+</head>
+<body>
+<div id="lobby" class="screen">
+  <h1 class="title" aria-label="Squishy"><span>S</span><span>Q</span><span>U</span><span>I</span><span>S</span><span>H</span><span>Y</span></h1>
+  <p class="subtitle">Two squishy friends. One quiet forest shrine. Explore it together.</p>
+  <div class="card">
+    <button id="createBtn" class="btn">Create Room</button>
+    <div class="divider">— or join a friend —</div>
+    <div class="join-row">
+      <input id="codeInput" class="code-input" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CODE" inputmode="text" aria-label="Room code">
+      <button id="joinBtn" class="btn green">Join</button>
+    </div>
+    <div id="lobbyErr" class="err"></div>
+  </div>
+  <div class="howto">Move with the left thumb · hold <b>●</b> to <b>squish</b>.<br>Press switches together, bounce off each other, answer the shrine’s questions as one.</div>
+</div>
+
+<div id="waiting" class="screen hidden">
+  <div class="card">
+    <div class="label">Your room code</div>
+    <div id="bigCode" class="big-code">····</div>
+    <div class="waiting-line">Waiting for your partner <span class="dots"><span></span><span></span><span></span></span></div>
+    <button id="shareBtn" class="btn green">Share code</button>
+    <button id="cancelBtn" class="btn ghost">Cancel</button>
+  </div>
+</div>
+
+<div id="hud" class="hidden">
+  <div id="codeChip" class="chip"><span class="dot-me" id="meDot"></span><span id="chipCode">····</span><button id="chipClose" aria-label="Hide room code">×</button></div>
+  <div id="moments" class="chip"><span class="spark">✦</span> <span id="momentsN">0</span> moments</div>
+  <svg id="timerRing" width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">
+    <circle cx="27" cy="27" r="22" fill="rgba(255,248,238,.85)" />
+    <circle id="timerArc" cx="27" cy="27" r="18" fill="none" stroke="#6fa65a" stroke-width="5" stroke-linecap="round" transform="rotate(-90 27 27)" stroke-dasharray="113.1" stroke-dashoffset="0" />
+    <text id="timerText" x="27" y="32" text-anchor="middle" font-size="14" font-weight="800" fill="#3b2f2a">15</text>
+  </svg>
+  <div id="zoneToast"><div class="jp"></div><div class="en"></div></div>
+  <div id="hint"></div>
+  <div id="touchZone"></div>
+  <div id="stick"><div class="knob"></div></div>
+  <button id="actionBtn" aria-label="Squish">SQUISH</button>
+  <div class="keys-help hidden" id="keysHelp">WASD / arrows to move · hold Space to squish</div>
+</div>
+<button id="audioBtn" class="hidden" aria-label="Toggle sound">♪</button>
+
+<div id="trivia" class="hidden"></div>
+<div id="fade"></div>
+<div id="finale" class="hidden"></div>
+<div id="overlay" class="hidden"></div>
+
+<script type="module" src="/client/main.js"></script>
+</body>
+</html>
