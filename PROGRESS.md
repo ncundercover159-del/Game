@@ -239,11 +239,22 @@ more festival crowd gestures.
   the title, a farm typed and chosen through a save and reload, Use rebound to F and kept, the
   run key, instant text, colour-blind signals, touch: stick, Use, menu button, a tap). The smoke
   test now goes through the new-farm steps; the combat test leaves the hammering to Genzō.
-- `npm run bot`: 224 days (two years) in about three minutes, a save every week and a reload
-  every season. No console errors, softlocks or broken invariants.
-  Across the run it attended all 22 festivals, beat all five bosses and reached floor 125. It
-  played the story from the tolls through Act III to the sword laid to rest, restored all seven
-  altars and made 190+ calls on villagers.
+- `npm run bot`: 224 days (two years) in under four minutes. It saves every week and reloads
+  every season of the first year; the second year is one sitting. No console errors, softlocks
+  or broken invariants.
+  - Across the run it attended all 22 festivals, beat all five bosses and reached floor 125.
+  - It restored all seven altars, befriended all five kodama and gave the Archive 44 pieces.
+  - It courted and married Tomoe after Tatsu's extension, and saw 23 heart events.
+  - It harvested 888 times and shipped 73,948 mon. It trained 13 times at the dōjō, fished 37
+    times and made about 190 calls on villagers.
+  - Seed 11 refuses Kuroda, wins the petition and carries the sword. An earlier run signed with
+    him and laid the sword to rest; the story and deep e2e suites play those branches too.
+- The long run found three bugs, all fixed:
+  - After about a hundred days in one sitting the tile cache was full and the next new map
+    threw; the cache now starts over.
+  - Lava cells shared keys with land tiles.
+  - A villager walking from the mine mouth to anywhere but the shrine crashed the route search
+    (on the mine's way down, a warp to no fixed map).
 - Performance, headless Chromium at 1920x1080: update 0.04-0.15 ms and render 0.7-2.5 ms a
   frame in the title, farm (day, storm at night), village, a festival, the grove, three cave
   zones and a boss hall. Map entry takes 40-55 ms, down from 250-530 ms. The heap is flat at
