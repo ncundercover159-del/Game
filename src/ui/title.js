@@ -118,7 +118,7 @@ export class Title {
     const lx = Math.floor(w / 2 - lw / 2), ly = Math.floor(h * 0.47);
     panel(ctx, g.atlas, lx, ly, lw, lh);
     list.draw(ctx, lx + 4, ly + 6, lw - 8);
-    centre(ctx, fonts.small, t('menu_version', { n: SAVE_SLOTS }), w / 2, h - 12, 'ink6', 'ink0');
+    centre(ctx, fonts.body, t('menu_version', { n: SAVE_SLOTS }), w / 2, h - 14, 'ink5');
   }
 }
 
