@@ -49,15 +49,30 @@
   birthday gossip) with attachments; Shrine Offerings v1 (seven altars x four sets, rewards, and
   restorations: the terraces open, the bell rings again, the rest set flags for M5-M7); a
   minimal virtue store (Jin, Rei, Makoto from everyday acts); save v3 with a v2 migration.
-- [ ] M4 Nature and craft
+- [x] **M4 Nature and craft**: six skills (Farming, Foraging, Fishing, Mining, Swordsmanship,
+  Craftsmanship) at levels 1-10 with XP from everyday work, a perk choice at 5 and 10 (twelve
+  perks with real effects: prices, drops, quality, machine speed, catch bar) and a Skills tab
+  with the virtue heptagon; the Hollow Grove west of the village (56x44: cliff and waterfall,
+  pool, stream, bamboo with light shafts, cedar and mixed wood); 20 seasonal forage items and 4
+  artifacts on daily seeded spots (grove, shrine woods, village, farm) plus dig spots for the
+  hoe; fishing with Daigo's bamboo rod (sent by letter; charged cast 1-4 tiles, bite, strike) and a reel minigame
+  whose catch bar grows with skill, 24 river, pond, stream and pool fish by season, hour and
+  weather, junk, the Moon Carp legendary (clear autumn full moon, under the falls, 22:00-02:00)
+  and bamboo fish traps; the coop (chicks and ducklings from the Yorozuya, hay hopper, petting,
+  affection, eggs by morning, duck eggs, ducks in the paddies); a Craft tab with nine recipes
+  gated by Craftsmanship and seven artisan machines (compost, tofu, pickles, smoked fish,
+  charcoal, miso, sake) with progress bars and ready bubbles; compost as fertiliser; cooking
+  15 dishes at the farmhouse irori from 12 teahouse recipe scrolls, dishes with Genki and timed
+  buffs (speed, farming, foraging, fishing) shown on the HUD; 24- and 36-slot backpacks; save v4
+  with a v3 migration.
 - [ ] M5 Combat and caves
 - [ ] M6 Story and festivals
 - [ ] M7 Content and polish
 
 ## Next
-M4 Nature and craft: foraging (village grove, shrine woods, seasons), fishing with its minigame
-(Daigo teaches it), chickens and ducks, artisan machines, cooking at the irori, skills and XP, and
-backpack upgrades. Offerings gain forage and fish sets as those items arrive.
+M5 Combat and caves: katana strikes and combos, parry, dodge and Ki, six enemies, the cave
+generator for zones 1-2 behind the Yū restoration, the first boss, weapons from the forge, defeat
+handling, and virtues wired into systems (the Swordsmanship perks already exist).
 
 ## Verification (M1)
 - `npm test`: 36 unit tests (calendar, farming rules and regrowth, inventory, save checksum and
@@ -97,6 +112,20 @@ backpack upgrades. Offerings gain forage and fish sets as those items arrive.
   counter, a loved gift, Bonds tab, notice board, letters, shrine stair at dusk and 1x overview,
   altar offerings, the farmhouse at night, a rainy afternoon in the teahouse).
 - Performance: eight villagers simulated on every map cost ~0.01 ms per step; render ~0.6 ms.
+
+## Verification (M4)
+- `npm test`: 101 unit tests, adding skills (levels, XP, perks at 5 and 10, price and quality
+  effects, buffs and expiry), forage (season tables, seeded spots, dig finds, no repeats in a
+  day), fishing (water kinds, fish tables by season/hour/weather, legendary conditions, reel
+  physics, traps), animals (adoption, hay, affection, laying and quality, coop size), crafting
+  and machines (needs, Thrifty, accepted inputs, timing, Patient Hands, collection), cooking and
+  recipes, duplicate item ids, v3 -> v4 save migration.
+- `npm run test:e2e` runs the M3 smoke test and a new nature test: picks forage in the grove for
+  XP; casts into the pond, strikes and plays the reel to land a fish; buys a chick and fills the
+  hopper; crafts a compost bin, places it and loads hay; three nights later collects compost and
+  an egg; cooks tamagoyaki at the irori and eats it for a farming buff. Zero console errors.
+- `npm run shots` writes shots/m4 (the falls, autumn bamboo, a cast, the reel, the coop, a row of
+  machines, the Craft tab, the irori, Skills and virtues with buffs running, recipe scrolls).
 
 ## Decisions
 - The repository already contained ORBIT (a small arcade game) at the root; it was moved to
@@ -159,6 +188,21 @@ backpack upgrades. Offerings gain forage and fish sets as those items arrive.
 - (M2) Seasons restyle by recolouring atlas frames (`name@summer|autumn|winter`) and by per-season
   turf palettes; the ground chunks are redrawn once when the season turns.
 
+- (M4) Skills level from 1 to 10 (100 to 3200 XP). Each skill offers a choice of two perks at 5
+  and two at 10; Swordsmanship perks are chosen now and take effect with combat in M5.
+- (M4) Forage and dig spots are placed each dawn from the seed and the day, so a day's forage is
+  the same on reload; picked spots are remembered for the day only.
+- (M4) Daigo sends his old rod by letter the day after you meet him (a full teaching scene
+  belongs with his M6 heart events). Casting costs 4 Genki; a missed strike just reels in.
+- (M4) The reel follows the classic keep-the-fish-in-the-bar design but with our own rules: the
+  bar is lifted by holding Use and falls with gravity; fish have four movement styles.
+- (M4) Animals live in the coop only (no outdoor pasture yet); they eat hay from the hopper each
+  night and lay by morning when fed. Ducks on the farm raise rice yields by chance.
+- (M4) Cooking is only at the farmhouse irori; onigiri and the other teahouse foods keep their
+  M3 shop definitions so the teahouse and the irori share them.
+- (M4) Machines are placed like any object and keep their state in the farm save; they finish at
+  dawn of their ready day.
+
 ## Reference conflicts (logged)
 - Brief: head about a third of body height. Reference 1: ~45%. Followed the reference.
 
@@ -191,7 +235,9 @@ content density (flowers, props), not style. Tool swing windup was hidden behind
 raised higher and drawn behind the body only while raised.
 
 ## Known issues
-- Bamboo clumps and the thatch roof are serviceable but plain; revisit with the bamboo grove (M4).
+- The thatch roof is serviceable but plain (M7 polish).
+- Animals have no outdoor pasture or barn animals yet; the coop holds six.
+- The Skills tab leaves empty space between the bars and the heptagon; a perk list could fill it.
 - Weather has no audio yet (the procedural soundscape is M7); thunder uses a stand-in rumble.
 - The shrine precinct is sparse (gravel, hall, office, ema rack, sacred cedar); the chōzuya basin,
   bell tower and kodama groves arrive with their restorations.

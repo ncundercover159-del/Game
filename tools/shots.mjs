@@ -1,14 +1,15 @@
-// Milestone screenshots: `npm run shots` writes the latest milestone's set to shots/m3/;
-// `npm run shots -- m1` (or m2) regenerates an earlier set. Every shot is set up through the
+// Milestone screenshots: `npm run shots` writes the latest milestone's set to shots/m4/;
+// `npm run shots -- m1` (m2, m3) regenerates an earlier set. Every shot is set up through the
 // game's test hooks so the images are reproducible (fixed seed, fixed times).
 import { mkdirSync } from 'node:fs';
 import { withBrowser } from './render-page.mjs';
 import m1 from './shots/m1.mjs';
 import m2 from './shots/m2.mjs';
 import m3 from './shots/m3.mjs';
+import m4 from './shots/m4.mjs';
 
-const SETS = { m1, m2, m3 };
-const which = process.argv[2] || 'm3';
+const SETS = { m1, m2, m3, m4 };
+const which = process.argv[2] || 'm4';
 if (!SETS[which]) throw new Error(`Unknown set "${which}" (${Object.keys(SETS).join(', ')})`);
 const OUT = `shots/${which}`;
 mkdirSync(OUT, { recursive: true });

@@ -132,6 +132,46 @@ events (`src/data/events.js`) play once on entering a map, after the door wipe.
   terraces, Rei rehangs the shrine bell (rings at 06:00 and 18:00), Yū repairs the shrine bridge,
   Makoto the Archive, Meiyo the onsen, Chūgi brings back the kodama, Gi clears the Nakasendō.
 
+## Skills and buffs (M4)
+- Six skills, Lv 1-10 at 0/100/250/450/700/1000/1400/1900/2500/3200 XP. XP comes from the act:
+  harvests (by crop value), forage and digging, landing fish, breaking rock, crafting and cooking,
+  machine goods, petting. At Lv 5 and Lv 10 a modal asks for one of two perks (table in
+  `src/data/skills.js`). Farming, Foraging and Fishing levels add 1.2% per level to quality odds.
+- Buffs from dishes: `{ kind, amount, until }` with `until` an absolute minute stamp
+  (day x 1440 + minute); a new buff of the same kind replaces the old one; the HUD shows each
+  with the hours left. Speed adds walk speed; farming/foraging/fishing add quality odds (fishing
+  also widens the catch bar).
+
+## Foraging and fishing (M4)
+- Spots per map per dawn from `seed + day`: grove 12 forage / 3 dig, shrine 5/1, village 4/1,
+  farm 3/1, on free grass or earth. Forage is seasonal (`src/data/forage.js`); dig spots give
+  artifacts, clay or roots. Taken spots are recorded for the day in `foraged`.
+- Water has a kind by map region (river, pond, pool, falls, stream). Fish are picked by kind,
+  season, hour and weather, weighted towards easy fish at low skill; junk 12% (minus 1% per level, at least 3%).
+- Cast: hold Use to charge (1-4 tiles), 4 Genki. The float waits 1.4 s plus up to 5.5 s (shorter
+  with skill); then 0.75 s to strike.
+  The reel: a 108 px track, a catch bar (26 + 2 per level px, x1.33 Steady Hands) lifted
+  while Use is held; progress fills while the fish is in the bar and drains outside; the fish moves
+  by style (smooth, dart, sinker, floater, mixed) and difficulty.
+- Traps (uke) placed in water hold one catch each morning.
+
+## Animals (M4)
+- Chicks and ducklings from the Yorozuya live in the coop (six places). Each night an animal eats
+  one hay from the hopper; fed animals gain affection (petting daily adds more) and lay once
+  grown; quality rises with affection. Unfed animals lose affection and do not lay.
+- With ducks in the coop, harvested rice has a 50% chance of one extra.
+
+## Crafting, machines, cooking (M4)
+- The Craft tab lists `CRAFTS`; a recipe above your Craftsmanship level shows its level.
+- Machines take `n` of an input and finish at dawn on day `start + days` (Patient Hands: x0.75).
+  Output quality follows input quality (Master Maker: at least Fine). Interacting shows progress;
+  a ready machine is collected by interacting, room permitting.
+- Compost on tilled soil marks it fertilised until harvest: +20% quality odds.
+- Cooking only at the farmhouse irori from known recipes (onigiri, yaki-imo and tamagoyaki are
+  known from the start; the others come from 250-mon scrolls at the teahouse, three unknown ones
+  on sale at a time).
+- Backpacks: 24 and 36 slots from the Yorozuya.
+
 ## Farm map (Hinata Farm, 64x48)
 Forest border all round; the farmhouse (minka) top-centre with a kura storehouse to its west and a
 well by the door; a pond to the east; the river along the south edge; the northern terraces are
@@ -141,7 +181,8 @@ from the save seed.
 
 ## Saving
 - localStorage, 3 slots, key `ronin.slot{n}`; JSON `{ version, checksum, meta, state }`. Version 3
-  (M3) adds bonds, virtues, requests, mail and offerings.
+  (M3) adds bonds, virtues, requests, mail and offerings; version 4 (M4) adds skills, buffs,
+  foraged spots, animals and known recipes (the coop is a persistent map like the farm).
 - Migrations run in order from the file's version to `SAVE_VERSION`. A checksum mismatch or parse
   failure falls back to the slot's `.bak` copy (written before every save).
 - Autosave on sleep. Export/import as a `.json` file from the pause menu.

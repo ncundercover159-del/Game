@@ -26,7 +26,7 @@ export const MACHINES = {
 
 // Artisan goods and fertiliser.
 export const GOODS = {
-  compost: { name: 'Compost', jp: '堆肥', kind: 'fertiliser', sell: 5, desc: 'Rotted hay. Worked into tilled soil, it makes finer crops and holds water.' },
+  compost: { name: 'Compost', jp: '堆肥', kind: 'fertiliser', sell: 5, desc: 'Rotted hay. Worked into tilled soil, it makes finer crops.' },
   tofu: { name: 'Tofu', jp: '豆腐', kind: 'artisan', sell: 110, desc: 'Pressed soybean curd, soft as fresh snow.' },
   tsukemono: { name: 'Tsukemono', jp: '漬物', kind: 'artisan', sell: 120, desc: 'Vegetables pickled in rice bran. No meal is complete without them.' },
   kunsei: { name: 'Smoked Fish', jp: '燻製魚', kind: 'artisan', sell: 160, desc: 'Cedar-smoked river fish. It keeps for months.' },

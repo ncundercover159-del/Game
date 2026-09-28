@@ -49,13 +49,20 @@ crossroads posts small requests every morning, and letters arrive in the mailbox
 Climb the stair north of the village to the shrine: the seven altars in the hall take offerings,
 and a full altar restores part of the valley. Use food from the hotbar to recover Genki.
 
+Nature tips: the Hollow Grove lies west of the village, with forage every morning (and dig spots:
+hoe them). Daigo sends a rod once you have met him: hold Use to cast, press it when the float
+dips, then hold to lift the bar and keep the fish inside it. Chicks and ducklings from the
+Yorozuya live in the coop beside the farmhouse; keep hay in the hopper and pet them daily. Craft
+machines from the Craft tab in the menu, place them, and interact while holding their input.
+Cook at the irori in the farmhouse; teahouse scrolls teach new dishes, and dishes give buffs.
+
 ## Test
 
 ```sh
 npm install          # dev only: Playwright for headless tests
 npm test             # unit tests (Node's built-in runner)
-npm run test:e2e     # headless smoke test: farm day, sleep, save/load, village, shops, villagers
-npm run shots        # regenerate the latest milestone's screenshots (shots/m3; `-- m1` or `m2` for older sets)
+npm run test:e2e     # headless tests: farm day, save/load, village, villagers; forage, fish, coop, craft, cook
+npm run shots        # regenerate the latest milestone's screenshots (shots/m4; `-- m1`, `m2` or `m3` for older sets)
 ```
 
 Tools: `tools/gallery.html` (every palette colour, sprite, tile and autotile case at 1x and 4x) and

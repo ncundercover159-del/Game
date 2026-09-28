@@ -130,6 +130,16 @@ Extracted dominant colours (median-cut) that the ramps were fitted to:
   running away from the viewer, rare butt joints), doma (tamped earth). Furniture keeps the same
   outline and light rules as outdoor props.
 
+- Grove (M4): cliffs are `stone1-3` courses with a lit lip and a dark foot; the waterfall is
+  animated `water2-4` streaks with `ink6` foam; light shafts are two stepped translucent bands of
+  `gold3` over the bamboo (no gradients). Bamboo culms `grass2-5` with `wood` nodes.
+- Animals (M4): 16x16, same outline rules as characters; chickens `ink5/ink6` with `red2` combs,
+  ducks mallard-coloured (`teal0` head, `stone` body). Eggs are 8x10 icons.
+- Fish icons are generated from a body shape (slim, deep, small, eel, flat, prawn, crab), three
+  colours from the fish's data and an optional pattern (spots, bars); outline in the darkest.
+- Machines are 16x24 props in `wood0-3` with iron bands `ink1-2`; a working machine shows a thin
+  progress bar above it; a ready one a small bubble with the goods' icon.
+
 ## 8. UI
 
 - Nine-slice wooden frames: `wood1` outline, `wood4/wood5` bevel, `wood6/straw4` cream inset

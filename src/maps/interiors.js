@@ -174,7 +174,7 @@ export const INTERIORS = [
       { type: 'hopper', tx: 1, ty: 3 },
       { type: 'nest', tx: 7, ty: 3 },
       { type: 'nest', tx: 9, ty: 3 },
-      { type: 'bales', tx: 9, ty: 6 },
+      { type: 'bales', tx: 8, ty: 6 },
     ],
   }),
   // The shrine hall: seven altars, one for each virtue, along the back wall.
