@@ -159,4 +159,6 @@ export function stopAt(route, minutes) {
 export const SPEAKERS = {
   jubei: { name: 'Jūbei', jp: '十兵衛', voice: 95 },
   kuroda: { name: 'Kuroda', jp: '黒田', voice: 85 },
+  soemon: { name: 'Sōemon', jp: '宗右衛門', voice: 100 },
+  aizawa: { name: 'Lord Aizawa', jp: '相沢公', voice: 75 },
 };

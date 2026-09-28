@@ -163,6 +163,12 @@ export const NPC_LOOKS = {
 
 // People who only speak in scenes (portraits only): Kuroda never leaves his counting house.
 export const SPEAKER_LOOKS = {
+  soemon: {
+    hair: ['ink1', 'ink3', 'ink4'], skin: ['skin1', 'skin3', 'skin4', 'skin5'],
+    kosode: ['indigo0', 'indigo1', 'indigo2', 'indigo3'], hakama: ['wood0', 'wood1', 'wood2', 'wood3'],
+    obi: ['ink0', 'ink2'], feet: ['wood1', 'ink6'], collar: ['ink5', 'ink6'], cord: 'gold1',
+    style: 'topknot', sword: true, age: 1,
+  },
   kuroda: {
     hair: ['ink2', 'ink4', 'ink5'], skin: ['skin2', 'skin4', 'skin5', 'skin6'],
     kosode: ['wood0', 'wood1', 'wood2', 'wood3'], hakama: ['ink0', 'ink1', 'ink2', 'ink3'],

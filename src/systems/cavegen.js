@@ -5,7 +5,7 @@
 // The last floor of a zone is its boss's arena. Pure and deterministic per (seed, floor).
 // Legend: R rock, g floor, ~ water (or lava).
 import { Rng } from '../core/rng.js';
-import { ZONES, zoneOf, LANTERN_EVERY, BOSS_FLOORS, LAST_FLOOR } from '../data/caves.js';
+import { ZONES, zoneOf, LANTERN_EVERY, BOSS_FLOORS, modsOf, MODS } from '../data/caves.js';
 import { ENEMIES } from '../data/enemies.js';
 
 export const CAVE_W = 48, CAVE_H = 36;
@@ -91,7 +91,7 @@ function wallSide(g, x, y) {
 
 export function generateFloor(seed, floor) {
   if (BOSS_FLOORS[floor]) return bossFloor(floor);
-  const zone = zoneOf(floor), zi = ZONES.indexOf(zone) + 1;
+  const zone = zoneOf(floor), zi = ZONES.indexOf(zone) + 1, mods0 = modsOf(floor);
   const rng = new Rng(((seed >>> 0) * 31 + floor * 7919) >>> 0);
   let g, rooms;
   // A floor needs at least five rooms; retry the (deterministic) sequence until it has them.
@@ -112,8 +112,8 @@ export function generateFloor(seed, floor) {
 
   props.push({ type: 'rope', tx: start.x, ty: start.y - 1 });
   take(start.x, start.y - 1); take(start.x, start.y);
-  if (floor < LAST_FLOOR) { props.push({ type: 'ladder', tx: exit.cx, ty: exit.cy }); take(exit.cx, exit.cy); }
-  else { props.push({ type: 'deep', tx: exit.cx, ty: exit.cy }); take(exit.cx, exit.cy); }
+  props.push({ type: 'ladder', tx: exit.cx, ty: exit.cy });
+  take(exit.cx, exit.cy);
   if (floor % LANTERN_EVERY === 0) { props.push({ type: 'cave_lantern', tx: start.x + 2, ty: start.y - 1, light: [0, -8] }); take(start.x + 2, start.y - 1); }
 
   // Pools in the flooded cellars, kept only if every room stays reachable.
@@ -149,7 +149,7 @@ export function generateFloor(seed, floor) {
     if (rng.next() < 0.7) for (const [x, y] of [[r.x, r.y], [r.x + r.w - 1, r.y], [r.x, r.y + r.h - 1], [r.x + r.w - 1, r.y + r.h - 1]]) {
       if (rng.next() < 0.45 && free(x, y) && !onPath.has(y * g.w + x)) { props.push({ type: 'urn', tx: x, ty: y }); take(x, y); }
     }
-    if (r !== entry && rng.next() < 0.18) {
+    if (r !== entry && rng.next() < (mods0.includes('bountiful') ? 0.36 : 0.18)) {
       const x = r.x + 1 + rng.int(0, Math.max(0, r.w - 3)), y = r.y;
       if (free(x, y) && !onPath.has(y * g.w + x)) { props.push({ type: 'chest', tx: x, ty: y, zone: zi }); take(x, y); }
     }
@@ -171,8 +171,9 @@ export function generateFloor(seed, floor) {
     }
   }
 
-  // Foes: more the deeper you go, never in the first room.
-  const count = Math.min(12, 4 + Math.floor((floor - zone.from) / 3) + (zi - 1) * 2);
+  // Foes: more the deeper you go (the slope's Crowded floors more still), never in the first room.
+  const mods = modsOf(floor);
+  const count = Math.min(12, 4 + Math.floor((Math.min(floor, zone.from + 19) - zone.from) / 3) + (zi - 1) * 2) + (mods.includes('crowded') ? MODS.crowded.foes : 0);
   const far = [...reach(g, start.x, start.y)].filter((k) => {
     const x = k % g.w, y = Math.floor(k / g.w);
     return Math.abs(x - start.x) + Math.abs(y - start.y) > 9 && !taken.has(k);
@@ -299,6 +300,19 @@ const ARENAS = {
         { type: 'brazier', tx: 6, ty: 8, light: [0, -10] }, { type: 'brazier', tx: 27, ty: 8, light: [0, -10] },
         { type: 'brazier', tx: 6, ty: 18, light: [0, -10] }, { type: 'brazier', tx: 27, ty: 18, light: [0, -10] },
         { type: 'brazier', tx: 10, ty: 4, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 4, light: [0, -10] }, { type: 'brazier', tx: 10, ty: 22, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 22, light: [0, -10] },
+      ],
+    };
+  },
+  // Floor 100: the gate of Yomi. A long walk up to a hall with pale fires and a torii at its far end.
+  aizawa() {
+    const g = hall(34, 40, 16.5, 12, 13.5, 9.5);
+    for (let y = 20; y < 38; y++) for (let x = 15; x < 19; x++) g.set(x, y, 'g');
+    return {
+      g, start: { tx: 17, ty: 37 }, exit: { tx: 17, ty: 3 }, boss: { tx: 17, ty: 7 },
+      props: [
+        { type: 'rope', tx: 17, ty: 36 }, { type: 'cave_lantern', tx: 15, ty: 35, light: [0, -8] },
+        { type: 'torii', tx: 17, ty: 4 },
+        { type: 'brazier', tx: 6, ty: 8, light: [0, -10] }, { type: 'brazier', tx: 27, ty: 8, light: [0, -10] }, { type: 'brazier', tx: 6, ty: 16, light: [0, -10] }, { type: 'brazier', tx: 27, ty: 16, light: [0, -10] }, { type: 'brazier', tx: 15, ty: 27, light: [0, -10] }, { type: 'brazier', tx: 19, ty: 27, light: [0, -10] },
       ],
     };
   },

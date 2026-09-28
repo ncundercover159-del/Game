@@ -4,6 +4,7 @@ import { Foe } from '../../src/world/foes.js';
 import '../../src/world/boss.js';
 import '../../src/world/brains2.js';
 import '../../src/world/bosses2.js';
+import '../../src/world/shade.js';
 import { isTell } from '../../src/world/brains.js';
 import { ENEMIES, BOSSES } from '../../src/data/enemies.js';
 import { GameMap } from '../../src/world/gamemap.js';
@@ -57,7 +58,7 @@ for (const kind of [...Object.keys(ENEMIES), ...Object.keys(BOSSES)]) {
       p.y = 130 + Math.cos(w.time * 0.5) * 40;
       const before = f.state;
       f.update(w, dt);
-      if (kind === 'jubei' && f.state === 'sheathe') f.setState('approach');
+      if (f.state === 'sheathe') f.setState('approach');
       if (isTell(f.state) && !isTell(before)) tellStart = w.time;
       if (!isTell(f.state) && isTell(before)) { lastTell = w.time; lastTellLen = w.time - tellStart; }
       const n = blows.length;

@@ -8,11 +8,11 @@ import { Duel } from '../systems/iai.js';
 import { Rng } from '../core/rng.js';
 
 export class IaiDuel {
-  constructor(game, { rival, onEnd, rng = null }) {
+  constructor(game, { rival, onEnd, rng = null, window = null }) {
     this.game = game;
     this.rival = rival;
     this.onEnd = onEnd;
-    this.duel = new Duel(rng || new Rng((game.seed ^ Math.floor(game.clockTime * 1000)) >>> 0), game.difficulty);
+    this.duel = new Duel(rng || new Rng((game.seed ^ Math.floor(game.clockTime * 1000)) >>> 0), game.difficulty, window);
     this.t = 0;
     this.flash = 0;
     this.after = 0;

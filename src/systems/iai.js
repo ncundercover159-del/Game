@@ -5,9 +5,11 @@ export const WINDOW = { relaxed: 0.5, standard: 0.36, warrior: 0.28 };
 const FEINTS = ['twig', 'leaf', 'crow'];
 
 export class Duel {
-  constructor(rng, difficulty = 'standard') {
+  /** `tight`: a narrower window for a rival who draws faster (never tighter on Relaxed). */
+  constructor(rng, difficulty = 'standard', tight = null) {
     this.rng = rng;
-    this.window = WINDOW[difficulty] || WINDOW.standard;
+    const base = WINDOW[difficulty] || WINDOW.standard;
+    this.window = tight && difficulty !== 'relaxed' ? Math.min(base, tight) : base;
     this.wins = 0;
     this.losses = 0;
     this.round = null;

@@ -393,7 +393,7 @@ export class Game {
     cam.x -= sx;
     // Indoors: a little shade by day, no sky weather; lamps and hearths light the room at night.
     const cave = this.world.map.def.cave;
-    if (cave) this.lighting.cave(ctx, w, h, this.world.lights(), cam, this.player);
+    if (cave) this.lighting.cave(ctx, w, h, this.world.lights(), cam, this.player, this.world.map.def.mods?.includes('dim') ? 0.6 : 1);
     else {
       const dim = this.indoors ? INDOOR_DIM : WEATHER[this.weather].tint || 0;
       this.lighting.apply(ctx, w, h, this.smoothMinutes(), this.world.lights(), cam, dim);

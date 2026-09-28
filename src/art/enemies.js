@@ -17,6 +17,18 @@ export const ENEMY_LOOKS = {
     obi: ['red0', 'red1'], feet: ['ink1', 'ink2'], collar: ['ink1', 'ink2'], cord: 'red1',
     style: 'cropped', sword: true,
   },
+  retainer: {
+    hair: ['ink0', 'ink1', 'ink2'], skin: ['stone2', 'stone3', 'stone4', 'ink5'],
+    kosode: ['indigo0', 'indigo1', 'indigo2', 'indigo3'], hakama: ['ink0', 'ink1', 'indigo0', 'indigo1'],
+    obi: ['gold0', 'gold1'], feet: ['ink1', 'ink4'], collar: ['ink5', 'ink6'], cord: 'gold1',
+    style: 'topknot', sword: true,
+  },
+  aizawa: {
+    hair: ['ink4', 'ink5', 'ink6'], skin: ['stone2', 'stone3', 'stone4', 'ink5'],
+    kosode: ['sakura0', 'indigo0', 'indigo1', 'sakura1'], hakama: ['ink0', 'ink1', 'ink2', 'ink3'],
+    obi: ['gold1', 'gold2'], feet: ['ink1', 'ink4'], collar: ['gold1', 'gold2'], cord: 'gold2',
+    style: 'topknot', sword: true, age: 2, beard: true,
+  },
   jubei: {
     hair: ['ink0', 'ink1', 'ink2'], skin: ['skin1', 'skin2', 'skin3', 'skin4'],
     kosode: ['ink0', 'ink1', 'ink2', 'ink3'], hakama: ['red0', 'red0', 'red1', 'red2'],

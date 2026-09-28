@@ -77,6 +77,13 @@ export const ENEMIES = {
     drops: [['satetsu', 1, 1, 0.3], ['yamaimo', 1, 1, 0.2]],
     desc: 'A boar with a forge-scorched hide. It paws the ground, then charges in a straight line. Walls stop it.',
   },
+  // Zone 5, the Yomi Slope.
+  retainer: {
+    name: 'Ghost Retainer', jp: '亡霊武者', brain: 'duelist', hp: 60, dmg: 11, speed: 42, tell: 0.5, reach: 20,
+    guard: true, xp: 30, zone: 5, weak: 'spirit', mass: 1, person: true, ghost: true,
+    drops: [['reiseki', 1, 1, 0.3], ['steel_bar', 1, 1, 0.15], ['spirit_wisp', 1, 1, 0.3]],
+    desc: 'A samurai of the Aizawa, dead these five years and still in armour. He raises his blade high, as he was taught.',
+  },
   shinobi: {
     name: 'Shinobi', jp: '忍', brain: 'stealth', hp: 46, dmg: 10, speed: 50, tell: 0.5, reach: 18,
     xp: 26, zone: 4, weak: null, mass: 1, person: true,
@@ -103,6 +110,10 @@ export const BOSSES = {
   kurenai: {
     name: 'Oni Warlord Kurenai', jp: '紅', brain: 'kurenai', boss: true, hp: 1400, dmg: 24, speed: 36, tell: 0.7,
     reach: 30, xp: 700, phases: [1, 0.6, 0.3], weak: 'water', mass: 6, radius: 14, height: 22, armour: 3, drops: [],
+  },
+  aizawa: {
+    name: 'The Shade of Lord Aizawa', jp: '相沢公の亡霊', brain: 'shade', boss: true, person: true, ghost: true, hp: 1500, dmg: 22, speed: 50,
+    tell: 0.45, reach: 24, xp: 1000, phases: [1, 0.6, 0.3], weak: 'spirit', mass: 3, radius: 9, height: 14, drops: [],
   },
 };
 export const BOSS_JUBEI = BOSSES.jubei;

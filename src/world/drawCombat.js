@@ -5,7 +5,7 @@ import { fonts } from '../core/text.js';
 import { kiMax } from '../systems/combat.js';
 import { isTell } from './brains.js';
 
-const PERSON = { bandit: 'katana_tetsu', jubei: 'kurogane', shinobi: 'katana_tetsu' };
+const PERSON = { bandit: 'katana_tetsu', jubei: 'kurogane', shinobi: 'katana_tetsu', retainer: 'katana_tetsu', aizawa: 'kurogane' };
 
 /** Frame (and held weapon) for a foe's current state. */
 function foeFrame(f) {
@@ -15,6 +15,7 @@ function foeFrame(f) {
     const w = PERSON[f.kind], id = f.kind;
     if (isTell(f.state)) return { name: `${id}_${d}_tool0`, held: `held_${w}_${d}_raise`, behind: true, flip };
     if (f.state === 'attack' || f.state === 'dash') return { name: `${id}_${d}_tool${f.t < 0.1 ? 1 : 2}`, held: `held_${w}_${d}_strike`, behind: d === 'up', flip };
+    if (f.state === 'stance') return { name: `${id}_${d}_idle0`, held: `held_${w}_${d}_guard`, behind: d === 'up', flip, glow: true };
     if (f.state === 'approach' && f.guard) return { name: `${id}_${d}_walk${step(4, 0.15)}`, held: `held_${w}_${d}_guard`, behind: d === 'up', flip };
     if (f.state === 'approach') return { name: `${id}_${d}_walk${step(4, 0.15)}`, flip };
     return { name: `${id}_${d}_idle${step(2, 0.6)}`, flip };
@@ -103,7 +104,8 @@ export function drawFoe(w, ctx, cam, f) {
   const bob = f.def.float ? Math.round(Math.sin(f.anim * 3) * 2) - 4 : 0;
   const x = Math.round(f.x) + (fr.shake ? Math.round(Math.sin(f.anim * 60)) : 0) - cam.ix;
   const y = Math.round(f.y - f.z) + bob - cam.iy;
-  ctx.globalAlpha = f.alpha;
+  // The dead are a little transparent, and flicker now and then.
+  ctx.globalAlpha = f.alpha * (f.def.ghost ? (Math.floor(f.anim * 7) % 11 ? 0.8 : 0.55) : 1);
   if (fr.held && fr.behind) atlas.draw(ctx, fr.held, x, y, fr.flip);
   if (f.flash > 0) atlas.drawWhite(ctx, fr.name, x, y, fr.flip);
   else atlas.draw(ctx, fr.name, x, y, fr.flip);
@@ -116,6 +118,8 @@ export function drawFoe(w, ctx, cam, f) {
     atlas.draw(ctx, 'fx_glint', x + (fr.flip ? -6 : 6), y - top - k);
   }
   if (f.state === 'stagger' || f.state === 'dizzy') atlas.draw(ctx, 'emote_dots', x, y - 30);
+  // A pale light runs along a blade held in stance.
+  if (fr.glow && Math.floor(f.t * 10) % 2) atlas.draw(ctx, 'fx_sparkle', x + (fr.flip ? -10 : 10), y - 20);
 }
 
 export function drawShot(w, ctx, cam, s) {

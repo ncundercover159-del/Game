@@ -1,7 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateFloor, reach } from '../../src/systems/cavegen.js';
-import { LAST_FLOOR, BOSS_FLOORS, LANTERN_EVERY, ORES, zoneOf, URN_LOOT, CHEST_LOOT } from '../../src/data/caves.js';
+import { BOSS_FLOORS, LANTERN_EVERY, ORES, zoneOf, URN_LOOT, CHEST_LOOT, modsOf, MODS } from '../../src/data/caves.js';
+
+// Every floor down to the Shade, and a few of the endless slope below.
+const FLOORS = [...Array.from({ length: 100 }, (_, i) => i + 1), 101, 137, 180, 263];
 import { ENEMIES } from '../../src/data/enemies.js';
 import { OBJECT_TYPES } from '../../src/data/objects.js';
 import { ITEMS } from '../../src/data/items.js';
@@ -21,7 +24,7 @@ test('floors are the same for the same seed and floor, different otherwise', () 
 });
 
 test('on every floor the ladder, every room and every pickup can be reached on foot from the rope', () => {
-  for (const seed of SEEDS) for (let floor = 1; floor <= LAST_FLOOR; floor++) {
+  for (const seed of SEEDS) for (const floor of FLOORS) {
     const f = generateFloor(seed, floor);
     const g = gridOf(f.ground);
     // The rope stands in the wall-side of the first room; everything else must be walkable to.
@@ -39,19 +42,18 @@ test('on every floor the ladder, every room and every pickup can be reached on f
   }
 });
 
-test('floors hold the right things: lanterns every five, the boss on 20, no ladder on the last', () => {
-  for (let floor = 1; floor <= LAST_FLOOR; floor++) {
+test('floors hold the right things: lanterns every five, bosses on theirs, a ladder on every other', () => {
+  for (const floor of FLOORS) {
     const f = generateFloor(7, floor);
     const types = f.props.map((p) => p.type);
     assert.equal(types.includes('cave_lantern'), floor % LANTERN_EVERY === 0, `lantern on ${floor}`);
     if (BOSS_FLOORS[floor]) assert.deepEqual(f.spawns.map((s) => s.kind), [BOSS_FLOORS[floor]]);
-    else if (floor === LAST_FLOOR) assert.ok(types.includes('deep') && !types.includes('ladder'));
     else assert.ok(types.includes('ladder'), `ladder on ${floor}`);
   }
 });
 
 test('foes come from their zone and stand on floor or water; none near the rope', () => {
-  for (let floor = 1; floor <= LAST_FLOOR; floor++) {
+  for (const floor of FLOORS) {
     if (BOSS_FLOORS[floor]) continue;
     const f = generateFloor(20260928, floor), zone = zoneOf(floor);
     assert.ok(f.spawns.length >= 4);

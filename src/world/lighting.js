@@ -55,7 +55,8 @@ export class Lighting {
   }
 
   /** Underground: near-black, lit only by lanterns, braziers and the one you carry. */
-  cave(ctx, w, h, lights, cam, player) {
+  /** Underground: dark but for fixed lights and the lantern you carry (`reach` scales it). */
+  cave(ctx, w, h, lights, cam, player, reach = 1) {
     if (this.map.width !== w || this.map.height !== h) { this.map.width = w; this.map.height = h; }
     const c = this.ctx;
     c.globalCompositeOperation = 'source-over';
@@ -64,7 +65,8 @@ export class Lighting {
     c.globalCompositeOperation = 'lighter';
     const put = (img, x, y) => c.drawImage(img, Math.round(x - cam.ix - img.width / 2), Math.round(y - cam.iy - img.height / 2));
     for (const l of lights) put(this.pools[l.kind], l.x, l.y);
-    put(this.pools.carried, player.x, player.y - 10);
+    const pool = this.pools.carried, pw = Math.round(pool.width * reach), ph = Math.round(pool.height * reach);
+    c.drawImage(pool, Math.round(player.x - cam.ix - pw / 2), Math.round(player.y - 10 - cam.iy - ph / 2), pw, ph);
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
     ctx.drawImage(this.map, 0, 0);

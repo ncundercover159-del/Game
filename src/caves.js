@@ -3,9 +3,10 @@
 import { MAPS } from './maps/index.js';
 import { generateFloor } from './systems/cavegen.js';
 import { defeatCost, kiMax } from './systems/combat.js';
-import { ORES, CHEST_LOOT, zoneOf, BOSS_FLOORS, LANTERN_EVERY, LAST_FLOOR } from './data/caves.js';
+import { ORES, CHEST_LOOT, zoneOf, BOSS_FLOORS, LANTERN_EVERY, modsOf } from './data/caves.js';
 import { DIFFICULTY } from './data/enemies.js';
 import { OUTCOMES } from './data/bosses.js';
+import { startEpilogue } from './epilogue.js';
 import { InkWipe } from './ui/transition.js';
 import { Dialog } from './ui/dialog.js';
 import { t } from './data/strings.js';
@@ -34,9 +35,9 @@ export function caveDef(g, floor) {
   if (zone.lava) gen.ground.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '~' && (x + y) % 3 === 0) props.push({ type: 'lava_glow', tx: x, ty: y, light: [0, -8] }); }));
   const boss = BOSS_FLOORS[floor];
   const beaten = boss && g.flags[`boss_${boss}`];
-  if (beaten && floor < LAST_FLOOR) props.push({ type: 'ladder', tx: gen.exit.tx, ty: gen.exit.ty });
+  if (beaten) props.push({ type: 'ladder', tx: gen.exit.tx, ty: gen.exit.ty });
   return {
-    id: 'cave', name: `${zone.name} B${floor}`, jp: zone.jp, cave: true, floor, zone: gen.zone, boss: beaten ? null : boss, lava: !!zone.lava,
+    id: 'cave', name: `${zone.name} B${floor}`, jp: zone.jp, cave: true, floor, zone: gen.zone, boss: beaten ? null : boss, lava: !!zone.lava, mods: modsOf(floor),
     ground: gen.ground, props, warps: [], exit: gen.exit,
     spawn: { tx: gen.start.tx, ty: gen.start.ty, dir: 'down' },
     spawns: beaten ? [] : gen.spawns,
@@ -58,7 +59,7 @@ export function enterFloor(g, floor) {
       }
       const sp = MAPS.cave.spawn;
       g.enter('cave', sp.tx, sp.ty, sp.dir);
-      const first = floor === 41 ? 'tk_cave_zone3' : floor === 61 ? 'tk_cave_zone4' : floor === 1 ? 'tk_cave_first' : null;
+      const first = { 1: 'tk_cave_first', 41: 'tk_cave_zone3', 61: 'tk_cave_zone4', 81: 'tk_cave_zone5' }[floor] || null;
       g.aside(first || (BOSS_FLOORS[floor] && !g.flags[`boss_${BOSS_FLOORS[floor]}`] ? 'tk_boss_floor' : 'tk_cave_floor'), { once: first ? first : `floor${floor}`, vars: { n: floor } });
     },
   }));
@@ -168,7 +169,7 @@ export function bossDown(g, f) {
   g.stats.kills = g.stats.kills || {};
   g.stats.kills[f.kind] = 1;
   const exit = w.map.def.exit;
-  if (w.map.def.floor < LAST_FLOOR) w.map.addObject({ type: 'ladder', x: exit.tx, y: exit.ty });
+  w.map.addObject({ type: 'ladder', x: exit.tx, y: exit.ty });
   for (const foe of w.combat.foes) if (!foe.dead) { foe.dead = true; w.fx.burst('fx_smoke1', foe.x, foe.y - 8, 4); }
   w.combat.shots = [];
   const out = OUTCOMES[f.kind];
@@ -176,8 +177,9 @@ export function bossDown(g, f) {
     g.hpMax += out.inochi;
     g.hp = g.hpMax;
     g.addVirtue(...out.virtue);
-    g.toast('toast_inochi', { n: out.inochi }, null);
-    g.pendingScene = [out.script, ...out.items.map(([id, n]) => `give ${id} ${n}`)].join('\n');
+    if (out.inochi) g.toast('toast_inochi', { n: out.inochi }, null);
+    const script = [out.script, ...out.items.map(([id, n]) => `give ${id} ${n}`)].join('\n');
+    g.pendingScene = out.epilogue ? { script, onEnd: () => startEpilogue(g) } : script;
     return;
   }
   jubeiFate(g);

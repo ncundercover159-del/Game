@@ -104,7 +104,6 @@ export const OBJECT_TYPES = {
   rope: { name: 'Rope', solid: true, static: true, shadow: null },
   cave_lantern: { name: 'Lantern', solid: true, static: true, shadow: 'shadow_s' },
   timbers: { name: 'Pit-props', solid: false, static: true, shadow: null },
-  deep: { name: 'Flooded Stair', solid: true, static: true, shadow: null, flat: true, say: 'deep' },
   brazier: { name: 'Brazier', solid: true, static: true, shadow: 'shadow_s' },
   bundle: { name: 'Lost Bundle', solid: true, static: true, shadow: 'shadow_s' },
   mouth: { name: 'Cave Mouth', solid: false, static: true, shadow: null, flat: true },

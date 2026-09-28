@@ -1,7 +1,8 @@
 // Mount Kurayama: rock and floor tiles per zone, and the props of the tunnels (ore veins, urns,
 // chests, the ladder down and the rope up, lanterns, timber props, cracked walls, the lost bundle)
 // plus the cave mouth on the mountainside. Zone 1 is earthy brown-grey, zone 2 wet blue-grey,
-// zone 3 violet with foxfire flecks, zone 4 scorched red-brown with glowing seams.
+// zone 3 violet with foxfire flecks, zone 4 scorched red-brown with glowing seams, zone 5 ashen
+// grey with red spider lilies.
 import { grid, set, fillRect, ellipse, polygon, line, outline, parse } from './raster.js';
 import { hashf } from '../core/rng.js';
 
@@ -15,6 +16,7 @@ const ZONE_PAL = {
   2: { rock: ['ink1', 'indigo0', 'ink2', 'stone1', 'stone2'], floor: ['ink1', 'ink2', 'stone0', 'indigo0'], accent: 'teal1' },
   3: { rock: ['ink0', 'indigo0', 'sakura0', 'indigo1', 'sakura1'], floor: ['ink0', 'ink1', 'indigo0', 'sakura0'], accent: 'gold1' },
   4: { rock: ['ink0', 'red0', 'wood0', 'wood1', 'red1'], floor: ['ink0', 'ink1', 'wood0', 'red0'], accent: 'red2' },
+  5: { rock: ['ink0', 'ink1', 'stone0', 'ink2', 'stone1'], floor: ['ink0', 'ink1', 'stone0', 'ink2'], accent: 'red3' },
 };
 
 /** Rock mass seen from above: dark, knobbly, a few lit edges. */
@@ -245,12 +247,3 @@ export function brazier() {
   return outline(g, { color: 'ink0' });
 }
 
-/** The last stair of the cellars, drowned: black water to the brim. */
-export function deepStair() {
-  const g = grid(16, 16);
-  fillRect(g, 1, 2, 14, 13, 'stone1');
-  fillRect(g, 2, 3, 12, 11, 'water0');
-  for (let y = 5; y < 14; y += 3) line(g, 3, y, 12, y, 'water1');
-  set(g, 5, 6, 'water3'); set(g, 10, 9, 'water3');
-  return g;
-}

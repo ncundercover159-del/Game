@@ -1,8 +1,9 @@
 // Headless test of M7 deep zones (Playwright): a kitsune in the Foxfire Halls splits into shadowless
 // illusions that pop at a touch; a foundry vent glows before it breathes fire; Kurenai's armour
 // comes off to a heavy strike; the Kappa Elder falls, bows, leaves his dish and hardens your
-// Inochi, and Genzō will now work steel. Setup uses test hooks; the fighting goes through the real
-// keys. Fails on any console error or page exception.
+// Inochi, and Genzō will now work steel; the Yomi Slope's modifiers; the Shade of Lord Aizawa, the
+// choice of the sword, the epilogue and the credits. Setup uses test hooks; the fighting goes
+// through the real keys. Fails on any console error or page exception.
 import assert from 'node:assert/strict';
 import { withBrowser } from '../../tools/render-page.mjs';
 
@@ -120,6 +121,34 @@ await withBrowser(async (browser, base) => {
     return m.toolRows().map((r) => r.label);
   });
   assert.ok(forge.some((l) => /Steel/.test(l) && !/not yet/.test(l)), forge.join(' | '));
+
+  step('the Yomi Slope: its floors carry modifiers, shown by the floor name');
+  await floor(85);
+  const yomi = await run(() => ({ mods: window.__game.game.world.map.def.mods, zone: window.__game.game.world.map.def.name }));
+  assert.ok(yomi.zone.startsWith('Yomi Slope'));
+  assert.equal(yomi.mods.length, 1);
+
+  step('the Shade of Lord Aizawa falls; the sword is laid to rest; the epilogue at the shrine; the credits');
+  await floor(100);
+  await run(() => { const c = window.__game.game.world.combat; c.foes[0].hp = 20; c.foes[0].mem.phase = 3; c.foes[0].mem.duelCd = 99; c.foes[0].setState('recover'); });
+  for (let i = 0; i < 20 && (await run(() => window.__game.game.world.combat.foes.some((f) => f.kind === 'aizawa'))); i++) {
+    await run(() => { const g = window.__game.game, c = g.world.combat, f = c.foes.find((x) => x.kind === 'aizawa'), p = g.player; if (!f) return; f.setState('recover'); f.mem.duelCd = 99; p.dir = 'right'; f.x = p.x + 20; f.y = p.y; });
+    await run(() => { window.__game.press('KeyJ', 60); window.__game.advance(250); });
+  }
+  // Through the Shade's words to the choice; take the first ("Lay the sword to rest").
+  const seen = [];
+  for (let i = 0; i < 120; i++) {
+    const s = await run(() => { const g = window.__game.game; return { top: g.modals.at(-1)?.constructor.name || null, map: g.world.map.id, pending: !!g.pendingScene }; });
+    if (s.top === 'Credits') break;
+    if (!seen.includes(s.map)) seen.push(s.map);
+    await run(() => { window.__game.press('Enter', 50); window.__game.advance(300); });
+  }
+  const end = await run(() => { const g = window.__game.game; return { rest: g.flags.sword_rest, done: g.flags.act3_done, boss: g.flags.boss_aizawa, map: g.world.map.id, top: g.modals.at(-1)?.constructor.name }; });
+  assert.ok(end.boss && end.rest && end.done);
+  assert.ok(seen.includes('shrine'), 'the epilogue at the shrine');
+  assert.equal(end.top, 'Credits');
+  await run(() => { window.__game.press('Escape', 50); window.__game.advance(200); });
+  assert.equal(await run(() => window.__game.game.modals.length), 0, 'and the game goes on');
 
   assert.deepEqual(errors, [], errors.join('\n'));
   console.log('deep e2e: ok');

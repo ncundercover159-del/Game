@@ -1,6 +1,7 @@
-// What happens when a boss of the deep falls: the scene (the story's beats between Acts II and III),
-// what they leave you, and the Inochi the fight hardens into you. Jūbei's fate is chosen in
-// caves.js; every boss also sets `boss_<kind>`, raises Yū and opens the ladder down.
+// What happens when a boss of the deep falls: the scene (the story's beats from Act II into III),
+// what they leave you, and the Inochi the fight hardens into you. The Shade of Lord Aizawa's scene
+// ends Act III with the choice of the sword, then the epilogue (src/epilogue.js). Jūbei's fate is
+// chosen in caves.js; every boss also sets `boss_<kind>`, raises Yū and opens the ladder down.
 export const OUTCOMES = {
   kappa_elder: {
     items: [['kappa_dish', 1]], inochi: 15, virtue: ['rei', 5],
@@ -36,6 +37,30 @@ export const OUTCOMES = {
       say "Tsukikage has gone very quiet at your side."
       say "'Take my club. Go down, if you mean to. He waits at the bottom of everything, and he has been asking for you.'"
       setFlag aizawa_named
+    `,
+  },
+  aizawa: {
+    items: [], inochi: 0, virtue: ['meiyo', 10], epilogue: true,
+    script: `
+      say aizawa neutral "Enough. Enough. You were always too stubborn to lose properly."
+      say aizawa sad "I brought the clan to ruin for a war the shogun had already forgotten. Then I died, and could not stop giving orders. The dead obey. I wanted them to."
+      say aizawa neutral "And you: you planted radishes. Your uncle's blade talks now, I hear. Tsukikage. Moon-shadow."
+      say "Tsukikage speaks aloud, for once: 'He is asking what the sword is for.'"
+      choice "Lay the sword to rest" @rest "Carry it on" @carry
+      @rest
+      say "You kneel and lay the blade on the stone between you and your lord, hilt toward him, the way a retainer returns a sword."
+      say aizawa happy "Then there is nothing left to command. Good. That is good."
+      setFlag sword_rest
+      virtue jin 10
+      goto @end
+      @carry
+      say "You sheathe the blade. For the valley, you tell him. For the living, who have fields to bring in."
+      say aizawa happy "A sword with a reason. I never had one. Keep it well."
+      setFlag sword_carry
+      virtue chugi 10
+      @end
+      say "The shade of Lord Aizawa bows to you, deeper than a lord ever bows, and the dark takes him like morning takes a lantern."
+      setFlag act3_done
     `,
   },
 };

@@ -3,6 +3,7 @@
 import { fonts } from '../core/text.js';
 import { panel, thin, dark, rect, item, hit } from './widgets.js';
 import { t } from '../data/strings.js';
+import { MODS } from '../data/caves.js';
 import { itemDef } from '../data/items.js';
 import { SEASONS, weekday, formatTime, zodiacHour, DAY_START, DAY_END, dayIndex } from '../systems/calendar.js';
 import { stamp } from '../systems/skills.js';
@@ -173,7 +174,8 @@ export class Hud {
       for (let i = 0; i < boss.armour; i++) rect(ctx, 'gold2', x + bw - 14 - i * 6, 8, 4, 4);
       return;
     }
-    const label = t('cave_floor_label', { n: def.floor, zone: def.name.replace(/ B\d+$/, '') });
+    const mods = (def.mods || []).map((id) => MODS[id].name).join(' · ');
+    const label = t('cave_floor_label', { n: def.floor, zone: def.name.replace(/ B\d+$/, '') }) + (mods ? `  ${mods}` : '');
     const lw = fonts.small.measure(label) + 10;
     dark(ctx, atlas, Math.floor(w / 2 - lw / 2), 4, lw, 13);
     fonts.small.draw(ctx, label, Math.floor(w / 2 - lw / 2) + 5, 6, 'ink6');

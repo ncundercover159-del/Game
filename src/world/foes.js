@@ -3,6 +3,7 @@
 import { TILE } from '../config.js';
 import { moveBox } from './collision.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
+import { modsOf, MODS } from '../data/caves.js';
 import { enemyHp, depthMult } from '../systems/combat.js';
 import { BRAINS } from './brains.js';
 
@@ -10,7 +11,11 @@ const HW = 5, HH = 5;
 
 export class Foe {
   constructor(kind, x, y, difficulty, floor = 1) {
-    const def = BOSSES[kind] || ENEMIES[kind];
+    // The Yomi Slope's modifiers: tougher, fiercer or swifter foes (never quicker tells).
+    const mods = BOSSES[kind] ? [] : modsOf(floor);
+    const mod = (key) => mods.reduce((a, id) => a * (MODS[id][key] || 1), 1);
+    const base = BOSSES[kind] || ENEMIES[kind];
+    const def = mod('speed') === 1 ? base : { ...base, speed: base.speed * mod('speed') };
     this.kind = kind;
     this.def = def;
     this.brain = def.brain;
@@ -19,8 +24,8 @@ export class Foe {
     this.home = { x, y };
     // Deeper floors breed tougher foes: a little more health and bite per floor (bosses are fixed).
     const depth = def.boss ? depthMult(1) : depthMult(floor);
-    this.maxHp = enemyHp(def.hp * depth.hp, difficulty);
-    this.dmg = Math.round(def.dmg * depth.dmg);
+    this.maxHp = enemyHp(def.hp * depth.hp * mod('hp'), difficulty);
+    this.dmg = Math.round(def.dmg * depth.dmg * mod('dmg'));
     this.hp = this.maxHp;
     this.state = 'idle';
     this.t = 0;

@@ -59,8 +59,12 @@ export function damageTaken(base, difficulty, skills) {
   return Math.max(1, Math.round(base * d.dmg * (hasPerk(skills, 'mountain') ? 0.75 : 1)));
 }
 
-/** How much tougher foes are on a floor: +4% health and +2% damage per floor below the first. */
-export const depthMult = (floor) => ({ hp: 1 + (floor - 1) * 0.04, dmg: 1 + (floor - 1) * 0.02 });
+/** How much tougher foes are on a floor: +4% health and +2% damage per floor down to the foundry's
+ * last, then half that on the Yomi Slope (it never ends, so it has to climb gently). */
+export const depthMult = (floor) => {
+  const upper = Math.min(floor - 1, 79), slope = Math.max(0, floor - 80);
+  return { hp: 1 + upper * 0.04 + slope * 0.02, dmg: 1 + upper * 0.02 + slope * 0.01 };
+};
 
 /** Enemy health on this difficulty. */
 export const enemyHp = (base, difficulty) => Math.round(base * (DIFFICULTY[difficulty] || DIFFICULTY.standard).hp);

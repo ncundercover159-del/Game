@@ -1,7 +1,8 @@
-// The main story through Acts I and II ("Fallow Ground", "Tolls and Seals"), as map-entry scenes
-// in the same form as data/events.js: the magistrate's tolls in summer, Rin at the bridge, the
-// Kuroda contract (sign it, or refuse and petition the castle), the cracking seal, and the day
-// the petition comes back. Letters (data/letters.js) carry the threads between them; the rules
+// The main story as map-entry scenes in the same form as data/events.js. Acts I and II ("Fallow
+// Ground", "Tolls and Seals"): the magistrate's tolls in summer, Rin at the bridge, the Kuroda
+// contract (sign it, or refuse and petition the castle), the cracking seal, and the day the
+// petition comes back. Act III ("The Way"): an Aizawa retainer at the gate in the second year (or
+// once Kurenai has named the Shade); the rest is told under the mountain (data/bosses.js). Letters (data/letters.js) carry the threads between them; the rules
 // (tolls, signatures) are in systems/story.js. The Hyakki Yagyō is a festival (data/festivals.js).
 import { dayIndex } from '../systems/calendar.js';
 
@@ -123,6 +124,27 @@ export const STORY = [
       say "The toll board burns at the crossroads. Half the village comes out to watch, and Toyo brings pickles."
       virtue gi 5
       bond all 60
+    `,
+  },
+  {
+    // Act III: the past catches up. A retainer of the dead clan waits at the farm gate.
+    map: 'farm', flag: 'act3', when: (g) => g.cal.year >= 2 || !!g.flags.aizawa_named,
+    script: `
+      placePlayer 29 12 down
+      say "A man in a travel-stained haori waits by your gate. You know the crest on his sleeve before you know his face."
+      say soemon neutral "Five years, and you are growing radishes. Sōemon of the Aizawa greets you, as if there were still an Aizawa."
+      say soemon sad "Our lord is dead, and will not stay dead. His shade walks the slope beneath Kurayama, the old road to Yomi, and calls the clan's dead to him. Soon he will call the living."
+      say soemon neutral "Some of us would answer. A clan again, a war again. They sent me to ask you to lead them. You were his best."
+      choice "The clan is gone. I farm now." @farm "I will go down and face him." @face
+      @farm
+      say soemon sad "...Then farm. But he will not stop at the dead, and you are the only one he ever listened to."
+      virtue makoto 3
+      goto @end
+      @face
+      say soemon happy "Of course you will. You never could leave a thing half finished. Neither could he."
+      virtue chugi 3
+      @end
+      say "He bows the old way, very low, and walks back down the valley road."
     `,
   },
 ];

@@ -37,7 +37,6 @@ export const CAVE_STRINGS = {
   cave_lantern_lit: 'The lantern burns steadily. It will remember you.',
   chest_empty: 'Empty. Whoever hid it came back before you did.',
   brazier: 'An iron fire-basket, well fed. Someone means to stay.',
-  deep: 'The stair keeps going down, but the water has taken it. Whatever lies below will have to wait for a drier year.',
   toast_found_mon: '+{n} 文',
   toast_healed: '{item}: +{h} 命',
 

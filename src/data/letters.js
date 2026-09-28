@@ -101,4 +101,16 @@ export const LETTERS = [
     text: 'Our arrangement stands. A hand will water the farmer\'s fields at dawn, and all goods in the crate will be bought at the house price, ten parts in a hundred over the village rate, untaxed. Kuroda-ya thanks the farmer for a sensible decision. The weather, the house notes, is turning cold.',
     items: [],
   },
+
+  // Act III.
+  {
+    id: 'tomoe_yomi', from: 'tomoe', when: (g) => g.flags.act3,
+    text: 'The old scrolls call it Yomotsu Hirasaka: the slope between the living and the dead, sealed with a great stone when the world was young. If the shade of your lord walks it, then the seals on our gate were never meant for yōkai at all. They were meant for him. I have written you a charm. It will not stop a sword. It might stop you from forgetting who you are down there. With respect, and worry, Tomoe.',
+    items: [['salve', 3]],
+  },
+  {
+    id: 'genzo_tsukikage', from: 'genzo', when: (g) => g.flags.boss_kurenai,
+    text: 'So it was the oni forging for someone. I thought as much; their iron was too good. Listen. Bring me your uncle\'s blade, five of tamahagane and five spirit stones, and I will fold them into something that can cut a ghost. I have been waiting forty years to make that sword. Do not make me wait forty-one. Genzō.',
+    items: [],
+  },
 ];

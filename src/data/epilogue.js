@@ -1,0 +1,57 @@
+// The epilogue's lines (src/epilogue.js picks them from how the story went). Spring on the shrine
+// steps, a year and more after you came to the valley. {placeholders} are filled in by the picker.
+export const EPILOGUE = {
+  open: 'Spring comes round again. From the top of the shrine stair you can see the whole valley at once: the terraces, the river, the smoke from the teahouse.',
+  petition_won: 'The toll board is long gone. Shinsuke keeps the true ledger now, in the headman\'s house, and reads it aloud at New Year to anyone who will listen.',
+  kuroda_signed: 'Kuroda\'s warehouses line the river road. The valley eats, mostly. Nobody quite looks at your crate when it goes by.',
+  neither: 'The magistrate\'s toll still stands at the bridge. Some days the valley grumbles about it. Some days it does something.',
+  spouse: '{spouse} climbs the stair with two cups of tea and sits beside you without saying anything. There is nothing that needs saying.',
+  alone: 'You sit alone on the top step. It is not lonely. The valley is noisy enough for two.',
+  friends: '{a}, {b} and {c} come up the stair together, arguing about something that does not matter at all.',
+  virtue: {
+    gi: 'People bring you their quarrels now, because you judge them straight. You wish they would stop. You are glad they do not.',
+    yu: 'Children dare each other to follow you as far as the mine mouth. None of them ever go further. Good.',
+    jin: 'There is always somebody at your gate with a basket to return. You never remember lending the basket.',
+    rei: 'The Jizō by the crossroads wears a new red bib every season. Nobody admits to sewing them.',
+    makoto: 'Chōbei has stopped counting your coins twice. He says it is a waste of an afternoon.',
+    meiyo: 'Rin says your name at the dōjō when a student drops their guard. It is meant as a warning. It is also a compliment.',
+    chugi: 'You have kept every promise you made in this valley. It turns out that is what a lord was supposed to be for.',
+  },
+  restored: [
+    'The shrine is still half asleep; there is work left, and seasons enough to do it.',
+    'Half the valley\'s old wonders are woken again. The other half are waiting, patiently, like everything here.',
+    'The bell rings, the onsen steams, the kodama chatter in the cedars. Your uncle would not recognise the place. He would like it.',
+  ],
+  archive: 'The Archive\'s shelves are nearly full. Heibei has started charging admission. Nobody pays.',
+  rest: 'Your uncle\'s sword rests in the shrine hall now, under the kamidana. Some mornings you still hear it clear its throat.',
+  carry: 'Tsukikage rides at your hip, quiet and bright. \'Well,\' it says. \'What now?\' The fields, you tell it. Always the fields.',
+  close: 'The valley goes on. So do you.',
+};
+
+// The credits roll: [size, text], size 'big' | 'body' | 'small' | 'gap'.
+export const CREDITS = [
+  ['big', 'Rōnin no Sato 浪人の里'],
+  ['gap'],
+  ['body', 'A samurai farming-life story'],
+  ['gap'],
+  ['small', 'Design, code, pixel art, writing and sound'],
+  ['body', 'made from scratch for this game'],
+  ['small', 'every sprite, tile, tune and line original'],
+  ['gap'],
+  ['small', 'Pixel font'],
+  ['body', 'Fusion Pixel Font, by TakWolf and contributors'],
+  ['small', 'SIL Open Font License 1.1'],
+  ['gap'],
+  ['small', 'Tested with'],
+  ['body', 'Playwright'],
+  ['gap'],
+  ['small', 'The people of Yamabuki'],
+  ['body', 'Genzō · Okiku · Tomoe · Heibei · Ume · Daigo'],
+  ['body', 'Kaito · Chōbei · Sōken · Rin · Toyo · Kinta'],
+  ['body', 'Tatsu · Yuzu · Sakuya · Ōkubo · Shinsuke · Kon'],
+  ['gap'],
+  ['small', 'And Tsukikage, who had something to say about all of it'],
+  ['gap'],
+  ['gap'],
+  ['body', 'Thank you for playing.'],
+];

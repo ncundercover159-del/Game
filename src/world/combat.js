@@ -11,6 +11,7 @@ import { URN_LOOT } from '../data/caves.js';
 import './boss.js';
 import './brains2.js';
 import './bosses2.js';
+import './shade.js';
 
 const KNOCK = 80;
 // Seconds an orbiting orb flares before it flies; the fire vents' cycle and bite.

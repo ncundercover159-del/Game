@@ -98,3 +98,37 @@ test('the Archive: collections cover real items once each; donations pay milesto
   for (const id of COLLECTIONS.crops.items.slice(0, toTwenty)) r = donate(st, id);
   assert.deepEqual(r.milestones.map((m) => m.n), [20]);
 });
+
+test('the epilogue tells your story: the tolls, a spouse, friends, a virtue, the restorations, the sword', async () => {
+  const { epilogueLines } = await import('../../src/epilogue.js');
+  const { EPILOGUE: E } = await import('../../src/data/epilogue.js');
+  const base = {
+    flags: {}, romance: { spouse: null }, archive: { donated: [] },
+    bonds: { okiku: { met: true, pts: 900 }, genzo: { met: true, pts: 1200 }, rin: { met: true, pts: 300 }, ume: { met: true, pts: 100 } },
+    virtues: { gi: 10, yu: 40, jin: 20, rei: 5, makoto: 0, meiyo: 0, chugi: 0 },
+  };
+  const a = epilogueLines(base);
+  assert.equal(a[0], E.open);
+  assert.ok(a.includes(E.neither) && a.includes(E.alone) && a.includes(E.virtue.yu) && a.includes(E.restored[0]) && a.includes(E.carry));
+  assert.ok(a.some((l) => l.startsWith('Genzō, Okiku and Rin')), 'the three closest friends');
+  assert.equal(a.at(-1), E.close);
+  const b = epilogueLines({
+    ...base, flags: { petition_won: true, sword_rest: true, restored_bell: true, restored_bridge: true, restored_terraces: true, restored_onsen: true, restored_kodama: true, restored_archive: true },
+    romance: { spouse: 'rin' }, virtues: { ...base.virtues, chugi: 90 },
+  });
+  assert.ok(b.includes(E.petition_won) && b.includes(E.rest) && b.includes(E.virtue.chugi) && b.includes(E.restored[2]));
+  assert.ok(b.some((l) => l.startsWith('Rin climbs')), 'the spouse');
+  assert.ok(!b.some((l) => l.includes('Rin,')), 'the spouse is not also counted among the friends');
+});
+
+test('the Yomi Slope: modifiers pile up every twenty floors and are never repeated on a floor', async () => {
+  const { modsOf, MODS, zoneOf } = await import('../../src/data/caves.js');
+  assert.deepEqual(modsOf(80), []);
+  assert.equal(modsOf(81).length, 1);
+  assert.equal(modsOf(101).length, 2);
+  assert.equal(modsOf(141).length, 4);
+  assert.equal(modsOf(999).length, Object.keys(MODS).length);
+  for (let f = 81; f < 400; f += 7) { const m = modsOf(f); assert.equal(new Set(m).size, m.length); }
+  assert.equal(zoneOf(81).id, 'yomi');
+  assert.equal(zoneOf(5000).id, 'yomi');
+});

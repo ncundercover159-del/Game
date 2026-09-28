@@ -16,4 +16,9 @@ export const DEEP_STRINGS = {
   tk_kurenai_3: 'She means to come down on you. Watch the shadow; be elsewhere.',
   tk_cave_zone3: 'The Foxfire Halls. Something here is laughing at us. Only the true fox casts a shadow.',
   tk_cave_zone4: 'The Oni Foundry. Mind the vents in the floor: they glow before they breathe.',
+  tk_cave_zone5: 'The Yomi Slope. The road of the dead, and it goes down forever. Every twenty floors it asks a little more of us.',
+  tk_aizawa: 'Lord Aizawa. He taught you everything you know. That means he knows it too.',
+  tk_aizawa_2: 'His retainers. They followed him in life. Do not blame them for following him here.',
+  tk_aizawa_3: 'He has sheathed his blade. You know what that means. You have always known.',
+  tk_after_credits: 'That is that, then. The turnips will not plant themselves. Well. Some of them nearly do.',
 };

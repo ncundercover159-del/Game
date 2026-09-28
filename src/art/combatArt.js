@@ -4,7 +4,7 @@ import { addCharacter } from './characters.js';
 import { addHeldWeapons, weaponIcons, combatSprites } from './weapons.js';
 import { ENEMY_LOOKS, yokaiFrames } from './enemies.js';
 import { omens } from './spirits.js';
-import { oreNode, urn, chest, ladderHole, ropeUp, caveLantern, timbers, crackedWall, bundle, caveMouth, brazier, deepStair, vent } from './cave.js';
+import { oreNode, urn, chest, ladderHole, ropeUp, caveLantern, timbers, crackedWall, bundle, caveMouth, brazier, vent } from './cave.js';
 import { deepFrames, deepShots } from './yokai2.js';
 import { ORES } from '../data/caves.js';
 import { portrait, EXPRESSIONS } from './portraits.js';
@@ -14,7 +14,7 @@ export function addCombatArt(atlas, add) {
   for (const [k, g] of Object.entries(weaponIcons())) add(`icon_${k}`, g, 0, 0);
   for (const [k, g] of Object.entries(combatSprites())) add(`fx_${k}`, g, Math.floor(g.w / 2), Math.floor(g.h / 2));
   for (const [id, look] of Object.entries(ENEMY_LOOKS)) addCharacter(atlas, id, look);
-  for (const ex of EXPRESSIONS) add(`portrait_jubei_${ex}`, portrait(ENEMY_LOOKS.jubei, ex), 0, 0);
+  for (const id of ['jubei', 'aizawa']) for (const ex of EXPRESSIONS) add(`portrait_${id}_${ex}`, portrait(ENEMY_LOOKS[id], ex), 0, 0);
   for (const [k, g] of Object.entries(yokaiFrames())) add(k, g, 8, g.h);
   for (const [k, g] of Object.entries(omens())) add(`fx_${k}`, g, Math.floor(g.w / 2), Math.floor(g.h / 2));
 
@@ -25,7 +25,7 @@ export function addCombatArt(atlas, add) {
   add('vent_fire0', vent('fire', 0), 9, 41);
   add('vent_fire1', vent('fire', 1), 9, 41);
 
-  for (const zone of [1, 2, 3, 4]) {
+  for (const zone of [1, 2, 3, 4, 5]) {
     for (const kind of Object.keys(ORES)) {
       const g = oreNode(kind, zone);
       add(`ore_${kind}_${zone}`, g, 9, g.h - 1);
@@ -43,5 +43,4 @@ export function addCombatArt(atlas, add) {
   add('bundle', bundle());
   add('cave_mouth', caveMouth());
   add('brazier', brazier());
-  add('deep', deepStair(), 8, 16);
 }
