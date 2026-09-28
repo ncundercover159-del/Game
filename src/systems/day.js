@@ -3,6 +3,7 @@ import { growNight, rainWater, typhoonDamage } from './farming.js';
 import { nextDay, dayIndex, MIDNIGHT, SEASONS } from './calendar.js';
 import { weatherFor, WEATHER } from './weather.js';
 import { sellValue, hasPerk } from './skills.js';
+import { trapsNight } from './fishing.js';
 
 export const PASS_OUT = { frac: 0.1, cap: 1000 };
 
@@ -39,6 +40,7 @@ export function endDay(game, passedOut) {
   game.shipped = [];
 
   const typhoonLost = game.weather === 'typhoon' ? typhoonDamage(map, game.rng) : 0;
+  trapsNight(map, game.rng, hasPerk(game.skills, 'trapper'));
   const prev = game.cal;
   const { t, newSeason, newYear } = nextDay(prev);
   // Agriculturist: a watered crop sometimes grows two days in a night.

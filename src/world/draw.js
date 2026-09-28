@@ -4,6 +4,7 @@ import { TILE } from '../config.js';
 import { OBJECT_TYPES } from '../data/objects.js';
 import { stageOf } from '../data/crops.js';
 import { hex } from '../art/palette.js';
+import { ROD_TIPS } from '../art/fish.js';
 
 const SHADOW_ALPHA = 0.36;
 const pool = [];
@@ -31,6 +32,7 @@ function objectSprite(o) {
     case 'bamboo': case 'thicket': return `bamboo${o.v}`;
     case 'forage': return `forage_${o.kind}`;
     case 'dig': return 'dig_spot';
+    case 'trap': return 'uke';
     case 'fence': return o.v ? 'fence_post' : 'fence';
     default: return o.kind ? `${o.type}_${o.kind}` : o.type;
   }
@@ -147,6 +149,7 @@ function drawObject(w, ctx, cam, o) {
     return;
   }
   atlas.draw(ctx, seasonal(atlas, objectSprite(o), w.game.seasonId), bx, by);
+  if (o.type === 'trap' && o.catch) atlas.draw(ctx, 'emote_bang', bx, by - 14 + Math.round(Math.sin(w.time * 3)));
   // Unread letters: a bubble over the mailbox.
   if (o.type === 'mailbox' && w.game.mail.inbox.some((l) => !l.read)) atlas.draw(ctx, 'emote_bang', bx, by - 20 + Math.round(Math.sin(w.time * 3)));
 }
@@ -156,13 +159,18 @@ function drawPlayer(w, ctx, cam) {
   const atlas = w.game.atlas;
   const f = p.frame();
   const x = Math.round(p.x) - cam.ix, y = Math.round(p.y) - cam.iy;
-  const tool = p.swing ? p.swing.tool : p.charge ? p.chargeTool : null;
-  const held = tool ? `held_${tool}_${f.dir}_${f.pose}` : null;
+  const fishing = w.fishing.active;
+  const tool = fishing ? 'rod' : p.swing ? p.swing.tool : p.charge ? p.chargeTool : null;
+  const pose = fishing ? w.fishing.pose() : f.pose;
+  const held = tool ? `held_${tool}_${f.dir}_${pose}` : null;
   // A raised tool is behind the head; a strike toward the camera or sideways is in front.
-  const behind = f.pose === 'raise' || f.dir === 'up';
+  const behind = pose === 'raise' || f.dir === 'up';
+  const body = fishing ? `player_${f.dir}_tool${pose === 'raise' ? 0 : 2}` : f.name;
   if (held && behind) atlas.draw(ctx, held, x, y, f.flip);
-  atlas.draw(ctx, f.name, x, y, f.flip);
+  atlas.draw(ctx, body, x, y, f.flip);
   if (held && !behind) atlas.draw(ctx, held, x, y, f.flip);
+  if (fishing) drawLine(w, ctx, cam, f, pose);
+  if (w.fishing.shown) atlas.draw(ctx, `icon_${w.fishing.shown.id}`, x - 8, y - 50);
   if (p.charge) {
     // Charge pips over the head: one per level reached.
     const level = w.chargeLevel();
@@ -173,6 +181,28 @@ function drawPlayer(w, ctx, cam) {
       ctx.fillRect(x - p.charge.max * 3 + i * 6 + 1, y - 39, 3, 2);
     }
   }
+}
+
+/** The fishing line from the rod tip to the float (a sagging pixel line), and the float itself. */
+function drawLine(w, ctx, cam, f, pose) {
+  const s = w.fishing.state, p = w.player;
+  if (!s || s.phase === 'charge') return;
+  const [tx, ty] = ROD_TIPS[f.dir][pose];
+  const x0 = Math.round(p.x) + (f.flip ? -tx : tx) - cam.ix, y0 = Math.round(p.y) + ty - cam.iy;
+  const k = s.phase === 'cast' ? Math.min(1, s.t / 0.4) : 1;
+  const bx = x0 + (s.bx - cam.ix - x0) * k;
+  const arc = s.phase === 'cast' ? Math.sin(k * Math.PI) * 24 : 0;
+  const bob = s.phase === 'bite' ? (Math.floor(s.t * 12) % 2) * 2 + 1 : s.phase === 'wait' ? Math.round(Math.sin(s.t * 3)) : 0;
+  const by = y0 + (s.by - cam.iy - y0) * k - arc + bob;
+  ctx.fillStyle = hex('ink5');
+  const n = Math.max(Math.abs(bx - x0), Math.abs(by - y0));
+  for (let i = 0; i <= n; i += 1) {
+    const u = i / Math.max(1, n);
+    const sag = s.phase === 'cast' ? 0 : Math.sin(u * Math.PI) * 6;
+    ctx.fillRect(Math.round(x0 + (bx - x0) * u), Math.round(y0 + (by - y0) * u + sag), 1, 1);
+  }
+  w.game.atlas.draw(ctx, 'bobber', Math.round(bx), Math.round(by));
+  if (s.phase === 'bite') w.game.atlas.draw(ctx, 'emote_bang', Math.round(p.x) - cam.ix, Math.round(p.y) - 34 - cam.iy);
 }
 
 function drawTarget(w, ctx, cam) {

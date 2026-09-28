@@ -79,6 +79,9 @@ export default {
     { type: 'sign', tx: 50, ty: 11, text: 'sign_terraces', textIf: ['restored_terraces', 'sign_terraces_open'] },
     { type: 'mailbox', tx: 33, ty: 12 },
   ],
+  // Fishing: the pond by the fields; everything else is the river.
+  waters: [{ rect: [44, 16, 59, 26], kind: 'pond' }],
+  waterKind: 'river',
   // The valley road west to the village.
   warps: [{ x: 0, y: 14, w: 1, h: 2, to: 'village', tx: 78, ty: 13, dir: 'left' }],
   // The locked northern terraces: stone retaining walls step the hillside.

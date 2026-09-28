@@ -109,6 +109,7 @@ export default {
     { type: 'toro', tx: 67, ty: 22, light: [0, 6] },
     { type: 'sign', tx: 2, ty: 11, text: 'sign_village_west' },
   ],
+  waterKind: 'river',
   warps: [
     { x: 79, y: 12, w: 1, h: 3, to: 'farm', tx: 1, ty: 14, dir: 'right' },
     { x: 38, y: 0, w: 4, h: 1, to: 'shrine', tx: 19, ty: 47, dir: 'up' },

@@ -13,6 +13,7 @@ import { genCropStages, witheredStage } from './cropgen.js';
 import { toolIcons, itemIcons, coinIcon, tierToolIcons } from './icons.js';
 import { foodIcons } from './food.js';
 import { forageIcons, digSpot } from './forage.js';
+import { fishIcons, bobber, rodSprite, trapInWater } from './fish.js';
 import { townhouse, torii, honden, noticeBoard, jizo, bench, parasol, riceBales, mailbox, emaRack, shimenawa, rearGate } from './town.js';
 import { futon, irori, tansu, andon, counter, shelf, teaTable, zabuton, forge, anvil, drawers, nets, altar, kamidana } from './furniture.js';
 import { CROPS } from '../data/crops.js';
@@ -203,6 +204,13 @@ export function buildArt() {
   // Forage doubles as its own ground sprite, anchored at the feet.
   for (const [k, g] of Object.entries(forageIcons())) { add(`icon_${k}`, g, 0, 0); add(`forage_${k}`, g, 8, 15); }
   add('dig_spot', digSpot(), 8, 12);
+  for (const [k, g] of Object.entries(fishIcons())) add(`icon_${k}`, g, 0, 0);
+  add('bobber', bobber(), 2, 5);
+  add('uke', trapInWater(), 8, 14);
+  for (const dir of ['down', 'up', 'right']) for (const pose of ['raise', 'strike']) {
+    const s = rodSprite(dir, pose);
+    add(`held_rod_${dir}_${pose}`, s.g, s.ax, s.ay);
+  }
   add('icon_coin', coinIcon(), 0, 0);
 
   add('ui_frame', FRAME, 0, 0);

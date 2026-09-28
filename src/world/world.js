@@ -15,6 +15,7 @@ import { cropAt, isRipe, harvest, plant, canPlant, rollQuality } from '../system
 import { spawnSpots, digFind } from '../systems/forage.js';
 import { dayIndex } from '../systems/calendar.js';
 import { openNotice, openMailbox, openAltar } from '../flow.js';
+import { Fishing } from './fishing.js';
 import { XP } from '../data/skills.js';
 import { buffAmount, hasPerk } from '../systems/skills.js';
 
@@ -34,6 +35,7 @@ export class World {
     computeFlow(this.map);
     this.ground = new GroundRenderer(this.map, game.cells, game.atlas, game.cal.season);
     this.fx = new Fx();
+    this.fishing = new Fishing(this);
     this.drops = new Drops();
     this.time = 0;
     this.target = { x: -1, y: -1 };
@@ -53,7 +55,10 @@ export class World {
     this.time += dt;
     p.tick(dt);
     this.aim();
-    if (p.charge) {
+    this.fishing.update(dt);
+    if (this.fishing.active) {
+      // Rooted to the bank while the line is out.
+    } else if (p.charge) {
       p.charge.t += dt;
       const level = this.chargeLevel();
       if (level !== p.charge.shown) { p.charge.shown = level; if (level) this.game.sfx('ui'); }
@@ -108,6 +113,7 @@ export class World {
     const t = this.target;
     if (def.kind === 'seed') { plantSeed(this, slot, t.x, t.y); return; }
     if (def.kind === 'food') { g.eat(slot); return; }
+    if (def.tool === 'rod') { if (this.mouseTarget) this.player.face(t.x, t.y); this.fishing.start(); return; }
     if (def.kind === 'place') { placeItem(this, slot, t.x, t.y); return; }
     if (item.id === 'hay') { spreadStraw(this, slot, t.x, t.y); return; }
     if (def.kind !== 'tool') return;
@@ -175,6 +181,11 @@ export class World {
       return;
     }
     if (o0 && o0.type === 'jizo') { g.bow(); return; }
+    if (o0 && o0.type === 'trap') {
+      if (!o0.catch) { g.say('trap_empty'); return; }
+      if (g.pickUp(o0.catch, 1) === 0) { o0.catch = null; g.xp('fishing', XP.trap); }
+      return;
+    }
     if (o0 && o0.type === 'notice') { openNotice(g); return; }
     if (o0 && o0.type === 'mailbox') { openMailbox(g); return; }
     if (o0 && o0.type === 'altar') { openAltar(g, o0.kind); return; }

@@ -143,6 +143,21 @@ function hitObject(w, o, tool) {
   return 'destroy';
 }
 
+function placeTrap(w, slot, tx, ty) {
+  const { game, map } = w;
+  const bank = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => map.inside(tx + dx, ty + dy) && !map.isWater(tx + dx, ty + dy));
+  if (!map.def.persist || !map.inside(tx, ty) || !map.isWater(tx, ty) || !bank || map.objectAt(tx, ty)) {
+    game.sfx('deny');
+    game.aside(map.def.persist ? 'tk_trap_where' : 'tk_trap_farm', { once: true });
+    return false;
+  }
+  map.addObject({ type: 'trap', x: tx, y: ty, v: 0 });
+  game.inventory.takeFrom(slot, 1);
+  w.fx.burst('fx_drop', tx * TILE + 8, ty * TILE + 10, 6, { speed: 20, up: 30 });
+  game.sfx('water');
+  return true;
+}
+
 /** Planting from the selected seed slot. Returns false (with a hint) when it can't go there. */
 export function plantSeed(w, slot, tx, ty) {
   const { game, map } = w;
@@ -171,10 +186,11 @@ export function spreadStraw(w, slot, tx, ty) {
   return true;
 }
 
-/** Place a placeable item (sluice gate on a channel). */
+/** Place a placeable item: a sluice gate on a channel, a fish trap in the water by a bank. */
 export function placeItem(w, slot, tx, ty) {
   const { game, map } = w;
   const s = game.inventory.slots[slot];
+  if (s.id === 'uke') return placeTrap(w, slot, tx, ty);
   if (s.id !== 'sluice') return false;
   if (!map.inside(tx, ty) || map.soil[map.i(tx, ty)] !== SOIL.CHANNEL || map.objectAt(tx, ty)) {
     game.sfx('deny');

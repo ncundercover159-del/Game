@@ -20,6 +20,11 @@ export const LETTERS = [
     items: [['onigiri', 2]],
   },
   {
+    id: 'daigo_rod', from: 'daigo', when: (g) => g.bonds.daigo?.met,
+    text: 'Friend! A farmer who does not fish is only half fed. Here is my old bamboo rod; it has caught more fish than I have. Cast from any bank. When the float dips, strike, then hold the line and ease it, hold and ease. Ayu in summer, eels on warm nights. And at the falls in the Hollow Grove... well. Come and ask me about the moon.',
+    items: [['rod', 1]],
+  },
+  {
     id: 'uncle_2', from: 'Jirōbei', when: (g) => dayIndex(g.cal) >= 5,
     text: 'You will have seen the terraces north of the house, fenced off. I stopped working them when the shrine went quiet. Call it superstition. The old people say the valley gives what the shrine is given. Seven altars, seven virtues. Fill them and see. I never managed it; my virtues were mostly stubbornness. A little tea, for the climb.',
     items: [['tea', 2]],

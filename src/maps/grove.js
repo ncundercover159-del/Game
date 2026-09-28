@@ -57,6 +57,9 @@ export default {
     { type: 'sign', tx: 52, ty: 19, text: 'sign_grove' },
     { type: 'toro', tx: 36, ty: 13, light: [0, 6] },
   ],
+  // Fishing: right under the falls, the rest of the pool, and the stream.
+  waters: [{ rect: [23, 7, 32, 9], kind: 'falls' }, { rect: [17, 7, 38, 13], kind: 'pool' }],
+  waterKind: 'stream',
   // Slanting light through the bamboo (tile positions of each shaft's top).
   shafts: [[44, 3], [48, 5], [51, 3], [45, 10], [50, 11]],
   warps: [

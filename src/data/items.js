@@ -2,6 +2,7 @@
 // Prices are in mon (文). Quality multiplies sell value (see QUALITY).
 import { CROPS } from './crops.js';
 import { FORAGE, ARTIFACTS } from './forage.js';
+import { FISH, JUNK } from './fish.js';
 
 export const QUALITY = [
   { name: '', stars: 0, mult: 1 },
@@ -16,6 +17,8 @@ export const ITEMS = {
   sickle: { name: 'Kama', jp: '鎌', kind: 'tool', tool: 'sickle', desc: 'A sickle. Cuts weeds into hay and harvests crops.' },
   axe: { name: 'Ono', jp: '斧', kind: 'tool', tool: 'axe', desc: 'An axe. Fells trees, splits stumps and bamboo.' },
   pickaxe: { name: 'Tsuruhashi', jp: '鶴嘴', kind: 'tool', tool: 'pickaxe', desc: 'A pickaxe. Breaks stones and turns soil back.' },
+  rod: { name: 'Tsurizao', jp: '釣竿', kind: 'tool', tool: 'rod', desc: 'A bamboo fishing rod. Hold to cast further; strike when the float dips.' },
+  uke: { name: 'Fish Trap', jp: '筌', kind: 'place', place: 'uke', sell: 20, price: 150, desc: 'A woven bamboo trap. Set it in water beside the bank; check it each morning.' },
 
   wood: { name: 'Wood', jp: '木材', kind: 'material', sell: 2, desc: 'Sturdy timber for building and crafting.' },
   stone: { name: 'Stone', jp: '石', kind: 'material', sell: 2, desc: 'Plain field stone.' },
@@ -47,6 +50,8 @@ for (const [id, c] of Object.entries(CROPS)) {
 }
 
 for (const [id, f] of Object.entries(FORAGE)) ITEMS[id] = { name: f.name, jp: f.jp, kind: 'forage', sell: f.sell, desc: f.desc };
+for (const [id, f] of Object.entries(FISH)) ITEMS[id] = { name: f.name, jp: f.jp, kind: 'fish', sell: f.sell, desc: f.desc };
+for (const [id, j] of Object.entries(JUNK)) ITEMS[id] = { name: j.name, jp: j.jp, kind: 'junk', sell: j.sell, desc: j.desc };
 for (const [id, a] of Object.entries(ARTIFACTS)) ITEMS[id] = { name: a.name, jp: a.jp, kind: 'artifact', sell: a.sell, desc: a.desc };
 
 export const STACK = 99;
