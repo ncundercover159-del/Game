@@ -1,0 +1,63 @@
+// Daigo 大吾, fisherman and ferryman. Big laugh, big heart, knows the river's every mood.
+export default {
+  intro: '[happy] Ha! The new farmer! Welcome to the river, friend. I am Daigo. I catch fish, I carry folk across when the bridge floods, and I talk too much. You will see.',
+  tiers: [
+    [
+      '[happy] The river is generous today. Or she is teasing me. Hard to tell with rivers.',
+      'Ayu run in summer, carp in the slow pools, and in winter the char come down from the snowmelt. Remember that.',
+      'The old ferry is tied under the bridge. When the river floods, I row folk across. Nobody pays. Everybody owes.',
+      '[happy] You want to learn fishing? Ha! Patience first. Then a rod. Mostly patience.',
+      'Kaito says fishing is boring. Kaito says everything is boring that is not Edo.',
+      'The water tells you everything if you look long enough. Where it is deep, where it is cold, where it is hiding something.',
+    ],
+    [
+      '[happy] Here, try this. Grilled ayu with salt. No? Your loss! More for me!',
+      'My father fished this bend for thirty years. One spring the river took him. I still fish here. We are square, the river and me.',
+      'Okiku gives me tea on credit. I pay her in fish. It is the best trade in the valley.',
+      '[neutral] Magistrate\'s men wanted a toll for the ferry. I told them the river does not pay tolls, and neither do I. They are still wet.',
+      'There is a pool upstream where the old men say a river spirit lives. Big as a boat. I have seen the ripples. Just the ripples.',
+      'You work too hard, farmer. Come sit on the bank some evening. The fish can wait. The sunset cannot.',
+    ],
+    [
+      '[happy] You know what I like about you? You laugh at my jokes. Even the bad ones. Especially the bad ones.',
+      'I carried a whole wedding across the river once. Bride, groom, drums, three chickens. The chickens did not enjoy it.',
+      '[sad] Some mornings the mist is so thick I cannot see the far bank. I talk to my father then. He does not answer, but the river does.',
+      'Genzō made my first hook. He said it would outlast me. So far, so good.',
+      'Tomoe blesses my boat every spring. Ume patches my hands every summer. Between them I might live forever.',
+      '[happy] If you catch something big, bring it here first. I want to see your face when you tell the story.',
+    ],
+    [
+      '[sad] I nearly went to Edo, once, like Kaito wants to. Got as far as the pass. Turned around. Could not hear the river.',
+      'You are a good friend, {name}. I do not say that to everyone. I say it to most people. But I mean it with you.',
+      '[happy] I have been saving the best fishing spot for someone worth it. Upstream, past the waterfall. You are worth it.',
+      'Kuroda wants to buy the river rights. Can you imagine? Buying a river. I laughed so hard I fell in.',
+      'When the bridge was washed out, I ferried the whole village for a month. I would do it again. Tell no one.',
+      'The river spirit is real. I saw it last autumn. It looked right at me. It looked sad.',
+    ],
+    [
+      '[happy] {name}! My favourite person on either bank! Come, sit, the fire is going.',
+      'I carved you something. A float, for fishing. It is shaped like a fish. Well. It is supposed to be.',
+      '[sad] I get lonely on the river, some nights. Less since you came.',
+      'Whatever comes down that mountain, you will not face it alone. I have a boat and two strong arms.',
+      '[happy] When I am old, I want to sit on this bank and tell children about you. Most of it true.',
+      'The river is louder when you are here. I think she likes you too.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: '[happy] Spring thaw! The river is fat and fast. Good for the fish, bad for the ferry.' },
+    { season: 'summer', text: 'Summer is ayu season. Sweetfish, they call them. They smell like watermelon. I am not joking!' },
+    { season: 'autumn', text: 'The salmon come home in autumn. Everything comes home eventually.' },
+    { season: 'winter', text: 'Winter fishing: you cut a hole in the ice, you wait, you freeze. Then you eat. Worth it.' },
+    { rain: true, text: 'Rain on the river! Beautiful. The fish do not care, they are already wet.' },
+    { place: 'chaya', text: '[happy] Tea after fishing is the second best thing in the world. The first is fish.' },
+    { hour: 1020, text: 'Evening light on the water. Look at it. Just look. Nobody needs to say anything.' },
+  ],
+  gift: {
+    loved: '[happy] HA! You know me too well! This is wonderful!',
+    liked: '[happy] Oh, now that is good. Thank you, friend!',
+    neutral: '[happy] A present? For me? You are kind!',
+    disliked: '[neutral] Ah... I will give it to the fish. They are less picky.',
+    hated: '[angry] A stone. For a fisherman. What am I going to do, sink faster?',
+  },
+  birthday: '[happy] My birthday! You remembered! Tonight we feast, friend! Well, I feast. You can watch.',
+};

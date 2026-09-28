@@ -6,6 +6,12 @@ import { Rng } from './core/rng.js';
 import { makeDoc, writeSlot, readSlot, exportDoc, importDoc } from './core/save.js';
 import { World } from './world/world.js';
 import { Player } from './world/player.js';
+import { Villagers } from './world/npc.js';
+import { interactNpc, counter } from './world/talk.js';
+import { Cutscene } from './ui/cutscene.js';
+import { EVENTS } from './data/events.js';
+import { VIRTUES } from './data/virtues.js';
+import { decay } from './systems/bonds.js';
 import { drawWorld } from './world/draw.js';
 import { Lighting } from './world/lighting.js';
 import { Inventory } from './systems/inventory.js';
@@ -70,12 +76,16 @@ export class Game {
     this.upgrade = s.upgrade ? { ...s.upgrade } : null;
     this.shipped = s.shipped.map((x) => ({ ...x }));
     this.stats = { ...s.stats };
+    this.bonds = structuredClone(s.bonds);
+    this.virtues = { ...s.virtues };
     this.inventory = Inventory.from(s.inventory);
     this.rng = new Rng(s.rng);
     this.applyParams();
     this.savedMaps = { ...s.maps };
     this.worlds = new Map();
     this.player = new Player({ x: 0, y: 0 });
+    this.villagers = new Villagers(this);
+    this.villagers.snap();
     // Resume where the save left off (old saves predate maps: the farm), or at a map's spawn.
     const at = s.player ? { map: 'farm', ...s.player } : null;
     const param = this.params.get('map');
@@ -104,7 +114,41 @@ export class Game {
     const p = this.player, m = this.world.map;
     this.camera.setView(this.screen.w, this.screen.h);
     this.camera.follow(p.x, p.y - 12, m.pw, m.ph, 1);
+    if (this.scene === 'play') this.triggerEvents(id);
   }
+
+  /** Story events that fire on entering a map (once each, when their flag is unset). */
+  triggerEvents(mapId) {
+    const e = EVENTS.find((ev) => ev.map === mapId && !this.flags[ev.flag] && (!ev.when || ev.when(this)));
+    if (!e) return;
+    this.flags[e.flag] = true;
+    // Starts once the door wipe (or whatever else is open) has finished.
+    this.pendingScene = e.script;
+  }
+
+  /** Raise (or lower) a virtue, 0-100. */
+  addVirtue(id, n) {
+    const before = this.virtues[id];
+    this.virtues[id] = Math.max(0, Math.min(100, before + n));
+    if (this.virtues[id] !== before && n > 0) this.toast('toast_virtue', { virtue: VIRTUES[id].name, jp: VIRTUES[id].jp, n }, null);
+  }
+
+  /** Bowing to a Jizō: respect, once a day. */
+  bow() {
+    this.say('jizo_bow');
+    const key = `bow_${dayIndex(this.cal)}`;
+    if (!this.flags[key]) {
+      for (const k of Object.keys(this.flags)) if (k.startsWith('bow_')) delete this.flags[k];
+      this.flags[key] = true;
+      this.addVirtue('rei', 1);
+    }
+  }
+
+  /** Talk to (or give a gift to) a villager. */
+  talkTo(n) { interactNpc(this, n); }
+
+  /** A shop counter with its keeper behind it. */
+  counter(shop, n) { counter(this, shop, n); }
 
   /** Walk through a warp (door or road) behind a quick ink wipe. */
   warp(wp) {
@@ -150,6 +194,7 @@ export class Game {
   play() {
     this.scene = 'play';
     this.modals = [];
+    this.pendingScene = null;
     this.hud = new Hud(this);
   }
 
@@ -168,6 +213,7 @@ export class Game {
       money: this.money, genki: this.genki, genkiMax: this.genkiMax, can: this.can,
       cal: { ...this.cal }, weather: this.weather, tomorrow: this.tomorrow, tiers: { ...this.tiers },
       upgrade: this.upgrade, shipped: this.shipped.map((x) => ({ ...x })), stats: { ...this.stats },
+      bonds: structuredClone(this.bonds), virtues: { ...this.virtues },
       inventory: this.inventory.serialize(), flags: { ...this.flags },
       rng: this.rng.state(), player: { ...this.player.serialize(), map: this.world.map.id },
       maps: this.mapsSnapshot(),
@@ -258,8 +304,10 @@ export class Game {
     const wipe = new InkWipe(this, {
       onCovered: () => {
         const r = endDay(this, passedOut);
+        decay(this.bonds, dayIndex(this.cal));
         const bed = MAPS.house_farm.wake;
         this.enter('house_farm', bed.tx, bed.ty, bed.dir);
+        this.villagers.snap();
         this.saveNow(true);
         summary = summaryLines(r, this);
         this.morning(r, passedOut);
@@ -289,11 +337,13 @@ export class Game {
   openShop(id) {
     const shop = SHOPS[id];
     const m = this.cal.minutes;
+    const keeper = MAPS[id].keeper && this.villagers.get(MAPS[id].keeper.npc);
     if (dayIndex(this.cal) % 7 === shop.closedDay || m < shop.open || m >= shop.close) {
       const day = WEEKDAYS[shop.closedDay];
       this.say('shop_closed', { name: shop.name, open: formatTime(shop.open), close: formatTime(shop.close), closed: t('shop_closed_day', { day: `${day.name} ${day.jp}` }) });
       return;
     }
+    if (keeper && keeper.map !== id) { this.say('shop_away', { npc: keeper.def.name }); return; }
     this.sfx('ui_ok');
     this.modals.push(id === 'kajiya' ? new ForgeMenu(this) : new ShopMenu(this, id));
   }
@@ -334,6 +384,10 @@ export class Game {
       return;
     }
     this.hud.update(dt);
+    if (this.pendingScene && !this.modals.length) {
+      this.modals.push(new Cutscene(this, this.pendingScene));
+      this.pendingScene = null;
+    }
     if (this.modals.length) {
       const m = this.modals[this.modals.length - 1];
       if (!m.update(dt, input)) this.modals.splice(this.modals.indexOf(m), 1);
@@ -342,6 +396,7 @@ export class Game {
     this.hotbarInput(input);
     if (input.pressed('menu')) { this.sfx('ui'); this.modals.push(new Menu(this)); return; }
     this.world.update(dt);
+    this.villagers.update(dt);
     this.tickClock(dt);
     if (this.weatherFx.update(dt, this.weather, this.cal.season, this.screen.w, this.screen.h, this.cal.minutes, this.settings.flashes) === 'thunder') this.sfx('fall');
     const p = this.player;

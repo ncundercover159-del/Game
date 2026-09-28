@@ -36,12 +36,14 @@ test('charged swings cover a line of 3, a line of 5, then a 3x3 block', () => {
   assert.equal(swingArea(5, 5, 6, 5, 3).length, 9);
 });
 
-test('M1 (v1) saves migrate to v2 with weather, tiers and an empty crate', () => {
+test('M1 (v1) saves migrate through v2 (weather, tiers, crate) to v3 (bonds, virtues)', () => {
   const v1 = makeDoc({ seed: 7, cal: { day: 3, season: 0, year: 1, minutes: 400 }, money: 10 }, {});
   v1.version = 1;
   const up = upgrade(v1);
-  assert.equal(up.version, 2);
+  assert.equal(up.version, 3);
   assert.ok(WEATHER[up.state.weather] && WEATHER[up.state.tomorrow]);
   assert.deepEqual(up.state.shipped, []);
   assert.equal(up.state.tiers.hoe, 0);
+  assert.deepEqual(up.state.bonds, {});
+  assert.equal(up.state.virtues.jin, 0);
 });

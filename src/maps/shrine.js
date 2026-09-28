@@ -76,7 +76,7 @@ export default {
     { type: 'gate', tx: 19, ty: 1, ox: 8, block: [2, 1] },
   ],
   warps: [
-    { x: 18, y: 49, w: 4, h: 1, to: 'village', tx: 31, ty: 1, dir: 'down' },
+    { x: 18, y: 49, w: 4, h: 1, to: 'village', tx: 39, ty: 1, dir: 'down' },
   ],
   spawn: { tx: 19, ty: 47, dir: 'up' },
 };

@@ -1,0 +1,65 @@
+// Genzō 源蔵, swordsmith. Gruff, few words, knew Jirōbei for forty years. Lines may start with an
+// [expression]; {name} is the player's name.
+export default {
+  intro: '[neutral] So you are Jirōbei\'s nephew. You have his jaw and none of his calluses. Yet. I am Genzō. I make blades, and I mend what farmers break.',
+  tiers: [
+    [
+      'Hm. The forge is hot. Say what you need or step back from it.',
+      '[angry] Do not touch the quench tub. The water remembers every blade I have cooled in it.',
+      'Your uncle broke three hoes a year. Stubborn soil up at Hinata. Stubborn man.',
+      'Iron bars, one hundred fifty mon. Upgrades take two days. I do not rush steel.',
+      'A rōnin with a rusted sword and a farm full of weeds. The valley has seen stranger things. Not many.',
+      '[neutral] Keep your tools dry. Rust is patient; you must be more patient.',
+    ],
+    [
+      'You came back. Good. Most men who start a farm quit before the first rains.',
+      '[happy] That hoe of yours has a better edge than last week. You are learning how to lean on it.',
+      'Jirōbei used to sit on that crate and complain about crows. I miss the complaining.',
+      'The magistrate\'s men asked me to make them tax seals. I told them my fire was out. It was not.',
+      'Steel that bends is better than steel that shatters. The same goes for people, they tell me.',
+      '[neutral] You swing from the shoulder. Swing from the hips. Try it on the weeds before you try it on anything else.',
+    ],
+    [
+      'That sword of yours. Tsukikage. I know its maker\'s mark. We will speak of it when you are ready to hear.',
+      '[happy] Sit, if you like. Not there, that is hot. There.',
+      'Ume says I breathe too much smoke. I say she breathes too many opinions. We are both right.',
+      'I trained under a master in Seki. He threw my first hundred blades into the river. The hundred and first he kept.',
+      'Your uncle paid me in daikon for ten years. The best daikon in the valley. I never told him I hate daikon. [happy] Do not tell him either.',
+      'When the shrine bell still rang, I timed my folds to it. Now I count in my head. It is not the same.',
+    ],
+    [
+      '[sad] I made the blades for the Aizawa retainers, once. Your clan. I watched them ride out. Fewer rode back.',
+      'You work the way a smith works: every day, the same motion, until the motion becomes the man.',
+      '[happy] Here. Hold this hammer. Feel the balance? That is forty years of my hand in the handle.',
+      'Kuroda offered to buy the forge. I told him a forge is not a thing you sell. He did not understand. Men like him never do.',
+      'If the magistrate comes for this valley\'s bones, he will find some of them are iron.',
+      'I do not say this often. Or ever. You have done right by Jirōbei\'s land.',
+    ],
+    [
+      '[happy] {name}. The fire is better company when you are in the doorway.',
+      'When I am gone, the anvil should go to someone who will not sell it. I have been thinking who.',
+      'Tsukikage is not rusted, you know. It is sleeping. Some steel sleeps until the hand is worthy.',
+      '[sad] I never married. The forge is a jealous wife. But I would not trade the sparks.',
+      'Your uncle would be proud. He would never say so. He would bring me daikon.',
+      '[happy] Tomorrow, come early. I will show you how to fold steel. Nobody else in this valley has seen it.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: 'Spring. Everyone wants their tools sharp at once. As if the weeds came as a surprise.' },
+    { season: 'summer', text: '[angry] Summer in a forge is a punishment for sins I do not remember committing.' },
+    { season: 'autumn', text: 'Autumn is the season for steel. Cool air, steady fire, clean folds.' },
+    { season: 'winter', text: 'Winter. The forge is the warmest place in Yamabuki. Everyone suddenly remembers my name.' },
+    { rain: true, text: 'Rain on the roof, fire in the hearth. Good day for a slow blade.' },
+    { weekday: 6, text: 'The forge rests on Nichi. So do I. The shrine steps are good for thinking.' },
+    { place: 'village', text: 'The river is loud tonight. It carries the mountain down, one stone at a time.' },
+    { flag: 'upgraded_once', text: '[happy] Your tool came out well. I said two days. I meant two days.' },
+  ],
+  gift: {
+    loved: '[happy] Now THIS is a gift. Good metal. I will make something worthy of it.',
+    liked: '[happy] Hm. Thank you. That will not go to waste.',
+    neutral: 'For me? ... Thank you.',
+    disliked: '[neutral] You may keep that. I will pretend you did not offer it.',
+    hated: '[angry] Hay. In a forge. Are you trying to burn the village down?',
+  },
+  birthday: '[happy] You remembered. Nobody remembers a smith\'s birthday. Even the smith.',
+};

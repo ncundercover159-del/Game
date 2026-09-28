@@ -145,6 +145,8 @@ export class World {
     const g = this.game;
     const { x, y } = this.target;
     const map = this.map;
+    const npc = g.villagers.at(map.id, x, y);
+    if (npc) { g.talkTo(npc); return; }
     if (isRipe(cropAt(map, x, y))) { this.harvestAt(x, y); return; }
     const cur = g.inventory.current;
     if (cur && itemDef(cur.id).kind === 'seed' && canPlant(map, x, y, cur.id.slice(5))) { plantSeed(this, g.inventory.selected, x, y); return; }
@@ -157,7 +159,13 @@ export class World {
     }
     if (o0 && o0.type === 'crate') { g.openShipping(); return; }
     if (o0 && o0.action === 'sleep') { g.askSleep(); return; }
-    if (o0 && o0.shop) { g.openShop(o0.shop); return; }
+    if (o0 && o0.shop) {
+      // With the keeper behind the counter you can shop or chat; otherwise it's just the shop.
+      const keeper = g.villagers.at(map.id, x, y - 1);
+      if (keeper) g.counter(o0.shop, keeper); else g.openShop(o0.shop);
+      return;
+    }
+    if (o0 && o0.type === 'jizo') { g.bow(); return; }
     const b = map.buildingAt(x, y);
     if (b) {
       if (b.door?.say && b.door.tx === x && b.door.ty === y) g.say(b.door.say);

@@ -1,11 +1,13 @@
-// Pause menu (Esc/Tab): Items (rearrange the backpack, item details), Options, Save.
+// Pause menu (Esc/Tab): Items (rearrange the backpack, item details), Bonds, Options, Save.
 import { fonts } from '../core/text.js';
 import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { List } from './list.js';
+import { BondsPage } from './bonds.js';
 import { t } from '../data/strings.js';
 import { itemDef, sellPrice, QUALITY } from '../data/items.js';
 
-const TABS = ['menu_items', 'menu_options', 'menu_save'];
+const TABS = ['menu_items', 'menu_bonds', 'menu_options', 'menu_save'];
+const TAB_W = 70;
 const SLOT = 20;
 
 export class Menu {
@@ -16,12 +18,13 @@ export class Menu {
     this.held = -1;          // slot index picked up for moving
     this.optSel = 0;
     this.saveList = this.makeSaveList();
+    this.bonds = new BondsPage(game);
     this.layout();
   }
 
   layout() {
     const { w, h } = this.game.screen;
-    this.w = Math.min(300, w - 16);
+    this.w = Math.min(TABS.length * TAB_W + 12, w - 16);
     this.h = 150;
     this.x = Math.floor(w / 2 - this.w / 2);
     this.y = Math.floor(h / 2 - this.h / 2) - 4;
@@ -53,14 +56,15 @@ export class Menu {
   update(dt, input) {
     const g = this.game;
     if (input.pressed('menu') || (input.pressed('cancel') && this.held < 0)) { g.sfx('ui_back'); return false; }
-    if (input.pressed('prev')) { this.tab = (this.tab + 2) % 3; g.sfx('ui'); }
-    if (input.pressed('next')) { this.tab = (this.tab + 1) % 3; g.sfx('ui'); }
+    if (input.pressed('prev')) { this.tab = (this.tab + TABS.length - 1) % TABS.length; g.sfx('ui'); }
+    if (input.pressed('next')) { this.tab = (this.tab + 1) % TABS.length; g.sfx('ui'); }
     const m = input.mouse;
     if (input.pressed('click')) {
-      TABS.forEach((_, i) => { if (hit(m.x, m.y, this.x + 6 + i * 70, this.y - 20, 66, 20)) { this.tab = i; g.sfx('ui'); } });
+      TABS.forEach((_, i) => { if (hit(m.x, m.y, this.x + 6 + i * TAB_W, this.y - 20, TAB_W - 4, 20)) { this.tab = i; g.sfx('ui'); } });
     }
     if (this.tab === 0) this.updateItems(input);
-    else if (this.tab === 1) this.updateOptions(input);
+    else if (this.tab === 1) this.bonds.update(input, this.x, this.y);
+    else if (this.tab === 2) this.updateOptions(input);
     else {
       const it = this.saveList.update(input);
       if (it) { it.act(); if (!g.menuOpen) return false; }
@@ -124,17 +128,18 @@ export class Menu {
     ctx.globalAlpha = 1;
     // Folder tabs sit on the panel's top edge; the active one is taller and drawn over it.
     const tab = (k, i) => {
-      const tx = this.x + 6 + i * 70, on = i === this.tab;
+      const tx = this.x + 6 + i * TAB_W, on = i === this.tab;
       const ty = this.y - (on ? 20 : 17);
-      panel(ctx, atlas, tx, ty, 66, on ? 24 : 19);
-      fonts.body.draw(ctx, t(k), Math.round(tx + 33 - fonts.body.measure(t(k)) / 2), ty + 5, on ? 'red1' : 'wood2');
+      panel(ctx, atlas, tx, ty, TAB_W - 4, on ? 24 : 19);
+      fonts.body.draw(ctx, t(k), Math.round(tx + (TAB_W - 4) / 2 - fonts.body.measure(t(k)) / 2), ty + 5, on ? 'red1' : 'wood2');
     };
     TABS.forEach((k, i) => { if (i !== this.tab) tab(k, i); });
     panel(ctx, atlas, this.x, this.y, this.w, this.h);
     tab(TABS[this.tab], this.tab);
-    rect(ctx, 'wood6', this.x + 6 + this.tab * 70 + 4, this.y + 1, 58, 3);
+    rect(ctx, 'wood6', this.x + 6 + this.tab * TAB_W + 4, this.y + 1, TAB_W - 12, 3);
     if (this.tab === 0) this.drawItems(ctx, atlas);
-    else if (this.tab === 1) this.drawOptions(ctx);
+    else if (this.tab === 1) this.bonds.draw(ctx, this.x, this.y, this.w);
+    else if (this.tab === 2) this.drawOptions(ctx);
     else {
       fonts.body.draw(ctx, `${g.state.name} · ${g.state.farm} Farm`, this.x + 12, this.y + 12, 'wood2');
       this.saveList.draw(ctx, this.x + 10, this.y + 32, this.w - 20);

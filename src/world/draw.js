@@ -58,6 +58,7 @@ export function drawWorld(w, ctx, cam) {
   }
   for (const b of map.buildings) rec((b.ty + b.h) * TILE, 'bld', b);
   for (const d of w.drops.list) rec(d.y, 'drop', d);
+  for (const n of game.villagers.onMap(map.id)) rec(n.y, 'npc', n);
   rec(player.y, 'player', player);
 
   if (game.scene === 'play') drawTarget(w, ctx, cam);
@@ -68,8 +69,8 @@ export function drawWorld(w, ctx, cam) {
     if (r.kind === 'obj') {
       const s = OBJECT_TYPES[r.ref.type].shadow;
       if (s) atlas.draw(ctx, s, r.ref.x * TILE + 8 - cam.ix, r.ref.y * TILE + 14 - cam.iy);
-    } else if (r.kind === 'player') {
-      atlas.draw(ctx, 'shadow_s', player.x - cam.ix, player.y - 1 - cam.iy);
+    } else if (r.kind === 'player' || r.kind === 'npc') {
+      atlas.draw(ctx, 'shadow_s', Math.round(r.ref.x) - cam.ix, Math.round(r.ref.y) - 1 - cam.iy);
     } else if (r.kind === 'drop') {
       atlas.draw(ctx, 'shadow_s', r.ref.x - cam.ix, r.ref.y - cam.iy);
     }
@@ -91,6 +92,11 @@ export function drawWorld(w, ctx, cam) {
       const d = r.ref;
       const bob = d.z === 0 ? Math.round(Math.sin(w.time * 4 + d.x) * 1) : 0;
       atlas.draw(ctx, `icon_${d.id}`, d.x - 8 - cam.ix, d.y - 14 - d.z + bob - cam.iy);
+    } else if (r.kind === 'npc') {
+      const n = r.ref, f = n.frame();
+      const x = Math.round(n.x) - cam.ix, y = Math.round(n.y) - cam.iy;
+      atlas.draw(ctx, f.name, x, y, f.flip);
+      if (n.emote) atlas.draw(ctx, `emote_${n.emote.kind}`, x, y - 32 - Math.round(Math.min(1, (1.6 - n.emote.t) * 8) * 2));
     } else drawPlayer(w, ctx, cam);
   }
   for (const r of list) pool.push(r);

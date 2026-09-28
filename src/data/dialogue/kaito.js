@@ -1,0 +1,63 @@
+// Kaito 海斗, young neighbouring farmer. Friendly rival, restless, dreams of Edo.
+export default {
+  intro: '[happy] So you are the one who took Hinata! I am Kaito. I farm the paddies across the river. Best rice in the valley, not that anyone ever says so. Let\'s see who ships more this season.',
+  tiers: [
+    [
+      '[happy] How many daikon did you pull today? Only that many? I pulled twice that. Probably.',
+      'Edo has a hundred thousand shops. A hundred thousand! And here we have Chōbei.',
+      'My father left me the paddies. I did not ask for them. Nobody asks. You just wake up one day holding a hoe.',
+      '[neutral] You have to flood the paddies before you plant rice. Did you know that? Of course you did. Everyone knows that.',
+      'One day I am going to walk the Nakasendō all the way to Edo. When it reopens. When the harvest is in. One day.',
+      'Your farm is on higher ground. Mine floods if you look at it wrong. Be grateful.',
+    ],
+    [
+      '[happy] Hey, rival! Want to race to the bridge? No? Coward. I mean, sensible.',
+      'Okiku says I talk about Edo too much. I say Okiku talks about everything too much.',
+      '[sad] My mother wanted me to be a merchant. My father wanted me to be a farmer. Now they are both gone and I am both and neither.',
+      'I have been reading about new irrigation methods from Osaka. Bamboo pipes, water wheels. Imagine!',
+      '[happy] Your melons looked good this week. Not as good as mine will look. But good.',
+      'Daigo says the river has moods. I say the river has fish. We argue about it every week.',
+    ],
+    [
+      'You know, I thought you would quit in a month. Rōnin do not farm. But you did not quit.',
+      '[happy] Here. Seed from my best rice line. Do not waste it. Actually, waste it, I want to win.',
+      'Sometimes I climb the shrine steps at night and look at the lights of the valley. It is small. But it is ours.',
+      '[sad] If the Kuroda-ya takes the paddies, I will have to go to Edo. Not as a dream. As a debt.',
+      'Tomoe helped me with a letter to my aunt in Edo. She has good handwriting. And she is... never mind.',
+      'You are the first person I have talked to about this that did not laugh.',
+    ],
+    [
+      '[happy] I have decided: I will not go to Edo. Not yet. Things are getting interesting here.',
+      'The magistrate\'s men took a third of my harvest last autumn. This year I am hiding the good rice in your kura. Joking. Mostly.',
+      'You make farming look like something worth doing. That is annoying, you know.',
+      '[sad] I have never told anyone, but I am afraid of the river. I cannot swim. Daigo pulled me out when I was six.',
+      'If there is a fight over the tolls, I am with you. I know how to swing a hoe. Same thing, right?',
+      '[happy] Let\'s plant the Otaue together this year. The whole valley, in a line, singing. Like the old days.',
+    ],
+    [
+      '[happy] {name}! I was going to come find you. I found you. That is almost the same.',
+      'Edo can wait. It has waited three hundred years. It can wait for me.',
+      '[sad] I used to think this valley was a cage. Now it feels like a nest. That is your fault.',
+      'I carved our names on the old cedar by the bridge. Small. Nobody will notice. I noticed.',
+      '[happy] You are still my rival. My favourite rival. My only rival.',
+      'Whatever happens with the magistrate, the paddies, the mountain... I am staying. For this. For you.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: '[happy] Otaue soon! The rice-planting rite. Everyone in a line, knee-deep, singing. I pretend to hate it.' },
+    { season: 'summer', text: 'Summer: the rice is green, the frogs are loud, and I am covered in mud. Paradise.' },
+    { season: 'autumn', text: '[happy] Harvest! My back hurts and I have never been happier.' },
+    { season: 'winter', text: 'Winter. The paddies sleep. I read books about Edo and fall asleep too.' },
+    { rain: true, text: 'Rain! The paddies drink. I stay inside and plan my empire.' },
+    { at: ['yorozuya', 9, 6], text: 'Chōbei will not lower the price of seed. I asked seven times. Eight is my lucky number.' },
+    { hour: 1080, text: 'Evening. This is when I usually think about leaving. Lately I think about staying.' },
+  ],
+  gift: {
+    loved: '[happy] Whoa! This is amazing! Wait, is this a bribe? I do not care, thank you!',
+    liked: '[happy] Hey, thanks! You are all right, rival.',
+    neutral: 'Oh, for me? Thanks!',
+    disliked: '[neutral] Oh. Um. Thanks? I will give it to someone who actually likes it.',
+    hated: '[angry] Burdock?! Tastes like a stick that was mad at me!',
+  },
+  birthday: '[happy] You remembered my birthday! Ha! Now I have to remember yours. That is how this works.',
+};

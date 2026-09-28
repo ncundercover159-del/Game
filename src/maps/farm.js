@@ -79,7 +79,7 @@ export default {
     { type: 'sign', tx: 50, ty: 11, text: 'sign_terraces' },
   ],
   // The valley road west to the village.
-  warps: [{ x: 0, y: 14, w: 1, h: 2, to: 'village', tx: 62, ty: 12, dir: 'left' }],
+  warps: [{ x: 0, y: 14, w: 1, h: 2, to: 'village', tx: 78, ty: 13, dir: 'left' }],
   // The locked northern terraces: stone retaining walls step the hillside.
   terraces: { x0: 40, x1: 61, rows: [5, 8] },
   spawn: { tx: 29, ty: 12, dir: 'down' },

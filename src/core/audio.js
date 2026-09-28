@@ -121,6 +121,11 @@ export class Audio {
     src.start(t + delay);
   }
 
+  /** A short voice blip for dialogue (each villager has their own pitch). */
+  blip(freq) {
+    if (this.ctx) this.tone('square', freq, freq * 0.92, 0.035, 0.035);
+  }
+
   play(name) {
     if (!this.ctx) return;
     switch (name) {

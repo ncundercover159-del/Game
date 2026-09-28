@@ -2,6 +2,9 @@
 // between art and game code; tools/gallery.html lists them all.
 import { Atlas } from './compiler.js';
 import { addCharacter, LOOKS } from './characters.js';
+import { NPC_LOOKS } from './looks.js';
+import { portrait, EXPRESSIONS } from './portraits.js';
+import { emotes, heartIcon, smallHeart } from './emotes.js';
 import { addHeldTools } from './held.js';
 import { treeParts, STONES, TWIGS, STUMP, weed, bamboo, DECALS, shadow, bareCanopy, bigLog, boulder } from './nature.js';
 import { minka, kura, well, toro, sign, fence, crate, sluice, ishigaki } from './buildings.js';
@@ -47,10 +50,10 @@ const TOWN = {
   b_kajiya: { w: 116, sign: 'red2', seed: 7 },
   b_yakuya: { w: 116, wall: 'plaster', noren: 'grass', sign: 'grass1', seed: 9 },
   b_daikansho: { w: 180, wallH: 40, roofH: 36, wall: 'plaster', noren: 'indigo', seed: 11 },
-  b_kaito: { w: 84, roof: 'thatch', noren: 'water', lattice: false, seed: 13 },
+  b_daigo: { w: 84, roof: 'thatch', noren: 'water', lattice: false, seed: 13 },
   b_dojo: { w: 148, wallH: 34, sign: 'ink1', seed: 15 },
   b_kuroda: { w: 116, wall: 'plaster', noren: 'gold', seed: 17 },
-  b_daigo: { w: 84, roof: 'thatch', lattice: false, seed: 19 },
+  b_kaito: { w: 84, roof: 'thatch', seed: 19 },
   b_shamusho: { w: 84, wall: 'plaster', noren: 'red', glaze: 'water', seed: 21 },
   b_house1: { w: 84, roof: 'thatch', noren: 'indigo', seed: 23 },
   b_house2: { w: 84, wall: 'plaster', noren: 'sakura', seed: 25 },
@@ -99,6 +102,10 @@ export function buildArt() {
   const add = (name, g, ax, ay) => atlas.add(name, g, ax ?? Math.floor(g.w / 2), ay ?? g.h);
 
   addCharacter(atlas, 'player', LOOKS.player);
+  for (const [id, look] of Object.entries(NPC_LOOKS)) {
+    addCharacter(atlas, id, look, ['idle', 'walk']);
+    for (const ex of EXPRESSIONS) add(`portrait_${id}_${ex}`, portrait(look, ex), 0, 0);
+  }
   addHeldTools(atlas);
 
   for (const kind of TREE_KINDS) {
@@ -205,6 +212,10 @@ export function buildArt() {
   add('ui_sun', SUN, 2, 2);
   add('ui_moon', MOON, 2, 2);
   for (const [k, g] of Object.entries(WEATHER_ICONS)) add(`wx_${k}`, g, 0, 0);
+  for (const [k, g] of Object.entries(emotes())) add(`emote_${k}`, g, 6, 12);
+  add('icon_heart', heartIcon(), 0, 0);
+  add('ui_heart_s', smallHeart(true), 0, 0);
+  add('ui_heart_s_empty', smallHeart(false), 0, 0);
 
   for (const [k, [rows, legend]] of Object.entries(FX)) {
     const g = parse(rows, legend);

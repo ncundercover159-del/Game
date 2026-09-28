@@ -206,6 +206,7 @@ export class ForgeMenu extends RowShop {
     if (up.tool === 'can') g.can = TIERS[up.tier].can;
     g.inventory.add(up.tool, 1);
     g.upgrade = null;
+    g.flags.upgraded_once = true;
     g.sfx('harvest');
     g.toast('forge_back', { tool: itemDef(up.tool).name, tier: TIERS[up.tier].name }, iconName(up.tool, g.tiers));
   }

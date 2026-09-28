@@ -1,0 +1,63 @@
+// Heibei 平兵衛, village headman. Anxious, honourable, carries the valley's worries on his back.
+export default {
+  intro: '[surprised] Ah! You are Jirōbei\'s heir. Welcome, welcome to Yamabuki. I am Heibei, the headman. Such as it is. We have... many small troubles. You will hear of them. Everyone hears of them.',
+  tiers: [
+    [
+      'The notice board is by the crossroads. People post requests there. If you have time, it would help. Everyone could use help.',
+      '[sad] The magistrate raised the rice tax again. Third time in two years. I wrote a petition. It came back unread.',
+      'Your uncle was a good man. He never once paid his tax late. He also never once paid it without complaining.',
+      'The Nakasendō is closed below the pass. A landslide. Merchants cannot come up, so prices go up instead.',
+      '[neutral] I have been headman for twenty years. I have had a headache for nineteen of them.',
+      'If the shrine could be restored, people would take heart. Heart is cheaper than rice, and we need both.',
+    ],
+    [
+      '[happy] I hear you have been clearing Hinata. The whole village is talking. Well, Okiku is talking. Same thing.',
+      'Kuroda-ya lends money to farmers at terrible interest. Then when the harvest fails, he owns the field. I cannot prove it is wrong. Only that it is.',
+      'My late wife planted the camellia by my door. It blooms every winter. I talk to it sometimes. Do not tell Okiku.',
+      '[sad] Young people leave for Edo. Kaito talks about it every day. I do not blame them. I just wish there were a reason to stay.',
+      'The bridge to the shrine caves was washed out. Tomoe says it does not matter. I think she says that because she is afraid.',
+      '[happy] Thank you for helping the villagers. People notice. I notice.',
+    ],
+    [
+      'Would you believe I was once a samurai\'s clerk? I kept accounts for the Aizawa storehouse. Before.',
+      '[sad] When your clan was dissolved, many retainers came through here. Some stayed. Most drank. A few are still ashamed.',
+      'The magistrate, Ōkubo, is not a monster. He is worse. He is a man who believes his own ledgers.',
+      '[happy] I planted the first rice seedling in the valley every Otaue for eighteen years. My back remembers each one.',
+      'You remind me of someone. Jirōbei at twenty, perhaps. Before his knees gave out and his temper did not.',
+      'If you ever want to hear the old stories of the valley, come by after dark. I light the hearth for company.',
+    ],
+    [
+      '[sad] I signed the magistrate\'s first toll order. I thought I was protecting us. I was only protecting my position.',
+      'You have made me braver, {name}. That is not a small thing for an old coward.',
+      'If the Kuroda contract comes to a vote, I will stand against it. My hands will shake, but I will stand.',
+      '[happy] The children have started playing samurai again. With sticks. Pretending to be you, I think.',
+      'Jirōbei left something with me for you. A key, to the old kura on your farm. He said: when the land is well.',
+      'A headman carries the village. I did not know how heavy it was until someone helped me lift it.',
+    ],
+    [
+      '[happy] {name}! Sit, sit. The kettle is on. It is always on, now, in case you come by.',
+      'When I retire, the village will need a new headman. I have a candidate in mind. You look alarmed.',
+      '[sad] My wife would have liked you. She liked people who worked with their hands and spoke with their hearts.',
+      'Yamabuki is alive again. I walk down the street and hear laughing. I had forgotten the sound.',
+      '[happy] Whatever you choose, I will stand with you. That is the promise of an old clerk and a stubborn headman.',
+      'Thank you. For everything. I say it too often, but I mean it every time.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: 'Spring planting. Every farmer in the valley is short of seed and long of hope.' },
+    { season: 'summer', text: '[sad] Tsuyu rains. If they come too hard the river floods, if too soft the paddies crack. We live between the two.' },
+    { season: 'autumn', text: 'Autumn: tax season. The magistrate\'s collectors are sharpening their brushes.' },
+    { season: 'winter', text: 'Winter is when I count what we have and pray it lasts until the thaw.' },
+    { rain: true, text: 'Rain. Good for the paddies, bad for my knees, worse for my mood.' },
+    { at: ['village', 49, 6], text: '[sad] I am waiting to see the magistrate\'s clerk. I have been waiting since the Hour of the Dragon.' },
+    { hour: 1200, text: 'Late, is it not? I cannot sleep much these days. Too many ledgers in my head.' },
+  ],
+  gift: {
+    loved: '[happy] Oh! This is too much. Too kind. I will think of you every time I use it.',
+    liked: '[happy] Ah, thank you. Truly. You did not have to.',
+    neutral: 'Thank you, thank you. Most kind.',
+    disliked: '[neutral] Ah. Well. Thank you for thinking of me. I will... find a place for it.',
+    hated: '[angry] A stone? Is this about the tax petition? I did my best!',
+  },
+  birthday: '[happy] My birthday! How did you... Okiku. Of course. Thank you. I am very moved. Very.',
+};

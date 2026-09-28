@@ -1,0 +1,63 @@
+// Chōbei 長兵衛, general-store keeper. Stingy but fair, counts everything, softer than he admits.
+export default {
+  intro: '[neutral] New customer. Good. I am Chōbei. Seeds, gates, sundries. Prices are fair and final. Your uncle owed me eleven mon, but I will forgive it. Because I am generous. Remember that.',
+  tiers: [
+    [
+      'Seeds are cheaper on Do. Do not tell anyone I told you. It reduces my margin.',
+      '[neutral] The store opens at the Hour of the Snake and closes at the Hour of the Rooster. On Sui, it does not open. I have a life. Somewhere.',
+      'I buy crops at full price. Full! No other store in the province does that. Well. There are no other stores.',
+      'The landslide on the Nakasendō means I pay double for every sack of salt. So you pay double. That is economics.',
+      '[angry] Do not lean on the counter. It is old and so am I.',
+      'I have kept the store thirty years. My father kept it forty. The ledger goes back to the Genroku era. Every mon accounted for.',
+    ],
+    [
+      '[happy] Ah, my best customer. Well, my most frequent. Well, you are here.',
+      'Kaito asks me to lower the seed price every week. Every week I say no. It is a tradition now.',
+      'Okiku owes me for three sacks of rice flour. She pays in gossip. I am not sure the exchange rate is fair.',
+      '[neutral] Kuroda-ya wants me to sell only his rice. I told him: Chōbei sells what Chōbei sells.',
+      'The magistrate\'s clerk tried to tax my ledger. The ledger itself! I hid it under the pickles.',
+      'You pay on time. You do not haggle. You are a strange rōnin, but a good customer.',
+    ],
+    [
+      '[happy] Here. A sample of new seed from Shinano market. Free. Once. Do not get used to it.',
+      'My wife ran the counter when we were young. She smiled at customers. I counted. We were a good team.',
+      '[sad] She died in the fever winter. I kept the store open the next morning. People needed salt. I needed to count.',
+      'I know everyone thinks I am stingy. I am. But I have never let a family go hungry in winter. Not once. Check the ledger.',
+      'Genzō and I were boys together. He threw rocks at crows. I sold the crows the rocks. Not really. But I thought about it.',
+      '[happy] You have done more for this village in one year than Kuroda has done in ten. I have the numbers.',
+    ],
+    [
+      'Between us: I have been writing off debts. Quietly. The ledger balances, if you count the right things.',
+      '[neutral] If the magistrate squeezes any harder, the whole valley pops like a pickled plum.',
+      '[happy] You made me laugh yesterday. I charged myself nothing for it. That is how you know it was real.',
+      'Heibei asked me to keep the village grain in my storeroom. If the collectors come, it is not there. I cannot see what is not there.',
+      '[sad] I have no one to leave the store to. The ledger will stop with me. That bothers me more than dying.',
+      'You are welcome here after closing. Knock twice. I will pretend to be annoyed.',
+    ],
+    [
+      '[happy] {name}! The door was locked but I knew it was you. Nobody else knocks politely.',
+      'I have added a page to the ledger. Your name, at the top. Nothing owed. Everything given.',
+      '[sad] I used to think money was the only thing that did not lie. Then I met you.',
+      'If I have an heir, it should be someone who knows what things are worth. Not what they cost. What they are worth.',
+      '[happy] I gave Kaito a discount today. Two mon. He cried. I nearly did too. Do not tell anyone.',
+      'This village is richer than it knows. I have finally started counting the right things.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: 'Spring seed season. My busiest weeks. I love it. I hate it. I love it.' },
+    { season: 'summer', text: 'Summer: nobody buys anything but straw hats and fans. I have ordered twelve hundred fans.' },
+    { season: 'autumn', text: '[happy] Autumn! Everyone sells. Everyone pays their debts. Numbers balance. Beautiful.' },
+    { season: 'winter', text: 'Winter seed is expensive because winter is expensive. Everything is expensive in winter. Including my patience.' },
+    { rain: true, text: 'Rain keeps customers away. I use the time to count the stock. Twice.' },
+    { weekday: 2, text: '[neutral] Sui. My day off. I am walking. It is very restful. I have counted four hundred steps.' },
+    { weekday: 5, text: 'Do! Seed discount day. Ten percent. It pains me. Buy quickly before I change my mind.' },
+  ],
+  gift: {
+    loved: '[surprised] This... is worth a great deal. I will enter it in the ledger. Under "kindness."',
+    liked: '[happy] Hm! Good quality. You have an eye. Thank you.',
+    neutral: 'Ah. Thank you. I will find it a shelf.',
+    disliked: '[neutral] I cannot sell this. Why would you give me something I cannot sell?',
+    hated: '[angry] A stone. The one thing in this valley nobody has ever paid for.',
+  },
+  birthday: '[surprised] My birthday. Nobody... thank you. I will not charge you for anything today. Within reason.',
+};

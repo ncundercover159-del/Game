@@ -1,0 +1,63 @@
+// Ume 梅, herbalist and healer. Sharp-tongued, competent, secretly soft; knows every plant.
+export default {
+  intro: '[neutral] Jirōbei\'s nephew. You look healthy enough, which means you will be back here within the month with a sprained wrist. I am Ume. I sell medicine and I do not sell sympathy.',
+  tiers: [
+    [
+      'Tonic is three hundred and twenty mon. It tastes of bark because it is made of bark. Next.',
+      '[angry] No, I will not make you something sweeter. Medicine is not dessert.',
+      'If you find wild ginger in the grove, bring it to me. If you find mushrooms, do not eat them. Bring them to me anyway.',
+      'Genzō breathes forge smoke all day and then wonders why he coughs. Men.',
+      '[neutral] Rest is free. Nobody wants it. Tonic costs money. Everybody wants it. I will never understand people.',
+      'Wash your hands after weeding. Half the valley\'s illnesses come from dirt under fingernails.',
+    ],
+    [
+      'You again. Are you sick or are you lonely? Either way, sit down, you are blocking the light.',
+      '[happy] That shiso you grew last week was not terrible. Actually it was quite good. Do not let it go to your head.',
+      'My teacher was a physician in Kyoto. She said: a healer who is kind is a healer who is tired. I choose rested.',
+      'Tomoe talks to trees. I talk to herbs. The difference is that herbs are useful.',
+      '[neutral] Daigo came in with a fish hook through his thumb. He was laughing. I did not give him anything for the pain. On principle.',
+      'Burdock, ginger, perilla. The valley grows everything a healer needs. People just call them weeds.',
+    ],
+    [
+      '[happy] I made you something. Salve for your hands. The farm is eating your knuckles alive.',
+      'I came to Yamabuki to get away from people. It turns out a village is mostly people. Who knew.',
+      '[sad] Some winters I cannot save everyone. I remember every name. It is the only thing I keep.',
+      'Okiku thinks I secretly like dango. I secretly like dango. If you tell her, I will poison your tea. Mildly.',
+      'You have good instincts with plants. It is annoying. It took me ten years.',
+      'When the Nakasendō is open, I can order ginseng from the coast. Until then, we make do with mountain roots.',
+    ],
+    [
+      '[sad] My father was a samurai too. He fell in a duel over nothing. A word, a sleeve. I hated swords for years.',
+      'You carry yours differently. Like it is heavy on purpose.',
+      '[happy] You are the only person who asks how I am and waits for the answer.',
+      'Kuroda-ya wanted me to sell medicine at double price during the fever season. I threw a jar at his clerk. It was empty. Probably.',
+      'Stay out of the rear-gate caves until Tomoe says it is safe. I do not want to set your bones. I would, but I do not want to.',
+      'The herb garden behind the shop was my mother\'s idea. I pretend it was mine.',
+    ],
+    [
+      '[happy] {name}. Good. I was about to close. I was not about to close. I was waiting.',
+      'I have started keeping a jar of your favourite tea. It is purely for business reasons.',
+      '[sad] I told myself I would never care for anyone again. It was a very sensible rule. You broke it.',
+      'If you ever get hurt out there, you come to me first. Not to Tomoe\'s prayers. To me.',
+      '[happy] You make me laugh. It is deeply unprofessional.',
+      'Here. My mother\'s recipe book. I have never shown it to anyone. Do not spill tea on it.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: 'Spring: wild greens, new shoots, and every child in the valley with a runny nose.' },
+    { season: 'summer', text: 'Drink water. Wear a hat. You would be amazed how many people need a healer to tell them that.' },
+    { season: 'autumn', text: '[happy] Autumn roots are the strongest. Burdock, ginger, lotus. My favourite season to work.' },
+    { season: 'winter', text: 'Winter colds. My drawers empty faster than I can fill them.' },
+    { rain: true, text: 'Rain means mushrooms. Mushrooms mean poisonings. Please do not become a statistic.' },
+    { place: 'village', text: '[neutral] I am foraging. Yes, on my day off. Plants do not know what day it is.' },
+    { place: 'shrine', text: 'Tomoe keeps the cedar moss here. Best moss in the province. For poultices, not for prayers.' },
+  ],
+  gift: {
+    loved: '[happy] ...This is exactly what I needed. How did you know? Never mind. Thank you.',
+    liked: '[happy] Useful. I like useful. Thank you.',
+    neutral: 'Hm. Thank you.',
+    disliked: '[angry] Sugar is not food, it is a bribe.',
+    hated: '[angry] Hay. You brought a healer hay. I am going to assume you have a fever.',
+  },
+  birthday: '[surprised] My birthday. You... fine. Fine! Thank you. Stop looking at me like that.',
+};

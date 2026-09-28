@@ -7,7 +7,8 @@
 // Keys: H h j hair (outline, mid, light) | S s f F skin (outline, shadow, mid, light) | e eye |
 // m mouth | K k l L kosode | c C collar | b B obi | P p q Q hakama | T sandal | t tabi |
 // x X g sword (scabbard, scabbard light, guard/hilt) | w tie cord
-import { parse, grid, blit } from './raster.js';
+import { parse, grid, blit, set } from './raster.js';
+import { restyleHead, longHair } from './looks.js';
 
 const HEAD = {
   down: `
@@ -310,6 +311,7 @@ export const LOOKS = {
     feet: ['wood1', 'ink5'],
     collar: ['ink6', 'ink5'],
     cord: 'red2',
+    sword: true,
   },
 };
 
@@ -322,7 +324,9 @@ export function lookLegend(look) {
     H, h, j, S, s, f, F, e: 'ink0', m: s,
     K, k, l, L, c: look.collar[0], C: look.collar[1],
     b: look.obi[1], B: look.obi[0], P, p, q, Q, T: look.feet[0], t: look.feet[1],
-    x: 'ink1', X: 'ink3', g: 'gold1', w: look.cord,
+    // Without a sword the scabbard pixels become obi and robe.
+    ...(look.sword ? { x: 'ink1', X: 'ink3', g: 'gold1' } : { x: K, X: K, g: look.obi[1] }),
+    w: look.cord,
   };
 }
 
@@ -345,16 +349,19 @@ export function composeFrame(look, dir, torsoPose, legsPose, bob, breath = 0) {
   const g = grid(16, 32);
   blit(g, parse(LEGS[dir][legsPose], legend), 0, LEGS_Y);
   blit(g, parse(TORSO[dir][torsoPose], legend), 0, TORSO_Y + bob);
-  blit(g, parse(HEAD[dir], legend), 0, HEAD_Y + bob + breath);
+  const style = look.style || 'topknot';
+  blit(g, parse(style === 'topknot' ? HEAD[dir] : restyleHead(HEAD[dir], dir, style), legend), 0, HEAD_Y + bob + breath);
+  if (style === 'long') for (const [x, y] of longHair(dir)) set(g, x, y + bob, look.hair[1]);
   return g;
 }
 
 export const DIRS = ['down', 'up', 'right'];
 
 /** Register every frame of a character in the atlas as `${id}_${dir}_${anim}${i}`. */
-export function addCharacter(atlas, id, look) {
+export function addCharacter(atlas, id, look, anims = Object.keys(ANIMS)) {
   for (const dir of DIRS) {
-    for (const [anim, def] of Object.entries(ANIMS)) {
+    for (const anim of anims) {
+      const def = ANIMS[anim];
       def.frames.forEach(([t, l, bob, breath = 0], i) => {
         atlas.add(`${id}_${dir}_${anim}${i}`, composeFrame(look, dir, t, l, bob, breath), 8, 32);
       });

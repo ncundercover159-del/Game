@@ -1,0 +1,63 @@
+// Okiku お菊, teahouse keeper. Warm, quick, knows everything and tells most of it.
+export default {
+  intro: '[happy] Oh! A new face! You must be the one who took on Jirōbei\'s wilderness. I am Okiku. Sit, drink, and tell me everything before someone else tells me wrong.',
+  tiers: [
+    [
+      '[happy] Tea is thirty mon, dango sixty, and gossip is free if you bring your own.',
+      'Genzō has not smiled since the Hōreki years. If you manage it, I want to be there.',
+      'Chōbei counts his coins twice and his customers once. Do not let him round up.',
+      '[surprised] You walked all the way from Hinata? In those sandals? Sit down this instant.',
+      'The magistrate\'s clerk drank here yesterday and did not pay. I have written his name on the wall in my heart.',
+      'People come for the tea and stay for the view of the street. I stay for the view of the people.',
+    ],
+    [
+      '[happy] Ah, my favourite farmer! Well, you are the only new farmer. But still.',
+      'Tomoe climbed down from the shrine yesterday to buy one dango. One! She is too thin, that girl.',
+      'Kaito says he is going to Edo "any day now". He has been saying it for three years.',
+      'If you hear shouting from the forge, it is only Genzō talking to his iron. They have a difficult marriage.',
+      '[sad] My husband used to fish with Daigo\'s father. The river took them both one spring. The tea keeps my hands busy.',
+      'Rumour says the Kuroda-ya has been buying up land notes. Rumour says a lot. This rumour I believe.',
+    ],
+    [
+      '[happy] You look tired. Here, this cup is on the house. Do not tell Chōbei, he will want one too.',
+      'I make the dango in the dark before dawn. The street is so quiet then you can hear the river breathing.',
+      'Heibei worries enough for the whole valley. Someone should worry for him.',
+      '[happy] Ume pretends she hates sweet things. I have seen her steal a dango from the counter. Twice.',
+      'When the shrine bell rang, the whole valley stopped for a breath. I did not know how much I needed that until it was gone.',
+      'You are good for this place, {name}. People talk about you. Kindly, mostly.',
+    ],
+    [
+      '[sad] Some nights I set out two cups without thinking. Habit is a stubborn ghost.',
+      'I know a recipe your uncle loved: sweet potato with miso. When you have satsumaimo to spare, I will teach you.',
+      'The magistrate\'s men asked me who talks against the tolls. I poured them tea so hot they forgot the question.',
+      '[happy] You have a way of listening. It is rarer than you would think. Most people listen for their turn.',
+      'Kuroda offered to buy the teahouse. I told him it was not for sale, and neither was I.',
+      'If you ever need to know anything in Yamabuki, ask me first. It will save you a week.',
+    ],
+    [
+      '[happy] My dear {name}. The kettle sings a little louder when you come in. I am sure of it.',
+      'I have started a new blend. I am calling it Hinata. It is bitter at first and sweet at the finish. Like you.',
+      '[sad] I never had children. But I think I understand now how mothers worry.',
+      'When the festivals come back, you are sitting at my table. That is not a request.',
+      '[happy] The village feels awake again. Do you know how long it has been asleep?',
+      'Whatever happens with the magistrate, the teahouse door stays open. For you, always.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: '[happy] Sakura season! I sell three times the dango. And three times the sake, but that is another story.' },
+    { season: 'summer', text: 'Summer. Cold barley tea, a paper fan, and complaints about the heat: my three best sellers.' },
+    { season: 'autumn', text: 'Autumn leaves in the teacup. The whole valley smells of roasting chestnuts.' },
+    { season: 'winter', text: '[happy] Come in, come in! Winter is when the teahouse earns its keep. Warm your hands on the pot.' },
+    { rain: true, text: 'Rainy days bring everyone inside. The best gossip is made on rainy days.' },
+    { weekday: 3, text: 'Moku is my day off. I walk the village and collect news the way you collect weeds.' },
+    { hour: 1080, text: 'Evening already? The lanterns will be lit soon. It is my favourite hour.' },
+  ],
+  gift: {
+    loved: '[happy] For me? Oh, you wonderful thing! I shall tell everyone. Everyone!',
+    liked: '[happy] How thoughtful! I will put it to good use.',
+    neutral: 'Why, thank you. Not everyone thinks of the teahouse keeper.',
+    disliked: '[neutral] Oh. Well. It is the thought that counts. I suppose.',
+    hated: '[angry] That tonic? Ume\'s bitter brew? I would rather drink the river.',
+  },
+  birthday: '[happy] You remembered my birthday! I did not even tell anyone. ...I told everyone. But still!',
+};

@@ -120,31 +120,31 @@ export const INTERIORS = [
       { type: 'bales', tx: 10, ty: 7 },
     ],
   }),
-  room('kaito', 'Fisher\'s Hut', '漁師小屋', [
+  room('kaito', 'Kaito\'s House', '海斗の家', [
     'mmmmwwwww',
     'mmmmwwwww',
     'ddddddddd',
     'ddddddddd',
   ], 5, {
     props: [
-      { type: 'nets', tx: 5, ty: WALL, ox: 8 },
+      { type: 'futon', tx: 1, ty: 4 },
+      { type: 'tansu', tx: 4, ty: 3 },
+      { type: 'shelf', tx: 7, ty: WALL, ox: 8, kind: 'goods' },
+      { type: 'bales', tx: 8, ty: 6 },
+      { type: 'andon', tx: 5, ty: 4, light: [0, 4] },
+    ],
+  }),
+  room('daigo', 'Daigo\'s Hut', '大吾の小屋', [
+    'mmmmwwwww',
+    'mmmmwwwww',
+    'ddddddddd',
+    'ddddddddd',
+  ], 5, {
+    props: [
+      { type: 'nets', tx: 6, ty: WALL, ox: 8 },
       { type: 'futon', tx: 1, ty: 4 },
       { type: 'zabuton', tx: 3, ty: 4, kind: 'indigo' },
       { type: 'andon', tx: 8, ty: 3, light: [0, 4] },
-    ],
-  }),
-  room('daigo', 'Daigo\'s Workshop', '大吾の作業場', [
-    'wwwwwwwww',
-    'wwwwwwwww',
-    'ddddddddd',
-    'ddddddddd',
-  ], 5, {
-    props: [
-      { type: 'shelf', tx: 2, ty: WALL, ox: 8, kind: 'goods' },
-      { type: 'futon', tx: 8, ty: 4 },
-      { type: 'anvil', tx: 3, ty: 5 },
-      { type: 'bales', tx: 6, ty: 6 },
-      { type: 'andon', tx: 1, ty: 4, light: [0, 4] },
     ],
   }),
   room('shamusho', 'Shrine Office', '社務所', [

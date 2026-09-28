@@ -1,16 +1,21 @@
-// Modal dialogue box: typewriter text, optional speaker, optional choices. Time is frozen while open.
+// Modal dialogue box: typewriter text, optional speaker with portrait and voice blips, optional
+// choices. Time is frozen while open.
 import { fonts } from '../core/text.js';
 import { panel, thin, hit } from './widgets.js';
 
 const CPS = 70;
+const PORTRAIT = 48;
 
 export class Dialog {
-  constructor(game, { text, speaker = null, choices = null, onChoose = null }) {
+  constructor(game, { text, speaker = null, portrait = null, voice = 0, choices = null, onChoose = null, onClose = null }) {
     this.game = game;
     this.text = text;
     this.speaker = speaker;
+    this.portrait = portrait;
+    this.voice = voice;
     this.choices = choices;
     this.onChoose = onChoose;
+    this.onClose = onClose;
     this.shown = 0;
     this.sel = 0;
     this.done = false;
@@ -22,8 +27,9 @@ export class Dialog {
   layout() {
     const { w, h } = this.game.screen;
     this.bw = Math.min(360, w - 24);
-    this.lines = fonts.big.wrap(this.text, this.bw - 20);
-    this.bh = 22 + this.lines.length * 15;
+    this.tx = this.portrait ? PORTRAIT + 14 : 10;
+    this.lines = fonts.big.wrap(this.text, this.bw - this.tx - 10);
+    this.bh = Math.max(22 + this.lines.length * 15, this.portrait ? PORTRAIT + 12 : 0);
     this.bx = Math.floor(w / 2 - this.bw / 2);
     this.by = h - this.bh - 36;
     if (this.choices) {
@@ -39,7 +45,10 @@ export class Dialog {
   update(dt, input) {
     const before = Math.floor(this.shown);
     this.shown = Math.min(this.text.length, this.shown + dt * CPS);
-    if (Math.floor(this.shown) !== before && before % 3 === 0 && this.text[before] !== ' ') this.game.sfx('ui');
+    if (Math.floor(this.shown) !== before && before % 3 === 0 && this.text[before] !== ' ') {
+      if (this.voice) this.game.audio.blip(this.voice + (before % 7) * 6);
+      else this.game.sfx('ui');
+    }
     const m = input.mouse;
     if (this.choices && this.finished) {
       if (input.pressed('up')) { this.sel = (this.sel + this.choices.length - 1) % this.choices.length; this.game.sfx('ui'); }
@@ -60,10 +69,12 @@ export class Dialog {
         this.game.sfx(cancel ? 'ui_back' : 'ui_ok');
         this.done = true;
         this.onChoose?.(this.sel);
+        this.onClose?.(this.sel);
         return false;
       }
       this.game.sfx('ui_ok');
       this.done = true;
+      this.onClose?.(0);
       return false;
     }
     return true;
@@ -77,11 +88,15 @@ export class Dialog {
       thin(ctx, atlas, this.bx + 8, this.by - 10, sw, 14);
       fonts.body.draw(ctx, this.speaker, this.bx + 14, this.by - 8, 'red1');
     }
+    if (this.portrait) {
+      thin(ctx, atlas, this.bx + 6, this.by + 6, PORTRAIT + 2, PORTRAIT + 2);
+      atlas.draw(ctx, this.portrait, this.bx + 7, this.by + 7);
+    }
     let left = Math.floor(this.shown);
     this.lines.forEach((line, i) => {
       const part = line.slice(0, Math.max(0, left));
       left -= line.length + 1;
-      fonts.big.draw(ctx, part, this.bx + 10, this.by + 9 + i * 15, 'wood1');
+      fonts.big.draw(ctx, part, this.bx + this.tx, this.by + 9 + i * 15, 'wood1');
     });
     if (this.finished && !this.choices && Math.floor(this.game.clockTime * 3) % 2) {
       fonts.body.draw(ctx, '▼', this.bx + this.bw - 16, this.by + this.bh - 14, 'red2');

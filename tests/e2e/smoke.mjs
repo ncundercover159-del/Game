@@ -23,9 +23,9 @@ async function walkTo(page, tx, ty) {
 const face = (page, key) => page.evaluate((k) => { const G = window.__game; G.hold(k); G.advance(34); G.release(k); G.advance(17); }, key);
 const press = (page, code, after = 0) => page.evaluate(([c, a]) => { window.__game.press(c); window.__game.advance(a); }, [code, after]);
 const state = (page) => page.evaluate(() => window.__game.state());
-/** Dismiss the end-of-day screen: keep confirming until no modal is left. */
+/** Confirm through whatever is open (end-of-day screen, dialogue, cutscene) until nothing is. */
 async function wake(page) {
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 40; i++) {
     const s = await state(page);
     if (!s.modals.length) return;
     await press(page, 'Enter', 500);
@@ -151,6 +151,7 @@ await withBrowser(async (browser, base) => {
   await press(page, 'Tab', 50);
   await press(page, 'BracketRight');
   await press(page, 'BracketRight');
+  await press(page, 'BracketRight');
   await press(page, 'Enter', 50);
   await press(page, 'Escape', 50);
   s = await state(page);
@@ -207,12 +208,19 @@ await withBrowser(async (browser, base) => {
   await walkTo(page, 23, 15);
   await walkTo(page, 1, 15);
   await through(page, 'KeyA', 'village');
-  await walkTo(page, 14, 12);
-  await walkTo(page, 14, 11);
+  step('the headman meets you on the road (welcome cutscene)');
+  assert.deepEqual((await state(page)).modals.slice(0, 1), ['Cutscene']);
+  await wake(page);
+  s = await state(page);
+  assert.ok(s.inventory.slots.some((x) => x && x.id === 'dango'), 'Heibei gave dango');
+  assert.ok(s.bonds.heibei.met && s.bonds.heibei.pts >= 40, 'met Heibei');
+  await walkTo(page, 16, 12);
   await through(page, 'KeyW', 'chaya');
   await walkTo(page, 2, 5);
   await face(page, 'KeyW');
   await press(page, 'KeyK', 100);
+  assert.deepEqual((await state(page)).modals, ['Dialog'], 'Okiku asks what you want');
+  for (let i = 0; i < 4 && (await state(page)).modals[0] !== 'ShopMenu'; i++) await press(page, 'Enter', 50);
   assert.deepEqual((await state(page)).modals, ['ShopMenu'], 'counter opens the shop');
   const purse = (await state(page)).money;
   await press(page, 'ArrowDown');
@@ -228,7 +236,14 @@ await withBrowser(async (browser, base) => {
   await walkTo(page, 6, 7);
   await through(page, 'KeyS', 'village');
   s = await state(page);
-  assert.deepEqual([s.player.tx, s.player.ty], [14, 11], 'back on the street');
+  assert.deepEqual([s.player.tx, s.player.ty], [16, 12], 'back on the street');
+
+  step('talks to a villager and the bond grows');
+  const okiku = await page.evaluate(() => { const g = window.__game.game, n = g.villagers.get('okiku'); return { map: n.map, tx: n.tx, ty: n.ty }; });
+  assert.equal(okiku.map, 'chaya', 'Okiku keeps her teahouse at 10:00');
+  await page.evaluate(() => { const g = window.__game.game; g.talkTo(g.villagers.get('kaito')); });
+  await wake(page);
+  assert.ok((await state(page)).bonds.kaito.pts >= 20, 'talking to Kaito earned bond points');
 
   step('passing out at 02:00 costs money and wakes you in the farmhouse');
   await page.evaluate(() => { const g = window.__game.game; g.cal.minutes = 25 * 60 + 50; });

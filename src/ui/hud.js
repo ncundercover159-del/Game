@@ -151,7 +151,7 @@ export class Hud {
     }
     atlas.draw(ctx, 'ui_slot_sel', r.x + 3 + inv.selected * SLOT, r.y + 3);
     const cur = inv.current;
-    if (cur) {
+    if (cur && !g.modals.length) {
       const d = itemDef(cur.id);
       const label = `${d.name} ${d.jp}`;
       const lw = fonts.body.measure(label);

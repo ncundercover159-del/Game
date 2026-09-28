@@ -48,6 +48,7 @@ export const STRINGS = {
   daikansho_locked: 'The magistrate\'s office. A clerk slides the shutter closed as you approach.',
   dojo_closed: 'The dōjō doors are barred. A notice reads: "Closed until a teacher returns."',
   kuroda_closed: 'Kuroda-ya, rice merchants. Nobody answers, though you hear an abacus clicking inside.',
+  archive_ruin: 'An old kura, its roof half fallen in. Through the gap: shelves, crates, a village\'s worth of forgotten things.',
   house_private: 'Someone\'s home. The door is shut, and it is not your door.',
   jizo: 'A stone Jizō in a red bib. Someone has left a rice ball at its feet.',
   bench: 'A bench under the teahouse parasol, warm from the sun.',
@@ -79,6 +80,18 @@ export const STRINGS = {
   forge_no_tool: 'Bring the tool itself. Genzō does not upgrade promises.',
   forge_max: 'Nothing left to add to that {tool}.',
 
+  // Villagers
+  counter_ask: 'Welcome! What can I do for you?',
+  counter_shop: 'Shop',
+  counter_talk: 'Talk',
+  counter_leave: 'Leave',
+  gift_ask: 'Give the {item} to {npc}?',
+  gift_give: 'Give {item}',
+  gift_talk: 'Just talk',
+  shop_away: 'Nobody is at the counter. {npc} must have stepped out.',
+  tk_birthday: 'It is {npc}\'s birthday today. A gift now would be remembered.',
+  jizo_bow: 'You bow to the Jizō. The stone face seems, briefly, less stern.',
+
   // Shipping crate
   ship_title: 'Shipping Crate 出荷箱',
   ship_hint: 'Choose a stack to ship. Paid tomorrow morning.',
@@ -101,6 +114,8 @@ export const STRINGS = {
   // Toasts and HUD
   toast_got: '+{n} {item}',
   toast_ate: '{item}: +{n} Genki',
+  toast_heart: '{npc}: {n} ♥',
+  toast_virtue: '{virtue} {jp} +{n}',
   toast_refill: 'Jōro filled',
   toast_saved: 'Saved',
   hud_money: '{n} 文',
@@ -108,6 +123,11 @@ export const STRINGS = {
   // Menus
   menu_items: 'Items',
   menu_options: 'Options',
+  menu_bonds: 'Bonds',
+  bond_unmet: 'You have not met this person yet. The village is small; you will.',
+  bond_birthday: 'Birthday: {season} {day}',
+  bond_gifts: 'Gifts this week: {n}/{max}',
+  bond_likes: 'Likes:',
   menu_save: 'Save',
   menu_title: 'Rōnin no Sato',
   menu_subtitle: '浪人の里',
