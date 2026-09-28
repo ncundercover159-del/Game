@@ -32,6 +32,12 @@ test('map routes go through doors and roads', () => {
   assert.equal(mapRoute('farm', 'farm').length, 0);
 });
 
+test('map routes never take the way down the mine, and give up on places off the map', () => {
+  assert.deepEqual(mapRoute('kurayama', 'village').map((w) => w.to), ['shrine', 'village']);
+  assert.equal(mapRoute('farm', 'nowhere'), null);
+  assert.equal(mapRoute('nowhere', 'farm'), null);
+});
+
 test('every schedule stop is walkable and reachable from home', () => {
   for (const [id, npc] of Object.entries(NPCS)) {
     for (const { route } of npc.schedule) {

@@ -94,15 +94,16 @@ export function findPath(map, sx, sy, gx, gy, limit = 6000) {
   return null;
 }
 
-/** Warps to take, in order, to get from one map to another (breadth-first over maps). */
+/** Warps to take, in order, to get from one map to another (breadth-first over maps), or null.
+ * Warps that lead to no fixed map (the mine mouth's way down) are not on anyone's way. */
 export function mapRoute(from, to) {
   if (from === to) return [];
   const prev = new Map([[from, null]]);
   const queue = [from];
   while (queue.length) {
     const id = queue.shift();
-    for (const w of MAPS[id].warps) {
-      if (prev.has(w.to)) continue;
+    for (const w of MAPS[id]?.warps || []) {
+      if (!MAPS[w.to] || prev.has(w.to)) continue;
       prev.set(w.to, { id, w });
       if (w.to === to) {
         const route = [];

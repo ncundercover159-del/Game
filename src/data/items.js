@@ -119,6 +119,14 @@ define('hokora', { name: 'Hokora', jp: '祠', kind: 'place', place: 'hokora', se
 define('pack24', { name: 'Large Pack', jp: '大きな背負子', kind: 'upgrade', slots: 24, price: 2000, desc: 'A second row of pockets: 24 slots.' });
 define('pack36', { name: 'Traveller\'s Pack', jp: '旅の背負子', kind: 'upgrade', slots: 36, price: 10000, desc: 'Room for everything: 36 slots.' });
 
+// A dish sells for its Genki's worth, and never for less than a little over what went into it
+// (worked out here, once every ingredient is defined).
+for (const [id, d] of Object.entries(DISHES)) {
+  if (id === 'onigiri') continue;
+  const cost = d.needs.reduce((a, [i, n]) => a + (ITEMS[i].sell || 0) * n, 0);
+  ITEMS[id].sell = Math.max(ITEMS[id].sell, Math.round(cost * 1.15));
+}
+
 export const STACK = 99;
 
 export function itemDef(id) {

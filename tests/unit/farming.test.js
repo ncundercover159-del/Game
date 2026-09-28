@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { GameMap, G } from '../../src/world/gamemap.js';
 import { till, untill, water, plant, harvest, growNight, cropAt, isRipe, canTill, digChannel, coverSoil, plantProblem, rainWater, typhoonDamage, clearDead } from '../../src/systems/farming.js';
 import { computeFlow, isFlooded, SOIL } from '../../src/systems/irrigation.js';
-import { stageOf, RIPE } from '../../src/data/crops.js';
+import { stageOf, RIPE, CROPS } from '../../src/data/crops.js';
 import { Rng } from '../../src/core/rng.js';
 
 const def = { id: 't', farmable: true, ground: ['.....', '.,,,.', '.,~,.', '.....'] };
@@ -55,8 +55,9 @@ test('harvest a ripe crop; regrowing crops stay and restart', () => {
   assert.equal(cropAt(m, 1, 1), null);
   assert.equal(harvest(m, 3, 1, rng).item, 'strawberry');
   const berry = cropAt(m, 3, 1);
-  assert.equal(berry.growth, 4, 'regrow starts 4 days before ripe');
-  for (let d = 0; d < 4; d++) { water(m, 3, 1); growNight(m); }
+  const { days, regrow } = CROPS.strawberry;
+  assert.equal(berry.growth, days - regrow, `regrow starts ${regrow} days before ripe`);
+  for (let d = 0; d < regrow; d++) { water(m, 3, 1); growNight(m); }
   assert.ok(isRipe(cropAt(m, 3, 1)));
 });
 

@@ -1,7 +1,8 @@
 // Headless test of M7 deep zones (Playwright): a kitsune in the Foxfire Halls splits into shadowless
-// illusions that pop at a touch; a foundry vent glows before it breathes fire; Kurenai's armour
-// comes off to a heavy strike; the Kappa Elder falls, bows, leaves his dish and hardens your
-// Inochi, and Genzō will now work steel; the Yomi Slope's modifiers; the Shade of Lord Aizawa, the
+// illusions that pop at a touch; a foundry vent glows before it breathes fire; the tile cache
+// (lava kept apart from land, starting over when full); Kurenai's armour comes off to a heavy
+// strike; the Kappa Elder falls, bows, leaves his dish and hardens your Inochi, and Genzō will
+// now work steel; the Yomi Slope's modifiers; the Shade of Lord Aizawa, the
 // choice of the sword, the epilogue and the credits. Setup uses test hooks; the fighting goes
 // through the real keys. Fails on any console error or page exception.
 import assert from 'node:assert/strict';
@@ -84,6 +85,20 @@ await withBrowser(async (browser, base) => {
   assert.ok(vent.hurt > 0, 'the fire burned');
   assert.equal(vent.seen.at(-1), 'fire');
   assert.equal(vent.seen.at(-2), 'glow', 'it glowed first');
+
+  step('the tile cache: lava cells keep their own keys, and a full cache starts over');
+  const cells = await run(async () => {
+    const g = window.__game.game, { CellCache } = await import('./src/art/compiler.js');
+    const { landTile } = await import('./src/art/terrain.js');
+    const m = g.world.map, cv = document.createElement('canvas');
+    g.world.ground.drawWater(cv.getContext('2d'), { ix: 0, iy: 0, w: m.w * 16, h: m.h * 16 }, 0);
+    const lava = [...g.cells.map.keys()].filter((k) => k.startsWith('V')).length;
+    const small = new CellCache(16, 2, 2), got = [];
+    for (let i = 0; i < 6; i++) got.push(small.get(`k${i}`, () => landTile(511, i, false)));
+    return { lava, next: small.next, kept: small.map.size, last: [got[5].sx, got[5].sy] };
+  });
+  assert.ok(cells.lava > 0, 'the foundry drew its lava cells');
+  assert.deepEqual([cells.next, cells.kept, cells.last], [2, 2, [16, 0]], 'the fifth cell began again at the top');
 
   step('Kurenai: light blows glance off her armour; a heavy strike knocks a plate off');
   await floor(80);

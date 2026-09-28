@@ -49,7 +49,7 @@ await withBrowser(async (browser, base) => {
   step('the toll takes a tenth of the crate overnight');
   const shipped = await run(() => { const g = window.__game.game; g.shipped.push({ id: 'kabocha', n: 10, q: 0 }); return g.money; });
   await sleep();
-  assert.equal((await run(() => window.__game.game.money)) - shipped, 1300 - 130, 'ten kabocha at 130, less the tenth');
+  assert.equal((await run(() => window.__game.game.money)) - shipped, 1600 - 160, 'ten kabocha at 160, less the tenth');
 
   step('autumn: Rin walks up to the bridge toll, and stays');
   await goto(2, 1, 'village', 60, 13);
@@ -96,7 +96,7 @@ await withBrowser(async (browser, base) => {
   assert.ok(f3.petition_won);
   const noToll = await run(() => { const g = window.__game.game; g.shipped.push({ id: 'kabocha', n: 10, q: 0 }); return g.money; });
   await sleep();
-  assert.equal((await run(() => window.__game.game.money)) - noToll, 1300, 'no toll any more');
+  assert.equal((await run(() => window.__game.game.money)) - noToll, 1600, 'no toll any more');
 
   step('the restored Archive opens; an ayu is donated at the ledger desk');
   await run(() => { const g = window.__game.game; g.flags.restored_archive = true; g.inventory.add('ayu', 2); });

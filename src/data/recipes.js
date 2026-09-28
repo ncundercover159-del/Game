@@ -19,9 +19,9 @@ export const CRAFTS = {
 // Artisan machines: what goes in (`input`: item ids, or a test), how many, how long, what comes out.
 export const MACHINES = {
   compost_bin: { name: 'Compost Bin', jp: '堆肥箱', input: ['hay'], n: 10, days: 3, out: 'compost', outN: 5 },
-  tofu_press: { name: 'Tofu Press', jp: '豆腐箱', input: ['daizu'], n: 1, days: 1, out: 'tofu' },
+  tofu_press: { name: 'Tofu Press', jp: '豆腐箱', input: ['daizu'], n: 1, days: 2, out: 'tofu' },
   tsukemono_tub: { name: 'Pickling Tub', jp: '漬物樽', input: 'vegetable', n: 1, days: 4, out: 'tsukemono' },
-  smoker: { name: 'Smoking Rack', jp: '燻製棚', input: 'fish50', n: 1, days: 1, out: 'kunsei' },
+  smoker: { name: 'Smoking Rack', jp: '燻製棚', input: 'fish50', n: 1, days: 2, out: 'kunsei' },
   charcoal_kiln: { name: 'Charcoal Kiln', jp: '炭窯', input: ['wood'], n: 10, days: 2, out: 'sumi' },
   miso_barrel: { name: 'Miso Barrel', jp: '味噌樽', input: ['daizu'], n: 3, days: 14, out: 'miso' },
   sake_barrel: { name: 'Sake Barrel', jp: '酒樽', input: ['rice'], n: 5, days: 7, out: 'sake' },
@@ -34,8 +34,8 @@ export const GOODS = {
   tsukemono: { name: 'Tsukemono', jp: '漬物', kind: 'artisan', sell: 120, desc: 'Vegetables pickled in rice bran. No meal is complete without them.' },
   kunsei: { name: 'Smoked Fish', jp: '燻製魚', kind: 'artisan', sell: 160, desc: 'Cedar-smoked river fish. It keeps for months.' },
   sumi: { name: 'Charcoal', jp: '炭', kind: 'artisan', sell: 70, desc: 'Clean-burning charcoal. Genzō uses it by the sack.' },
-  miso: { name: 'Miso', jp: '味噌', kind: 'artisan', sell: 420, desc: 'Fermented soybean paste, deep and salty. It took two weeks of patience.' },
-  sake: { name: 'Sake', jp: '酒', kind: 'artisan', sell: 650, desc: 'Rice wine from your own paddies. The valley\'s pride.' },
+  miso: { name: 'Miso', jp: '味噌', kind: 'artisan', sell: 520, desc: 'Fermented soybean paste, deep and salty. It took two weeks of patience.' },
+  sake: { name: 'Sake', jp: '酒', kind: 'artisan', sell: 560, desc: 'Rice wine from your own paddies. The valley\'s pride.' },
 };
 
 // Dishes cooked at the irori. `buff`: [kind, amount, hours]; kinds: speed, farming, foraging, fishing.

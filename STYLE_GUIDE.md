@@ -158,6 +158,16 @@ Extracted dominant colours (median-cut) that the ramps were fitted to:
 - Text: Fusion Pixel (OFL, 8/10/12 px), rasterised once per glyph and alpha-thresholded, so text is
   1-bit crisp and always drawn at integer positions. Body text `wood1` on cream, HUD numbers
   `red1` on cream (ref 2), world captions `ink6` with a 1 px `ink0` drop shadow.
+- Title: the valley in the real calendar's season, in stepped parallax layers (five-band stepped
+  sky, a far range, nearer ridges, a mist band, the village hill, a dark foreground ridge and a
+  corner branch). Each season has its own ramp (spring `sakura`/`gold`, summer `water`/`teal`,
+  autumn `red`/`sakura`, winter `indigo`/`ink`) and its drifting motes (petals, fireflies,
+  leaves, snow). The menu sits on the same wooden frames as the game.
+- Touch controls: flat, translucent and palette-only, so they never compete with the scene. The
+  stick is an `ink6` ring (20% alpha, 40% while held); the buttons are `ink0` discs (32%, 60%
+  pressed) with an `ink6` ring and label.
+- Larger text scales the logical viewport down rather than drawing bigger glyphs, so text stays
+  on the pixel grid at every size.
 
 ## 9. Lighting
 

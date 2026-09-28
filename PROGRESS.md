@@ -96,16 +96,27 @@
   dressing, crowds and scenes, and their minigames (the haiku composer; one rhythm engine for
   mochi pounding, Bon Odori, Otaue planting and mamemaki; crop judging; fireworks); Acts I-II
   (the tolls, Rin's arrival, Kuroda's contract signed or refused, the petition, the splitting
-  seal, the Hyakki Yagyō) with letters; the Village Archive (82 pieces in five collections,
-  milestone rewards); save v6 with a v5 migration.
-- [ ] M7 Content and polish
+  seal, the Hyakki Yagyō) with letters; the Village Archive (82 pieces in five collections, 97
+  after M7, milestone rewards); save v6 with a v5 migration.
+- [x] **M7 Content and polish**: cave zones 3-5 (the Foxfire Halls, the Oni Foundry with lava
+  and fire vents, the endless Yomi Slope with stacking modifiers) and seven new foes; bosses 2-5
+  (the Kappa Elder, Kyūbi, Kurenai with her armour, the Shade of Lord Aizawa) each turning the
+  story; Act III (Sōemon, the choice of the sword) and an epilogue told from your story, then
+  the credits; kodama befriended at dusk on the shrine stair who water the beds round their
+  hokora; kata and kyūdō at the dōjō, striking at Genzō's anvil for finer steel, goldfish
+  scooping at Hanabi; ten fish (cave pools, seasons, two legendaries) and twelve dishes with two
+  fighting buffs; procedural music on Japanese scales (eighteen themes, koto, shamisen,
+  shakuhachi, shinobue, taiko, bell, shō) with an audio director, ambience and footsteps, and
+  three volume buses; the parallax title, the new-farm steps (name, farm, look, difficulty,
+  three layouts), settings and accessibility (text size, text speed, colour-blind signals,
+  flashes, auto-run, rebinding, fullscreen) and touch controls; a performance pass (map entry
+  from 0.5 s to 40 ms) and a balance pass (crops, machines, dish prices); the two-year bot.
 
 ## Next
-M7 Content and polish: cave zones 3-5 and bosses 2-5, Act III and the ending, the remaining
-minigames (goldfish scooping, kyūdō, dango stacking, snowball skirmish, dōjō kata, forging,
-calligraphy), kodama helpers, the procedural soundscape and music, the title and new-game flow
-(name, farm, appearance, layout), touch controls and rebinding, Jūbei's return if he was offered
-work, polish.
+The game is complete to the brief. Candidates for later: dango stacking, a snowball skirmish and
+New Year calligraphy (planned, not built: the four minigames above took their place); Jūbei's
+return when he was offered honest work; a pasture and barn animals; seated poses for villagers;
+more festival crowd gestures.
 
 ## Verification (M1)
 - `npm test`: 36 unit tests (calendar, farming rules and regrowth, inventory, save checksum and
@@ -206,6 +217,46 @@ work, polish.
 - `npm run shots` writes shots/m6 (market square, Rin's iai heart event, the wedding, the
   extended farmhouse, the haiku composer, the Bon Odori, mochi pounding, fireworks, Tanabata,
   the Hyakki Yagyō, the tolls, Kuroda's offer, the Archive).
+
+## Verification (M7)
+- `npm test`: 179 unit tests, adding every foe and boss (each blow follows a tell of at least
+  0.28 s within 1.2 s; illusions, armour, the stance), cave floors to 263 (reachable exits,
+  arenas, Yomi modifiers never repeated, depth scaling), the epilogue lines, kyūdō (aiming off
+  for the wind scores; early and tired releases), goldfish (the paper, startled fish, time),
+  kodama (spots on open ground, the nightly watering once per bed), tempered blades and the
+  fighting buffs, cave and legendary fish rules, every dish learnable from real ingredients, the
+  music (a theme for every moment, notes in the scale, A A B A' coming home, the same seed the
+  same tune), the ambience levels, the new-farm looks and layouts, text-size scaling,
+  rebinding, and villagers' routes never taking the way down the mine.
+- `npm run test:e2e`: ten suites, zero console errors. New: the deep (a kitsune splits, a vent
+  glows then burns, the tile cache starting over when full, Kurenai's plate knocked off, the Kappa Elder's dish and steel at the forge,
+  the Yomi modifiers, the Shade to the rest of the sword, the epilogue at the shrine and the
+  credits); minigames (a kodama befriended and a hokora crafted and placed, its beds watered
+  overnight; kata with Rin and four kyūdō arrows home through the real keys; Excellent steel
+  struck at the anvil; goldfish scooped at Hanabi); audio (a live AudioContext: the theme follows
+  the farm, the village, a rhythm game's hush, the mine, a boss and the night; the voice cap,
+  the beds, the sliders, stone footsteps); the title and new farm (settings and credits from
+  the title, a farm typed and chosen through a save and reload, Use rebound to F and kept, the
+  run key, instant text, colour-blind signals, touch: stick, Use, menu button, a tap). The smoke
+  test now goes through the new-farm steps; the combat test leaves the hammering to Genzō.
+- `npm run bot`: 224 days (two years) in about three minutes, a save every week and a reload
+  every season. No console errors, softlocks or broken invariants.
+  Across the run it attended all 22 festivals, beat all five bosses and reached floor 125. It
+  played the story from the tolls through Act III to the sword laid to rest, restored all seven
+  altars and made 190+ calls on villagers.
+- Performance, headless Chromium at 1920x1080: update 0.04-0.15 ms and render 0.7-2.5 ms a
+  frame in the title, farm (day, storm at night), village, a festival, the grove, three cave
+  zones and a boss hall. Map entry takes 40-55 ms, down from 250-530 ms. The heap is flat at
+  about 14 MB over eight days.
+- Balance, worked from the data (mon per bed per day over a season, replanting at once): every
+  crop now earns between half and twice its season's median (spring 5, summer 7.9, autumn 4.8,
+  winter 6.4). The quick regrowers (strawberry, kyūri, shiso, nasu, negi) had
+  earned too much and the slow single harvests (kabocha, shōga, hakusai, shungiku) too little. The tofu press and
+  the smoker take two days; miso and sake pay for their wait. Every dish but the onigiri sells for
+  at least 15% more than its ingredients.
+- `npm run shots` writes shots/m7 (the title; the new farm's look and layout steps; the Foxfire
+  Halls, the Oni Foundry, the Yomi Slope, Kyūbi, Kurenai, the Shade's stand-off; the epilogue;
+  kodama at home; kata; kyūdō; the anvil; the goldfish tub; settings at larger text; touch).
 
 ## Decisions
 - The repository already contained ORBIT (a small arcade game) at the root; it was moved to
@@ -352,20 +403,22 @@ content density (flowers, props), not style. Tool swing windup was hidden behind
 raised higher and drawn behind the body only while raised.
 
 ## Known issues
-- The thatch roof is serviceable but plain (M7 polish).
-- Animals have no outdoor pasture or barn animals yet; the coop holds six.
-- The Skills tab leaves space between the bars and the heptagon (the virtue effects now run along
-  the bottom).
+- The thatch roof is serviceable but plain.
+- Animals have no outdoor pasture or barn animals; the coop holds six.
+- The Skills tab leaves space between the bars and the heptagon (the virtue effects run along the
+  bottom).
 - Enemies steer straight at you and slide along walls; in winding tunnels they can get stuck
   behind a corner until you come around it.
 - Cave light pools show their stepped rings clearly on water; acceptable, but could be softened.
-- Touch controls for Dodge/Parry arrive with the touch layer (M7).
-- Weather has no audio yet (the procedural soundscape is M7); thunder uses a stand-in rumble.
-- The shrine precinct is sparse (gravel, hall, office, ema rack, sacred cedar); the chōzuya basin,
-  bell tower and kodama groves arrive with their restorations.
-- Villagers sit by standing on cushions; a seated pose would read better (M7 polish).
+- The shrine precinct is sparse (gravel, hall, office, ema rack, sacred cedar). The restored bell
+  is heard at dawn and dusk but its tower is only told in the scene, not drawn on the map.
+- Villagers sit by standing on cushions; a seated pose would read better.
 - A married Yuzu leaves the bathhouse at 21:00, two hours before it closes (her shop is shut
   then).
-- Festival crowds stand still on their spots; small idle gestures and seated poses are M7 polish.
+- Festival crowds stand still on their spots; small idle gestures would read better.
 - Snow lanterns double as the Hyakki Yagyō's spirit lights (a dedicated sprite would read better).
-- Touch controls, rebinding UI and the fuller title/new-game flow are M7 items.
+- Music is procedural and varies with the day, but a long session will hear the same motifs
+  return; there is no hand-written score.
+- The two-year bot helps itself (bonds, money for big purchases, bosses worn down before the last
+  blows) to reach two years of content in minutes, so it proves the game holds together rather
+  than that every goal is reachable at its pace.

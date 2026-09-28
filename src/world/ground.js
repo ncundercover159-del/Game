@@ -188,7 +188,7 @@ export class GroundRenderer {
     const x0 = Math.max(0, Math.floor(cam.ix / TILE)), y0 = Math.max(0, Math.floor(cam.iy / TILE));
     const x1 = Math.min(m.w - 1, Math.floor((cam.ix + cam.w) / TILE)), y1 = Math.min(m.h - 1, Math.floor((cam.iy + cam.h) / TILE));
     const cell = (mask, v) => (m.def.lava
-      ? this.cells.get(`L${mask}.${v}.${frame}`, () => recolor(waterTile(mask, v, frame), LAVA))
+      ? this.cells.get(`V${mask}.${v}.${frame}`, () => recolor(waterTile(mask, v, frame), LAVA))
       : this.cells.get(`W${mask}.${v}.${frame}`, () => waterTile(mask, v, frame)));
     // New animation frames' cells first (see paint), then the drawing.
     for (let pass = 0; pass < 2; pass++) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {

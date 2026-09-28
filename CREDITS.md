@@ -6,6 +6,12 @@ original, authored for this project as palette-indexed grids or procedural gener
 `src/art/`. No reference image is shipped or traced; the references were used for style analysis
 only (see STYLE_GUIDE.md).
 
+## Music and sound
+There are no audio files. Every sound effect, the music and the valley's ambience are synthesised
+at run time with the Web Audio API (`src/core/audio.js`, `instruments.js`, `ambience.js`):
+oscillators, filtered noise and envelopes. The tunes are composed procedurally in the game's
+scales from its own theme definitions (`src/data/music.js`, `src/systems/music.js`).
+
 ## Third-party assets
 | Asset | Files | Author | Licence |
 |-------|-------|--------|---------|

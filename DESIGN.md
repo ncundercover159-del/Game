@@ -168,11 +168,98 @@ Map-entry scenes in `src/data/story.js` with letters between them:
     (not Ōkubo or Kinta); Shinsuke's ledger (his 10-heart event) counts for three. Eight names
     send it; five days later the castle overturns the tolls (Gi +5, every bond +60).
 - Late autumn: the rear gate's seal splits; the Hyakki Yagyō shows the spirits are being soured
-  from below, not wicked. Act III (Year 2) is M7.
+  from below, not wicked.
+
+## Act III and the ending (M7)
+- The deep bosses carry the story down: the Kappa Elder (floor 40) says something burns under the
+  mountain; Kyūbi (60) is freed of the poison and Kon names the foundry; Kurenai (80) names Lord
+  Aizawa. In Year 2 (or once he is named) Sōemon, the clan's old steward, comes to the farm.
+- Floor 100: the Shade of Lord Aizawa, three phases (combos and a stance; summoned retainers and a
+  kiai ring; a tight iai stand-off). Beaten, he asks what the sword is for: lay it to rest
+  (Jin +10) or carry it on (Chūgi +10). Then the epilogue at the shrine at dawn, told from how the
+  story went (the tolls, a spouse or not, the three closest friends, the strongest virtue, how
+  much was restored, the Archive, the sword), then the credits. The game goes on afterwards.
+
+## Kodama (M7)
+Once the Altar of Chūgi is full, one kodama waits at dusk (17:00-22:00) among the cedars by the
+shrine stair, a seeded spot a day. Something from the forest (any forage) or rice befriends it (Jin
++2); five in all. A hokora (craft: 20 wood, 20 stone, 5 bamboo; shown once the kodama are back)
+set on the farm houses one; each night (unless it rained) each housed kodama waters the dry
+planted beds within three tiles. The day card counts it. Kodama glow faintly after dark.
+
+## More to do (M7)
+- Dōjō (once Rin has come): kata with Rin at the makiwara (the rhythm engine: steps and cuts,
+  still at her halt) and kyūdō at the target (hold to draw; at full draw the aim drifts, more as
+  the arms tire; steer, read the streamer and aim off for the wind; four arrows, rings 10/7/5/3/1;
+  28 splendid, 14 good). The first round of each a day gives Swordsmanship (60/35/15, 50/30/10);
+  Rin comments; four hits earns a quiver once.
+- Forging: making a blade, you may strike with Genzō (the rhythm engine: your sledge half a beat
+  after his hammer, never while he turns the blade). Splendid makes Excellent steel, good Fine;
+  each quality star adds 6% to the blade's damage.
+- Goldfish scooping at Hanabi: steer a paper scoop; the paper weakens while wet (more when
+  dragged), and each fish lifted costs it more (a demekin most); dipping beside a fish startles
+  it. Five or more is splendid. Up to five goldfish come home in bags (Kinta likes them).
+- Fish: 35. Cave pools have their own (the cellars: cave loach, glowfin, drowned carp; the Yomi
+  Slope: Yomi eel, soul minnow), lava refuses a line, and two more legendaries: the Giant
+  Salamander (grove stream, rainy spring and summer nights) and the Great Namazu (the farm pond
+  in summer storms).
+- Dishes: 28. Okiku's scrolls (20), Kon's (inari, kitsune soba), and a traveller's four at
+  Sakuya's stall (one a market day). New buffs: Might (harder blows) and Guard (softer blows).
+  A dish always sells for at least 1.15 x its ingredients.
+
+## Caves, deeper (M7)
+- Zones: Old Mine Tunnels 1-20, Flooded Cellars 21-40, Foxfire Halls 41-60 (kitsune who split
+  into shadowless copies that pop at a touch, onibi packs, tengu, karasu), Oni Foundry 61-80
+  (lava pools and fire vents that glow 0.9 s before they breathe; oni, boars, shinobi), and the
+  Yomi Slope from 81 without end (ghostly retainers and the rest).
+- Bosses: Jūbei 20 (260), Kappa Elder 40 (750), Kyūbi 60 (1300), Kurenai 80 (1400, three armour
+  plates that only heavy strikes or counters knock off), the Shade of Lord Aizawa 100 (1500).
+  Each is a state machine of told attacks (the fairness test: every blow follows a tell of at least
+  0.28 s, within 1.2 s).
+- Depth: +4% foe health and +2% damage per floor to 80, half that on the Slope.
+- Yomi modifiers: one on floor 81, one more every 20 floors, never repeated: Hardy (x1.3 health),
+  Fierce (x1.25 damage), Swift (x1.2 speed), Crowded (+3 foes), Dim (lantern x0.6), Bountiful
+  (loot x2). Tells never get shorter.
+
+## Sound (M7)
+- Music is composed as it plays from Japanese pentatonic scales (yo, min'yō, in, kumoi,
+  hirajoshi, iwato; `src/systems/music.js`), eighteen themes chosen by the moment: title, farm by
+  season, rain, village, shrine, grove, home, night, festival, the five cave zones, a boss.
+  Sections of eight bars (A A B A', the last home to the root), fresh phrases as they go, a
+  breath every fourth section. Late at night (22:00-06:00) there is no music.
+- Instruments are voiced in WebAudio (`src/core/instruments.js`): koto and shamisen
+  (Karplus-Strong), shakuhachi and shinobue (breath, scoop, vibrato), taiko, temple bell, shō pad.
+- The director crossfades themes, schedules 0.6 s ahead, caps music voices at 20, and hushes the
+  music for rhythm games, the range and the iai stand-off.
+- Ambience beds (wind, rain muffled indoors, water, the mountain's rumble, fire) and creature
+  calls by season, hour and place; footsteps by ground. Music, effects and ambience have their
+  own buses and sliders.
+
+## Title, new farm, settings, touch (M7)
+- The title shows the valley in parallax in the season of the real calendar.
+- New farm: name and farm name (typed or from a letter grid), look (5 hairstyles, 4 hair colours,
+  4 skins, 5 kosode, 3 hakama; repainted onto the player's frames), difficulty, and a layout:
+  Terraced Fields (as before), Woodland (twice the trees and stumps, +3 forage spots on the farm,
+  satoimo seeds) or Riverside (lighter, fewer stones, two fish traps). Name, farm, look and layout
+  are kept with the save (older saves get the defaults; no version change).
+- Settings on this machine: volumes; text size (the logical height aimed for: 270, 230 or 200
+  pixels, never below 210x370); text speed (35, 70, 140 characters a second, or instant);
+  colour-blind signals (greens on good/bad cues become blues); flashing effects; shake; time
+  speed; auto-run (Shift runs x1.35, or walks when auto-run is on); touch controls (auto, on,
+  off); rebinding the first key of up, down, left, right, use, interact, dodge, parry, run and
+  menu (a key taken from another action swaps; confirm follows use and interact); fullscreen.
+- Touch: a stick under the left thumb (eight ways), Use, A (interact, confirm), B (dodge, cancel),
+  Parry in caves, a menu button; any other tap is a click.
+
+## Performance (M7)
+Headless Chromium at 1920x1080 (software rendering): update under 0.2 ms and render under 3 ms a
+frame in every scene (the busiest are the farm at night in a storm and the foundry); the heap
+stays at about 14 MB over days of play. Ground tiles are painted in two passes (make any missing
+cells, then draw) so that entering a map takes 40-60 ms behind the wipe.
 
 ## Village Archive (M6)
 The Makoto altar restores the old kura. At its ledger desk you donate one of each fish, forage,
-crop, relic and metal (82 pieces). Milestones at 5, 10, 20, 35, 50 and 70 pay mon, items or
+crop, relic and metal (97 pieces: 35 fish, 20 forage, 22 crops, 11 relics, 9 metals). Milestones at 5, 10, 20, 35, 50 and 70 pay mon, items or
 Makoto; finishing a collection pays 1,500 and Makoto +3. The Collection tab shows missing pieces
 as pale outlines.
 
@@ -273,7 +360,8 @@ from the save seed.
   version 5 (M5) adds Inochi, difficulty and the caves (deepest floor, lit lanterns, the lost
   bundle, chests opened today). Older farms get the katana by Genzō's letter. Version 6 (M6)
   adds romance (engaged, spouse), Tatsu's building work and the Archive; courting lives on the
-  bond, story progress in flags.
+  bond, story progress in flags. M7 keeps the look and layout beside the name and farm, and
+  the kodama in flags, without a new version.
 - Migrations run in order from the file's version to `SAVE_VERSION`. A checksum mismatch or parse
   failure falls back to the slot's `.bak` copy (written before every save).
 - Autosave on sleep. Export/import as a `.json` file from the pause menu.
@@ -288,3 +376,6 @@ time, weather, seed, slot`. `window.__game` exposes state getters, `advance(ms)`
 ## Milestones
 M0 foundation -> M1 farm slice (stop for feedback) -> M2 seasons/economy -> M3 village/people ->
 M4 nature/craft -> M5 combat/caves -> M6 story/festivals -> M7 content/polish. See PROGRESS.md.
+The two-year bot (`npm run bot`, tools/bot.mjs) plays 224 days headless and fails on any error,
+broken invariant or softlock. It reloads the save every season of the first year and plays the
+second in one sitting, so both the saves and a long session's caches are tried.

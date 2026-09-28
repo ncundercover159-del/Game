@@ -116,7 +116,10 @@ export class Atlas {
 
 /**
  * Lazily-filled grid of fixed-size cells (used for autotile variants generated on demand).
- * get(key, genFn) returns { canvas, sx, sy, w, h }.
+ * get(key, genFn) returns { canvas, sx, sy, w, h }, to be drawn from at once: when the grid is
+ * full it starts over (a long session meets more shapes, seasons and water frames than fit), so an
+ * entry kept past other get() calls may have been painted over. Chunk canvases hold their own
+ * copies, so nothing already drawn is lost.
  */
 export class CellCache {
   constructor(cell = 16, cols = 64, rows = 64) {
@@ -132,7 +135,7 @@ export class CellCache {
   get(key, gen) {
     let e = this.map.get(key);
     if (e) return e;
-    if (this.next >= this.cols * this.rows) throw new Error('CellCache full');
+    if (this.next >= this.cols * this.rows) { this.map.clear(); this.next = 0; }
     const sx = (this.next % this.cols) * this.cell;
     const sy = Math.floor(this.next / this.cols) * this.cell;
     this.next++;

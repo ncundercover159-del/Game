@@ -1,6 +1,6 @@
 {
   "name": "ronin-no-sato",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "private": true,
   "description": "Ronin no Sato: a samurai farming-life sim in pixel art (HTML5 canvas, no runtime dependencies).",
   "type": "module",
@@ -9,7 +9,8 @@
     "start": "node server.js",
     "test": "node --test \"tests/unit/*.test.js\"",
     "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/nature.mjs && node tests/e2e/combat.mjs && node tests/e2e/romance.mjs && node tests/e2e/festivals.mjs && node tests/e2e/story.mjs && node tests/e2e/deep.mjs && node tests/e2e/minigames.mjs && node tests/e2e/audio.mjs && node tests/e2e/newgame.mjs",
-    "shots": "node tools/shots.mjs"
+    "shots": "node tools/shots.mjs",
+    "bot": "node tools/bot.mjs"
   },
   "devDependencies": {
     "playwright": "1.56.1"
