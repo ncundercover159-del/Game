@@ -5,6 +5,9 @@ import { OBJECT_TYPES } from '../data/objects.js';
 import { stageOf } from '../data/crops.js';
 import { hex } from '../art/palette.js';
 import { ROD_TIPS } from '../art/fish.js';
+import { MACHINES } from '../data/recipes.js';
+import { isReady, progressOf } from '../systems/craft.js';
+import { dayIndex } from '../systems/calendar.js';
 
 const SHADOW_ALPHA = 0.36;
 const pool = [];
@@ -34,6 +37,7 @@ function objectSprite(o) {
     case 'dig': return 'dig_spot';
     case 'trap': return 'uke';
     case 'produce': return `produce_${o.kind}`;
+    case 'machine': return `machine_${o.kind}`;
     case 'fence': return o.v ? 'fence_post' : 'fence';
     default: return o.kind ? `${o.type}_${o.kind}` : o.type;
   }
@@ -159,6 +163,7 @@ function drawObject(w, ctx, cam, o) {
   }
   atlas.draw(ctx, seasonal(atlas, objectSprite(o), w.game.seasonId), bx, by);
   if (o.type === 'trap' && o.catch) atlas.draw(ctx, 'emote_bang', bx, by - 14 + Math.round(Math.sin(w.time * 3)));
+  if (o.type === 'machine' && o.input) drawMachineState(w, ctx, o, bx, by);
   // Unread letters: a bubble over the mailbox.
   if (o.type === 'mailbox' && w.game.mail.inbox.some((l) => !l.read)) atlas.draw(ctx, 'emote_bang', bx, by - 20 + Math.round(Math.sin(w.time * 3)));
 }
@@ -190,6 +195,21 @@ function drawPlayer(w, ctx, cam) {
       ctx.fillRect(x - p.charge.max * 3 + i * 6 + 1, y - 39, 3, 2);
     }
   }
+}
+
+/** A loaded machine: a thin progress bar above it, or the finished goods in a bubble when ready. */
+function drawMachineState(w, ctx, o, bx, by) {
+  const g = w.game, day = dayIndex(g.cal);
+  if (isReady(o, day)) {
+    g.atlas.draw(ctx, 'emote_dots', bx, by - 24);
+    g.atlas.draw(ctx, `icon_${MACHINES[o.kind].out}`, bx - 5, by - 44 + Math.round(Math.sin(w.time * 3)));
+    return;
+  }
+  const f = progressOf(o, day, g.cal.minutes);
+  ctx.fillStyle = hex('ink0');
+  ctx.fillRect(bx - 7, by - 28, 14, 3);
+  ctx.fillStyle = hex('gold2');
+  ctx.fillRect(bx - 6, by - 27, Math.max(1, Math.round(12 * f)), 1);
 }
 
 /** The fishing line from the rod tip to the float (a sagging pixel line), and the float itself. */

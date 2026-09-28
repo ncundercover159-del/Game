@@ -10,6 +10,9 @@ import { newMail } from './systems/mail.js';
 import { newOfferings } from './systems/offerings.js';
 import { newSkills } from './systems/skills.js';
 import { newAnimals } from './systems/animals.js';
+import { DISHES } from './data/recipes.js';
+
+const START_RECIPES = () => Object.keys(DISHES).filter((id) => DISHES[id].known);
 
 export const TOOL_TIERS = () => ({ hoe: 0, can: 0, axe: 0, pickaxe: 0, sickle: 0 });
 
@@ -24,6 +27,7 @@ export function newState(seed) {
     flags: {}, stats: { shippedValue: 0 }, rng: seed ^ 0x5bd1e995, maps: {},
     bonds: {}, virtues: newVirtues(), requests: newRequests(), mail: newMail(), offerings: newOfferings(),
     skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] }, animals: newAnimals(),
+    recipes: START_RECIPES(),
   };
 }
 
@@ -42,5 +46,5 @@ MIGRATIONS[1] = (s) => ({
 // map defaults to the farm.
 MIGRATIONS[2] = (s) => ({ ...s, bonds: {}, virtues: newVirtues(), requests: newRequests(), mail: newMail(), offerings: newOfferings() });
 
-// v3 (M3) -> v4 (M4): skills and XP, food buffs, today's picked forage, coop animals.
-MIGRATIONS[3] = (s) => ({ ...s, skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] }, animals: newAnimals() });
+// v3 (M3) -> v4 (M4): skills and XP, food buffs, today's picked forage, coop animals, recipes.
+MIGRATIONS[3] = (s) => ({ ...s, skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] }, animals: newAnimals(), recipes: START_RECIPES() });

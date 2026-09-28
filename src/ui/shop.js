@@ -83,7 +83,7 @@ export class ShopMenu extends RowShop {
     const shop = SHOPS[id];
     super(game, `${shop.name} ${shop.jp}`, t(shop.hello));
     this.buys = !!shop.buys;
-    this.stock = shop.stock(SEASONS[game.cal.season].id, dayIndex(game.cal) % 7);
+    this.stock = shop.stock(SEASONS[game.cal.season].id, dayIndex(game.cal) % 7, game);
   }
 
   price(s) { return Math.round(itemDef(s.id).price * s.mult); }
@@ -108,6 +108,16 @@ export class ShopMenu extends RowShop {
     const g = this.game, cost = this.price(s) * this.qty;
     if (g.money < cost) { g.sfx('deny'); g.toast('shop_poor'); return; }
     const def = itemDef(s.id);
+    if (def.kind === 'upgrade') {
+      if (g.inventory.size >= def.slots) { g.sfx('deny'); g.toast('pack_have'); return; }
+      g.money -= this.price(s);
+      g.inventory.resize(def.slots);
+      g.sfx('harvest');
+      g.toast('pack_bought', { n: def.slots }, iconName(s.id));
+      this.stock = this.stock.filter((x) => x !== s);
+      this.sel = Math.min(this.sel, this.stock.length - 1);
+      return;
+    }
     if (def.kind === 'livestock') {
       // Animals go straight to the coop, one at a time.
       const a = adopt(g.animals, def.animal, g.seed + g.animals.nextId);

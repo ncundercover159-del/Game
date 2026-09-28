@@ -7,6 +7,7 @@ import { ShopMenu, ForgeMenu } from './ui/shop.js';
 import { NoticeMenu } from './ui/notice.js';
 import { MailMenu } from './ui/mail.js';
 import { OfferingMenu } from './ui/offering.js';
+import { CookMenu } from './ui/cook.js';
 import { Cutscene } from './ui/cutscene.js';
 import { t } from './data/strings.js';
 import { itemDef } from './data/items.js';
@@ -18,6 +19,7 @@ import { decay } from './systems/bonds.js';
 import { refresh } from './systems/requests.js';
 import { deliverMail } from './systems/mail.js';
 import { coopNight } from './systems/animals.js';
+import { hasPerk, addBuff, stamp } from './systems/skills.js';
 import { WEATHER } from './systems/weather.js';
 import { dayIndex, dateLabel, weekday, formatTime, SEASONS, WEEKDAYS } from './systems/calendar.js';
 
@@ -93,15 +95,36 @@ export function openShop(g, id) {
   g.modals.push(id === 'kajiya' ? new ForgeMenu(g) : new ShopMenu(g, id));
 }
 
-/** Eat the selected food for Genki. */
+/** Eat the selected food for Genki (Chef: half as much again) and any buff it gives. */
 export function eat(g, slot) {
   const s = g.inventory.slots[slot];
   const def = itemDef(s.id);
-  if (g.genki >= g.genkiMax) { g.sfx('deny'); g.aside('tk_not_hungry', { once: `full_genki${g.cal.day}` }); return; }
-  g.genki = Math.min(g.genkiMax, g.genki + def.genki);
+  if (g.genki >= g.genkiMax && !def.buff) { g.sfx('deny'); g.aside('tk_not_hungry', { once: `full_genki${g.cal.day}` }); return; }
+  const n = Math.round(def.genki * (hasPerk(g.skills, 'chef') ? 1.5 : 1));
+  g.genki = Math.min(g.genkiMax, g.genki + n);
   g.inventory.takeFrom(slot, 1);
   g.sfx('eat');
-  g.toast('toast_ate', { item: def.name, n: def.genki }, `icon_${s.id}`);
+  g.toast('toast_ate', { item: def.name, n }, `icon_${s.id}`);
+  if (def.buff) {
+    const [kind, amount, hours] = def.buff;
+    addBuff(g.buffs, kind, amount, stamp(dayIndex(g.cal), g.cal.minutes) + hours * 60);
+    g.toast('toast_buff', { buff: t(`buff_${kind}`), h: hours }, `icon_${s.id}`);
+  }
+}
+
+/** Learn a dish from one of Okiku's recipe scrolls. */
+export function learnRecipe(g, slot) {
+  const s = g.inventory.slots[slot], dish = itemDef(s.id).dish;
+  if (g.recipes.includes(dish)) { g.sfx('deny'); g.toast('recipe_known'); return; }
+  g.recipes.push(dish);
+  g.inventory.takeFrom(slot, 1);
+  g.sfx('harvest');
+  g.toast('recipe_learned', { dish: itemDef(dish).name }, `icon_${dish}`);
+}
+
+export function openCooking(g) {
+  g.sfx('ui');
+  g.modals.push(new CookMenu(g));
 }
 
 /** Bowing to a Jizō: respect, once a day. */

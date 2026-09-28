@@ -5,14 +5,14 @@ import { panel, rect } from './widgets.js';
 import { t } from '../data/strings.js';
 import { itemDef } from '../data/items.js';
 import { Reel, TRACK } from '../systems/fishing.js';
-import { levelOf, hasPerk } from '../systems/skills.js';
+import { levelOf, hasPerk, buffAmount } from '../systems/skills.js';
 
 export class ReelMenu {
   constructor(game, fishId, onEnd) {
     this.game = game;
     this.fishId = fishId;
     this.onEnd = onEnd;
-    this.reel = new Reel(fishId, { level: levelOf(game.skills.fishing.xp), steady: hasPerk(game.skills, 'steady'), rng: game.rng });
+    this.reel = new Reel(fishId, { level: levelOf(game.skills.fishing.xp), steady: hasPerk(game.skills, 'steady'), bonus: buffAmount(game.buffs, 'fishing'), rng: game.rng });
     this.t = 0;
     this.after = 0;
   }

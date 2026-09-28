@@ -50,6 +50,7 @@ export function untill(map, x, y) {
   map.soil[k] = SOIL.NONE;
   map.wet[k] = 0;
   map.cover[k] = 0;
+  map.fert[k] = 0;
   map.touch(x, y);
   if (wasChannel) computeFlow(map);
   return true;

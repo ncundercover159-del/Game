@@ -70,6 +70,12 @@ export class Inventory {
     return true;
   }
 
+  /** Grow the pack (a bought upgrade); never shrinks. */
+  resize(size) {
+    while (this.slots.length < size) this.slots.push(null);
+    this.size = Math.max(this.size, size);
+  }
+
   swap(a, b) {
     [this.slots[a], this.slots[b]] = [this.slots[b], this.slots[a]];
   }

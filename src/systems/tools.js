@@ -3,10 +3,12 @@
 // charged swing for the hoe and can that covers more tiles.
 import { TILE } from '../config.js';
 import { OBJECT_TYPES } from '../data/objects.js';
+import { itemDef } from '../data/items.js';
 import { TIERS } from '../data/tools.js';
 import { till, untill, water, cropAt, isRipe, clearDead, digChannel, coverSoil, plantProblem } from './farming.js';
 import { SOIL, computeFlow } from './irrigation.js';
 import { hasPerk } from './skills.js';
+import { dig } from '../world/interact.js';
 
 export const GENKI_COST = 2;
 export const canCapacity = (tier) => TIERS[tier].can;
@@ -52,8 +54,9 @@ function applyOne(w, tool, tx, ty) {
   const { map, game, fx } = w;
   const cx = tx * TILE + 8, cy = ty * TILE + 12;
   const o = map.objectAt(tx, ty);
-  if (o && o.type === 'dig' && tool === 'hoe') { w.dig(o); return 'dig'; }
+  if (o && o.type === 'dig' && tool === 'hoe') { dig(w, o); return 'dig'; }
   if (o && o.type === 'forage') return 'miss';
+  if (o && o.type === 'machine' && (tool === 'axe' || tool === 'pickaxe')) return pickUpMachine(w, o);
   if (o) return hitObject(w, o, tool);
   // Village soil is somebody else's: tools only work the farm's.
   if (!map.def.farmable) return 'miss';
@@ -143,6 +146,34 @@ function hitObject(w, o, tool) {
   return 'destroy';
 }
 
+/** Machines stand on any open, dry, unplanted tile of your own maps (farm, farmhouse, coop). */
+function placeMachine(w, slot, tx, ty) {
+  const { game, map } = w;
+  const k = map.inside(tx, ty) ? map.i(tx, ty) : -1;
+  if (!map.def.persist || k < 0 || map.solid(tx, ty) || map.objectAt(tx, ty) || map.isWater(tx, ty) || map.crops.has(k) || map.soil[k]) {
+    game.sfx('deny');
+    game.aside(map.def.persist ? 'tk_machine_where' : 'tk_machine_farm', { once: true });
+    return false;
+  }
+  map.addObject({ type: 'machine', x: tx, y: ty, v: 0, kind: game.inventory.slots[slot].id });
+  game.inventory.takeFrom(slot, 1);
+  game.sfx('rock');
+  return true;
+}
+
+/** Work compost into tilled soil: finer crops from it from now on. */
+export function fertilise(w, slot, tx, ty) {
+  const { game, map } = w;
+  const k = map.inside(tx, ty) ? map.i(tx, ty) : -1;
+  if (k < 0 || map.soil[k] !== SOIL.TILLED || map.fert[k]) { game.sfx('deny'); game.aside('tk_compost_where', { once: true }); return false; }
+  map.fert[k] = 1;
+  map.touch(tx, ty);
+  game.inventory.takeFrom(slot, 1);
+  w.fx.burst('fx_dirt', tx * TILE + 8, ty * TILE + 12, 5, { speed: 16, up: 24 });
+  game.sfx('plant');
+  return true;
+}
+
 function placeTrap(w, slot, tx, ty) {
   const { game, map } = w;
   const bank = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => map.inside(tx + dx, ty + dy) && !map.isWater(tx + dx, ty + dy));
@@ -156,6 +187,16 @@ function placeTrap(w, slot, tx, ty) {
   w.fx.burst('fx_drop', tx * TILE + 8, ty * TILE + 10, 6, { speed: 20, up: 30 });
   game.sfx('water');
   return true;
+}
+
+/** An empty machine comes back into the pack when struck with the axe or pickaxe. */
+function pickUpMachine(w, o) {
+  const { game, map } = w;
+  if (o.input) { game.sfx('deny'); o.shake = 0.2; game.aside('tk_machine_busy', { once: true }); return 'deny'; }
+  map.removeObject(o);
+  w.drops.spawn(w.rng, o.kind, 1, 0, o.x * TILE + 8, o.y * TILE + 10);
+  game.sfx('chop');
+  return 'destroy';
 }
 
 /** Planting from the selected seed slot. Returns false (with a hint) when it can't go there. */
@@ -191,6 +232,7 @@ export function placeItem(w, slot, tx, ty) {
   const { game, map } = w;
   const s = game.inventory.slots[slot];
   if (s.id === 'uke') return placeTrap(w, slot, tx, ty);
+  if (itemDef(s.id).kind === 'machine') return placeMachine(w, slot, tx, ty);
   if (s.id !== 'sluice') return false;
   if (!map.inside(tx, ty) || map.soil[map.i(tx, ty)] !== SOIL.CHANNEL || map.objectAt(tx, ty)) {
     game.sfx('deny');

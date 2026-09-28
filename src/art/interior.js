@@ -96,6 +96,17 @@ export function bridge(v, railW, railE) {
   return g;
 }
 
+/** Compost worked into soil: dark crumbs over the tilled earth (an overlay). */
+export function compostSpecks(v) {
+  const g = grid(T, T);
+  for (let y = 1; y < T - 1; y++) for (let x = 1; x < T - 1; x++) {
+    const h = hashf(x, y, v, 31);
+    if (h > 0.9) set(g, x, y, 'wood0');
+    else if (h > 0.84) set(g, x, y, 'grass1');
+  }
+  return g;
+}
+
 export function voidTile() {
   const g = grid(T, T);
   fillRect(g, 0, 0, T, T, 'ink0');

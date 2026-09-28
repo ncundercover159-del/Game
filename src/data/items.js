@@ -3,6 +3,7 @@
 import { CROPS } from './crops.js';
 import { FORAGE, ARTIFACTS } from './forage.js';
 import { FISH, JUNK } from './fish.js';
+import { MACHINES, GOODS, DISHES, SCROLLS, SCROLL_PRICE } from './recipes.js';
 
 export const QUALITY = [
   { name: '', stars: 0, mult: 1 },
@@ -41,22 +42,38 @@ export const ITEMS = {
   tonic: { name: 'Yōjō Tonic', jp: '養生酒', kind: 'food', genki: 140, sell: 100, price: 320, desc: 'Ume\'s bitter herbal tonic. Tastes of bark; works like sleep.' },
 };
 
+/** Register a generated item; an id may only be defined once across all the tables. */
+function define(id, def) {
+  if (ITEMS[id]) throw new Error(`Item "${id}" is defined twice`);
+  ITEMS[id] = def;
+}
+
 // Produce and seeds come from the crop table.
 for (const [id, c] of Object.entries(CROPS)) {
   const where = c.paddy ? ' in a flooded paddy' : c.cover ? ' on straw-covered soil' : '';
   const when = c.seasons.map((s) => s[0].toUpperCase() + s.slice(1)).join(' and ');
-  ITEMS[`seed_${id}`] = {
+  define(`seed_${id}`, {
     name: c.seedName || `${c.name} Seeds`, jp: c.seedJp || `${c.jp}の種`, kind: 'seed', crop: id,
     price: c.seedPrice, sell: Math.floor(c.seedPrice / 2),
     desc: `Plant in ${when}${where}. Ready in ${c.days} days${c.regrow ? `, then every ${c.regrow}` : ''}.`,
-  };
-  ITEMS[id] = { name: c.name, jp: c.jp, kind: 'crop', sell: c.sell, desc: c.desc };
+  });
+  define(id, { name: c.name, jp: c.jp, kind: 'crop', sell: c.sell, desc: c.desc });
 }
 
-for (const [id, f] of Object.entries(FORAGE)) ITEMS[id] = { name: f.name, jp: f.jp, kind: 'forage', sell: f.sell, desc: f.desc };
-for (const [id, f] of Object.entries(FISH)) ITEMS[id] = { name: f.name, jp: f.jp, kind: 'fish', sell: f.sell, desc: f.desc };
-for (const [id, j] of Object.entries(JUNK)) ITEMS[id] = { name: j.name, jp: j.jp, kind: 'junk', sell: j.sell, desc: j.desc };
-for (const [id, a] of Object.entries(ARTIFACTS)) ITEMS[id] = { name: a.name, jp: a.jp, kind: 'artifact', sell: a.sell, desc: a.desc };
+for (const [id, f] of Object.entries(FORAGE)) define(id, { name: f.name, jp: f.jp, kind: 'forage', sell: f.sell, desc: f.desc });
+for (const [id, f] of Object.entries(FISH)) define(id, { name: f.name, jp: f.jp, kind: 'fish', sell: f.sell, desc: f.desc });
+for (const [id, j] of Object.entries(JUNK)) define(id, { name: j.name, jp: j.jp, kind: 'junk', sell: j.sell, desc: j.desc });
+for (const [id, a] of Object.entries(ARTIFACTS)) define(id, { name: a.name, jp: a.jp, kind: 'artifact', sell: a.sell, desc: a.desc });
+
+for (const [id, m] of Object.entries(MACHINES)) define(id, { name: m.name, jp: m.jp, kind: 'machine', sell: 30, desc: `An artisan machine. Place it on your farm; it turns ${m.n > 1 ? `${m.n} ` : ''}goods into something finer.` });
+for (const [id, g] of Object.entries(GOODS)) define(id, { ...g });
+for (const [id, d] of Object.entries(DISHES)) {
+  if (id === 'onigiri') continue;   // already sold at the teahouse
+  define(id, { name: d.name, jp: d.jp, kind: 'food', genki: d.genki, buff: d.buff, sell: Math.round(d.genki * 0.9), desc: d.desc });
+}
+for (const id of SCROLLS) define(`scroll_${id}`, { name: `Recipe: ${ITEMS[id].name}`, jp: `${ITEMS[id].jp}の作り方`, kind: 'recipe', dish: id, price: SCROLL_PRICE, desc: `Okiku's recipe for ${ITEMS[id].name}. Use it to learn the dish.` });
+define('pack24', { name: 'Large Pack', jp: '大きな背負子', kind: 'upgrade', slots: 24, price: 2000, desc: 'A second row of pockets: 24 slots.' });
+define('pack36', { name: 'Traveller\'s Pack', jp: '旅の背負子', kind: 'upgrade', slots: 36, price: 10000, desc: 'Room for everything: 36 slots.' });
 
 export const STACK = 99;
 

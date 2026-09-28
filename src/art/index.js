@@ -15,6 +15,8 @@ import { foodIcons } from './food.js';
 import { forageIcons, digSpot } from './forage.js';
 import { fishIcons, bobber, rodSprite, trapInWater } from './fish.js';
 import { animalFrames, eggIcons, coopBuilding, hopper, nest } from './animals.js';
+import { machineSprites, goodsIcons, scrollIcon } from './craft.js';
+import { SCROLLS } from '../data/recipes.js';
 import { townhouse, torii, honden, noticeBoard, jizo, bench, parasol, riceBales, mailbox, emaRack, shimenawa, rearGate } from './town.js';
 import { futon, irori, tansu, andon, counter, shelf, teaTable, zabuton, forge, anvil, drawers, nets, altar, kamidana } from './furniture.js';
 import { CROPS } from '../data/crops.js';
@@ -215,6 +217,10 @@ export function buildArt() {
   add('coop', coopBuilding());
   add('hopper', hopper());
   add('nest', nest());
+  for (const [k, g] of Object.entries(machineSprites())) add(`machine_${k}`, g, 9, 23);
+  for (const [k, g] of Object.entries(goodsIcons())) add(`icon_${k}`, g, 0, 0);
+  const scroll = scrollIcon();
+  for (const id of SCROLLS) add(`icon_scroll_${id}`, scroll, 0, 0);
   add('uke', trapInWater(), 8, 14);
   for (const dir of ['down', 'up', 'right']) for (const pose of ['raise', 'strike']) {
     const s = rodSprite(dir, pose);

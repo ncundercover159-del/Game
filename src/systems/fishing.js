@@ -54,12 +54,12 @@ const FISH_H = 10;
 
 /** The reel: keep the catch bar over the fish until the progress bar fills. */
 export class Reel {
-  constructor(fishId, { level = 1, steady = false, rng }) {
+  constructor(fishId, { level = 1, steady = false, bonus = 0, rng }) {
     const f = FISH[fishId];
     this.diff = f ? f.diff : 1;
     this.move = f ? f.move : 'floater';
     this.rng = rng;
-    this.barH = Math.round((26 + level * 2) * (steady ? 1.33 : 1));
+    this.barH = Math.round((26 + level * 2) * (steady ? 1.33 : 1) * (1 + bonus));
     this.bar = 0;              // bottom of the catch bar, px from the bottom of the track
     this.barV = 0;
     this.fish = TRACK * 0.3;   // fish centre, px from the bottom

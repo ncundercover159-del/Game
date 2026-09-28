@@ -8,15 +8,16 @@ import { Fx } from './fx.js';
 import { Drops } from './drops.js';
 import { OBJECT_TYPES } from '../data/objects.js';
 import { itemDef } from '../data/items.js';
-import { applyTool, plantSeed, placeItem, spreadStraw, swingArea, GENKI_COST } from '../systems/tools.js';
+import { applyTool, plantSeed, placeItem, spreadStraw, swingArea, fertilise, GENKI_COST } from '../systems/tools.js';
 import { computeFlow } from '../systems/irrigation.js';
 import { TIERS, CHARGE_STEP } from '../data/tools.js';
-import { cropAt, isRipe, harvest, plant, canPlant, rollQuality } from '../systems/farming.js';
-import { spawnSpots, digFind } from '../systems/forage.js';
+import { cropAt, harvest, plant } from '../systems/farming.js';
+import { spawnSpots } from '../systems/forage.js';
 import { dayIndex } from '../systems/calendar.js';
-import { openNotice, openMailbox, openAltar } from '../flow.js';
 import { Fishing } from './fishing.js';
 import { Flock } from './flock.js';
+import { interact } from './interact.js';
+import { learnRecipe } from '../flow.js';
 import { XP } from '../data/skills.js';
 import { buffAmount, hasPerk } from '../systems/skills.js';
 import { hasDucks } from '../systems/animals.js';
@@ -119,6 +120,9 @@ export class World {
     const t = this.target;
     if (def.kind === 'seed') { plantSeed(this, slot, t.x, t.y); return; }
     if (def.kind === 'food') { g.eat(slot); return; }
+    if (def.kind === 'recipe') { learnRecipe(g, slot); return; }
+    if (def.kind === 'machine') { placeItem(this, slot, t.x, t.y); return; }
+    if (def.kind === 'fertiliser') { fertilise(this, slot, t.x, t.y); return; }
     if (def.tool === 'rod') { if (this.mouseTarget) this.player.face(t.x, t.y); this.fishing.start(); return; }
     if (def.kind === 'place') { placeItem(this, slot, t.x, t.y); return; }
     if (item.id === 'hay') { spreadStraw(this, slot, t.x, t.y); return; }
@@ -161,60 +165,7 @@ export class World {
   }
 
   interact() {
-    const g = this.game;
-    const { x, y } = this.target;
-    const map = this.map;
-    const npc = g.villagers.at(map.id, x, y);
-    if (npc) { g.talkTo(npc); return; }
-    const beast = this.flock?.at(x, y);
-    if (beast) { this.flock.pet(beast); return; }
-    const spot = map.objectAt(x, y);
-    if (spot && spot.type === 'forage') { this.pickForage(spot); return; }
-    if (spot && spot.type === 'produce') {
-      if (g.pickUp(spot.kind, 1, spot.q || 0) === 0) { map.removeObject(spot); g.xp('farming', XP.animal); }
-      return;
-    }
-    if (spot && spot.type === 'hopper') { this.fillHopper(); return; }
-    if (isRipe(cropAt(map, x, y))) { this.harvestAt(x, y); return; }
-    const cur = g.inventory.current;
-    if (cur && itemDef(cur.id).kind === 'seed' && canPlant(map, x, y, cur.id.slice(5))) { plantSeed(this, g.inventory.selected, x, y); return; }
-    const o0 = map.objectAt(x, y);
-    if (o0 && o0.type === 'sluice') {
-      o0.open = !o0.open;
-      computeFlow(map);
-      g.sfx(o0.open ? 'refill' : 'chop');
-      return;
-    }
-    if (o0 && o0.type === 'crate') { g.openShipping(); return; }
-    if (o0 && o0.action === 'sleep') { g.askSleep(); return; }
-    if (o0 && o0.shop) {
-      // With the keeper behind the counter you can shop or chat; otherwise it's just the shop.
-      const keeper = g.villagers.at(map.id, x, y - 1);
-      if (keeper) g.counter(o0.shop, keeper); else g.openShop(o0.shop);
-      return;
-    }
-    if (o0 && o0.type === 'jizo') { g.bow(); return; }
-    if (o0 && o0.type === 'trap') {
-      if (!o0.catch) { g.say('trap_empty'); return; }
-      if (g.pickUp(o0.catch, 1) === 0) { o0.catch = null; g.xp('fishing', XP.trap); }
-      return;
-    }
-    if (o0 && o0.type === 'notice') { openNotice(g); return; }
-    if (o0 && o0.type === 'mailbox') { openMailbox(g); return; }
-    if (o0 && o0.type === 'altar') { openAltar(g, o0.kind); return; }
-    const b = map.buildingAt(x, y);
-    if (b) {
-      if (b.door?.say && b.door.tx === x && b.door.ty === y) g.say(b.door.say);
-      else g.say(b.id === 'kura' ? 'kura' : b.id === 'well' ? 'well' : null);
-      return;
-    }
-    const o = map.objectAt(x, y);
-    if (o) {
-      const def = OBJECT_TYPES[o.type];
-      // Some signs read differently once a flag is set: textIf: [flag, key].
-      const key = (o.textIf && g.flags[o.textIf[0]] ? o.textIf[1] : o.text) || def.say;
-      if (key) g.say(key);
-    }
+    interact(this);
   }
 
   harvestAt(x, y) {
@@ -222,7 +173,8 @@ export class World {
     const crop = cropAt(this.map, x, y);
     if (!crop) return false;
     if (g.inventory.room(crop.id) <= 0) { g.aside('tk_full'); return false; }
-    const got = harvest(this.map, x, y, this.rng, g.qualityBonus('farming'));
+    const compost = this.map.fert[this.map.i(x, y)] ? 0.2 : 0;
+    const got = harvest(this.map, x, y, this.rng, g.qualityBonus('farming') + compost);
     if (!got) return false;
     // Ducks weeding and paddling in the paddies: rice sometimes comes in heavier.
     if (got.item === 'rice' && hasDucks(g.animals) && this.rng.next() < 0.5) got.n++;
@@ -262,46 +214,6 @@ export class World {
     const g = this.game, day = dayIndex(g.cal);
     if (g.foraged.day !== day) g.foraged = { day, keys: [] };
     spawnSpots(this.map, { seed: g.seed, day, seasonId: g.seasonId, taken: g.foraged.keys, digMult: hasPerk(g.skills, 'tracker') ? 2 : 1 });
-  }
-
-  /** Pick up forage by hand: quality from Foraging, a second one sometimes (Gatherer). */
-  pickForage(o) {
-    const g = this.game;
-    if (g.inventory.room(o.kind) <= 0) { g.aside('tk_full'); return; }
-    let q = rollQuality(this.rng, g.qualityBonus('foraging'));
-    if (hasPerk(g.skills, 'botanist')) q = Math.max(1, q);
-    const n = hasPerk(g.skills, 'gatherer') && this.rng.next() < 0.2 ? 2 : 1;
-    this.map.removeObject(o);
-    g.foraged.keys.push(`${this.map.id}:${o.x},${o.y}`);
-    g.pickUp(o.kind, n, q);
-    g.xp('foraging', XP.forage);
-    this.fx.burst('fx_leaf', o.x * TILE + 8, o.y * TILE + 10, 5);
-    g.sfx('harvest');
-  }
-
-  /** The hoe turns over a dig spot: an artefact, or a winter root. */
-  dig(o) {
-    const g = this.game;
-    this.map.removeObject(o);
-    g.foraged.keys.push(`${this.map.id}:${o.x},${o.y}`);
-    const id = digFind(this.rng, g.seasonId);
-    this.drops.spawn(this.rng, id, 1, 0, o.x * TILE + 8, o.y * TILE + 10);
-    this.fx.burst('fx_dirt', o.x * TILE + 8, o.y * TILE + 12, 8, { speed: 30, up: 60 });
-    g.xp('foraging', XP.dig);
-    g.sfx('till');
-  }
-
-  /** Hay goes into the hopper (all of it); otherwise say how much is left. */
-  fillHopper() {
-    const g = this.game, n = g.inventory.count('hay');
-    if (g.inventory.current?.id === 'hay' && n > 0) {
-      g.inventory.remove('hay', n);
-      g.animals.hay += n;
-      g.sfx('plant');
-      g.toast('hopper_filled', { n: g.animals.hay }, 'icon_hay');
-      return;
-    }
-    g.say('hopper', { n: g.animals.hay, animals: g.animals.list.length });
   }
 
   /** The terraces' fence comes down (the Altar of Jin restores them). */

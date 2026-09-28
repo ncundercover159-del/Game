@@ -55,6 +55,8 @@ export const OBJECT_TYPES = {
   // Forage lying on the ground (picked by hand) and dig spots (the hoe turns them over).
   forage: { name: 'Forage', solid: false, hp: 1, shadow: null },
   dig: { name: 'Dig Spot', solid: false, hp: 1, shadow: null },
+  // Artisan machines (placed from the pack; picked up again with the axe or pickaxe when empty).
+  machine: { name: 'Machine', solid: true, hp: 1, shadow: 'shadow_s' },
   // A fish trap set in the water; the axe takes it back up.
   trap: { name: 'Fish Trap', solid: true, hp: 1, shadow: null, tools: { axe: 1 }, drops: { any: [['uke', 1, 1]] }, fx: 'fx_chip', sfx: 'chop' },
 

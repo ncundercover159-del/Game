@@ -15,6 +15,8 @@ const SOIL_OF = { p: 1, c: 2 };
 // X: grass that can't be walked on (hedges, cliffs and the like drawn by objects or edges).
 const BLOCKING = new Set(['T', '~', 'f', '#', 'x', 'X', 'C', 'W']);
 
+const SAVED_FIELDS = ['kind', 'open', 'catch', 'q', 'input', 'ready'];
+
 export class GameMap {
   constructor(def) {
     this.def = def;
@@ -28,9 +30,11 @@ export class GameMap {
     this.soil = new Uint8Array(n);
     this.wet = new Uint8Array(n);
     this.cover = new Uint8Array(n);
+    this.fert = new Uint8Array(n);
     this.flow = new Uint8Array(n);
     this.blocked = new Uint8Array(n);
     this.objAt = new Int32Array(n).fill(-1);
+    this.blockOwner = new Map();   // tile -> the wide prop covering it (for interaction)
     this.objects = [];
     this.crops = new Map();
     this.dirty = new Set();
@@ -54,9 +58,12 @@ export class GameMap {
     }
     for (const p of def.props || []) {
       const { tx, ty, block, light, ...rest } = p;
-      this.addObject({ ...rest, x: tx, y: ty });
+      const o = this.addObject({ ...rest, x: tx, y: ty });
       // `block: [w, h]` makes a wide piece solid: w tiles right and h tiles up from its anchor tile.
-      if (block) for (let y = ty - block[1] + 1; y <= ty; y++) for (let x = tx; x < tx + block[0]; x++) this.blocked[this.i(x, y)] = 1;
+      if (block) for (let y = ty - block[1] + 1; y <= ty; y++) for (let x = tx; x < tx + block[0]; x++) {
+        this.blocked[this.i(x, y)] = 1;
+        this.blockOwner.set(this.i(x, y), o);
+      }
       if (light) this.lights.push({ x: tx * TILE + 8 + light[0], y: ty * TILE + light[1], kind: 'lantern' });
     }
   }
@@ -85,10 +92,11 @@ export class GameMap {
     return g === G.WATER || g === G.BRIDGE || g === G.FALLS;
   }
 
+  /** The object on a tile, or the wide prop that covers it. */
   objectAt(x, y) {
     if (!this.inside(x, y)) return null;
     const k = this.objAt[this.i(x, y)];
-    return k < 0 ? null : this.objects[k];
+    return k < 0 ? this.blockOwner.get(this.i(x, y)) || null : this.objects[k];
   }
 
   addObject(o) {
@@ -141,12 +149,11 @@ export class GameMap {
       soil: Array.from(this.soil).join(''),
       wet: Array.from(this.wet).join(''),
       cover: Array.from(this.cover).join(''),
-      objects: dyn.map(({ type, x, y, hp, v, kind, open, catch: got, q }) => {
-        const o = { type, x, y, hp, v };
-        if (kind) o.kind = kind;
-        if (q) o.q = q;
-        if (open !== undefined) o.open = open;
-        if (got) o.catch = got;
+      fert: Array.from(this.fert).join(''),
+      objects: dyn.map((d) => {
+        const o = { type: d.type, x: d.x, y: d.y, hp: d.hp, v: d.v };
+        // State some objects carry: sluices open, trap catches, egg quality, machine loads.
+        for (const f of SAVED_FIELDS) if (d[f] !== undefined && d[f] !== null && d[f] !== 0) o[f] = d[f];
         return o;
       }),
       crops: [...this.crops.entries()].map(([k, c]) => ({ k, ...c })),
@@ -159,6 +166,7 @@ export class GameMap {
       this.soil[k] = Number(data.soil[k]);
       this.wet[k] = Number(data.wet[k]);
       this.cover[k] = data.cover ? Number(data.cover[k]) : 0;
+      this.fert[k] = data.fert ? Number(data.fert[k]) : 0;
     }
     for (const o of this.objects.filter((o) => !OBJECT_TYPES[o.type].static)) this.removeObject(o);
     for (const o of data.objects) this.addObject({ ...o });

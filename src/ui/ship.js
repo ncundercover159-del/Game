@@ -24,7 +24,7 @@ export class ShipMenu {
   layout() {
     const { w, h } = this.game.screen;
     this.w = Math.min(300, w - 16);
-    this.h = 128;
+    this.h = 108 + Math.ceil(this.game.inventory.size / 12) * 20;
     this.x = Math.floor(w / 2 - this.w / 2);
     this.y = Math.floor(h / 2 - this.h / 2) - 10;
   }

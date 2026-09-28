@@ -4,11 +4,13 @@ import { fonts } from '../core/text.js';
 import { panel, thin, dark, rect, item, hit } from './widgets.js';
 import { t } from '../data/strings.js';
 import { itemDef } from '../data/items.js';
-import { SEASONS, weekday, formatTime, zodiacHour, DAY_START, DAY_END } from '../systems/calendar.js';
+import { SEASONS, weekday, formatTime, zodiacHour, DAY_START, DAY_END, dayIndex } from '../systems/calendar.js';
+import { stamp } from '../systems/skills.js';
 import { canCapacity } from '../systems/tools.js';
 
 const SLOT = 18;
 const TOAST_LIFE = 2.6;
+const BUFF_ICONS = { speed: 'icon_waraji', farming: 'icon_daikon', foraging: 'icon_warabi', fishing: 'icon_rod' };
 const ASIDE_LIFE = 7;
 
 export class Hud {
@@ -116,6 +118,18 @@ export class Hud {
     atlas.draw(ctx, 'icon_coin', x + 10, my + 4);
     const str = t('hud_money', { n: g.money.toLocaleString('en-US') });
     fonts.body.draw(ctx, str, x + 92 - fonts.body.measure(str), my + 3, 'red1');
+    this.drawBuffs(ctx, atlas, x + 96, my + 20);
+  }
+
+  /** Food buffs under the money plate, right to left, each with its hours left. */
+  drawBuffs(ctx, atlas, right, y) {
+    const g = this.game, now = stamp(dayIndex(g.cal), g.cal.minutes);
+    g.buffs.forEach((b, i) => {
+      const x = right - (i + 1) * 22;
+      dark(ctx, atlas, x, y, 20, 22);
+      atlas.draw(ctx, BUFF_ICONS[b.kind], x + 2, y + 1);
+      fonts.small.draw(ctx, `${Math.max(1, Math.ceil((b.until - now) / 60))}h`, x + 4, y + 15, 'ink6');
+    });
   }
 
   drawGenki(ctx, atlas, w, h) {

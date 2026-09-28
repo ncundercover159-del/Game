@@ -1,15 +1,17 @@
-// Pause menu (Esc/Tab): Items (rearrange the backpack, item details), Skills, Bonds, Options, Save.
+// Pause menu (Esc/Tab): Items (rearrange the backpack, item details), Craft, Skills, Bonds,
+// Options, Save.
 import { fonts } from '../core/text.js';
 import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { List } from './list.js';
 import { BondsPage } from './bonds.js';
 import { drawSkillsPage } from './skills.js';
+import { CraftPage } from './cook.js';
 import { t } from '../data/strings.js';
 import { itemDef, QUALITY } from '../data/items.js';
 import { sellValue } from '../systems/skills.js';
 
-const TABS = ['menu_items', 'menu_skills', 'menu_bonds', 'menu_options', 'menu_save'];
-const TAB_W = 70;
+const TABS = ['menu_items', 'menu_craft', 'menu_skills', 'menu_bonds', 'menu_options', 'menu_save'];
+const TAB_W = 62;
 const SLOT = 20;
 
 export class Menu {
@@ -21,13 +23,16 @@ export class Menu {
     this.optSel = 0;
     this.saveList = this.makeSaveList();
     this.bonds = new BondsPage(game);
+    this.craft = new CraftPage(game);
     this.layout();
   }
 
   layout() {
     const { w, h } = this.game.screen;
     this.w = Math.min(TABS.length * TAB_W + 12, w - 16);
-    this.h = 150;
+    // A bigger pack adds rows of slots above the item details.
+    this.rows = Math.ceil(this.game.inventory.size / 12);
+    this.h = Math.min(150 + (this.rows - 1) * 20, h - 36);
     this.x = Math.floor(w / 2 - this.w / 2);
     this.y = Math.floor(h / 2 - this.h / 2) - 4;
   }
@@ -65,9 +70,10 @@ export class Menu {
       TABS.forEach((_, i) => { if (hit(m.x, m.y, this.x + 6 + i * TAB_W, this.y - 20, TAB_W - 4, 20)) { this.tab = i; g.sfx('ui'); } });
     }
     if (this.tab === 0) this.updateItems(input);
-    else if (this.tab === 2) this.bonds.update(input, this.x, this.y);
-    else if (this.tab === 3) this.updateOptions(input);
-    else if (this.tab === 4) {
+    else if (this.tab === 1) this.craft.update(input, this.x, this.y, this.w);
+    else if (this.tab === 3) this.bonds.update(input, this.x, this.y);
+    else if (this.tab === 4) this.updateOptions(input);
+    else if (this.tab === 5) {
       const it = this.saveList.update(input);
       if (it) { it.act(); if (!g.menuOpen) return false; }
     }
@@ -140,9 +146,10 @@ export class Menu {
     tab(TABS[this.tab], this.tab);
     rect(ctx, 'wood6', this.x + 6 + this.tab * TAB_W + 4, this.y + 1, TAB_W - 12, 3);
     if (this.tab === 0) this.drawItems(ctx, atlas);
-    else if (this.tab === 1) drawSkillsPage(ctx, g, this.x, this.y, this.w);
-    else if (this.tab === 2) this.bonds.draw(ctx, this.x, this.y, this.w);
-    else if (this.tab === 3) this.drawOptions(ctx);
+    else if (this.tab === 1) this.craft.draw(ctx, this.x, this.y, this.w, this.h);
+    else if (this.tab === 2) drawSkillsPage(ctx, g, this.x, this.y, this.w);
+    else if (this.tab === 3) this.bonds.draw(ctx, this.x, this.y, this.w);
+    else if (this.tab === 4) this.drawOptions(ctx);
     else {
       fonts.body.draw(ctx, `${g.state.name} · ${g.state.farm} Farm`, this.x + 12, this.y + 12, 'wood2');
       this.saveList.draw(ctx, this.x + 10, this.y + 32, this.w - 20);
@@ -163,7 +170,7 @@ export class Menu {
     const s = inv.slots[this.held >= 0 ? this.held : this.cursor];
     if (!s) return;
     const d = itemDef(s.id);
-    const x = this.x + 12, y = this.y + 46;
+    const x = this.x + 12, y = this.y + 26 + this.rows * 20;
     thin(ctx, atlas, x - 4, y - 4, this.w - 16, 86);
     atlas.draw(ctx, iconName(s.id, this.game.tiers), x, y);
     fonts.big.draw(ctx, d.name, x + 22, y, 'wood1');

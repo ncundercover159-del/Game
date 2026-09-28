@@ -33,6 +33,9 @@ import { MAPS } from './maps/index.js';
 
 const SETTINGS_KEY = 'ronin.settings';
 const INDOOR_DIM = 0.15;
+// Saved state the game holds as plain fields (copied in on load, out on save).
+const STATE_FIELDS = ['seed', 'money', 'genki', 'genkiMax', 'can', 'cal', 'flags', 'weather', 'tomorrow', 'tiers', 'upgrade',
+  'shipped', 'stats', 'bonds', 'virtues', 'requests', 'mail', 'offerings', 'skills', 'buffs', 'foraged', 'animals', 'recipes'];
 const DEFAULT_SETTINGS = { sfx: 0.8, speed: 'normal', shake: true, flashes: true };
 
 export class Game {
@@ -60,28 +63,7 @@ export class Game {
   setup(seed, saved = null) {
     const s = saved || newState(seed);
     this.state = s;
-    this.seed = s.seed;
-    this.money = s.money;
-    this.genki = s.genki;
-    this.genkiMax = s.genkiMax;
-    this.can = s.can;
-    this.cal = { ...s.cal };
-    this.flags = { ...s.flags };
-    this.weather = s.weather;
-    this.tomorrow = s.tomorrow;
-    this.tiers = { ...s.tiers };
-    this.upgrade = s.upgrade ? { ...s.upgrade } : null;
-    this.shipped = s.shipped.map((x) => ({ ...x }));
-    this.stats = { ...s.stats };
-    this.bonds = structuredClone(s.bonds);
-    this.virtues = { ...s.virtues };
-    this.requests = structuredClone(s.requests);
-    this.mail = structuredClone(s.mail);
-    this.offerings = structuredClone(s.offerings);
-    this.skills = structuredClone(s.skills);
-    this.buffs = s.buffs.map((b) => ({ ...b }));
-    this.foraged = structuredClone(s.foraged);
-    this.animals = structuredClone(s.animals);
+    for (const k of STATE_FIELDS) this[k] = structuredClone(s[k]);
     this.pendingPerks = [];
     this.inventory = Inventory.from(s.inventory);
     this.rng = new Rng(s.rng);
@@ -229,18 +211,11 @@ export class Game {
   // ------------------------------------------------------------------ saving
 
   snapshot() {
+    const out = Object.fromEntries(STATE_FIELDS.map((k) => [k, structuredClone(this[k])]));
     return {
-      seed: this.seed, name: this.state.name, farm: this.state.farm,
-      money: this.money, genki: this.genki, genkiMax: this.genkiMax, can: this.can,
-      cal: { ...this.cal }, weather: this.weather, tomorrow: this.tomorrow, tiers: { ...this.tiers },
-      upgrade: this.upgrade, shipped: this.shipped.map((x) => ({ ...x })), stats: { ...this.stats },
-      bonds: structuredClone(this.bonds), virtues: { ...this.virtues }, requests: structuredClone(this.requests),
-      mail: structuredClone(this.mail), offerings: structuredClone(this.offerings),
-      skills: structuredClone(this.skills), buffs: this.buffs.map((b) => ({ ...b })), foraged: structuredClone(this.foraged),
-      animals: structuredClone(this.animals),
-      inventory: this.inventory.serialize(), flags: { ...this.flags },
-      rng: this.rng.state(), player: { ...this.player.serialize(), map: this.world.map.id },
-      maps: this.mapsSnapshot(),
+      ...out, name: this.state.name, farm: this.state.farm,
+      inventory: this.inventory.serialize(), rng: this.rng.state(),
+      player: { ...this.player.serialize(), map: this.world.map.id }, maps: this.mapsSnapshot(),
     };
   }
 
@@ -374,8 +349,10 @@ export class Game {
   hotbarInput(input) {
     const inv = this.inventory;
     for (let i = 1; i <= 12; i++) if (input.pressed(`slot${i}`) && i <= inv.size) inv.select(i - 1);
-    if (input.pressed('next') || input.mouse.wheel > 0) inv.select(inv.selected + 1);
-    if (input.pressed('prev') || input.mouse.wheel < 0) inv.select(inv.selected - 1);
+    // The hotbar is the pack's first row.
+    const row = Math.min(12, inv.size), step = (d) => inv.select((((inv.selected % row) + d) % row + row) % row);
+    if (input.pressed('next') || input.mouse.wheel > 0) step(1);
+    if (input.pressed('prev') || input.mouse.wheel < 0) step(-1);
     if (input.pressed('click')) {
       const i = this.hud.slotAt(input.mouse.x, input.mouse.y);
       if (i >= 0) { inv.select(i); input.consume('use'); input.down.delete('use'); this.sfx('ui'); }
