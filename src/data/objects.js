@@ -69,7 +69,7 @@ export const OBJECT_TYPES = {
   parasol: { name: 'Parasol', solid: false, static: true, shadow: null },
   bales: { name: 'Rice Bales', solid: true, static: true, shadow: 'shadow_m', say: 'bales' },
   torii: { name: 'Torii', solid: false, static: true, shadow: null },
-  ema: { name: 'Ema Rack', solid: true, static: true, shadow: null, say: 'ema' },
+  ema: { name: 'Ema Rack', solid: true, static: true, shadow: null },
   sacred: { name: 'Sacred Cedar', solid: true, static: true, shadow: 'shadow_l', say: 'sacred' },
   gate: { name: 'Rear Gate', solid: true, static: true, shadow: null, say: 'gate_sealed' },
   mailbox: { name: 'Mailbox', solid: true, static: true, shadow: 'shadow_s' },

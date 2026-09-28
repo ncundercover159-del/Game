@@ -16,6 +16,7 @@ import { dayIndex } from '../systems/calendar.js';
 import { openNotice, openMailbox, openAltar, openCooking, openArchive } from '../flow.js';
 import { descend, climbOut, lightLantern, openChest, takeBundle } from '../caves.js';
 import { meetKodama, visitHokora } from './kodama.js';
+import { readEma } from './ema.js';
 import { startKata, startKyudo } from '../dojo.js';
 
 // Object types that answer Interact directly.
@@ -46,6 +47,7 @@ const BY_TYPE = {
   bundle: (w, o) => takeBundle(w.game, w, o),
   brazier: (w) => w.game.say('brazier'),
   kodama: meetKodama,
+  ema: readEma,
   hokora: visitHokora,
   makiwara: (w) => startKata(w.game),
   mato: (w) => startKyudo(w.game),
