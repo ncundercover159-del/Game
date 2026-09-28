@@ -47,6 +47,7 @@ export const STRINGS = {
   tk_trap_where: 'A trap goes in the water, right by the bank.',
   tk_trap_farm: 'Set traps on your own land. Other folks\' rivers have other folks\' traps.',
   trap_empty: 'Nothing in the trap yet. Check it in the morning.',
+  tk_hungry: 'The coop was quiet this morning. An empty hopper makes for empty nests.',
   tk_rain: 'Rain today. The fields water themselves; your can may rest.',
 
   // Village and shrine
@@ -156,6 +157,10 @@ export const STRINGS = {
   fish_got: '{fish}!',
   fish_gone: 'It got away',
   fish_hold: 'Hold to reel',
+  hopper_filled: 'Hopper: {n} hay',
+  hopper: 'The hay hopper holds {n} hay. Each of your {animals} animals eats one a night.',
+  coop_full: 'The coop is full.',
+  coop_new: '{name} the {kind} is in your coop',
   toast_heart: '{npc}: {n} ♥',
   toast_virtue: '{virtue} {jp} +{n}',
   toast_refill: 'Jōro filled',

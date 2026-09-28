@@ -8,7 +8,7 @@ export const SHOPS = {
     stock(seasonId, weekdayIdx) {
       const seeds = Object.keys(CROPS).filter((id) => CROPS[id].seasons.includes(seasonId)).map((id) => `seed_${id}`);
       const mult = weekdayIdx === 5 ? 0.9 : 1;
-      return [...seeds.map((id) => ({ id, mult })), { id: 'sluice', mult: 1 }, { id: 'uke', mult: 1 }];
+      return [...seeds.map((id) => ({ id, mult })), { id: 'sluice', mult: 1 }, { id: 'uke', mult: 1 }, { id: 'chick', mult: 1 }, { id: 'duckling', mult: 1 }];
     },
   },
   kajiya: { name: 'Kajiya', jp: '鍛冶屋', open: 9 * 60, close: 16 * 60, closedDay: 6, hello: 'genzo_hello' },

@@ -7,6 +7,7 @@ import { toolIcons, itemIcons } from '../../src/art/icons.js';
 import { foodIcons } from '../../src/art/food.js';
 import { forageIcons } from '../../src/art/forage.js';
 import { fishIcons } from '../../src/art/fish.js';
+import { eggIcons, animalFrames } from '../../src/art/animals.js';
 import { cropGrids, CROP_ART } from '../../src/art/crops.js';
 import { genCropStages } from '../../src/art/cropgen.js';
 import { composeFrame, LOOKS, ANIMS, DIRS } from '../../src/art/characters.js';
@@ -18,7 +19,7 @@ test('palette stays within 64 colours, all distinct', () => {
 });
 
 test('every item has a 16x16 icon', () => {
-  const icons = { ...toolIcons(), ...itemIcons(), ...foodIcons(), ...forageIcons(), ...fishIcons() };
+  const icons = { ...toolIcons(), ...itemIcons(), ...foodIcons(), ...forageIcons(), ...fishIcons(), ...eggIcons(), chick: animalFrames().chicken_right_0, duckling: animalFrames().duck_right_0 };
   for (const id of Object.keys(ITEMS)) {
     const g = icons[id];
     assert.ok(g, `icon for ${id}`);

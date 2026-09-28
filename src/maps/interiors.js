@@ -162,6 +162,21 @@ export const INTERIORS = [
       { type: 'andon', tx: 8, ty: 3, light: [0, 4] },
     ],
   }),
+  // Uncle's coop: a hay hopper by the wall and straw nests. Eggs laid overnight lie on the floor.
+  room('coop', 'Coop', '鶏小屋', [
+    'ddddddddd',
+    'ddddddddd',
+    'ddddddddd',
+    'ddddddddd',
+  ], 5, {
+    persist: true,
+    props: [
+      { type: 'hopper', tx: 1, ty: 3 },
+      { type: 'nest', tx: 7, ty: 3 },
+      { type: 'nest', tx: 9, ty: 3 },
+      { type: 'bales', tx: 9, ty: 6 },
+    ],
+  }),
   // The shrine hall: seven altars, one for each virtue, along the back wall.
   room('honden', 'Shrine Hall', '本殿', [
     'wwwwwwwwwwwwwww',

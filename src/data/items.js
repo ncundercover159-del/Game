@@ -28,6 +28,10 @@ export const ITEMS = {
   steel_bar: { name: 'Steel Bar', jp: '鋼', kind: 'material', sell: 120, desc: 'Folded steel. Genzō smelts it from ore dug deep in Mount Kurayama.' },
   tamahagane: { name: 'Tamahagane', jp: '玉鋼', kind: 'material', sell: 400, desc: 'Jewel steel from the Oni Foundry, fit for a master blade.' },
   sluice: { name: 'Sluice Gate', jp: '水門', kind: 'place', place: 'sluice', sell: 15, price: 120, desc: 'Place on an irrigation channel. Open or shut it to steer the water.' },
+  egg: { name: 'Egg', jp: '卵', kind: 'animal', sell: 50, desc: 'A brown hen\'s egg, still warm.' },
+  duck_egg: { name: 'Duck Egg', jp: '鴨の卵', kind: 'animal', sell: 95, desc: 'A pale blue-green egg, rich and large.' },
+  chick: { name: 'Chick', jp: 'ひよこ', kind: 'livestock', animal: 'chicken', price: 400, desc: 'Delivered to your coop. Feed it hay and it will lay eggs.' },
+  duckling: { name: 'Duckling', jp: '子鴨', kind: 'livestock', animal: 'duck', price: 700, desc: 'Delivered to your coop. Ducks in the valley help the rice along.' },
   parcel: { name: 'Parcel', jp: '小包', kind: 'quest', desc: 'Wrapped in cloth and tied with cord. Somebody is waiting for it.' },
 
   // Food and medicine: eaten from the hotbar for Genki.

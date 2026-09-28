@@ -141,9 +141,10 @@ export class GameMap {
       soil: Array.from(this.soil).join(''),
       wet: Array.from(this.wet).join(''),
       cover: Array.from(this.cover).join(''),
-      objects: dyn.map(({ type, x, y, hp, v, kind, open, catch: got }) => {
+      objects: dyn.map(({ type, x, y, hp, v, kind, open, catch: got, q }) => {
         const o = { type, x, y, hp, v };
         if (kind) o.kind = kind;
+        if (q) o.q = q;
         if (open !== undefined) o.open = open;
         if (got) o.catch = got;
         return o;

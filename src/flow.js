@@ -17,6 +17,7 @@ import { endDay } from './systems/day.js';
 import { decay } from './systems/bonds.js';
 import { refresh } from './systems/requests.js';
 import { deliverMail } from './systems/mail.js';
+import { coopNight } from './systems/animals.js';
 import { WEATHER } from './systems/weather.js';
 import { dayIndex, dateLabel, weekday, formatTime, SEASONS, WEEKDAYS } from './systems/calendar.js';
 
@@ -38,6 +39,7 @@ export function sleep(g, passedOut) {
       const day = dayIndex(g.cal);
       decay(g.bonds, day);
       refresh(g.requests, g.seed, day, g.seasonId);
+      layEggs(g, day - 1);
       r.mail = deliverMail(g);
       const bed = MAPS.house_farm.wake;
       g.enter('house_farm', bed.tx, bed.ty, bed.dir);
@@ -51,6 +53,17 @@ export function sleep(g, passedOut) {
     minCard: 0.8,
     waitConfirm: true,
   }));
+}
+
+/** Overnight in the coop: fed animals lay; the eggs are set out on the coop floor. */
+function layEggs(g, yesterday) {
+  if (!g.animals.list.length) return;
+  const coop = g.worldFor('coop');
+  for (const e of coopNight(g.animals, yesterday, g.rng)) {
+    const spot = coop.flock.freeTile();
+    if (spot) coop.map.addObject({ type: 'produce', x: spot[0], y: spot[1], kind: e.id, q: e.q, v: 0 });
+  }
+  if (g.animals.list.some((a) => !a.fed)) g.aside('tk_hungry', { once: `hungry${g.cal.day}` });
 }
 
 /** Tsukikage's morning lines: what happened, what the day holds. */

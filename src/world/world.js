@@ -16,8 +16,10 @@ import { spawnSpots, digFind } from '../systems/forage.js';
 import { dayIndex } from '../systems/calendar.js';
 import { openNotice, openMailbox, openAltar } from '../flow.js';
 import { Fishing } from './fishing.js';
+import { Flock } from './flock.js';
 import { XP } from '../data/skills.js';
 import { buffAmount, hasPerk } from '../systems/skills.js';
+import { hasDucks } from '../systems/animals.js';
 
 const REACH = 1;
 const CHARGEABLE = new Set(['hoe', 'can']);
@@ -30,12 +32,15 @@ export class World {
     decorate(this.map);
     if (saved) this.map.restore(saved);
     else if (def.wild) populate(this.map, game.seed);
+    // Anything growing where a building now stands (older saves predate the coop) is cleared.
+    for (const o of this.map.objects.filter((x) => !OBJECT_TYPES[x.type].static && this.map.buildingAt(x.x, x.y))) this.map.removeObject(o);
     if (game.flags.restored_terraces) this.openTerraces();
     this.spawnSpots();
     computeFlow(this.map);
     this.ground = new GroundRenderer(this.map, game.cells, game.atlas, game.cal.season);
     this.fx = new Fx();
     this.fishing = new Fishing(this);
+    this.flock = def.id === 'coop' ? new Flock(this) : null;
     this.drops = new Drops();
     this.time = 0;
     this.target = { x: -1, y: -1 };
@@ -56,6 +61,7 @@ export class World {
     p.tick(dt);
     this.aim();
     this.fishing.update(dt);
+    this.flock?.update(dt);
     if (this.fishing.active) {
       // Rooted to the bank while the line is out.
     } else if (p.charge) {
@@ -160,8 +166,15 @@ export class World {
     const map = this.map;
     const npc = g.villagers.at(map.id, x, y);
     if (npc) { g.talkTo(npc); return; }
+    const beast = this.flock?.at(x, y);
+    if (beast) { this.flock.pet(beast); return; }
     const spot = map.objectAt(x, y);
     if (spot && spot.type === 'forage') { this.pickForage(spot); return; }
+    if (spot && spot.type === 'produce') {
+      if (g.pickUp(spot.kind, 1, spot.q || 0) === 0) { map.removeObject(spot); g.xp('farming', XP.animal); }
+      return;
+    }
+    if (spot && spot.type === 'hopper') { this.fillHopper(); return; }
     if (isRipe(cropAt(map, x, y))) { this.harvestAt(x, y); return; }
     const cur = g.inventory.current;
     if (cur && itemDef(cur.id).kind === 'seed' && canPlant(map, x, y, cur.id.slice(5))) { plantSeed(this, g.inventory.selected, x, y); return; }
@@ -211,6 +224,8 @@ export class World {
     if (g.inventory.room(crop.id) <= 0) { g.aside('tk_full'); return false; }
     const got = harvest(this.map, x, y, this.rng, g.qualityBonus('farming'));
     if (!got) return false;
+    // Ducks weeding and paddling in the paddies: rice sometimes comes in heavier.
+    if (got.item === 'rice' && hasDucks(g.animals) && this.rng.next() < 0.5) got.n++;
     g.pickUp(got.item, got.n, got.q);
     g.xp('farming', XP.harvest(itemDef(got.item).sell));
     this.fx.burst('fx_sparkle', x * TILE + 8, y * TILE + 4, 3, { speed: 20, up: 40 });
@@ -274,6 +289,19 @@ export class World {
     this.fx.burst('fx_dirt', o.x * TILE + 8, o.y * TILE + 12, 8, { speed: 30, up: 60 });
     g.xp('foraging', XP.dig);
     g.sfx('till');
+  }
+
+  /** Hay goes into the hopper (all of it); otherwise say how much is left. */
+  fillHopper() {
+    const g = this.game, n = g.inventory.count('hay');
+    if (g.inventory.current?.id === 'hay' && n > 0) {
+      g.inventory.remove('hay', n);
+      g.animals.hay += n;
+      g.sfx('plant');
+      g.toast('hopper_filled', { n: g.animals.hay }, 'icon_hay');
+      return;
+    }
+    g.say('hopper', { n: g.animals.hay, animals: g.animals.list.length });
   }
 
   /** The terraces' fence comes down (the Altar of Jin restores them). */

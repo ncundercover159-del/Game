@@ -14,6 +14,7 @@ import { toolIcons, itemIcons, coinIcon, tierToolIcons } from './icons.js';
 import { foodIcons } from './food.js';
 import { forageIcons, digSpot } from './forage.js';
 import { fishIcons, bobber, rodSprite, trapInWater } from './fish.js';
+import { animalFrames, eggIcons, coopBuilding, hopper, nest } from './animals.js';
 import { townhouse, torii, honden, noticeBoard, jizo, bench, parasol, riceBales, mailbox, emaRack, shimenawa, rearGate } from './town.js';
 import { futon, irori, tansu, andon, counter, shelf, teaTable, zabuton, forge, anvil, drawers, nets, altar, kamidana } from './furniture.js';
 import { CROPS } from '../data/crops.js';
@@ -206,6 +207,14 @@ export function buildArt() {
   add('dig_spot', digSpot(), 8, 12);
   for (const [k, g] of Object.entries(fishIcons())) add(`icon_${k}`, g, 0, 0);
   add('bobber', bobber(), 2, 5);
+  const beasts = animalFrames();
+  for (const [k, g] of Object.entries(beasts)) add(k, g, 8, 15);
+  add('icon_chick', beasts.chicken_right_0, 0, 0);
+  add('icon_duckling', beasts.duck_right_0, 0, 0);
+  for (const [k, g] of Object.entries(eggIcons())) { add(`icon_${k}`, g, 0, 0); add(`produce_${k}`, g, 8, 14); }
+  add('coop', coopBuilding());
+  add('hopper', hopper());
+  add('nest', nest());
   add('uke', trapInWater(), 8, 14);
   for (const dir of ['down', 'up', 'right']) for (const pose of ['raise', 'strike']) {
     const s = rodSprite(dir, pose);

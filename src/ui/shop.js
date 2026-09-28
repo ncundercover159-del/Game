@@ -5,6 +5,7 @@ import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { t } from '../data/strings.js';
 import { itemDef } from '../data/items.js';
 import { sellValue } from '../systems/skills.js';
+import { adopt } from '../systems/animals.js';
 import { SHOPS } from '../data/shops.js';
 import { TIERS, UPGRADABLE, UPGRADE_DAYS } from '../data/tools.js';
 import { dayIndex, SEASONS } from '../systems/calendar.js';
@@ -106,6 +107,16 @@ export class ShopMenu extends RowShop {
   buy(s) {
     const g = this.game, cost = this.price(s) * this.qty;
     if (g.money < cost) { g.sfx('deny'); g.toast('shop_poor'); return; }
+    const def = itemDef(s.id);
+    if (def.kind === 'livestock') {
+      // Animals go straight to the coop, one at a time.
+      const a = adopt(g.animals, def.animal, g.seed + g.animals.nextId);
+      if (!a) { g.sfx('deny'); g.toast('coop_full'); return; }
+      g.money -= this.price(s);
+      g.sfx('pickup');
+      g.toast('coop_new', { name: a.name, kind: def.name }, iconName(s.id));
+      return;
+    }
     if (g.inventory.room(s.id) < this.qty) { g.sfx('deny'); g.aside('tk_full'); return; }
     g.money -= cost;
     g.inventory.add(s.id, this.qty);

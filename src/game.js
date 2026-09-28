@@ -81,6 +81,7 @@ export class Game {
     this.skills = structuredClone(s.skills);
     this.buffs = s.buffs.map((b) => ({ ...b }));
     this.foraged = structuredClone(s.foraged);
+    this.animals = structuredClone(s.animals);
     this.pendingPerks = [];
     this.inventory = Inventory.from(s.inventory);
     this.rng = new Rng(s.rng);
@@ -236,6 +237,7 @@ export class Game {
       bonds: structuredClone(this.bonds), virtues: { ...this.virtues }, requests: structuredClone(this.requests),
       mail: structuredClone(this.mail), offerings: structuredClone(this.offerings),
       skills: structuredClone(this.skills), buffs: this.buffs.map((b) => ({ ...b })), foraged: structuredClone(this.foraged),
+      animals: structuredClone(this.animals),
       inventory: this.inventory.serialize(), flags: { ...this.flags },
       rng: this.rng.state(), player: { ...this.player.serialize(), map: this.world.map.id },
       maps: this.mapsSnapshot(),

@@ -70,6 +70,11 @@ export const OBJECT_TYPES = {
   gate: { name: 'Rear Gate', solid: true, static: true, shadow: null, say: 'gate_sealed' },
   mailbox: { name: 'Mailbox', solid: true, static: true, shadow: 'shadow_s' },
 
+  // The coop: a hay hopper, nests, and whatever was laid overnight.
+  hopper: { name: 'Hay Hopper', solid: true, static: true, shadow: null },
+  nest: { name: 'Nest', solid: false, static: true, shadow: null, flat: true },
+  produce: { name: 'Egg', solid: false, hp: 1, shadow: null },
+
   // Furniture.
   futon: { name: 'Futon', solid: false, static: true, shadow: null, flat: true },
   irori: { name: 'Hearth', solid: true, static: true, shadow: null, say: 'irori' },
