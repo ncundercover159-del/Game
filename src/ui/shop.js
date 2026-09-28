@@ -32,7 +32,10 @@ export class RowShop {
     this.h = Math.min(210, h - 40);
     this.x = Math.floor(w / 2 - this.w / 2);
     this.y = Math.floor(h / 2 - this.h / 2) - 8;
-    this.visible = Math.floor((this.h - 58) / ROW);
+    // The keeper's greeting takes two lines if it needs them; the rows start below it.
+    this.greet = fonts.body.wrap(this.greeting, this.w - 20).slice(0, 2);
+    this.head = 40 + (this.greet.length - 1) * 11;
+    this.visible = Math.floor((this.h - 18 - this.head) / ROW);
   }
 
   /** Common list navigation; returns true when the selected row was activated. */
@@ -51,7 +54,7 @@ export class RowShop {
   }
 
   scroll() { return Math.max(0, Math.min(this.sel - this.visible + 1, this.sel)); }
-  rowY(i) { return this.y + 40 + i * ROW; }
+  rowY(i) { return this.y + this.head + i * ROW; }
 
   frame(ctx) {
     const g = this.game;
@@ -63,7 +66,7 @@ export class RowShop {
     fonts.big.draw(ctx, this.title, this.x + 10, this.y + 6, 'red1');
     const money = `${g.money.toLocaleString('en-US')} 文`;
     fonts.body.draw(ctx, money, this.x + this.w - 12 - fonts.body.measure(money), this.y + 8, 'red1');
-    fonts.body.draw(ctx, fonts.body.wrap(this.greeting, this.w - 20)[0], this.x + 10, this.y + 22, 'wood3');
+    this.greet.forEach((l, i) => fonts.body.draw(ctx, l, this.x + 10, this.y + 22 + i * 11, 'wood3'));
   }
 
   drawRows(ctx, rows) {

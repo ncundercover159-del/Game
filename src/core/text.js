@@ -5,7 +5,7 @@ import { hex } from '../art/palette.js';
 import { makeCanvas } from '../art/compiler.js';
 
 export const FONT_FILES = {
-  small: { file: 'fusion-pixel-8px-jp.woff2', size: 8, family: 'RoninPixel8' },
+  small: { file: 'fusion-pixel-8px-jp.woff2', size: 8, family: 'RoninPixel8', track: 1 },
   body: { file: 'fusion-pixel-10px-jp.woff2', size: 10, family: 'RoninPixel10', track: 1 },
   big: { file: 'fusion-pixel-12px-jp.woff2', size: 12, family: 'RoninPixel12', track: 1 },
 };
@@ -19,22 +19,27 @@ export async function loadFonts(base = './') {
 }
 
 const ATLAS = 512;
+// Glyphs are drawn this many times too large and read back at the middle of each font pixel.
+// Browsers smooth and embolden text differently (some thicken every stroke by a fraction of a
+// pixel, which a plain threshold turns into a whole one); a font pixel eight times its size keeps
+// its middle whatever the smoothing does at its edges.
+const OVER = 8;
 
 export class PixelFont {
-  // `track`: extra pixels between Latin letters, so the one-pixel strokes do not crowd each other.
+  // `track`: extra pixels after each Latin letter, so the one-pixel strokes do not crowd each other
+  // (digits keep their own spacing, so counts and prices stay compact).
   constructor({ family, size, track = 0 }) {
     this.size = size;
     this.track = track;
-    this.font = `${size}px "${family}"`;
     this.atlas = makeCanvas(ATLAS, ATLAS);
     this.actx = this.atlas.getContext('2d', { willReadFrequently: true });
-    this.scratch = makeCanvas(size * 4, size * 3);
+    this.scratch = makeCanvas(size * 4 * OVER, size * 3 * OVER);
     this.sctx = this.scratch.getContext('2d', { willReadFrequently: true });
-    this.sctx.font = this.font;
+    this.sctx.font = `${size * OVER}px "${family}"`;
     this.sctx.textBaseline = 'alphabetic';
     const m = this.sctx.measureText('Hg');
-    this.ascent = Math.round(m.fontBoundingBoxAscent ?? size);
-    const descent = Math.round(m.fontBoundingBoxDescent ?? size / 3);
+    this.ascent = Math.round((m.fontBoundingBoxAscent ?? size * OVER) / OVER);
+    const descent = Math.round((m.fontBoundingBoxDescent ?? (size * OVER) / 3) / OVER);
     // Trim the font's built-in top padding so draw(x, y) puts the tallest ink at y.
     this.top = this.inkTop('H漢Íあ');
     this.cell = this.ascent + descent - this.top;
@@ -45,16 +50,29 @@ export class PixelFont {
     this.version = 0;
   }
 
-  inkTop(str) {
+  /** Draw `ch` large on the scratch canvas; returns a test for font pixel (x, y) being inked. */
+  raster(ch) {
     const s = this.sctx, W = this.scratch.width, H = this.scratch.height;
     s.clearRect(0, 0, W, H);
     s.fillStyle = '#fff';
+    s.fillText(ch, 0, this.ascent * OVER);
+    const d = s.getImageData(0, 0, W, H).data, half = OVER >> 1;
+    return (x, y) => {
+      const px = x * OVER + half, py = y * OVER + half;
+      return px < W && py < H && d[(py * W + px) * 4 + 3] >= 128;
+    };
+  }
+
+  inkTop(str) {
+    const cols = this.size * 4, rows = this.size * 3;
     let top = this.ascent;
     for (const ch of str) {
-      s.clearRect(0, 0, W, H);
-      s.fillText(ch, 0, this.ascent);
-      const d = s.getImageData(0, 0, W, H).data;
-      for (let i = 3; i < d.length; i += 4) if (d[i] >= 128) { top = Math.min(top, Math.floor(i / 4 / W)); break; }
+      const on = this.raster(ch);
+      for (let y = 0; y < Math.min(top, rows); y++) {
+        let hit = false;
+        for (let x = 0; x < cols && !hit; x++) hit = on(x, y);
+        if (hit) { top = y; break; }
+      }
     }
     return Math.max(0, top);
   }
@@ -62,24 +80,23 @@ export class PixelFont {
   glyph(ch) {
     let g = this.glyphs.get(ch);
     if (g) return g;
-    const s = this.sctx, cell = this.cell;
-    const adv = Math.round(s.measureText(ch).width);
+    const cell = this.cell;
+    const adv = Math.round(this.sctx.measureText(ch).width / OVER);
     const w = Math.min(cell * 2, Math.max(1, adv));
-    s.clearRect(0, 0, this.scratch.width, this.scratch.height);
-    s.fillStyle = '#fff';
-    s.fillText(ch, 0, this.ascent);
-    const img = s.getImageData(0, this.top, cell * 2, cell);
-    const d = img.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const on = d[i + 3] >= 128;
-      d[i] = d[i + 1] = d[i + 2] = 255;
-      d[i + 3] = on ? 255 : 0;
+    const on = this.raster(ch);
+    const img = this.actx.createImageData(cell * 2, cell), d = img.data;
+    for (let y = 0; y < cell; y++) {
+      for (let x = 0; x < cell * 2; x++) {
+        const i = (y * cell * 2 + x) * 4;
+        d[i] = d[i + 1] = d[i + 2] = 255;
+        d[i + 3] = on(x, y + this.top) ? 255 : 0;
+      }
     }
     const cols = Math.floor(ATLAS / (cell * 2));
     const sx = (this.next % cols) * cell * 2, sy = Math.floor(this.next / cols) * cell;
     this.next++;
     this.actx.putImageData(img, sx, sy);
-    g = { sx, sy, w: cell * 2, h: cell, adv: w + (ch.codePointAt(0) < 0x2000 ? this.track : 0) };
+    g = { sx, sy, w: cell * 2, h: cell, adv: w + (ch.codePointAt(0) < 0x2000 && !(ch >= '0' && ch <= '9') ? this.track : 0) };
     this.glyphs.set(ch, g);
     this.version++;
     return g;

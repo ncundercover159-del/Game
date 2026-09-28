@@ -64,7 +64,7 @@ export function drawSummary(ctx, game, s) {
   for (const n of s.notes) { fonts.body.draw(ctx, n, x + 12, yy, 'wood2'); yy += 12; }
   // Forecast and verse along the bottom.
   const verse = fonts.body.wrap(s.verse, pw - 24).slice(0, 2);
-  const by = y + ph - 26 - verse.length * 11;
+  const by = y + ph - 30 - verse.length * 11;
   thin(ctx, atlas, x + 8, by, pw - 16, 18);
   atlas.draw(ctx, s.wx, x + 13, by + 4);
   fonts.body.draw(ctx, s.tomorrow, x + 30, by + 4, 'wood1');

@@ -47,7 +47,7 @@ export function drawSkillsPage(ctx, game, x, y, w, h) {
     const ry = y + 10 + i * 20;
     fonts.body.draw(ctx, SKILLS[id].jp, x + 10, ry, 'red1');
     fonts.body.draw(ctx, SKILLS[id].name, x + 36, ry, 'wood1');
-    fonts.body.draw(ctx, t('skill_lv', { lv }), x + 118, ry, 'wood2');
+    fonts.body.draw(ctx, t('skill_lv', { lv }), x + 142, ry, 'wood2');
     rect(ctx, 'wood1', x + 36, ry + 11, 102, 4);
     rect(ctx, 'grass4', x + 37, ry + 12, Math.round(100 * (lv >= MAX_LEVEL ? 1 : progress(s.xp))), 2);
     if (s.perks.length) fonts.small.draw(ctx, s.perks.map(perkName).join(' · '), x + 142, ry + 10, 'gold0');
@@ -73,6 +73,6 @@ export function drawSkillsPage(ctx, game, x, y, w, h) {
   fonts.small.draw(ctx, t('virtues'), cx - fonts.small.measure(t('virtues')) / 2, cy + R + 16, 'wood2');
   // What the virtues are doing for you, along the bottom (two lines at most).
   const effects = VIRTUE_IDS.map((v) => [v, effectText(game.virtues, v)]).filter(([, e]) => e).map(([v, e]) => `${VIRTUES[v].jp} ${e}`);
-  const lines = effects.length ? fonts.small.wrap(effects.join('  ·  '), w - 16).slice(0, 2) : [t('virtue_none')];
+  const lines = fonts.small.wrap(effects.length ? effects.join('  ·  ') : t('virtue_none'), w - 16).slice(0, 2);
   lines.forEach((l, i) => fonts.small.draw(ctx, l, x + 8, y + h - 12 - (lines.length - 1 - i) * 10, effects.length ? 'gold0' : 'wood3'));
 }

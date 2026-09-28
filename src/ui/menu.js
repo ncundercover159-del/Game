@@ -125,7 +125,7 @@ export class Menu {
     if (this.tab === 0) this.drawItems(ctx, atlas);
     else if (this.tab === 1) this.craft.draw(ctx, this.x, this.y, this.w, this.h);
     else if (this.tab === 2) drawSkillsPage(ctx, g, this.x, this.y, this.w, this.h);
-    else if (this.tab === 3) this.bonds.draw(ctx, this.x, this.y, this.w);
+    else if (this.tab === 3) this.bonds.draw(ctx, this.x, this.y, this.w, this.h);
     else if (this.tab === 4) this.settings.draw(ctx, this.x + 10, this.y + 14, this.w - 20, this.h - 30);
     else {
       fonts.body.draw(ctx, `${g.state.name} · ${g.state.farm} Farm`, this.x + 12, this.y + 12, 'wood2');
