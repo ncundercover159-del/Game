@@ -115,7 +115,7 @@ export default {
   ],
   edges: [
     { tx: 0, ty: 12, h: 3, text: 'edge_grove' },
-    { tx: 38, ty: 59, w: 4, text: 'edge_nakasendo' },
+    { tx: 38, ty: 59, w: 4, text: 'edge_nakasendo', textIf: ['restored_nakasendo', 'edge_nakasendo_open'] },
   ],
   spawn: { tx: 77, ty: 13, dir: 'left' },
 };

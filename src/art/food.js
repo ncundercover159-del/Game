@@ -1,4 +1,4 @@
-// 16x16 icons for food and medicine sold in the village (teahouse and apothecary).
+// 16x16 icons for village goods: food and medicine (teahouse, apothecary) and request parcels.
 import { parse } from './raster.js';
 
 export function foodIcons() {
@@ -71,5 +71,22 @@ export function foodIcons() {
       .....offffo.....
       ......oooo......
       ................`, { o: 'wood0', r: 'red2', G: 'gold3', g: 'gold1', f: 'gold0', R: 'red3' }),
+    parcel: parse(`
+      ................
+      ................
+      ......rr........
+      .....r..r.......
+      ......rr........
+      ..ooooRRoooooo..
+      .oLLLLRRLLLLLdo.
+      .oLlLLRRLLLLLdo.
+      .oLLLLRRLLLLLdo.
+      .oRRRRRRRRRRRRo.
+      .oLLLLRRLLLLLdo.
+      .oLLLLRRLLLLLdo.
+      .oddddRRdddddDo.
+      ..oooooooooooo..
+      ................
+      ................`, { o: 'indigo0', L: 'indigo2', l: 'indigo3', d: 'indigo1', D: 'indigo0', R: 'red2', r: 'red3' }),
   };
 }

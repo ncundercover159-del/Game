@@ -76,11 +76,12 @@ export default {
     { type: 'toro', tx: 31, ty: 12, light: [0, 6] },
     { type: 'sign', tx: 3, ty: 13, text: 'sign_road' },
     { type: 'crate', tx: 25, ty: 11 },
-    { type: 'sign', tx: 50, ty: 11, text: 'sign_terraces' },
+    { type: 'sign', tx: 50, ty: 11, text: 'sign_terraces', textIf: ['restored_terraces', 'sign_terraces_open'] },
+    { type: 'mailbox', tx: 33, ty: 12 },
   ],
   // The valley road west to the village.
   warps: [{ x: 0, y: 14, w: 1, h: 2, to: 'village', tx: 78, ty: 13, dir: 'left' }],
   // The locked northern terraces: stone retaining walls step the hillside.
-  terraces: { x0: 40, x1: 61, rows: [5, 8] },
+  terraces: { x0: 40, x1: 61, rows: [5, 8], fenceRow: 10 },
   spawn: { tx: 29, ty: 12, dir: 'down' },
 };

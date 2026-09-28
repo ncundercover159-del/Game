@@ -31,17 +31,33 @@
   by the valley road; tool tiers with charged hoe/can swings (3, 5, 9 tiles), heavier axe and
   pickaxe hits, large logs and boulders that need an upgrade; HUD weather icon, tier icons, charge
   pips; save v2 with a v1 migration.
-- [ ] M3 Village and people
+- [x] **M3 Village and people**: a multi-map world (one player, a World per visited map, the farm
+  saved; doors and roads warp behind a quick ink wipe); Yamabuki Village (80x60: street shops,
+  magistrate's office, back lane with dōjō and rice broker, festival square, river bridge, flooded
+  paddies, houses and an old kura) and Shrine Hill (40x50: torii stair, shrine hall, office,
+  sealed rear gate); ten interiors (farmhouse with a futon to sleep in, four shops, three homes,
+  the shrine office, the hall with seven altars); eight villagers (Genzō, Okiku, Tomoe, Heibei,
+  Ume, Daigo, Kaito, Chōbei) with outfits and hairstyles, 48x48 portraits in five expressions,
+  homes, birthdays, gift tastes and schedules by season, weekday and rain, walking A* paths and
+  crossing maps through doors; dialogue with six lines per heart tier plus conditional, gift and
+  birthday lines, voice blips and emote bubbles; bonds (talk, gifts with weekly limits and
+  birthday x8, neglect decay, discovered tastes, Bonds tab); an event script language (say,
+  choice, give/take, flags, moveNpc, emotes, camera pans, fades) and the headman's welcome
+  scene; shops opened at their counters when the keeper is in and the hour is right (Shop / Talk
+  / Leave), teahouse food and the apothecary's tonic; the notice board (daily bring and deliver
+  requests paying mon, bond and virtue); letters in the farm mailbox (uncle's letters, villagers,
+  birthday gossip) with attachments; Shrine Offerings v1 (seven altars x four sets, rewards, and
+  restorations: the terraces open, the bell rings again, the rest set flags for M5-M7); a
+  minimal virtue store (Jin, Rei, Makoto from everyday acts); save v3 with a v2 migration.
 - [ ] M4 Nature and craft
 - [ ] M5 Combat and caves
 - [ ] M6 Story and festivals
 - [ ] M7 Content and polish
 
 ## Next
-M3 Village and people: the village and shrine maps, interiors and warps (the farmhouse gets a real
-bed), the NPC framework (schedules, A* pathfinding, dialogue script engine), bonds and gifts, the
-notice board and letters, 8 NPCs, Shrine Offerings v1. The valley-road shop menu becomes a walk to
-the real Yorozuya and forge.
+M4 Nature and craft: foraging (village grove, shrine woods, seasons), fishing with its minigame
+(Daigo teaches it), chickens and ducks, artisan machines, cooking at the irori, skills and XP, and
+backpack upgrades. Offerings gain forage and fish sets as those items arrive.
 
 ## Verification (M1)
 - `npm test`: 36 unit tests (calendar, farming rules and regrowth, inventory, save checksum and
@@ -64,6 +80,24 @@ the real Yorozuya and forge.
 - `npm run shots` writes shots/m2 (seasons, rain, storm at night, irrigated paddies, shop, forge,
   end-of-day screen, every crop ripe).
 
+## Verification (M3)
+- `npm test`: 77 unit tests, adding map integrity (rectangular maps, text keys, every warp
+  walkable at both ends, interiors reachable and linked back), A* and map routes, every schedule
+  stop walkable and reachable from the previous one for all eight villagers, bonds (hearts,
+  talks, gift tastes, one a day and two a week, birthdays, decay), dialogue completeness (5 tiers
+  of 6+ lines, conditionals, gift lines, valid expressions), deterministic line choice, the script
+  parser and runner (all verbs, branching, errors with line numbers), requests (postings, accept,
+  settle, expiry, cap), offerings (partial offers, set and altar completion, all items
+  obtainable), mail (due once, birthday gossip), v1 -> v3 save migration.
+- `npm run test:e2e` now: sleeps in the futon indoors and wakes there, reads uncle's letter from
+  the mailbox (seeds attached), walks the valley road into the village, plays through Heibei's
+  welcome scene (a choice, a gift), takes a notice-board request, buys at the teahouse counter
+  from Okiku and eats, talks to Kaito (bond grows), passes out and wakes beside the futon.
+- `npm run shots` writes shots/m3 (village street and 1x overview, welcome scene, teahouse
+  counter, a loved gift, Bonds tab, notice board, letters, shrine stair at dusk and 1x overview,
+  altar offerings, the farmhouse at night, a rainy afternoon in the teahouse).
+- Performance: eight villagers simulated on every map cost ~0.01 ms per step; render ~0.6 ms.
+
 ## Decisions
 - The repository already contained ORBIT (a small arcade game) at the root; it was moved to
   `orbit/index.html` unchanged so the new game can own `index.html`.
@@ -81,15 +115,15 @@ the real Yorozuya and forge.
   (references win on looks).
 - Tsukikage's asides are non-modal (a dark box, top-left, 7 s) so tutorial hints never block play;
   signs and prompts use the modal dialogue box.
-- Until interiors exist (M3), sleeping happens at the farmhouse door (interact facing it).
+- (M1) Sleeping happened at the farmhouse door; since M3 it is the futon inside.
 - Any tool clears a weed (only the sickle yields hay); every swing costs 2 Genki except refilling
   the Jōro; the pickaxe turns empty soil back to earth but never destroys a planted tile.
 - Items left on the ground at the end of the day are collected automatically (drops are not saved).
 - Harvest quality in M1 uses base odds (Fine 12%, Excellent 3%); farming skill modifies it in M4.
 - No crop withering at season change yet: seasons as a system arrive in M2.
 - Every new game draws its overgrowth from the seed (`?seed=` for reproducible layouts).
-- (M2) The Yorozuya and the forge are reached from the valley road as a trip menu (60 in-game
-  minutes, shop hours and closed days apply) until the village map is walkable in M3.
+- (M2) The Yorozuya and the forge were reached from a valley-road trip menu; M3 replaced it
+  with the walkable village.
 - (M2) Irrigation: hoe on empty tilled soil digs a channel; the pickaxe fills it; channels carry
   water only when connected (4-way) to natural water; a tilled tile beside running water is a
   paddy and counts as watered. Rice only grows in paddies.
@@ -101,6 +135,27 @@ the real Yorozuya and forge.
 - (M2) Crop art: the four M1 crops stay hand-drawn; the other 18 are generated from plant forms
   (rosette, bush, vine, trellis, grass) and shaded produce blobs, so every crop has 5 stages and
   an icon from the same style rules.
+- (M3) The village is 80x60 as specified. Villagers are not solid (they never block a doorway);
+  interacting with the tile they stand on talks to them. Positions are not saved: on load and at
+  dawn everyone is placed at their scheduled stop and walks from there.
+- (M3) Villagers navigate a static copy of maps nobody is on (buildings, props, scenery) and the
+  live map where one exists. If a path is ever blocked they step to the next stop.
+- (M3) Shops open from their counters. With the keeper behind it, the counter asks Shop / Talk /
+  Leave; talking across a counter is the only way to chat with a keeper during opening hours.
+- (M3) Talking to someone twice in a day repeats the day's line (lines are chosen from the seed and
+  the day). A third of the time a matching conditional line (season, weather, weekday, hour, place,
+  flag, stop) wins over the heart-tier line.
+- (M3) Gifts: holding a giftable item when you interact asks "Give / Just talk". Discovered likes
+  show on the Bonds tab. Parcels (request deliveries) cannot be gifted or sold.
+- (M3) Requests never punish: an unfinished one simply lapses after its deadline.
+- (M3) Offerings v1 use goods the valley already produces (crops, wood, stone, hay, bamboo, iron,
+  teahouse food, tonic). Each altar's restoration sets a `restored_*` flag; the terraces (Jin) and
+  the bell (Rei) take effect now, the bridge/caves (Yū) in M5, the Archive (Makoto) in M6, the
+  onsen (Meiyo), kodama (Chūgi) and the Nakasendō traffic (Gi) in M7.
+- (M3) Heart events (5 per villager) are story content and arrive with M6; the script engine that
+  runs them is in place and drives the welcome scene now.
+- (M3) Virtues are stored and rise from bows at Jizō (Rei), gifts and requests (Jin, Makoto),
+  birthdays (Rei) and offerings (each altar's virtue); the heptagon chart and virtue effects are M5.
 - (M2) Seasons restyle by recolouring atlas frames (`name@summer|autumn|winter`) and by per-season
   turf palettes; the ground chunks are redrawn once when the season turns.
 
@@ -123,15 +178,24 @@ with violet shadows per the palette rules. Fixes from the pass: day-time light p
 under snow (threshold raised), bare trees too short (longer first branch), thatch too bright
 under snow (snowy thatch variant), clock plate too narrow for two-digit days (widened).
 
+**M3 pass** (village, shrine, interiors and villagers next to refs 1, 3 and 4): the first village
+draft was sparse and grid-like (wide lawns, evenly spaced trees) against ref 1's density -> rebuilt
+with a back lane, festival square, paddies, homes and a kura, trees placed by hand; plank floors
+read as brick -> long 4 px floorboards with rare butt joints; portrait faces used checker
+dithering for shade (the guide allows dithering only for fog, sky and water) -> solid shadow band;
+beards likewise; Ume's hair was a saturated purple -> ink with a violet highlight. Architecture
+follows refs 3-4: plaster walls, dark tile roofs, vermilion torii and pillars, cypress-bark hall.
+
 **M0 pass 2**: grass brightness/saturation and silhouettes now match the family; remaining gaps are
 content density (flowers, props), not style. Tool swing windup was hidden behind the head -> tools
 raised higher and drawn behind the body only while raised.
 
 ## Known issues
 - Bamboo clumps and the thatch roof are serviceable but plain; revisit with the bamboo grove (M4).
-- The northern terraces are fenced, signposted and stepped with stone walls, but stay locked until
-  the shrine is restored (M3 offerings).
-- Shops open from a valley-road menu until the village map exists (M3).
 - Weather has no audio yet (the procedural soundscape is M7); thunder uses a stand-in rumble.
-- Interiors do not exist yet, so the farmhouse door is where you sleep (bed interaction in M3).
+- The shrine precinct is sparse (gravel, hall, office, ema rack, sacred cedar); the chōzuya basin,
+  bell tower and kodama groves arrive with their restorations.
+- Villagers sit by standing on cushions; a seated pose would read better (M7 polish).
+- Heart events, festivals and the remaining cast are M6; romance flows (Red Thread, Shrine Vow)
+  are M6.
 - Touch controls, rebinding UI and the fuller title/new-game flow are M7 items.

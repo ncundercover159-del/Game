@@ -18,7 +18,7 @@ export function tierOf(pts) {
   return Math.min(4, Math.floor(hearts(pts) / 2));
 }
 
-function addPts(b, n) {
+export function addBond(b, n) {
   b.pts = Math.max(0, Math.min(BOND.perHeart * BOND.maxHearts, b.pts + n));
 }
 
@@ -28,13 +28,13 @@ export function talk(b, day) {
   b.lastSeen = day;
   if (b.talkedDay === day) return false;
   b.talkedDay = day;
-  addPts(b, BOND.talk);
+  addBond(b, BOND.talk);
   return true;
 }
 
 export function isGiftable(id) {
   const kind = itemDef(id).kind;
-  return kind !== 'tool';
+  return kind !== 'tool' && kind !== 'quest';
 }
 
 export function taste(npc, id) {
@@ -54,7 +54,7 @@ export function giftBlock(b, day) {
 export function giveGift(b, npc, id, day, birthday) {
   const k = taste(npc, id);
   const delta = BOND.gift[k] * (birthday ? BOND.birthdayMult : 1);
-  addPts(b, delta);
+  addBond(b, delta);
   const week = Math.floor(day / 7);
   if (b.giftWeek !== week) { b.giftWeek = week; b.giftsThisWeek = 0; }
   b.giftsThisWeek++;
@@ -67,7 +67,7 @@ export function giveGift(b, npc, id, day, birthday) {
 /** Overnight: villagers you have met but not spoken to for a week drift apart a little. */
 export function decay(bonds, day) {
   for (const b of Object.values(bonds)) {
-    if (b.met && b.pts > 0 && day - b.lastSeen > BOND.decayAfterDays) addPts(b, -BOND.decay);
+    if (b.met && b.pts > 0 && day - b.lastSeen > BOND.decayAfterDays) addBond(b, -BOND.decay);
   }
 }
 

@@ -5,6 +5,9 @@ import { weatherFor } from './systems/weather.js';
 import { TIERS } from './data/tools.js';
 import { START } from './data/start.js';
 import { newVirtues } from './data/virtues.js';
+import { newRequests } from './systems/requests.js';
+import { newMail } from './systems/mail.js';
+import { newOfferings } from './systems/offerings.js';
 
 export const TOOL_TIERS = () => ({ hoe: 0, can: 0, axe: 0, pickaxe: 0, sickle: 0 });
 
@@ -17,7 +20,7 @@ export function newState(seed) {
     tiers: TOOL_TIERS(), upgrade: null, shipped: [],
     inventory: { size: 12, slots: START.inventory, selected: 0 },
     flags: {}, stats: { shippedValue: 0 }, rng: seed ^ 0x5bd1e995, maps: {},
-    bonds: {}, virtues: newVirtues(),
+    bonds: {}, virtues: newVirtues(), requests: newRequests(), mail: newMail(), offerings: newOfferings(),
   };
 }
 
@@ -32,5 +35,6 @@ MIGRATIONS[1] = (s) => ({
   stats: { shippedValue: 0 },
 });
 
-// v2 (M2) -> v3 (M3): bonds with villagers, virtues. The player's map defaults to the farm.
-MIGRATIONS[2] = (s) => ({ ...s, bonds: {}, virtues: newVirtues() });
+// v2 (M2) -> v3 (M3): bonds, virtues, notice-board requests, mail, shrine offerings. The player's
+// map defaults to the farm.
+MIGRATIONS[2] = (s) => ({ ...s, bonds: {}, virtues: newVirtues(), requests: newRequests(), mail: newMail(), offerings: newOfferings() });

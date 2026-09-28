@@ -7,6 +7,7 @@ import { EMOTE_ALIAS } from '../art/emotes.js';
 import { rect } from './widgets.js';
 import { Dialog } from './dialog.js';
 import { speak, bondOf } from '../world/talk.js';
+import { addBond } from '../systems/bonds.js';
 
 export class Cutscene {
   constructor(game, source, { onEnd = null } = {}) {
@@ -81,7 +82,7 @@ export class Cutscene {
   give(id, n) { this.game.pickUp(id, n); this.game.toast('toast_got', { n, item: itemDef(id).name }, `icon_${id}`); }
   take(id, n) { if (this.game.inventory.count(id) < n) return false; this.game.inventory.remove(id, n); return true; }
   money(n) { this.game.money += n; }
-  bond(id, n) { const b = bondOf(this.game, id); b.pts = Math.max(0, b.pts + n); b.met = true; }
+  bond(id, n) { const b = bondOf(this.game, id); addBond(b, n); b.met = true; }
   virtue(name, n) { this.game.addVirtue(name, n); }
   flag(name) { return this.game.flags[name]; }
   setFlag(name, v) { this.game.flags[name] = v; }

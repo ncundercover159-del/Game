@@ -5,7 +5,8 @@ import { itemDef } from '../data/items.js';
 import { t } from '../data/strings.js';
 import { dayIndex } from '../systems/calendar.js';
 import { WEATHER } from '../systems/weather.js';
-import { newBond, talk, pickLine, giftBlock, giveGift, isGiftable, isBirthday, parseLine, hearts } from '../systems/bonds.js';
+import { newBond, talk, pickLine, giftBlock, giveGift, isGiftable, isBirthday, parseLine, hearts, addBond } from '../systems/bonds.js';
+import { dueWith, complete } from '../systems/requests.js';
 import { Dialog } from '../ui/dialog.js';
 import DIALOGUE from '../data/dialogue/index.js';
 
@@ -43,6 +44,8 @@ export function counter(game, shop, n) {
 export function interactNpc(game, n) {
   const p = game.player;
   game.villagers.greet(n, p.tx, p.ty);
+  const q = dueWith(game.requests, n.id, (id) => game.inventory.count(id));
+  if (q && bondOf(game, n.id).met) { settle(game, n, q); return; }
   const cur = game.inventory.current;
   const b = bondOf(game, n.id);
   if (cur && isGiftable(cur.id) && b.met && !giftBlock(b, dayIndex(game.cal))) {
@@ -90,6 +93,24 @@ function gift(game, n) {
   if (bday && r.delta > 0) g.addVirtue('rei', 2);
   g.modals.push(speak(g, n.id, bday && r.delta > 0 ? DIALOGUE[n.id].birthday : DIALOGUE[n.id].gift[r.taste]));
   heartUp(g, n, before);
+}
+
+/** Hand over a request's goods or parcel: pay, bond, virtue, thanks. */
+function settle(game, n, q) {
+  const b = bondOf(game, n.id);
+  const before = hearts(b.pts);
+  if (q.type === 'bring') game.inventory.remove(q.item, q.n);
+  else game.inventory.remove('parcel', 1);
+  complete(game.requests, q);
+  talk(b, dayIndex(game.cal));
+  addBond(b, q.bond);
+  game.money += q.mon;
+  game.addVirtue(q.virtue[0], q.virtue[1]);
+  n.showEmote('note');
+  game.sfx('harvest');
+  game.toast('req_paid', { n: q.mon }, 'icon_coin');
+  game.modals.push(speak(game, n.id, { face: 'happy', text: t(q.type === 'bring' ? 'req_thanks' : 'req_thanks_parcel', { name: game.state.name }) }));
+  heartUp(game, n, before);
 }
 
 function heartUp(game, n, before) {

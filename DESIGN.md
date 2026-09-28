@@ -75,6 +75,7 @@ tile touching natural water; a shut sluice gate blocks its tile. Tilled soil bes
 (channel or natural) is a flooded paddy: always watered, required for rice. Pickaxe fills a channel.
 
 ## Economy (M2)
+- (Since M3 the shops are in the village; see Villagers.)
 - Shipping crate by the house: stacks put in are paid overnight at full price with quality
   multipliers, itemised on the end-of-day screen. Selling at the Yorozuya pays the same, now.
 - Yorozuya (09:00-17:00, closed Sui): the season's seeds, sluice gates; Do is 10% off seeds.
@@ -82,6 +83,54 @@ tile touching natural water; a shut sluice gate blocks its tile. Tilled soil bes
   Iron 2000 + 5 iron bars, Steel 5000 + 5 steel bars, Tamahagane 12000 + 5 tamahagane.
 - Tool tiers: can 40/55/70/85; hoe and can charge (hold): 3-line, 5-line, 3x3; axe and pickaxe deal
   1 + tier per hit; large logs and boulders need tier 1.
+
+## World and maps (M3)
+- Maps: Hinata Farm 64x48, Yamabuki Village 80x60, Shrine Hill 40x50, ten interiors
+  (`src/maps/`). `src/maps/index.js` links doors both ways: a building door with `to` is a warp
+  into that room; the room's doorway warps back to the tile below the door. Roads between outdoor
+  maps are warps along the map edge. Walking onto a warp tile plays a 0.28 s ink wipe.
+- One Player; a World (map, ground renderer, drops, effects) per visited map, created on first
+  visit and kept. Only maps with `persist` (the farm) are saved; the player's map is saved.
+- Only `farmable` maps (the farm) can be tilled; tools do nothing to village soil.
+- Interiors are dimmed a little by day and lit by their hearths and lamps at night; no weather.
+- Sleep in the farmhouse futon; you wake beside it (also after passing out).
+
+## Villagers (M3)
+Genzō (swordsmith, forge), Okiku (teahouse), Tomoe (shrine maiden, romanceable), Heibei (headman),
+Ume (herbalist, apothecary, R), Daigo (fisherman, R), Kaito (neighbouring farmer, R), Chōbei
+(storekeeper). Data in `src/data/npcs.js` (home, birthday, gift tastes, schedules) and
+`src/data/dialogue/*.js` (intro, 5 heart tiers x 6+ lines, conditional lines, gift reactions,
+birthday line). Lines may start with an expression tag: neutral, happy, sad, angry, surprised.
+- Schedules: variants chosen by season, weekday and rain; each is a list of timed stops
+  `[minutes, map, x, y, facing]`. Villagers walk at 40 px/s along A* paths, crossing maps through
+  doors and roads. Rain sends everyone indoors. Positions are derived, not saved.
+- Shops: open from their counters in opening hours, never on the closed day, only with the keeper
+  in the room. Yorozuya 9-17 (closed Sui), Chaya 8-20 (closed Moku: tea 30, dango 60, onigiri 90),
+  Kajiya 9-16 (closed Nichi), Yakuya 10-18 (closed Getsu: tonic 320). Food restores Genki.
+
+## Bonds (M3)
+250 points a heart, 10 hearts. Talk once a day +20. Gifts: loved +80, liked +45, neutral +20,
+disliked -20, hated -40; x8 on birthdays; one a day and two a week per villager. A bond you have
+not tended for 7 days loses 10 points a night. Dialogue tier = hearts / 2 (0-1, 2-3, 4-5, 6-7,
+8-10).
+
+## Event scripts (M3)
+Line-based language in `src/systems/script.js`: `say who face "text"`, `choice "a" @x "b" @y`,
+`goto`, labels `@x`, `end`, `give`, `take item n @else`, `money`, `bond`, `virtue`, `setFlag`,
+`ifFlag [!]flag @x`, `wait`, `moveNpc`, `placeNpc`, `face`, `emote`, `cameraPan`, `fade`. Map
+events (`src/data/events.js`) play once on entering a map, after the door wipe.
+
+## Requests, letters, offerings (M3)
+- Notice board: 1-2 postings a day from the seed: "bring" (n of an in-season crop or common goods;
+  pays ~1.6x sell value + 60, +60 bond, Jin +2) and "deliver" (a parcel to another villager; 120
+  mon, +60 bond, Makoto +2). Up to 3 active; 3 days to finish; lapsed requests cost nothing.
+- Mailbox by the farmhouse: letters arrive the morning after their condition holds (Jirōbei's
+  posthumous letters, villagers), plus Okiku's birthday gossip the day before a known villager's
+  birthday. Attachments are collected when the letter is first read.
+- Shrine Offerings v1: seven altars (one per virtue) x four sets. A set pays its reward and +3 to
+  the altar's virtue; a full altar gives +10 and restores part of the valley: Jin opens the farm
+  terraces, Rei rehangs the shrine bell (rings at 06:00 and 18:00), Yū repairs the shrine bridge,
+  Makoto the Archive, Meiyo the onsen, Chūgi brings back the kodama, Gi clears the Nakasendō.
 
 ## Farm map (Hinata Farm, 64x48)
 Forest border all round; the farmhouse (minka) top-centre with a kura storehouse to its west and a
@@ -91,15 +140,16 @@ is overgrown with weeds, stones, twigs, stumps, young trees and bamboo placed de
 from the save seed.
 
 ## Saving
-- localStorage, 3 slots, key `ronin.slot{n}`; JSON `{ version, checksum, meta, state }`.
+- localStorage, 3 slots, key `ronin.slot{n}`; JSON `{ version, checksum, meta, state }`. Version 3
+  (M3) adds bonds, virtues, requests, mail and offerings.
 - Migrations run in order from the file's version to `SAVE_VERSION`. A checksum mismatch or parse
   failure falls back to the slot's `.bak` copy (written before every save).
 - Autosave on sleep. Export/import as a `.json` file from the pause menu.
 
 ## Debug (`?debug=1`)
 F1 overlay (fps, frame ms, tile, collision, entity counts), F2 skip day, F3 +1000 mon and a seed
-kit, F4 cycle time +1 h (Shift: cycle season). URL params: `map, season, day, time, seed, slot`
-(and `weather` once weather exists in M2). `window.__game` exposes state getters, `advance(ms)`,
+kit, F4 cycle time +1 h (Shift: cycle season, Ctrl: cycle weather). URL params: `map, season, day,
+time, weather, seed, slot`. `window.__game` exposes state getters, `advance(ms)`,
 `press(code)`, `hold(code)`, `release(code)`.
 
 ## Milestones

@@ -132,11 +132,25 @@ await withBrowser(async (browser, base) => {
   assert.equal(s.inventory.slots.filter((x) => x && x.id === 'daikon').reduce((a, x) => a + x.n, 0), 1, 'one daikon in the pack');
   assert.equal((await tile(page, 24, 18)).crop, null, 'daikon does not regrow');
 
-  step('refills the Jōro at the well');
-  await page.evaluate(() => { window.__game.game.can = 3; });
+  step('reads uncle\'s first letter from the mailbox and collects its seeds');
   await walkTo(page, 24, 15);
   await walkTo(page, 29, 14);
   await walkTo(page, 29, 11);
+  await walkTo(page, 32, 11);
+  await walkTo(page, 32, 12);
+  await face(page, 'KeyD');
+  const seedsBefore = (await state(page)).inventory.slots.find((x) => x && x.id === 'seed_komatsuna').n;
+  await press(page, 'KeyK', 100);
+  assert.deepEqual((await state(page)).modals, ['MailMenu']);
+  await press(page, 'Escape', 50);
+  s = await state(page);
+  assert.equal(s.mail.inbox[0].id, 'uncle_1');
+  assert.ok(s.mail.inbox[0].read);
+  assert.equal(s.inventory.slots.find((x) => x && x.id === 'seed_komatsuna').n, seedsBefore + 5);
+
+  step('refills the Jōro at the well');
+  await page.evaluate(() => { window.__game.game.can = 3; });
+  await walkTo(page, 32, 11);
   await walkTo(page, 33, 11);
   await walkTo(page, 33, 10);
   await face(page, 'KeyD');
@@ -214,6 +228,16 @@ await withBrowser(async (browser, base) => {
   s = await state(page);
   assert.ok(s.inventory.slots.some((x) => x && x.id === 'dango'), 'Heibei gave dango');
   assert.ok(s.bonds.heibei.met && s.bonds.heibei.pts >= 40, 'met Heibei');
+  step('takes a request from the notice board');
+  await walkTo(page, 43, 12);
+  await face(page, 'KeyW');
+  await press(page, 'KeyK', 100);
+  assert.deepEqual((await state(page)).modals, ['NoticeMenu']);
+  await press(page, 'Enter', 50);
+  await press(page, 'Escape', 50);
+  assert.equal((await state(page)).requests.active.length, 1, 'one request taken');
+  // Make room in the pack (Heibei's dango and a request parcel may have filled it).
+  await page.evaluate(() => { const g = window.__game.game; g.inventory.remove('dango', 2); g.inventory.remove('daikon', 1); });
   await walkTo(page, 16, 12);
   await through(page, 'KeyW', 'chaya');
   await walkTo(page, 2, 5);

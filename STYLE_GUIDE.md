@@ -100,6 +100,18 @@ Extracted dominant colours (median-cut) that the ramps were fitted to:
   pass; body bobs up 1 px on pass frames). Idle: 2-frame breathing (torso 1 px). Tool swing: 3
   frames (raise, strike, follow-through).
 
+## 6b. Villagers and portraits
+- Villagers share the player's grids. Variety comes from palette ramps (hair, skin, kosode,
+  hakama/kimono, obi, collar, cord) and hairstyle crowns painted over the head: topknot (base),
+  cropped, bun with a kanzashi, long (hair over the shoulders and down the back; a white paper tie in the portrait), and a
+  hachimaki headband in the cord colour. Only the player wears a sword.
+- Portraits are 48x48 busts: shoulders and crossed collar in the robe colours, a lit face with a
+  solid shadow band on the right (no dithering), hair by style, and five expressions (neutral,
+  happy, sad, angry, surprised) set by brows, eyes and mouth. Older faces get two lines at the
+  mouth and brow; beards are solid with a lit left side.
+- Emote bubbles: ink6 bubble with an ink1 outline and a tail, 7x6 symbol (!, ?, heart, dots,
+  note, anger).
+
 ## 7. Objects, trees, buildings
 
 - Trees: procedural canopies from overlapping leaf clusters shaded top-left, outlined in their own
@@ -108,6 +120,15 @@ Extracted dominant colours (median-cut) that the ramps were fitted to:
 - Architecture follows refs 3-4: thatch in the `straw` ramp with vertical strand texture and a
   thick cut eave; plaster in `ink5/ink6`; timber in `wood0-2`; tile roofs in `ink1-3` with `teal`
   moss accents; vermilion lacquer in `red2/red3`.
+- Townhouses (machiya) are parametric: tile or thatch roof, plaster or board walls, koshi lattice
+  windows either side of the door, a noren in the shop's colour, a signboard, a stone plinth. They
+  are drawn bottom-centred on their footprint; the door sits on the footprint's front row.
+- Shrine: torii 78 px wide with posts outside the stair; the hall has vermilion pillars, white
+  walls and a dark cypress-bark roof with crossed chigi; ema racks and a shimenawa on the cedar.
+- Interiors are seen from above with a two-row back wall (dark cap, then plaster over a timber
+  wainscot). Floors: tatami (straw weave, indigo heri on the long sides), floorboards (4 px boards
+  running away from the viewer, rare butt joints), doma (tamped earth). Furniture keeps the same
+  outline and light rules as outdoor props.
 
 ## 8. UI
 

@@ -125,6 +125,8 @@ function drawObject(w, ctx, cam, o) {
     return;
   }
   atlas.draw(ctx, seasonal(atlas, objectSprite(o), w.game.seasonId), bx, by);
+  // Unread letters: a bubble over the mailbox.
+  if (o.type === 'mailbox' && w.game.mail.inbox.some((l) => !l.read)) atlas.draw(ctx, 'emote_bang', bx, by - 20 + Math.round(Math.sin(w.time * 3)));
 }
 
 function drawPlayer(w, ctx, cam) {

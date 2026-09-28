@@ -9,22 +9,17 @@ import { Player } from './world/player.js';
 import { Villagers } from './world/npc.js';
 import { interactNpc, counter } from './world/talk.js';
 import { Cutscene } from './ui/cutscene.js';
+import { askSleep, sleep, openShop, eat, bow } from './flow.js';
 import { EVENTS } from './data/events.js';
 import { VIRTUES } from './data/virtues.js';
-import { decay } from './systems/bonds.js';
 import { drawWorld } from './world/draw.js';
 import { Lighting } from './world/lighting.js';
 import { Inventory } from './systems/inventory.js';
-import { TICK_SECONDS, TICK_MINUTES, DAY_END, MIDNIGHT, dateLabel, weekday, parseTime, formatTime, dayIndex, SEASONS, WEEKDAYS } from './systems/calendar.js';
-import { endDay } from './systems/day.js';
+import { TICK_SECONDS, TICK_MINUTES, DAY_END, MIDNIGHT, parseTime, SEASONS } from './systems/calendar.js';
 import { weatherFor, WEATHER } from './systems/weather.js';
 import { WeatherFx } from './world/weatherfx.js';
 import { newState } from './state.js';
-import { summaryLines, drawSummary } from './ui/summary.js';
 import { ShipMenu } from './ui/ship.js';
-import { ShopMenu, ForgeMenu } from './ui/shop.js';
-import { SHOPS } from './data/shops.js';
-import { itemDef } from './data/items.js';
 import { Hud } from './ui/hud.js';
 import { Dialog } from './ui/dialog.js';
 import { Menu } from './ui/menu.js';
@@ -78,6 +73,9 @@ export class Game {
     this.stats = { ...s.stats };
     this.bonds = structuredClone(s.bonds);
     this.virtues = { ...s.virtues };
+    this.requests = structuredClone(s.requests);
+    this.mail = structuredClone(s.mail);
+    this.offerings = structuredClone(s.offerings);
     this.inventory = Inventory.from(s.inventory);
     this.rng = new Rng(s.rng);
     this.applyParams();
@@ -114,6 +112,7 @@ export class Game {
     const p = this.player, m = this.world.map;
     this.camera.setView(this.screen.w, this.screen.h);
     this.camera.follow(p.x, p.y - 12, m.pw, m.ph, 1);
+    if (id === 'honden') this.flags.seen_honden = true;
     if (this.scene === 'play') this.triggerEvents(id);
   }
 
@@ -131,17 +130,6 @@ export class Game {
     const before = this.virtues[id];
     this.virtues[id] = Math.max(0, Math.min(100, before + n));
     if (this.virtues[id] !== before && n > 0) this.toast('toast_virtue', { virtue: VIRTUES[id].name, jp: VIRTUES[id].jp, n }, null);
-  }
-
-  /** Bowing to a Jizō: respect, once a day. */
-  bow() {
-    this.say('jizo_bow');
-    const key = `bow_${dayIndex(this.cal)}`;
-    if (!this.flags[key]) {
-      for (const k of Object.keys(this.flags)) if (k.startsWith('bow_')) delete this.flags[k];
-      this.flags[key] = true;
-      this.addVirtue('rei', 1);
-    }
   }
 
   /** Talk to (or give a gift to) a villager. */
@@ -213,7 +201,8 @@ export class Game {
       money: this.money, genki: this.genki, genkiMax: this.genkiMax, can: this.can,
       cal: { ...this.cal }, weather: this.weather, tomorrow: this.tomorrow, tiers: { ...this.tiers },
       upgrade: this.upgrade, shipped: this.shipped.map((x) => ({ ...x })), stats: { ...this.stats },
-      bonds: structuredClone(this.bonds), virtues: { ...this.virtues },
+      bonds: structuredClone(this.bonds), virtues: { ...this.virtues }, requests: structuredClone(this.requests),
+      mail: structuredClone(this.mail), offerings: structuredClone(this.offerings),
       inventory: this.inventory.serialize(), flags: { ...this.flags },
       rng: this.rng.state(), player: { ...this.player.serialize(), map: this.world.map.id },
       maps: this.mapsSnapshot(),
@@ -290,73 +279,15 @@ export class Game {
     return left;
   }
 
-  askSleep() {
-    this.modals.push(new Dialog(this, {
-      text: t('sleep_ask'),
-      choices: [t('yes'), t('no')],
-      onChoose: (i) => { if (i === 0) this.sleep(false); },
-    }));
-  }
-
-  sleep(passedOut) {
-    this.sfx('sleep');
-    let summary = null;
-    const wipe = new InkWipe(this, {
-      onCovered: () => {
-        const r = endDay(this, passedOut);
-        decay(this.bonds, dayIndex(this.cal));
-        const bed = MAPS.house_farm.wake;
-        this.enter('house_farm', bed.tx, bed.ty, bed.dir);
-        this.villagers.snap();
-        this.saveNow(true);
-        summary = summaryLines(r, this);
-        this.morning(r, passedOut);
-      },
-      card: (ctx) => summary && drawSummary(ctx, this, summary),
-      minCard: 0.8,
-      waitConfirm: true,
-    });
-    this.modals.push(wipe);
-  }
-
-  /** Tsukikage's morning lines: what happened, what the day holds. */
-  morning(r, passedOut) {
-    if (passedOut) this.aside('tk_passout', { vars: { lost: r.lost } });
-    else this.aside('tk_morning', { vars: { date: dateLabel(this.cal), weekday: weekday(this.cal).name } });
-    if (r.newSeason) this.aside('tk_new_season', { vars: { season: `${SEASONS[this.cal.season].en} (${SEASONS[this.cal.season].jp})` } });
-    if (WEATHER[this.weather].rain) this.aside('tk_rain', { once: 'rain' });
-    if (this.tomorrow === 'typhoon') this.aside('tk_typhoon_warn');
-    if (r.upgraded) this.aside('tk_upgrade_ready', { vars: { tool: itemDef(r.upgraded).name } });
-  }
+  // Day flow and village services live in flow.js.
+  askSleep() { askSleep(this); }
+  sleep(passedOut) { sleep(this, passedOut); }
+  openShop(id) { openShop(this, id); }
+  eat(slot) { eat(this, slot); }
+  bow() { bow(this); }
 
   openShipping() {
     this.modals.push(new ShipMenu(this));
-  }
-
-  /** Open a shop from its counter: only in opening hours, and never on its closed day. */
-  openShop(id) {
-    const shop = SHOPS[id];
-    const m = this.cal.minutes;
-    const keeper = MAPS[id].keeper && this.villagers.get(MAPS[id].keeper.npc);
-    if (dayIndex(this.cal) % 7 === shop.closedDay || m < shop.open || m >= shop.close) {
-      const day = WEEKDAYS[shop.closedDay];
-      this.say('shop_closed', { name: shop.name, open: formatTime(shop.open), close: formatTime(shop.close), closed: t('shop_closed_day', { day: `${day.name} ${day.jp}` }) });
-      return;
-    }
-    if (keeper && keeper.map !== id) { this.say('shop_away', { npc: keeper.def.name }); return; }
-    this.sfx('ui_ok');
-    this.modals.push(id === 'kajiya' ? new ForgeMenu(this) : new ShopMenu(this, id));
-  }
-
-  /** Eat the selected food for Genki. */
-  eat(slot) {
-    const s = this.inventory.slots[slot];
-    const def = itemDef(s.id);
-    if (this.genki >= this.genkiMax) { this.sfx('deny'); this.aside('tk_not_hungry', { once: `full_genki${this.cal.day}` }); return; }
-    this.genki = Math.min(this.genkiMax, this.genki + def.genki);
-    this.inventory.takeFrom(slot, 1);
-    this.sfx('eat');
-    this.toast('toast_ate', { item: def.name, n: def.genki }, `icon_${s.id}`);
   }
 
   smoothMinutes() {
@@ -422,6 +353,8 @@ export class Game {
       this.clockAcc -= per;
       this.cal.minutes += TICK_MINUTES;
       if (this.cal.minutes === MIDNIGHT) this.aside('tk_late');
+      // The restored shrine bell rings at dusk (and at dawn, see flow.js).
+      if (this.cal.minutes === 18 * 60 && this.flags.restored_bell) this.sfx('bell');
       if (this.cal.minutes >= DAY_END) { this.sleep(true); break; }
     }
   }

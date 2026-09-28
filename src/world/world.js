@@ -12,6 +12,7 @@ import { applyTool, plantSeed, placeItem, spreadStraw, swingArea, GENKI_COST } f
 import { computeFlow } from '../systems/irrigation.js';
 import { TIERS, CHARGE_STEP } from '../data/tools.js';
 import { cropAt, isRipe, harvest, plant, canPlant } from '../systems/farming.js';
+import { openNotice, openMailbox, openAltar } from '../flow.js';
 
 const REACH = 1;
 const CHARGEABLE = new Set(['hoe', 'can']);
@@ -24,6 +25,7 @@ export class World {
     decorate(this.map);
     if (saved) this.map.restore(saved);
     else if (def.wild) populate(this.map, game.seed);
+    if (game.flags.restored_terraces) this.openTerraces();
     computeFlow(this.map);
     this.ground = new GroundRenderer(this.map, game.cells, game.atlas, game.cal.season);
     this.fx = new Fx();
@@ -166,6 +168,9 @@ export class World {
       return;
     }
     if (o0 && o0.type === 'jizo') { g.bow(); return; }
+    if (o0 && o0.type === 'notice') { openNotice(g); return; }
+    if (o0 && o0.type === 'mailbox') { openMailbox(g); return; }
+    if (o0 && o0.type === 'altar') { openAltar(g, o0.kind); return; }
     const b = map.buildingAt(x, y);
     if (b) {
       if (b.door?.say && b.door.tx === x && b.door.ty === y) g.say(b.door.say);
@@ -175,7 +180,8 @@ export class World {
     const o = map.objectAt(x, y);
     if (o) {
       const def = OBJECT_TYPES[o.type];
-      const key = o.text || def.say;
+      // Some signs read differently once a flag is set: textIf: [flag, key].
+      const key = (o.textIf && g.flags[o.textIf[0]] ? o.textIf[1] : o.text) || def.say;
       if (key) g.say(key);
     }
   }
@@ -213,7 +219,17 @@ export class World {
     if (!pushing) { this.edgeLatch = false; return; }
     if (!this.edgeLatch) {
       this.edgeLatch = true;
-      this.game.say(e.text);
+      this.game.say(e.textIf && this.game.flags[e.textIf[0]] ? e.textIf[1] : e.text);
+    }
+  }
+
+  /** The terraces' fence comes down (the Altar of Jin restores them). */
+  openTerraces() {
+    const row = this.map.def.terraces?.fenceRow;
+    if (row === undefined) return;
+    for (const o of this.map.objects.filter((x) => x.type === 'fence' && x.y === row)) {
+      this.map.removeObject(o);
+      this.map.blocked[this.map.i(o.x, o.y)] = 0;
     }
   }
 

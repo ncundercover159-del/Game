@@ -87,6 +87,8 @@ export function exposeTestHooks(game, loop) {
       shipped: game.shipped.length,
       bonds: structuredClone(game.bonds),
       virtues: { ...game.virtues },
+      requests: structuredClone(game.requests),
+      mail: structuredClone(game.mail),
     }),
     tile: (x, y, map = game.world.map.id) => {
       const m = game.worldFor(map).map, k = m.i(x, y);

@@ -150,6 +150,7 @@ export class Audio {
       case 'door': this.hiss('bandpass', 700, 1.5, 0.2, 0.18); this.tone('triangle', 160, 120, 0.12, 0.1, 0.12); break;
       case 'eat': [0, 0.12, 0.24].forEach((d) => this.hiss('bandpass', 1200, 2, 0.15, 0.05, d)); this.pluck(880, 0.2, 0.35); break;
       case 'talk': this.tone('square', 520, 520, 0.03, 0.025); break;
+      case 'bell': this.tone('sine', 196, 190, 0.35, 2.4); this.tone('sine', 523, 515, 0.12, 1.6); this.tone('triangle', 98, 97, 0.2, 2.8); break;
       case 'morning': [523, 659, 784, 1046].forEach((f, i) => this.pluck(f, 0.3, i * 0.15)); break;
       default: break;
     }
