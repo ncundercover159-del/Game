@@ -18,26 +18,47 @@ function room(id, name, jp, floor, doorX, rest) {
 
 const WALL = 2; // y of the wall face row, where shelves and kamidana hang
 
+// The farmhouse, and the extended one Tatsu builds (a second room to the right; the door, bed
+// and every original piece stay where they were). maps/index.js swaps them by the house_upgraded flag.
+const FARMHOUSE_PROPS = [
+  { type: 'futon', tx: 2, ty: 5, action: 'sleep' },
+  { type: 'andon', tx: 4, ty: 3, light: [0, 4] },
+  { type: 'tansu', tx: 1, ty: 3 },
+  { type: 'kamidana', tx: 9, ty: WALL },
+  { type: 'irori', tx: 8, ty: 5, ox: 8, block: [2, 2], light: [8, 0] },
+  { type: 'zabuton', tx: 7, ty: 6, kind: 'red' },
+  { type: 'zabuton', tx: 10, ty: 4, kind: 'indigo' },
+];
+const HOUSE_SMALL = room('house_farm', 'Farmhouse', '母屋', [
+  'mmmmmmwwwww',
+  'mmmmmmwwwww',
+  'mmmmmmwwwww',
+  'mmmmmmwwwww',
+  'ddddddddddd',
+  'ddddddddddd',
+], 6, { props: FARMHOUSE_PROPS, wake: { tx: 3, ty: 5, dir: 'down' } });
+export const HOUSE_BIG = room('house_farm', 'Farmhouse', '母屋', [
+  'mmmmmmwwwwwwmmm',
+  'mmmmmmwwwwwwmmm',
+  'mmmmmmwwwwwwmmm',
+  'mmmmmmwwwwwwmmm',
+  'ddddddddddddddd',
+  'ddddddddddddddd',
+], 6, {
+  props: [
+    ...FARMHOUSE_PROPS,
+    { type: 'futon', tx: 13, ty: 5 },
+    { type: 'andon', tx: 15, ty: 3, light: [0, 4] },
+    { type: 'shelf', tx: 13, ty: WALL, ox: 8, kind: 'goods' },
+    { type: 'barrels', tx: 14, ty: 8 },
+    { type: 'tansu', tx: 12, ty: 3 },
+  ],
+  wake: { tx: 3, ty: 5, dir: 'down' },
+});
+export const HOUSE_PLAN = { small: HOUSE_SMALL, big: HOUSE_BIG };
+
 export const INTERIORS = [
-  room('house_farm', 'Farmhouse', '母屋', [
-    'mmmmmmwwwww',
-    'mmmmmmwwwww',
-    'mmmmmmwwwww',
-    'mmmmmmwwwww',
-    'ddddddddddd',
-    'ddddddddddd',
-  ], 6, {
-    props: [
-      { type: 'futon', tx: 2, ty: 5, action: 'sleep' },
-      { type: 'andon', tx: 4, ty: 3, light: [0, 4] },
-      { type: 'tansu', tx: 1, ty: 3 },
-      { type: 'kamidana', tx: 9, ty: WALL },
-      { type: 'irori', tx: 8, ty: 5, ox: 8, block: [2, 2], light: [8, 0] },
-      { type: 'zabuton', tx: 7, ty: 6, kind: 'red' },
-      { type: 'zabuton', tx: 10, ty: 4, kind: 'indigo' },
-    ],
-    wake: { tx: 3, ty: 5, dir: 'down' },
-  }),
+  HOUSE_SMALL,
   room('yorozuya', 'Yorozuya', '万屋', [
     'wwwwwwwwwww',
     'wwwwwwwwwww',

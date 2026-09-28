@@ -10,6 +10,8 @@ import { dueWith, complete } from '../systems/requests.js';
 import { talkBonus, rewardMult } from '../systems/virtues.js';
 import { Dialog } from '../ui/dialog.js';
 import DIALOGUE from '../data/dialogue/index.js';
+import { ROMANCE } from '../data/romance.js';
+import { offerRomance } from '../home.js';
 
 export function bondOf(game, id) {
   if (!game.bonds[id]) game.bonds[id] = newBond();
@@ -49,6 +51,7 @@ export function interactNpc(game, n) {
   game.villagers.greet(n, p.tx, p.ty);
   const q = dueWith(game.requests, n.id, (id) => game.inventory.count(id));
   if (q && bondOf(game, n.id).met) { settle(game, n, q); return; }
+  if (bondOf(game, n.id).met && offerRomance(game, n, chat)) return;
   const cur = game.inventory.current;
   const b = bondOf(game, n.id);
   if (cur && isGiftable(cur.id) && b.met && !giftBlock(b, dayIndex(game.cal))) {
@@ -70,6 +73,7 @@ function chat(game, n) {
   const line = pickLine(n.id, b, {
     season: game.seasonId, weekday: day % 7, rain: !!WEATHER[game.weather].rain, minutes: game.cal.minutes,
     place: n.map, stop: n.stop && n.stop.slice(1, 4), flags: game.flags, seed: game.seed, day,
+    spouse: game.romance.spouse === n.id ? ROMANCE[n.id].spouse : null,
   });
   const before = hearts(b.pts);
   talk(b, day, talkBonus(game.virtues));

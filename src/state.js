@@ -12,6 +12,7 @@ import { newSkills } from './systems/skills.js';
 import { newAnimals } from './systems/animals.js';
 import { DISHES } from './data/recipes.js';
 import { newCaves } from './caves.js';
+import { newRomance } from './systems/romance.js';
 
 const START_RECIPES = () => Object.keys(DISHES).filter((id) => DISHES[id].known);
 
@@ -30,6 +31,7 @@ export function newState(seed) {
     skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] }, animals: newAnimals(),
     recipes: START_RECIPES(),
     hp: START.inochiMax, hpMax: START.inochiMax, difficulty: 'standard', caves: newCaves(),
+    romance: newRomance(), construction: null,
   };
 }
 
@@ -54,3 +56,6 @@ MIGRATIONS[3] = (s) => ({ ...s, skills: newSkills(), buffs: [], foraged: { day: 
 // v4 (M4) -> v5 (M5): Inochi, difficulty, the caves' progress. Older farms never had the katana in
 // the pack: Genzō sends it by letter (see data/letters.js).
 MIGRATIONS[4] = (s) => ({ ...s, hp: START.inochiMax, hpMax: START.inochiMax, difficulty: 'standard', caves: newCaves(), flags: { ...s.flags, needs_katana: true } });
+
+// v5 (M5) -> v6 (M6): courting and marriage, Tatsu's building work.
+MIGRATIONS[5] = (s) => ({ ...s, romance: newRomance(), construction: null });

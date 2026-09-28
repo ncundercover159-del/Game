@@ -16,6 +16,7 @@ import { SHOPS } from './data/shops.js';
 import { MAPS } from './maps/index.js';
 import { RESTORATIONS } from './data/restorations.js';
 import { endDay } from './systems/day.js';
+import { homeNight, homeMorning, wakeSpot } from './home.js';
 import { decay } from './systems/bonds.js';
 import { decayMult } from './systems/virtues.js';
 import { refresh } from './systems/requests.js';
@@ -46,8 +47,9 @@ export function sleep(g, passedOut) {
       refresh(g.requests, g.seed, day, g.seasonId);
       layEggs(g, day - 1);
       r.mail = deliverMail(g);
-      const bed = MAPS.house_farm.wake;
-      g.enter('house_farm', bed.tx, bed.ty, bed.dir);
+      r.home = homeNight(g);
+      const bed = wakeSpot(r.home) || { map: 'house_farm', ...MAPS.house_farm.wake };
+      g.enter(bed.map, bed.tx, bed.ty, bed.dir);
       g.villagers.snap();
       for (const w of g.worlds.values()) w.spawnSpots();
       g.saveNow(true);
@@ -81,6 +83,7 @@ function morning(g, r, passedOut) {
   if (r.upgraded) g.aside('tk_upgrade_ready', { vars: { tool: itemDef(r.upgraded).name } });
   if (r.mail) g.aside('tk_mail', { vars: { n: r.mail } });
   if (g.flags.restored_bell) g.sfx('bell');
+  homeMorning(g, r.home);
 }
 
 /** Open a shop from its counter: only in opening hours, never on its closed day, keeper present. */

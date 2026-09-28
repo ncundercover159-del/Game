@@ -10,6 +10,7 @@ import { buyMult } from '../systems/virtues.js';
 import { SHOPS } from '../data/shops.js';
 import { dayIndex, SEASONS } from '../systems/calendar.js';
 import { sellable } from './ship.js';
+import { orderHouse } from '../home.js';
 
 const ROW = 18;
 
@@ -114,6 +115,14 @@ export class ShopMenu extends RowShop {
       g.inventory.resize(def.slots);
       g.sfx('harvest');
       g.toast('pack_bought', { n: def.slots }, iconName(s.id));
+      this.stock = this.stock.filter((x) => x !== s);
+      this.sel = Math.min(this.sel, this.stock.length - 1);
+      return;
+    }
+    if (def.kind === 'building') {
+      if (!orderHouse(g, def)) return;
+      g.money -= this.price(s);
+      g.sfx('harvest');
       this.stock = this.stock.filter((x) => x !== s);
       this.sel = Math.min(this.sel, this.stock.length - 1);
       return;

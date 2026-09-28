@@ -5,7 +5,7 @@ import village from './village.js';
 import shrine from './shrine.js';
 import grove from './grove.js';
 import kurayama from './kurayama.js';
-import { INTERIORS } from './interiors.js';
+import { INTERIORS, HOUSE_PLAN } from './interiors.js';
 
 export const MAPS = {};
 for (const def of [farm, village, shrine, grove, kurayama, ...INTERIORS]) MAPS[def.id] = { warps: [], ...def };
@@ -20,4 +20,10 @@ for (const outside of Object.values(MAPS)) {
     room.warps.push({ x: room.door.tx, y: room.door.ty, w: 1, h: 1, to: outside.id, tx: d.tx, ty: d.ty + 1, dir: 'down', door: true });
     room.outside = outside.id;
   }
+}
+
+/** Lay out the farmhouse as built: the small one, or Tatsu's extension (same door, spawn and bed). */
+export function fitHouse(big) {
+  const { ground, props } = HOUSE_PLAN[big ? 'big' : 'small'];
+  Object.assign(MAPS.house_farm, { ground, props });
 }

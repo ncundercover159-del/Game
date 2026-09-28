@@ -1,4 +1,5 @@
 import { CAVE_STRINGS } from './strings_caves.js';
+import { HOME_STRINGS } from './strings_home.js';
 
 // English string table. Every player-facing line lives here (keys are stable ids) so a Japanese
 // table can be dropped in later. `{name}`-style placeholders are filled by t().
@@ -248,7 +249,7 @@ export const STRINGS = {
   help_keys: 'WASD move · J use · K interact · 1-0 - = tools · Tab menu',
 };
 
-Object.assign(STRINGS, CAVE_STRINGS);
+Object.assign(STRINGS, CAVE_STRINGS, HOME_STRINGS);
 
 export function t(key, vars) {
   let s = STRINGS[key];

@@ -41,7 +41,7 @@ test('M1 (v1) saves migrate through every version to the current one', () => {
   const v1 = makeDoc({ seed: 7, cal: { day: 3, season: 0, year: 1, minutes: 400 }, money: 10 }, {});
   v1.version = 1;
   const up = upgrade(v1);
-  assert.equal(up.version, 5);
+  assert.equal(up.version, 6);
   assert.ok(WEATHER[up.state.weather] && WEATHER[up.state.tomorrow]);
   assert.deepEqual(up.state.shipped, []);
   assert.equal(up.state.tiers.hoe, 0);
@@ -52,4 +52,6 @@ test('M1 (v1) saves migrate through every version to the current one', () => {
   assert.equal(up.state.difficulty, 'standard');
   assert.deepEqual(up.state.caves.lanterns, []);
   assert.equal(up.state.flags.needs_katana, true);
+  assert.deepEqual(up.state.romance, { engaged: null, spouse: null });
+  assert.equal(up.state.construction, null);
 });

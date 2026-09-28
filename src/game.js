@@ -12,6 +12,7 @@ import { interactNpc, counter } from './world/talk.js';
 import { Cutscene } from './ui/cutscene.js';
 import { askSleep, sleep, openShop, eat, bow } from './flow.js';
 import { askFloor, defeat, bossDown, placeBundle } from './caves.js';
+import { settleHouse } from './home.js';
 import { kiMax } from './systems/combat.js';
 import { EVENTS } from './data/events.js';
 import { heartEventFor } from './systems/hearts.js';
@@ -40,7 +41,7 @@ const INDOOR_DIM = 0.15;
 // Saved state the game holds as plain fields (copied in on load, out on save).
 const STATE_FIELDS = ['seed', 'money', 'genki', 'genkiMax', 'can', 'cal', 'flags', 'weather', 'tomorrow', 'tiers', 'upgrade',
   'shipped', 'stats', 'bonds', 'virtues', 'requests', 'mail', 'offerings', 'skills', 'buffs', 'foraged', 'animals', 'recipes',
-  'hp', 'hpMax', 'difficulty', 'caves'];
+  'hp', 'hpMax', 'difficulty', 'caves', 'romance', 'construction'];
 const DEFAULT_SETTINGS = { sfx: 0.8, speed: 'normal', shake: true, flashes: true };
 
 export class Game {
@@ -78,6 +79,7 @@ export class Game {
     this.applyParams();
     this.savedMaps = { ...s.maps };
     this.worlds = new Map();
+    settleHouse(this);
     this.player = new Player({ x: 0, y: 0 });
     this.villagers = new Villagers(this);
     this.villagers.snap();
@@ -116,6 +118,7 @@ export class Game {
 
   /** Story events that fire on entering a map (once each, when their flag is unset). */
   triggerEvents(mapId) {
+    if (this.pendingScene) return;
     const e = EVENTS.find((ev) => ev.map === mapId && !this.flags[ev.flag] && (!ev.when || ev.when(this)));
     const heart = !e && heartEventFor(this, mapId);
     if (!e && !heart) return;
@@ -312,7 +315,8 @@ export class Game {
     this.hud.update(dt);
     if (this.pendingPerks.length && !this.modals.length && !this.pendingScene) this.choosePerk(this.pendingPerks.shift());
     if (this.pendingScene && !this.modals.length) {
-      this.modals.push(new Cutscene(this, this.pendingScene));
+      const s = this.pendingScene;
+      this.modals.push(typeof s === 'string' ? new Cutscene(this, s) : new Cutscene(this, s.script, { onEnd: s.onEnd }));
       this.pendingScene = null;
     }
     if (this.modals.length) {

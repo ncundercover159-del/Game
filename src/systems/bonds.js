@@ -39,7 +39,7 @@ export function talk(b, day, bonus = 0) {
 
 export function isGiftable(id) {
   const kind = itemDef(id).kind;
-  return !['tool', 'weapon', 'quest', 'keepsake', 'building'].includes(kind);
+  return !['tool', 'weapon', 'quest', 'keepsake', 'building', 'romance'].includes(kind);
 }
 
 export function taste(npc, id) {
@@ -91,13 +91,15 @@ export function parseLine(line) {
 
 /**
  * What a villager says when you talk to them today. `ctx` = { season (id), weekday, rain, minutes,
- * place (their map), stop ([map, x, y]), flags, seed, day }. Deterministic per day, so talking twice
+ * place (their map), stop ([map, x, y]), flags, seed, day, spouse (their married lines, or null) }. Deterministic per day, so talking twice
  * repeats the same line. Conditional lines win a third of the time when they apply.
  */
 export function pickLine(npc, b, ctx) {
   const d = DIALOGUE[npc];
   if (!b.met) return parseLine(d.intro);
   const h = hash(ctx.seed, ctx.day, npc.length, 31);
+  // Married: half the time it is one of the things they say at home.
+  if (ctx.spouse && h % 2 === 1) return parseLine(ctx.spouse[(h >>> 6) % ctx.spouse.length]);
   const cond = d.when.filter((w) => matches(w, ctx));
   if (cond.length && h % 3 === 0) return parseLine(cond[(h >>> 4) % cond.length].text);
   const lines = d.tiers[tierOf(b.pts)];

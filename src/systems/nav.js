@@ -19,6 +19,9 @@ export function navMap(id, live = null) {
   return m;
 }
 
+/** Drop a map's static copy after its layout changes (the extended farmhouse). */
+export function forgetNav(id) { statics.delete(id); }
+
 /** Min-heap on `f` for the open set. */
 class Heap {
   constructor() { this.a = []; }

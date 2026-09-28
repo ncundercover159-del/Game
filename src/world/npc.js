@@ -6,6 +6,7 @@ import { NPCS, NPC_IDS, routeFor, stopAt } from '../data/npcs.js';
 import { navMap, findPath, mapRoute, warpTile } from '../systems/nav.js';
 import { dayIndex } from '../systems/calendar.js';
 import { WEATHER } from '../systems/weather.js';
+import { spouseRoute } from '../systems/romance.js';
 
 const SPEED = 40;            // px/s, a stroll
 const WALK_FRAME = 0.18;
@@ -71,7 +72,10 @@ export class Villagers {
   planDay() {
     const g = this.game;
     const ctx = { season: g.seasonId, weekday: dayIndex(g.cal) % 7, rain: !!WEATHER[g.weather].rain, flags: g.flags };
-    for (const n of this.list) this.routes[n.id] = routeFor(n.id, ctx);
+    for (const n of this.list) {
+      const route = routeFor(n.id, ctx);
+      this.routes[n.id] = g.romance?.spouse === n.id ? spouseRoute(route) : route;
+    }
   }
 
   /** Put everyone where their schedule says they are right now (no walking). */
