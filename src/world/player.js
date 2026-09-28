@@ -58,13 +58,13 @@ export class Player {
   }
 
   /** Walk by an input vector (-1..1 per axis). Returns the distance moved. */
-  walk(dt, ax, ay, map, exhausted) {
+  walk(dt, ax, ay, map, exhausted, speedMult = 1) {
     if (!ax && !ay) {
       if (this.anim === 'walk') { this.anim = 'idle'; this.animT = 0; }
       return 0;
     }
     const len = Math.hypot(ax, ay);
-    const sp = SPEED * (exhausted ? EXHAUSTED : 1) * dt * Math.min(1, len);
+    const sp = SPEED * speedMult * (exhausted ? EXHAUSTED : 1) * dt * Math.min(1, len);
     const vx = (ax / len) * sp, vy = (ay / len) * sp;
     // Face the dominant axis; keep the current facing on exact diagonals to avoid flicker.
     if (Math.abs(ax) > Math.abs(ay)) this.dir = ax > 0 ? 'right' : 'left';

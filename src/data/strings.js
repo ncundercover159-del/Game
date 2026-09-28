@@ -6,6 +6,7 @@ export const STRINGS = {
   sign_road: 'West: Yamabuki Village, half a ri down the valley road.',
   sign_terraces: 'The old terraces. Uncle\'s note: "Do not dig here until the shrine is tended."',
   forest: 'Old cedars, older than the farm. They belong to the mountain.',
+  thicket: 'A wall of bamboo, creaking in the wind. The light comes through it green.',
   toro: 'A stone lantern. Someone keeps its wick trimmed.',
   terrace_wall: 'Old dry-stone walls holding up the terraces. Grass has had the run of them for years.',
   kura: 'Uncle\'s kura storehouse. The lock has rusted solid.',
@@ -43,7 +44,7 @@ export const STRINGS = {
 
   // Village and shrine
   sign_village_west: 'West: the Hollow Grove. East: Hinata Farm. North: the shrine stair.',
-  edge_grove: 'The path west narrows into the Hollow Grove. Something there is not ready for visitors yet.',
+  sign_grove: 'The Hollow Grove. Mind the falls. Take what the forest offers, and no more.',
   edge_nakasendo: 'The Nakasendō runs south toward the post towns. Your road lies here, for now.',
   daikansho_locked: 'The magistrate\'s office. A clerk slides the shutter closed as you approach.',
   dojo_closed: 'The dōjō doors are barred. A notice reads: "Closed until a teacher returns."',
@@ -141,6 +142,8 @@ export const STRINGS = {
   // Toasts and HUD
   toast_got: '+{n} {item}',
   toast_ate: '{item}: +{n} Genki',
+  toast_level: '{skill} Lv {lv}',
+  perk_ask: '{skill} has reached Lv {lv}. Choose a perk:\n{a}\n{b}',
   toast_heart: '{npc}: {n} ♥',
   toast_virtue: '{virtue} {jp} +{n}',
   toast_refill: 'Jōro filled',
@@ -151,6 +154,9 @@ export const STRINGS = {
   menu_items: 'Items',
   menu_options: 'Options',
   menu_bonds: 'Bonds',
+  menu_skills: 'Skills',
+  skill_lv: 'Lv {lv}',
+  virtues: 'Virtues',
   bond_unmet: 'You have not met this person yet. The village is small; you will.',
   bond_birthday: 'Birthday: {season} {day}',
   bond_gifts: 'Gifts this week: {n}/{max}',

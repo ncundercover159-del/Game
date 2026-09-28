@@ -112,9 +112,9 @@ export default {
   warps: [
     { x: 79, y: 12, w: 1, h: 3, to: 'farm', tx: 1, ty: 14, dir: 'right' },
     { x: 38, y: 0, w: 4, h: 1, to: 'shrine', tx: 19, ty: 47, dir: 'up' },
+    { x: 0, y: 12, w: 1, h: 3, to: 'grove', tx: 54, ty: 21, dir: 'left' },
   ],
   edges: [
-    { tx: 0, ty: 12, h: 3, text: 'edge_grove' },
     { tx: 38, ty: 59, w: 4, text: 'edge_nakasendo', textIf: ['restored_nakasendo', 'edge_nakasendo_open'] },
   ],
   spawn: { tx: 77, ty: 13, dir: 'left' },

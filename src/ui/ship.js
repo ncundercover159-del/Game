@@ -2,7 +2,8 @@
 import { fonts } from '../core/text.js';
 import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { t } from '../data/strings.js';
-import { itemDef, sellPrice } from '../data/items.js';
+import { itemDef } from '../data/items.js';
+import { sellValue } from '../systems/skills.js';
 import { shippingValue } from '../systems/day.js';
 
 const SLOT = 20;
@@ -96,13 +97,13 @@ export class ShipMenu {
     const iy = this.y + 50;
     if (s && sellable(s.id)) {
       const d = itemDef(s.id);
-      fonts.body.draw(ctx, `${d.name} ×${s.n}  →  ${sellPrice(s.id, s.q) * s.n} 文`, this.x + 12, iy, 'wood1');
+      fonts.body.draw(ctx, `${d.name} ×${s.n}  →  ${sellValue(this.game.skills, s.id, s.q) * s.n} 文`, this.x + 12, iy, 'wood1');
     }
     fonts.body.draw(ctx, t('ship_hint'), this.x + 12, iy + 14, 'wood3');
     // Crate contents: last few stacks and the running total.
     thin(ctx, atlas, this.x + 8, this.y + this.h - 44, this.w - 16, 20);
     g.shipped.slice(-8).forEach((q, i) => atlas.draw(ctx, iconName(q.id, null), this.x + 12 + i * 18, this.y + this.h - 42));
-    const total = t('ship_total', { n: shippingValue(g.shipped).total });
+    const total = t('ship_total', { n: shippingValue(g.shipped, g.skills).total });
     fonts.body.draw(ctx, total, this.x + this.w - 14 - fonts.body.measure(total), this.y + this.h - 39, 'red1');
     fonts.body.draw(ctx, `[ ${t('ship_undo')}`, this.x + this.w - 96, this.y + this.h - 20, g.shipped.length ? 'wood2' : 'wood4');
   }

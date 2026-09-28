@@ -3,17 +3,17 @@
 import { TILE } from '../config.js';
 import { OBJECT_TYPES } from '../data/objects.js';
 
-export const G = { GRASS: 0, DIRT: 1, WATER: 2, PATH: 3, WALL: 4, WOOD: 5, TATAMI: 6, TATAMI_R: 7, DOMA: 8, BRIDGE: 9, STEPS: 10, VOID: 11 };
+export const G = { GRASS: 0, DIRT: 1, WATER: 2, PATH: 3, WALL: 4, WOOD: 5, TATAMI: 6, TATAMI_R: 7, DOMA: 8, BRIDGE: 9, STEPS: 10, VOID: 11, CLIFF: 12, FALLS: 13 };
 // Ground legend shared by every map (see src/maps/*.js headers).
 const GROUND_OF = {
   T: G.GRASS, '.': G.GRASS, o: G.GRASS, f: G.GRASS, s: G.GRASS, t: G.GRASS, ',': G.DIRT, ':': G.DIRT,
   '~': G.WATER, '=': G.PATH, '#': G.WALL, w: G.WOOD, m: G.TATAMI, n: G.TATAMI_R, d: G.DOMA,
-  b: G.BRIDGE, S: G.STEPS, x: G.VOID, X: G.GRASS, p: G.DIRT, c: G.DIRT,
+  b: G.BRIDGE, S: G.STEPS, x: G.VOID, X: G.GRASS, p: G.DIRT, c: G.DIRT, C: G.CLIFF, W: G.FALLS, B: G.GRASS,
 };
 // Soil laid out by the map itself (village paddies and their channels).
 const SOIL_OF = { p: 1, c: 2 };
 // X: grass that can't be walked on (hedges, cliffs and the like drawn by objects or edges).
-const BLOCKING = new Set(['T', '~', 'f', '#', 'x', 'X']);
+const BLOCKING = new Set(['T', '~', 'f', '#', 'x', 'X', 'C', 'W']);
 
 export class GameMap {
   constructor(def) {
@@ -79,10 +79,10 @@ export class GameMap {
 
   isWater(x, y) { return this.groundAt(x, y) === G.WATER; }
 
-  /** Water for drawing purposes: bridges sit over water. */
+  /** Water for drawing purposes: bridges sit over water, and waterfalls pour into it. */
   isWaterish(x, y) {
     const g = this.groundAt(x, y);
-    return g === G.WATER || g === G.BRIDGE;
+    return g === G.WATER || g === G.BRIDGE || g === G.FALLS;
   }
 
   objectAt(x, y) {

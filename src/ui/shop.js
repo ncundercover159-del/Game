@@ -3,7 +3,8 @@
 import { fonts } from '../core/text.js';
 import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { t } from '../data/strings.js';
-import { itemDef, sellPrice } from '../data/items.js';
+import { itemDef } from '../data/items.js';
+import { sellValue } from '../systems/skills.js';
 import { SHOPS } from '../data/shops.js';
 import { TIERS, UPGRADABLE, UPGRADE_DAYS } from '../data/tools.js';
 import { dayIndex, SEASONS } from '../systems/calendar.js';
@@ -114,7 +115,7 @@ export class ShopMenu extends RowShop {
 
   sell(i) {
     const g = this.game, s = g.inventory.slots[i];
-    const value = sellPrice(s.id, s.q) * s.n;
+    const value = sellValue(g.skills, s.id, s.q) * s.n;
     g.inventory.slots[i] = null;
     g.money += value;
     g.stats.shippedValue += value;
@@ -133,7 +134,7 @@ export class ShopMenu extends RowShop {
       fonts.small.draw(ctx, `◀ ▶ ${t('shop_qty', { n: this.qty })}`, this.x + 12, this.y + this.h - 18, 'wood3');
     } else {
       const rows = g.inventory.slots.filter((s) => s && sellable(s.id)).map((s) => ({
-        icon: iconName(s.id), label: `${itemDef(s.id).name} ×${s.n}`, right: `${sellPrice(s.id, s.q) * s.n} 文`,
+        icon: iconName(s.id), label: `${itemDef(s.id).name} ×${s.n}`, right: `${sellValue(g.skills, s.id, s.q) * s.n} 文`,
       }));
       this.drawRows(ctx, rows);
     }

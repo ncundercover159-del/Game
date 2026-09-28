@@ -1,6 +1,7 @@
 // Every item in the game. `icon` defaults to the item id (atlas frame `icon_<id>`).
 // Prices are in mon (文). Quality multiplies sell value (see QUALITY).
 import { CROPS } from './crops.js';
+import { FORAGE, ARTIFACTS } from './forage.js';
 
 export const QUALITY = [
   { name: '', stars: 0, mult: 1 },
@@ -44,6 +45,9 @@ for (const [id, c] of Object.entries(CROPS)) {
   };
   ITEMS[id] = { name: c.name, jp: c.jp, kind: 'crop', sell: c.sell, desc: c.desc };
 }
+
+for (const [id, f] of Object.entries(FORAGE)) ITEMS[id] = { name: f.name, jp: f.jp, kind: 'forage', sell: f.sell, desc: f.desc };
+for (const [id, a] of Object.entries(ARTIFACTS)) ITEMS[id] = { name: a.name, jp: a.jp, kind: 'artifact', sell: a.sell, desc: a.desc };
 
 export const STACK = 99;
 

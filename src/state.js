@@ -8,6 +8,7 @@ import { newVirtues } from './data/virtues.js';
 import { newRequests } from './systems/requests.js';
 import { newMail } from './systems/mail.js';
 import { newOfferings } from './systems/offerings.js';
+import { newSkills } from './systems/skills.js';
 
 export const TOOL_TIERS = () => ({ hoe: 0, can: 0, axe: 0, pickaxe: 0, sickle: 0 });
 
@@ -21,6 +22,7 @@ export function newState(seed) {
     inventory: { size: 12, slots: START.inventory, selected: 0 },
     flags: {}, stats: { shippedValue: 0 }, rng: seed ^ 0x5bd1e995, maps: {},
     bonds: {}, virtues: newVirtues(), requests: newRequests(), mail: newMail(), offerings: newOfferings(),
+    skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] },
   };
 }
 
@@ -38,3 +40,6 @@ MIGRATIONS[1] = (s) => ({
 // v2 (M2) -> v3 (M3): bonds, virtues, notice-board requests, mail, shrine offerings. The player's
 // map defaults to the farm.
 MIGRATIONS[2] = (s) => ({ ...s, bonds: {}, virtues: newVirtues(), requests: newRequests(), mail: newMail(), offerings: newOfferings() });
+
+// v3 (M3) -> v4 (M4): skills and XP, food buffs, today's picked forage.
+MIGRATIONS[3] = (s) => ({ ...s, skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] } });

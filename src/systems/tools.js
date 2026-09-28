@@ -6,6 +6,7 @@ import { OBJECT_TYPES } from '../data/objects.js';
 import { TIERS } from '../data/tools.js';
 import { till, untill, water, cropAt, isRipe, clearDead, digChannel, coverSoil, plantProblem } from './farming.js';
 import { SOIL, computeFlow } from './irrigation.js';
+import { hasPerk } from './skills.js';
 
 export const GENKI_COST = 2;
 export const canCapacity = (tier) => TIERS[tier].can;
@@ -34,7 +35,9 @@ export function applyTool(w, tool, tiles, level = 0) {
     return 'refill';
   }
 
-  game.spendGenki(GENKI_COST * (level + 1));
+  // Quarryman: breaking rock with the pickaxe costs nothing.
+  const rock = tool === 'pickaxe' && ['stone', 'boulder'].includes(map.objectAt(tx, ty)?.type) && hasPerk(game.skills, 'quarryman');
+  if (!rock) game.spendGenki(GENKI_COST * (level + 1));
   let result = 'miss';
   for (const [x, y] of tiles) {
     const r = applyOne(w, tool, x, y);
@@ -49,6 +52,8 @@ function applyOne(w, tool, tx, ty) {
   const { map, game, fx } = w;
   const cx = tx * TILE + 8, cy = ty * TILE + 12;
   const o = map.objectAt(tx, ty);
+  if (o && o.type === 'dig' && tool === 'hoe') { w.dig(o); return 'dig'; }
+  if (o && o.type === 'forage') return 'miss';
   if (o) return hitObject(w, o, tool);
   // Village soil is somebody else's: tools only work the farm's.
   if (!map.def.farmable) return 'miss';
@@ -115,11 +120,16 @@ function hitObject(w, o, tool) {
 
   // Destroyed: drops, then maybe leave something behind (a felled tree leaves its stump).
   const table = (def.drops && (def.drops[tool] || def.drops.any)) || [];
+  const perk = (id) => hasPerk(game.skills, id);
   for (const [id, min, max, chance = 1] of table) {
     if (rng.next() >= chance) continue;
-    const n = rng.int(min, max);
+    let n = rng.int(min, max);
+    if (id === 'wood' && perk('woodsman')) n = Math.ceil(n * 1.25);
+    if (id === 'stone' && perk('miner')) n++;
     if (n > 0) w.drops.spawn(rng, id, n, 0, cx, cy);
   }
+  if (o.type === 'boulder' && perk('prospector') && rng.next() < 0.25) w.drops.spawn(rng, 'iron_bar', 1, 0, cx, cy);
+  if (def.xp) game.xp(def.xp[0], def.xp[1]);
   fx.burst(def.fx, cx, cy, 10, { speed: 45, up: 80, life: 0.7 });
   map.removeObject(o);
   if (o.type === 'sluice') computeFlow(map);

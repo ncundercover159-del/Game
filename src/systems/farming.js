@@ -99,19 +99,21 @@ export function plant(map, x, y, cropId, seasonId = null) {
   return true;
 }
 
-export function rollQuality(rng) {
+/** Harvest quality: base odds (Fine, Excellent) raised by `bonus` (skill level and food buffs). */
+export function rollQuality(rng, bonus = 0) {
   const r = rng.next();
-  if (r < QUALITY_ODDS[1]) return 2;
-  if (r < QUALITY_ODDS[1] + QUALITY_ODDS[0]) return 1;
+  const excellent = QUALITY_ODDS[1] + bonus * 0.25, fine = QUALITY_ODDS[0] + bonus;
+  if (r < excellent) return 2;
+  if (r < excellent + fine) return 1;
   return 0;
 }
 
 /** Harvest a ripe crop: returns { item, n, q } or null. Regrowing crops stay and restart. */
-export function harvest(map, x, y, rng) {
+export function harvest(map, x, y, rng, bonus = 0) {
   const crop = cropAt(map, x, y);
   if (!isRipe(crop)) return null;
   const def = CROPS[crop.id];
-  const q = rollQuality(rng);
+  const q = rollQuality(rng, bonus);
   const n = def.yield ? rng.int(def.yield[0], def.yield[1]) : 1;
   if (def.regrow) crop.growth = def.days - def.regrow;
   else map.crops.delete(map.i(x, y));
@@ -138,7 +140,7 @@ export function watered(map, k) {
  * have it, then all soil dries. `seasonId` is tomorrow's season: crops out of season wither.
  * Returns { grew, withered }.
  */
-export function growNight(map, seasonId = null) {
+export function growNight(map, seasonId = null, extra = null) {
   let grew = 0, withered = 0;
   computeFlow(map);
   for (const [k, crop] of map.crops) {
@@ -146,7 +148,11 @@ export function growNight(map, seasonId = null) {
     const def = CROPS[crop.id];
     const x = k % map.w, y = Math.floor(k / map.w);
     const ok = watered(map, k) && (!def.paddy || isFlooded(map, x, y)) && (!def.cover || map.cover[k]);
-    if (ok && crop.growth < def.days) { crop.growth++; grew++; }
+    if (ok && crop.growth < def.days) {
+      crop.growth += extra?.() ? 2 : 1;
+      crop.growth = Math.min(def.days, crop.growth);
+      grew++;
+    }
     if (seasonId && !inSeason(crop.id, seasonId)) { crop.dead = true; withered++; map.touch(x, y); }
   }
   for (let k = 0; k < map.wet.length; k++) {

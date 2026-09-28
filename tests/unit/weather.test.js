@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { weatherFor, typhoonDays, WEATHER } from '../../src/systems/weather.js';
 import { shippingValue } from '../../src/systems/day.js';
+import { newSkills } from '../../src/systems/skills.js';
 import { swingArea } from '../../src/systems/tools.js';
 import { makeDoc, upgrade } from '../../src/core/save.js';
 import '../../src/state.js';
@@ -24,7 +25,7 @@ test('tsuyu dominates early summer; exactly two typhoon days each autumn', () =>
 });
 
 test('shipping pays full price with quality bonuses', () => {
-  const r = shippingValue([{ id: 'daikon', n: 3, q: 0 }, { id: 'strawberry', n: 2, q: 2 }]);
+  const r = shippingValue([{ id: 'daikon', n: 3, q: 0 }, { id: 'strawberry', n: 2, q: 2 }], newSkills());
   assert.equal(r.total, 3 * 40 + 2 * Math.floor(75 * 1.25));
   assert.equal(r.lines.length, 2);
 });
@@ -40,10 +41,11 @@ test('M1 (v1) saves migrate through v2 (weather, tiers, crate) to v3 (bonds, vir
   const v1 = makeDoc({ seed: 7, cal: { day: 3, season: 0, year: 1, minutes: 400 }, money: 10 }, {});
   v1.version = 1;
   const up = upgrade(v1);
-  assert.equal(up.version, 3);
+  assert.equal(up.version, 4);
   assert.ok(WEATHER[up.state.weather] && WEATHER[up.state.tomorrow]);
   assert.deepEqual(up.state.shipped, []);
   assert.equal(up.state.tiers.hoe, 0);
   assert.deepEqual(up.state.bonds, {});
   assert.equal(up.state.virtues.jin, 0);
+  assert.equal(up.state.skills.farming.xp, 0);
 });

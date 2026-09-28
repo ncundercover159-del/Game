@@ -12,10 +12,12 @@ import { Cutscene } from './ui/cutscene.js';
 import { askSleep, sleep, openShop, eat, bow } from './flow.js';
 import { EVENTS } from './data/events.js';
 import { VIRTUES } from './data/virtues.js';
+import { SKILLS, PERKS } from './data/skills.js';
+import { gainXp, levelOf, buffAmount, expireBuffs, stamp } from './systems/skills.js';
 import { drawWorld } from './world/draw.js';
 import { Lighting } from './world/lighting.js';
 import { Inventory } from './systems/inventory.js';
-import { TICK_SECONDS, TICK_MINUTES, DAY_END, MIDNIGHT, parseTime, SEASONS } from './systems/calendar.js';
+import { TICK_SECONDS, TICK_MINUTES, DAY_END, MIDNIGHT, parseTime, SEASONS, dayIndex } from './systems/calendar.js';
 import { weatherFor, WEATHER } from './systems/weather.js';
 import { WeatherFx } from './world/weatherfx.js';
 import { newState } from './state.js';
@@ -76,6 +78,10 @@ export class Game {
     this.requests = structuredClone(s.requests);
     this.mail = structuredClone(s.mail);
     this.offerings = structuredClone(s.offerings);
+    this.skills = structuredClone(s.skills);
+    this.buffs = s.buffs.map((b) => ({ ...b }));
+    this.foraged = structuredClone(s.foraged);
+    this.pendingPerks = [];
     this.inventory = Inventory.from(s.inventory);
     this.rng = new Rng(s.rng);
     this.applyParams();
@@ -132,6 +138,30 @@ export class Game {
     if (this.virtues[id] !== before && n > 0) this.toast('toast_virtue', { virtue: VIRTUES[id].name, jp: VIRTUES[id].jp, n }, null);
   }
 
+  /** Earn skill XP; level-ups toast, and Lv 5 and 10 queue a perk choice. */
+  xp(id, n) {
+    for (const lv of gainXp(this.skills, id, n)) {
+      this.toast('toast_level', { skill: SKILLS[id].name, lv }, null);
+      this.sfx('morning');
+      if (lv === 5 || lv === 10) this.pendingPerks.push({ id, tier: lv === 5 ? 0 : 1 });
+    }
+  }
+
+  /** Harvest/forage quality bonus: skill level and food. */
+  qualityBonus(skill) {
+    return (levelOf(this.skills[skill].xp) - 1) * 0.012 + buffAmount(this.buffs, skill);
+  }
+
+  choosePerk({ id, tier }) {
+    const [a, b] = PERKS[id][tier];
+    this.modals.push(new Dialog(this, {
+      text: t('perk_ask', { skill: SKILLS[id].name, lv: tier ? 10 : 5, a: `${a.name}: ${a.desc}`, b: `${b.name}: ${b.desc}` }),
+      choices: [a.name, b.name],
+      noCancel: true,
+      onChoose: (i) => { this.skills[id].perks.push((i ? b : a).id); this.sfx('harvest'); },
+    }));
+  }
+
   /** Talk to (or give a gift to) a villager. */
   talkTo(n) { interactNpc(this, n); }
 
@@ -143,6 +173,8 @@ export class Game {
     this.sfx(wp.door ? 'door' : 'step');
     this.modals.push(new InkWipe(this, { sweep: 0.28, hold: 0.05, onCovered: () => this.enter(wp.to, wp.tx, wp.ty, wp.dir) }));
   }
+
+  get dayIndex() { return dayIndex(this.cal); }
 
   get indoors() { return !!this.world.map.def.indoor; }
 
@@ -203,6 +235,7 @@ export class Game {
       upgrade: this.upgrade, shipped: this.shipped.map((x) => ({ ...x })), stats: { ...this.stats },
       bonds: structuredClone(this.bonds), virtues: { ...this.virtues }, requests: structuredClone(this.requests),
       mail: structuredClone(this.mail), offerings: structuredClone(this.offerings),
+      skills: structuredClone(this.skills), buffs: this.buffs.map((b) => ({ ...b })), foraged: structuredClone(this.foraged),
       inventory: this.inventory.serialize(), flags: { ...this.flags },
       rng: this.rng.state(), player: { ...this.player.serialize(), map: this.world.map.id },
       maps: this.mapsSnapshot(),
@@ -315,6 +348,7 @@ export class Game {
       return;
     }
     this.hud.update(dt);
+    if (this.pendingPerks.length && !this.modals.length && !this.pendingScene) this.choosePerk(this.pendingPerks.shift());
     if (this.pendingScene && !this.modals.length) {
       this.modals.push(new Cutscene(this, this.pendingScene));
       this.pendingScene = null;
@@ -353,6 +387,7 @@ export class Game {
       this.clockAcc -= per;
       this.cal.minutes += TICK_MINUTES;
       if (this.cal.minutes === MIDNIGHT) this.aside('tk_late');
+      expireBuffs(this.buffs, stamp(this.dayIndex, this.cal.minutes));
       // The restored shrine bell rings at dusk (and at dawn, see flow.js).
       if (this.cal.minutes === 18 * 60 && this.flags.restored_bell) this.sfx('bell');
       if (this.cal.minutes >= DAY_END) { this.sleep(true); break; }

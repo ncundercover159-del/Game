@@ -7,7 +7,7 @@ const CPS = 70;
 const PORTRAIT = 48;
 
 export class Dialog {
-  constructor(game, { text, speaker = null, portrait = null, voice = 0, choices = null, onChoose = null, onClose = null }) {
+  constructor(game, { text, speaker = null, portrait = null, voice = 0, choices = null, onChoose = null, onClose = null, noCancel = false }) {
     this.game = game;
     this.text = text;
     this.speaker = speaker;
@@ -16,6 +16,7 @@ export class Dialog {
     this.choices = choices;
     this.onChoose = onChoose;
     this.onClose = onClose;
+    this.noCancel = noCancel;
     this.shown = 0;
     this.sel = 0;
     this.done = false;
@@ -60,7 +61,7 @@ export class Dialog {
       }
     }
     const confirm = input.pressed('confirm') || input.pressed('click');
-    const cancel = input.pressed('cancel') || input.pressed('rclick');
+    const cancel = !this.noCancel && (input.pressed('cancel') || input.pressed('rclick'));
     if (confirm || cancel) {
       if (!this.finished) { this.shown = this.text.length; return true; }
       if (this.choices) {

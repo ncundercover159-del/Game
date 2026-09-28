@@ -163,9 +163,7 @@ await withBrowser(async (browser, base) => {
 
   step('saves from the menu');
   await press(page, 'Tab', 50);
-  await press(page, 'BracketRight');
-  await press(page, 'BracketRight');
-  await press(page, 'BracketRight');
+  await press(page, 'BracketLeft');
   await press(page, 'Enter', 50);
   await press(page, 'Escape', 50);
   s = await state(page);

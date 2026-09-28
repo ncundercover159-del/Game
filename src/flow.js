@@ -42,6 +42,7 @@ export function sleep(g, passedOut) {
       const bed = MAPS.house_farm.wake;
       g.enter('house_farm', bed.tx, bed.ty, bed.dir);
       g.villagers.snap();
+      for (const w of g.worlds.values()) w.spawnSpots();
       g.saveNow(true);
       summary = summaryLines(r, g);
       morning(g, r, passedOut);

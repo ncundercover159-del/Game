@@ -1,41 +1,42 @@
 // World object types: what they look like, which tools affect them, what they drop.
 // drops: [itemId, min, max, chance=1]. `tools` lists tools that damage it; `power` is per tool.
+// `xp`: [skill, amount] earned when it is cleared.
 // `flat` things lie on the floor and are drawn under everything that stands.
 
 export const OBJECT_TYPES = {
   weed: {
-    name: 'Weeds', solid: true, hp: 1, shadow: null,
+    name: 'Weeds', solid: true, hp: 1, shadow: null, xp: ['foraging', 1],
     tools: { sickle: 1, hoe: 1, axe: 1, pickaxe: 1 },
     drops: { sickle: [['hay', 1, 1, 0.6]] },
     fx: 'fx_leaf', sfx: 'cut',
   },
   stone: {
-    name: 'Stone', solid: true, hp: 1, shadow: 'shadow_s',
+    name: 'Stone', solid: true, hp: 1, shadow: 'shadow_s', xp: ['mining', 2],
     tools: { pickaxe: 1 }, drops: { any: [['stone', 1, 2]] }, fx: 'fx_pebble', sfx: 'rock', hint: 'pickaxe',
   },
   twig: {
-    name: 'Twigs', solid: true, hp: 1, shadow: null,
+    name: 'Twigs', solid: true, hp: 1, shadow: null, xp: ['foraging', 1],
     tools: { axe: 1 }, drops: { any: [['wood', 1, 2]] }, fx: 'fx_chip', sfx: 'chop', hint: 'axe',
   },
   stump: {
-    name: 'Stump', solid: true, hp: 5, shadow: 'shadow_s',
+    name: 'Stump', solid: true, hp: 5, shadow: 'shadow_s', xp: ['foraging', 4],
     tools: { axe: 1 }, drops: { any: [['wood', 3, 5]] }, fx: 'fx_chip', sfx: 'chop', hint: 'axe',
   },
   tree: {
-    name: 'Tree', solid: true, hp: 10, shadow: 'shadow_l',
+    name: 'Tree', solid: true, hp: 10, shadow: 'shadow_l', xp: ['foraging', 6],
     tools: { axe: 1 }, drops: { any: [['wood', 6, 10]] }, fx: 'fx_chip', sfx: 'chop', hint: 'axe',
     becomes: 'stump',
   },
   bamboo: {
-    name: 'Bamboo', solid: true, hp: 3, shadow: 'shadow_m',
+    name: 'Bamboo', solid: true, hp: 3, shadow: 'shadow_m', xp: ['foraging', 3],
     tools: { axe: 1 }, drops: { any: [['bamboo', 2, 4]] }, fx: 'fx_leaf', sfx: 'chop', hint: 'axe',
   },
   log: {
-    name: 'Large Log', solid: true, hp: 12, shadow: 'shadow_m', minTier: 1,
+    name: 'Large Log', solid: true, hp: 12, shadow: 'shadow_m', xp: ['foraging', 10], minTier: 1,
     tools: { axe: 1 }, drops: { any: [['wood', 10, 14]] }, fx: 'fx_chip', sfx: 'chop', hint: 'axe',
   },
   boulder: {
-    name: 'Boulder', solid: true, hp: 12, shadow: 'shadow_m', minTier: 1,
+    name: 'Boulder', solid: true, hp: 12, shadow: 'shadow_m', xp: ['mining', 10], minTier: 1,
     tools: { pickaxe: 1 }, drops: { any: [['stone', 8, 12]] }, fx: 'fx_pebble', sfx: 'rock', hint: 'pickaxe',
   },
   sluice: {
@@ -44,11 +45,16 @@ export const OBJECT_TYPES = {
   },
   // Static props: not damageable.
   forest: { name: 'Old Tree', solid: true, static: true, shadow: 'shadow_l', say: 'forest' },
+  thicket: { name: 'Bamboo Thicket', solid: true, static: true, shadow: 'shadow_m', say: 'thicket' },
   toro: { name: 'Stone Lantern', solid: true, static: true, shadow: 'shadow_s', say: 'toro' },
   sign: { name: 'Sign', solid: true, static: true, shadow: null },
   fence: { name: 'Fence', solid: true, static: true, shadow: null },
   crate: { name: 'Shipping Crate', solid: true, static: true, shadow: 'shadow_m' },
   ishigaki: { name: 'Terrace Wall', solid: true, static: true, shadow: null, say: 'terrace_wall' },
+
+  // Forage lying on the ground (picked by hand) and dig spots (the hoe turns them over).
+  forage: { name: 'Forage', solid: false, hp: 1, shadow: null },
+  dig: { name: 'Dig Spot', solid: false, hp: 1, shadow: null },
 
   // Village and shrine props.
   notice: { name: 'Notice Board', solid: true, static: true, shadow: null },

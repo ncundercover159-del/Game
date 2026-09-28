@@ -1,12 +1,14 @@
-// Pause menu (Esc/Tab): Items (rearrange the backpack, item details), Bonds, Options, Save.
+// Pause menu (Esc/Tab): Items (rearrange the backpack, item details), Skills, Bonds, Options, Save.
 import { fonts } from '../core/text.js';
 import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { List } from './list.js';
 import { BondsPage } from './bonds.js';
+import { drawSkillsPage } from './skills.js';
 import { t } from '../data/strings.js';
-import { itemDef, sellPrice, QUALITY } from '../data/items.js';
+import { itemDef, QUALITY } from '../data/items.js';
+import { sellValue } from '../systems/skills.js';
 
-const TABS = ['menu_items', 'menu_bonds', 'menu_options', 'menu_save'];
+const TABS = ['menu_items', 'menu_skills', 'menu_bonds', 'menu_options', 'menu_save'];
 const TAB_W = 70;
 const SLOT = 20;
 
@@ -63,9 +65,9 @@ export class Menu {
       TABS.forEach((_, i) => { if (hit(m.x, m.y, this.x + 6 + i * TAB_W, this.y - 20, TAB_W - 4, 20)) { this.tab = i; g.sfx('ui'); } });
     }
     if (this.tab === 0) this.updateItems(input);
-    else if (this.tab === 1) this.bonds.update(input, this.x, this.y);
-    else if (this.tab === 2) this.updateOptions(input);
-    else {
+    else if (this.tab === 2) this.bonds.update(input, this.x, this.y);
+    else if (this.tab === 3) this.updateOptions(input);
+    else if (this.tab === 4) {
       const it = this.saveList.update(input);
       if (it) { it.act(); if (!g.menuOpen) return false; }
     }
@@ -138,8 +140,9 @@ export class Menu {
     tab(TABS[this.tab], this.tab);
     rect(ctx, 'wood6', this.x + 6 + this.tab * TAB_W + 4, this.y + 1, TAB_W - 12, 3);
     if (this.tab === 0) this.drawItems(ctx, atlas);
-    else if (this.tab === 1) this.bonds.draw(ctx, this.x, this.y, this.w);
-    else if (this.tab === 2) this.drawOptions(ctx);
+    else if (this.tab === 1) drawSkillsPage(ctx, g, this.x, this.y, this.w);
+    else if (this.tab === 2) this.bonds.draw(ctx, this.x, this.y, this.w);
+    else if (this.tab === 3) this.drawOptions(ctx);
     else {
       fonts.body.draw(ctx, `${g.state.name} · ${g.state.farm} Farm`, this.x + 12, this.y + 12, 'wood2');
       this.saveList.draw(ctx, this.x + 10, this.y + 32, this.w - 20);
@@ -167,7 +170,7 @@ export class Menu {
     fonts.big.draw(ctx, d.jp, x + 26 + fonts.big.measure(d.name), y, 'red1');
     if (s.q) fonts.body.draw(ctx, `${'★'.repeat(QUALITY[s.q].stars)} ${QUALITY[s.q].name}`, x + 22, y + 15, 'gold0');
     fonts.body.wrap(d.desc, this.w - 40).forEach((l, i) => fonts.body.draw(ctx, l, x, y + 28 + i * 12, 'wood2'));
-    if (d.sell) fonts.body.draw(ctx, t('sell', { n: sellPrice(s.id, s.q) }), x, y + 66, 'red1');
+    if (d.sell) fonts.body.draw(ctx, t('sell', { n: sellValue(this.game.skills, s.id, s.q) }), x, y + 66, 'red1');
   }
 
   drawOptions(ctx) {

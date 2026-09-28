@@ -5,7 +5,7 @@ import { G } from './gamemap.js';
 import { makeCanvas } from '../art/compiler.js';
 import { canonical9, mask9At, variantAt, landTile, waterTile, grassTile, tilledTile, pathTile, channelTile, GRASS_PALS } from '../art/terrain.js';
 import { SOIL, isFlooded } from '../systems/irrigation.js';
-import { tatami, planks, doma, wallFace, wallTop, steps, bridge, voidTile } from '../art/interior.js';
+import { tatami, planks, doma, wallFace, wallTop, steps, bridge, voidTile, cliff, falls } from '../art/interior.js';
 import { hash } from '../core/rng.js';
 
 const CHUNK = 32;
@@ -108,6 +108,13 @@ export class GroundRenderer {
       case G.TATAMI_R: put(`Xtatr${x % 2}`, () => tatami(x % 2, true)); break;
       case G.DOMA: put(`Xdoma${v % 4}`, () => doma(v % 4)); break;
       case G.STEPS: put(`Xstep${v % 3}`, () => steps(v % 3)); break;
+      case G.CLIFF: {
+        const lip = m.groundAt(x, y - 1) !== G.CLIFF && y > 0;
+        const foot = m.groundAt(x, y + 1) !== G.CLIFF;
+        put(`Xcliff${v % 5}${lip ? 1 : 0}${foot ? 1 : 0}`, () => cliff(v % 5, lip, foot));
+        break;
+      }
+      case G.FALLS: break; // drawn animated with the water, under the chunks
       case G.BRIDGE: {
         const w = m.groundAt(x - 1, y) !== G.BRIDGE, e = m.groundAt(x + 1, y) !== G.BRIDGE;
         put(`Xbr${v % 4}${w ? 1 : 0}${e ? 1 : 0}`, () => bridge(v % 4, w, e));
@@ -153,6 +160,13 @@ export class GroundRenderer {
       if (mask < 0) continue;
       const v = variantAt(x, y);
       const c = this.cells.get(`W${mask}.${v}.${frame}`, () => waterTile(mask, v, frame));
+      ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, x * TILE - cam.ix, y * TILE - cam.iy, TILE, TILE);
+    }
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      if (m.ground[y * m.w + x] !== G.FALLS) continue;
+      const l = m.groundAt(x - 1, y) !== G.FALLS, r = m.groundAt(x + 1, y) !== G.FALLS, foot = m.groundAt(x, y + 1) === G.WATER;
+      const v = x % 4;
+      const c = this.cells.get(`F${v}${l ? 1 : 0}${r ? 1 : 0}${foot ? 1 : 0}.${frame}`, () => falls(v, frame, l, r, foot));
       ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, x * TILE - cam.ix, y * TILE - cam.iy, TILE, TILE);
     }
   }

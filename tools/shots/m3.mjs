@@ -58,7 +58,7 @@ export default async function m3({ page, base, boot, shot, OUT }) {
     g.modals = [];
     const mk = (pts, known = {}) => ({ met: true, pts, talkedDay: -1, giftDay: -1, giftWeek: -1, giftsThisWeek: 0, lastSeen: 0, known });
     Object.assign(g.bonds, { heibei: mk(520), okiku: mk(760, { strawberry: 'loved', tea: 'liked' }), tomoe: mk(300), kaito: mk(130) });
-    G.press('Tab'); G.press('BracketRight'); G.press('ArrowDown'); G.advance(150);
+    G.press('Tab'); G.press('BracketRight'); G.press('BracketRight'); G.press('ArrowDown'); G.advance(150);
   });
   await shot('27-bonds-tab');
 

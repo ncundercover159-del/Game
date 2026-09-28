@@ -101,3 +101,30 @@ export function voidTile() {
   fillRect(g, 0, 0, T, T, 'ink0');
   return g;
 }
+
+/** Cliff face: layered rock, lit on top, a mossy lip when grass is above, shadowed at its foot. */
+export function cliff(v, lip, foot) {
+  const g = grid(T, T);
+  for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+    const band = (y + (v * 3) + ((x >> 2) % 2)) % 5;
+    let c = band === 0 ? 'stone1' : band === 1 ? 'stone3' : 'stone2';
+    if (hashf(x, y, v, 21) > 0.9) c = 'stone0';
+    set(g, x, y, c);
+  }
+  if (lip) { hline(g, 0, 15, 0, 'grass3'); hline(g, 0, 15, 1, 'grass2'); for (let x = v % 3; x < T; x += 3) set(g, x, 2, 'grass1'); }
+  if (foot) { hline(g, 0, 15, 13, 'stone1'); hline(g, 0, 15, 14, 'stone0'); hline(g, 0, 15, 15, 'ink1'); }
+  return g;
+}
+
+/** Waterfall column, 4 frames: streaks sliding down, darker edges, foam where it meets the pool. */
+export function falls(v, frame, left, right, foot) {
+  const g = grid(T, T);
+  for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+    const s = (hashf(x, 0, v, 23) * 16 + y - frame * 4 + 64) % 16;
+    let c = s < 3 ? 'ink6' : s < 7 ? 'water4' : s < 12 ? 'water3' : 'water2';
+    if ((left && x < 2) || (right && x > 13)) c = 'water1';
+    set(g, x, y, c);
+  }
+  if (foot) for (let x = 0; x < T; x++) for (let y = 12; y < T; y++) if (hashf(x, y, frame, 24) > 0.35) set(g, x, y, y > 13 ? 'ink6' : 'water4');
+  return g;
+}

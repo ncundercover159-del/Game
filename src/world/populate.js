@@ -15,6 +15,7 @@ export function decorate(map) {
   for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) {
     const ch = def.ground[y][x];
     if (ch === 'f') map.addObject({ type: 'fence', x, y, v: x % 3 === 0 ? 1 : 0 });
+    if (ch === 'B') map.addObject({ type: 'thicket', x, y, v: hash(x, y, 0, 79) % 2 });
     // Outside the farm, trees are scenery rather than timber.
     if (!def.wild && (ch === 's' || ch === 't')) map.addObject({ type: 'forest', x, y, kind: ch === 's' ? 'sakura' : 'broadleaf', v: hash(x, y, 0, 78) % 3 });
     // Forest edge: a staggered lattice so canopies overlap into a continuous treeline.

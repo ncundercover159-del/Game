@@ -12,6 +12,7 @@ import { cropGrids, CROP_ART } from './crops.js';
 import { genCropStages, witheredStage } from './cropgen.js';
 import { toolIcons, itemIcons, coinIcon, tierToolIcons } from './icons.js';
 import { foodIcons } from './food.js';
+import { forageIcons, digSpot } from './forage.js';
 import { townhouse, torii, honden, noticeBoard, jizo, bench, parasol, riceBales, mailbox, emaRack, shimenawa, rearGate } from './town.js';
 import { futon, irori, tansu, andon, counter, shelf, teaTable, zabuton, forge, anvil, drawers, nets, altar, kamidana } from './furniture.js';
 import { CROPS } from '../data/crops.js';
@@ -199,6 +200,9 @@ export function buildArt() {
   for (const [k, g] of Object.entries(itemIcons())) add(`icon_${k}`, g, 0, 0);
   for (const [k, g] of Object.entries(tierToolIcons())) add(`icon_${k}`, g, 0, 0);
   for (const [k, g] of Object.entries(foodIcons())) add(`icon_${k}`, g, 0, 0);
+  // Forage doubles as its own ground sprite, anchored at the feet.
+  for (const [k, g] of Object.entries(forageIcons())) { add(`icon_${k}`, g, 0, 0); add(`forage_${k}`, g, 8, 15); }
+  add('dig_spot', digSpot(), 8, 12);
   add('icon_coin', coinIcon(), 0, 0);
 
   add('ui_frame', FRAME, 0, 0);

@@ -28,7 +28,9 @@ function objectSprite(o) {
     case 'weed': return o.v === 3 ? 'weed_flower' : `weed${o.v}`;
     case 'stone': return `stone${o.v}`;
     case 'twig': return `twig${o.v}`;
-    case 'bamboo': return `bamboo${o.v}`;
+    case 'bamboo': case 'thicket': return `bamboo${o.v}`;
+    case 'forage': return `forage_${o.kind}`;
+    case 'dig': return 'dig_spot';
     case 'fence': return o.v ? 'fence_post' : 'fence';
     default: return o.kind ? `${o.type}_${o.kind}` : o.type;
   }
@@ -102,7 +104,27 @@ export function drawWorld(w, ctx, cam) {
   for (const r of list) pool.push(r);
   list.length = 0;
 
+  drawShafts(w, ctx, cam);
   w.fx.draw(ctx, atlas, cam);
+}
+
+/** Slanting shafts of daylight through bamboo: two stepped bands, added onto the scene. */
+function drawShafts(w, ctx, cam) {
+  const { map, game } = w;
+  const m = game.cal.minutes;
+  if (!map.def.shafts || m < 7 * 60 || m > 17 * 60 || game.weather !== 'clear') return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const [tx, ty] of map.def.shafts) {
+    const x0 = tx * TILE - cam.ix, y0 = ty * TILE - cam.iy;
+    const pulse = 0.5 + 0.5 * Math.sin(w.time * 0.4 + tx);
+    for (const [width, alpha] of [[16, 0.09], [6, 0.12]]) {
+      ctx.globalAlpha = alpha * (0.7 + 0.3 * pulse);
+      ctx.fillStyle = hex('gold3');
+      for (let r = 0; r < 96; r += 2) ctx.fillRect(x0 - Math.floor(r / 2) - width / 2, y0 + r, width, 2);
+    }
+  }
+  ctx.restore();
 }
 
 function drawObject(w, ctx, cam, o) {

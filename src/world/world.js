@@ -11,8 +11,12 @@ import { itemDef } from '../data/items.js';
 import { applyTool, plantSeed, placeItem, spreadStraw, swingArea, GENKI_COST } from '../systems/tools.js';
 import { computeFlow } from '../systems/irrigation.js';
 import { TIERS, CHARGE_STEP } from '../data/tools.js';
-import { cropAt, isRipe, harvest, plant, canPlant } from '../systems/farming.js';
+import { cropAt, isRipe, harvest, plant, canPlant, rollQuality } from '../systems/farming.js';
+import { spawnSpots, digFind } from '../systems/forage.js';
+import { dayIndex } from '../systems/calendar.js';
 import { openNotice, openMailbox, openAltar } from '../flow.js';
+import { XP } from '../data/skills.js';
+import { buffAmount, hasPerk } from '../systems/skills.js';
 
 const REACH = 1;
 const CHARGEABLE = new Set(['hoe', 'can']);
@@ -26,6 +30,7 @@ export class World {
     if (saved) this.map.restore(saved);
     else if (def.wild) populate(this.map, game.seed);
     if (game.flags.restored_terraces) this.openTerraces();
+    this.spawnSpots();
     computeFlow(this.map);
     this.ground = new GroundRenderer(this.map, game.cells, game.atlas, game.cal.season);
     this.fx = new Fx();
@@ -65,7 +70,7 @@ export class World {
       if (!p.swing && input.isDown('use')) this.use();
     } else {
       const a = input.axis();
-      const moved = p.walk(dt, a.x, a.y, this.map, this.game.genki <= 0);
+      const moved = p.walk(dt, a.x, a.y, this.map, this.game.genki <= 0, 1 + buffAmount(this.game.buffs, 'speed'));
       this.stepDist += moved;
       if (this.stepDist > 18) { this.stepDist = 0; this.game.sfx('step'); }
       if (input.pressed('use')) this.use();
@@ -149,6 +154,8 @@ export class World {
     const map = this.map;
     const npc = g.villagers.at(map.id, x, y);
     if (npc) { g.talkTo(npc); return; }
+    const spot = map.objectAt(x, y);
+    if (spot && spot.type === 'forage') { this.pickForage(spot); return; }
     if (isRipe(cropAt(map, x, y))) { this.harvestAt(x, y); return; }
     const cur = g.inventory.current;
     if (cur && itemDef(cur.id).kind === 'seed' && canPlant(map, x, y, cur.id.slice(5))) { plantSeed(this, g.inventory.selected, x, y); return; }
@@ -191,9 +198,10 @@ export class World {
     const crop = cropAt(this.map, x, y);
     if (!crop) return false;
     if (g.inventory.room(crop.id) <= 0) { g.aside('tk_full'); return false; }
-    const got = harvest(this.map, x, y, this.rng);
+    const got = harvest(this.map, x, y, this.rng, g.qualityBonus('farming'));
     if (!got) return false;
     g.pickUp(got.item, got.n, got.q);
+    g.xp('farming', XP.harvest(itemDef(got.item).sell));
     this.fx.burst('fx_sparkle', x * TILE + 8, y * TILE + 4, 3, { speed: 20, up: 40 });
     this.fx.burst('fx_leaf', x * TILE + 8, y * TILE + 10, 4);
     g.sfx('harvest');
@@ -221,6 +229,40 @@ export class World {
       this.edgeLatch = true;
       this.game.say(e.textIf && this.game.flags[e.textIf[0]] ? e.textIf[1] : e.text);
     }
+  }
+
+  /** Today's forage and dig spots (called on creation and every morning). */
+  spawnSpots() {
+    const g = this.game, day = dayIndex(g.cal);
+    if (g.foraged.day !== day) g.foraged = { day, keys: [] };
+    spawnSpots(this.map, { seed: g.seed, day, seasonId: g.seasonId, taken: g.foraged.keys, digMult: hasPerk(g.skills, 'tracker') ? 2 : 1 });
+  }
+
+  /** Pick up forage by hand: quality from Foraging, a second one sometimes (Gatherer). */
+  pickForage(o) {
+    const g = this.game;
+    if (g.inventory.room(o.kind) <= 0) { g.aside('tk_full'); return; }
+    let q = rollQuality(this.rng, g.qualityBonus('foraging'));
+    if (hasPerk(g.skills, 'botanist')) q = Math.max(1, q);
+    const n = hasPerk(g.skills, 'gatherer') && this.rng.next() < 0.2 ? 2 : 1;
+    this.map.removeObject(o);
+    g.foraged.keys.push(`${this.map.id}:${o.x},${o.y}`);
+    g.pickUp(o.kind, n, q);
+    g.xp('foraging', XP.forage);
+    this.fx.burst('fx_leaf', o.x * TILE + 8, o.y * TILE + 10, 5);
+    g.sfx('harvest');
+  }
+
+  /** The hoe turns over a dig spot: an artefact, or a winter root. */
+  dig(o) {
+    const g = this.game;
+    this.map.removeObject(o);
+    g.foraged.keys.push(`${this.map.id}:${o.x},${o.y}`);
+    const id = digFind(this.rng, g.seasonId);
+    this.drops.spawn(this.rng, id, 1, 0, o.x * TILE + 8, o.y * TILE + 10);
+    this.fx.burst('fx_dirt', o.x * TILE + 8, o.y * TILE + 12, 8, { speed: 30, up: 60 });
+    g.xp('foraging', XP.dig);
+    g.sfx('till');
   }
 
   /** The terraces' fence comes down (the Altar of Jin restores them). */
