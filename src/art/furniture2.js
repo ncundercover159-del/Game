@@ -80,23 +80,21 @@ export function swordRack() {
   return outline(g, { color: 'wood0' });
 }
 
-/**
- * A market stall: a counter under an awning in the keeper's colour, with goods. 48x40.
- * `c` is the cloth ramp, dark to light (straw for Sakuya's day market, indigo for Kon's night one).
- */
+/** A market stall (yatai): an awning on two posts high enough that the keeper standing behind the
+ * counter shows between them, and goods set out on the counter. `c` is the awning's ramp. 48x62. */
 export function yatai(c) {
-  const g = grid(48, 40);
-  for (const x of [3, 43]) { fillRect(g, x, 8, 3, 32, 'wood2'); vline(g, x, 8, 39, 'wood4'); }
+  const g = grid(48, 62);
+  for (const x of [3, 43]) { fillRect(g, x, 8, 3, 54, 'wood2'); vline(g, x, 8, 61, 'wood4'); }
   fillRect(g, 0, 2, 48, 8, c[1]);
   for (let x = 0; x < 48; x += 8) fillRect(g, x, 2, 4, 8, c[2]);
   hline(g, 0, 47, 2, c[3]);
   for (let x = 0; x < 48; x += 4) { set(g, x + 1, 10, c[0]); set(g, x + 2, 11, c[0]); }
-  fillRect(g, 2, 26, 44, 14, 'wood2');
-  fillRect(g, 2, 24, 44, 3, 'wood4');
-  hline(g, 2, 45, 24, 'wood5');
-  for (let x = 6; x < 44; x += 8) vline(g, x, 28, 39, 'wood1');
+  fillRect(g, 2, 48, 44, 14, 'wood2');
+  fillRect(g, 2, 46, 44, 3, 'wood4');
+  hline(g, 2, 45, 46, 'wood5');
+  for (let x = 6; x < 44; x += 8) vline(g, x, 50, 61, 'wood1');
   const goods = [['red2', 'red0'], ['gold2', 'gold0'], ['water3', 'water1'], ['grass4', 'grass2'], ['sakura2', 'sakura0']];
-  goods.forEach(([a, b], i) => { fillRect(g, 6 + i * 8, 19, 5, 5, a); vline(g, 10 + i * 8, 19, 23, b); hline(g, 7 + i * 8, 9 + i * 8, 19, 'ink6'); });
+  goods.forEach(([a, b], i) => { fillRect(g, 6 + i * 8, 41, 5, 5, a); vline(g, 10 + i * 8, 41, 45, b); hline(g, 7 + i * 8, 9 + i * 8, 41, 'ink6'); });
   return outline(g, { color: 'wood0' });
 }
 

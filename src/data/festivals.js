@@ -5,7 +5,9 @@
 
 const row = (x0, x1, y, dir, step = 1) => { const out = []; for (let x = x0; x <= x1; x += step) out.push([x, y, dir]); return out; };
 const SQUARE = [...row(47, 63, 22, 'up', 2), ...row(48, 62, 17, 'down', 2)];
-const PRECINCT = [...row(5, 33, 14, 'up', 2), ...row(6, 12, 11, 'right', 2), ...row(26, 34, 11, 'left', 2)];
+// The shrine precinct: the open ground west of the hall, and the upper yard above Tomoe's office
+// (clear of the tree line and the office roof).
+const PRECINCT = [...row(4, 14, 6, 'right', 2), ...row(5, 13, 8, 'right', 2), ...row(4, 14, 10, 'right', 2), ...row(25, 33, 4, 'left', 2), ...row(26, 34, 6, 'left', 2)];
 const LANTERNS = [[50, 16], [56, 16], [62, 16]].map(([tx, ty]) => ({ type: 'decor', kind: 'lanterns', tx, ty, light: [0, -8] }));
 const BANNERS = [[46, 19], [68, 19]].map(([tx, ty], i) => ({ type: 'decor', kind: i ? 'nobori_indigo' : 'nobori_red', tx, ty }));
 

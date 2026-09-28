@@ -108,17 +108,73 @@ birthday line). Lines may start with an expression tag: neutral, happy, sad, ang
   in the room. Yorozuya 9-17 (closed Sui), Chaya 8-20 (closed Moku: tea 30, dango 60, onigiri 90),
   Kajiya 9-16 (closed Nichi), Yakuya 10-18 (closed Getsu: tonic 320). Food restores Genki.
 
+- (M6) Ten more: Sōken (monk, hermitage, R), Rin (swordswoman, dōjō, R; arrives in autumn and
+  spends Getsu and Ka on the road), Toyo and Kinta (pickle-maker and her grandson; Kinta is a
+  child and never romanceable), Tatsu (carpenter, R), Yuzu (bathhouse, R), Sakuya (travelling
+  merchant, R; stall in the square on Moku and Kin), Ōkubo and Shinsuke (magistrate and officer,
+  Daikansho), Kon (night-market fox on Do evenings). Schedules may depend on flags (`when.flag`)
+  and include `away` stops (out of the valley). Shops can be stalls (`at`, `keeper`, `days`).
+
 ## Bonds (M3)
 250 points a heart, 10 hearts. Talk once a day +20. Gifts: loved +80, liked +45, neutral +20,
 disliked -20, hated -40; x8 on birthdays; one a day and two a week per villager. A bond you have
 not tended for 7 days loses 10 points a night. Dialogue tier = hearts / 2 (0-1, 2-3, 4-5, 6-7,
 8-10).
+- (M6) Heart events: five per villager at 2, 4, 6, 8 and 10 hearts (`src/data/hearts/`), each a
+  scene at a place and hour window, sometimes a weekday or weather, played on entering the map
+  once the hearts are there and the previous one is seen. Choices move bonds and virtues.
+- (M6) Romance (never gated by the player's gender): romanceable villagers stop at 8 hearts until
+  courted. The Red Thread (shrine charm stand, 500) given at 8+ hearts starts courting (one at a
+  time); their 10-heart event needs it. Tatsu's farmhouse extension (10,000 mon, 150 wood, 50
+  stone, three days) widens the house (same door, bed and spawn). The Shrine Vow (5,000) at 10
+  hearts with the extension sets the wedding three days later: you wake at the shrine for the
+  ceremony (Tomoe officiates, Heibei if you marry Tomoe). A spouse lives at the farmhouse, works
+  their own day from 9:00 to 21:00 in the valley, says one of six married lines half the time,
+  and some mornings waters the crops, pets the animals or leaves a dish.
 
 ## Event scripts (M3)
 Line-based language in `src/systems/script.js`: `say who face "text"`, `choice "a" @x "b" @y`,
 `goto`, labels `@x`, `end`, `give`, `take item n @else`, `money`, `bond`, `virtue`, `setFlag`,
-`ifFlag [!]flag @x`, `wait`, `moveNpc`, `placeNpc`, `face`, `emote`, `cameraPan`, `fade`. Map
-events (`src/data/events.js`) play once on entering a map, after the door wipe.
+`ifFlag [!]flag @x`, `wait`, `moveNpc`, `placeNpc`, `face`, `emote`, `cameraPan`, `fade`; (M5-M6)
+`placePlayer`, `learn`, `pay n @else`, `sfx`, `duel rival @won @lost`, `play game @a @b @c`,
+`fireworks s`, and `bond all n`. Map events (`src/data/events.js`, `src/data/story.js`) play once
+on entering a map, after the door wipe; festivals come first, then story, then heart events.
+
+## Festivals and minigames (M6)
+Eleven festivals on the brief's dates (`src/data/festivals.js`): on the day the place is dressed
+(lanterns, nobori, the yagura, a mortar, Tanabata bamboo, snow lanterns, a kamakura), the cast
+leave their day for festival spots during its hours, and walking in (or being there as it
+starts) plays its scene once a year. Reminders the evening before and that morning.
+- `play game @best @good @poor` runs a minigame from a scene and branches on its grade.
+- Haiku composer (Hanami): fill 5-7-5 from a tray of 16 word tiles (3 season words for now, 1
+  out of season, 2 cutting words, plain words). Score: imagery + 5 for a season word of now (-6
+  without) - 3 per word of another season + 2 for one cutting word - 2 per repeat. 16+ first
+  prize, 11+ second.
+- Rhythm (one engine, four skins): mochi pounding (Ōmisoka; strike on the beat, never while
+  Okiku's hand is in the mortar), Bon Odori (Obon; arrows and a clap), Otaue planting, Setsubun
+  mamemaki (beans at the oni, not at Kinta). Perfect within 75 ms, good within 150 ms; a press on
+  a "rest" is an ouch. Grade by (perfect + 0.6 good - ouch) / beats: 0.8 splendid, 0.5 good.
+- Crop judging (Niiname-sai): your best crop by worth (quality counts): 150 first, 80 second.
+- Fireworks (Hanabi) are drawn over the river by the scene (`fireworks seconds`).
+
+## Story (M6, Acts I-II)
+Map-entry scenes in `src/data/story.js` with letters between them:
+- Summer (Act I ends): Ōkubo posts a toll at the crossroads: a tenth of the shipping crate.
+- Autumn (Act II): Rin walks up to the bridge toll and stays at the dōjō; Kuroda-ya's letter
+  invites you to his door, where he offers a contract.
+  - Sign: 5,000 mon, no toll and 10% over the price, a hired hand waters the fields at dawn;
+    Gi -10, Jin -5, every bond -120.
+  - Refuse: Gi +5 and a petition to the castle. Villagers with 3+ hearts sign as you talk to them
+    (not Ōkubo or Kinta); Shinsuke's ledger (his 10-heart event) counts for three. Eight names
+    send it; five days later the castle overturns the tolls (Gi +5, every bond +60).
+- Late autumn: the rear gate's seal splits; the Hyakki Yagyō shows the spirits are being soured
+  from below, not wicked. Act III (Year 2) is M7.
+
+## Village Archive (M6)
+The Makoto altar restores the old kura. At its ledger desk you donate one of each fish, forage,
+crop, relic and metal (82 pieces). Milestones at 5, 10, 20, 35, 50 and 70 pay mon, items or
+Makoto; finishing a collection pays 1,500 and Makoto +3. The Collection tab shows missing pieces
+as pale outlines.
 
 ## Requests, letters, offerings (M3)
 - Notice board: 1-2 postings a day from the seed: "bring" (n of an in-season crop or common goods;
@@ -215,7 +271,9 @@ from the save seed.
   (M3) adds bonds, virtues, requests, mail and offerings; version 4 (M4) adds skills, buffs,
   foraged spots, animals and known recipes (the coop is a persistent map like the farm);
   version 5 (M5) adds Inochi, difficulty and the caves (deepest floor, lit lanterns, the lost
-  bundle, chests opened today). Older farms get the katana by Genzō's letter.
+  bundle, chests opened today). Older farms get the katana by Genzō's letter. Version 6 (M6)
+  adds romance (engaged, spouse), Tatsu's building work and the Archive; courting lives on the
+  bond, story progress in flags.
 - Migrations run in order from the file's version to `SAVE_VERSION`. A checksum mismatch or parse
   failure falls back to the slot's `.bak` copy (written before every save).
 - Autosave on sleep. Export/import as a `.json` file from the pause menu.

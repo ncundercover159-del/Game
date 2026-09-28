@@ -85,14 +85,27 @@
   (wake in the apothecary, lose a capped share of mon and a few stacks to a bundle at the mine
   mouth) and Relaxed/Standard/Warrior difficulty; virtues wired into systems (seven tiered
   effects, Tsukikage's remarks, shown on the Skills tab); save v5 with a v4 migration.
-- [ ] M6 Story and festivals
+- [x] **M6 Story and festivals**: ten more villagers (Sōken, Rin, Toyo, Kinta, Tatsu, Yuzu,
+  Sakuya, Ōkubo, Shinsuke, Kon) with looks, portraits, homes (hermitage, dōjō, Toyo's house,
+  carpenter's, bathhouse, magistrate's office), schedules with flags and trips out of the valley,
+  dialogue, gift tastes and new shops (Sakuya's market stall, Kon's night stall, Tatsu, the
+  bathhouse, the shrine's charm stand); five heart events for all eighteen villagers (90 scenes,
+  with choices, iai bouts, keepsakes and recipes); romance and marriage (the Red Thread, Tatsu's
+  farmhouse extension, the Shrine Vow, a wedding at the shrine, a spouse who lives at the farm,
+  keeps their work, has married lines and helps in the morning); all eleven festivals with
+  dressing, crowds and scenes, and their minigames (the haiku composer; one rhythm engine for
+  mochi pounding, Bon Odori, Otaue planting and mamemaki; crop judging; fireworks); Acts I-II
+  (the tolls, Rin's arrival, Kuroda's contract signed or refused, the petition, the splitting
+  seal, the Hyakki Yagyō) with letters; the Village Archive (82 pieces in five collections,
+  milestone rewards); save v6 with a v5 migration.
 - [ ] M7 Content and polish
 
 ## Next
-M6 Story and festivals: the three acts told through letters, heart events (five per villager)
-with choices, the magistrate's tolls and the Kuroda contract, the festivals and their minigames
-(haiku, mochi pounding), the Archive restoration, romance and rivals (Rin), Jūbei's return if he
-was offered work.
+M7 Content and polish: cave zones 3-5 and bosses 2-5, Act III and the ending, the remaining
+minigames (goldfish scooping, kyūdō, dango stacking, snowball skirmish, dōjō kata, forging,
+calligraphy), kodama helpers, the procedural soundscape and music, the title and new-game flow
+(name, farm, appearance, layout), touch controls and rebinding, Jūbei's return if he was offered
+work, polish.
 
 ## Verification (M1)
 - `npm test`: 36 unit tests (calendar, farming rules and regrowth, inventory, save checksum and
@@ -167,6 +180,32 @@ was offered work.
 - `npm run shots` writes shots/m5 (the open gate, the mine mouth, a combo with a nobushi's
   glint, a parry, the flooded cellars with foxfire, a yūrei's omen, Jūbei's hall, the
   stand-off, the forge's blades, waking in Ume's care, virtues on the Skills tab).
+
+## Verification (M6)
+- `npm test`: 147 unit tests, adding heart events (five per villager at 2-10 hearts, every scene
+  parses and stages on open ground, order, place, hour, weekday and weather gates, the 8-heart
+  romance ceiling, nobody away), romance (courting rules, the vow's needs, the wedding date, the
+  extended farmhouse keeps door, spawn and bed, every spouse's day walkable and never away, the
+  wedding staging, married lines about half the time), festivals (eleven on the brief's dates,
+  decor, spots and scenes on open ground and never on a fixture, the cast and their routes, crop
+  judging), the rhythm judge (perfect play is splendid for every chart, silence is clumsy,
+  pounding the hand ruins mochi, timing windows), the haiku rules (tray always fillable, 5-7-5,
+  scoring), the story (scene staging, order of beats, tolls and Kuroda's price, petition
+  signatures), the Archive (collections, once each, milestones and completions), v1 -> v6
+  migration.
+- `npm run test:e2e` adds three tests. Romance: Tatsu refuses without materials, builds in three
+  days; the Red Thread refused at 7 hearts, taken at 8; the Shrine Vow; the wedding at the shrine
+  with Heibei officiating; the spouse's route and lines; the save round-trips. Festivals:
+  Ōmisoka's square dressed and the cast gathered; mochi pounded on the beat through the J key
+  for a splendid grade; a haiku composed tile by tile with arrows for a prize; a kabocha wins the
+  crop judging; the reminder on the end-of-day screen. Story: no tolls in spring, posted in
+  summer; a tenth taken from the crate; Rin at the bridge; Kuroda's letter and offer refused;
+  eight friends sign by talking (Kinta doesn't); the castle's answer and no more toll; the
+  Archive desk takes an ayu; the signing branch pays 5,000, cools the bonds and waters the
+  fields. Zero console errors in all six e2e tests.
+- `npm run shots` writes shots/m6 (market square, Rin's iai heart event, the wedding, the
+  extended farmhouse, the haiku composer, the Bon Odori, mochi pounding, fireworks, Tanabata,
+  the Hyakki Yagyō, the tolls, Kuroda's offer, the Archive).
 
 ## Decisions
 - The repository already contained ORBIT (a small arcade game) at the root; it was moved to
@@ -263,6 +302,24 @@ was offered work.
   needs Jin tier 1. Iai rivals and dojo kata use the same duel rules in M6.
 - (M5) Floor 40 ends in a drowned stair; the Kappa Elder and deeper zones are M7.
 
+- (M6) Romance never looks at the player's gender. Romanceable bonds stop at 8 hearts until the
+  Red Thread; one person is courted at a time; the vow needs the extended farmhouse. The extension
+  is a data swap of the farmhouse map (same door, spawn and bed), applied from a flag on load.
+- (M6) The spouse keeps their own work (shops stay open) from 9:00 to 21:00 and lives at the farm
+  the rest of the day; they never leave the valley.
+- (M6) Festivals are one scene per year, played on arrival during the hours (or as they start
+  while you are there); the cast stand on festival spots in order, so nobody is double-booked.
+  Only the MVP minigames are full games (haiku, mochi); the rhythm engine also gives the Bon
+  Odori, Otaue and mamemaki; the others (goldfish, kyūdō, sumo, snowballs) are told in scenes
+  until M7.
+- (M6) Kuroda never leaves his counting house: he speaks from behind the noren (portrait only).
+- (M6) The Kuroda branch is decided once, at his door. Signing is not undone in M6; its
+  consequences (and the refusal's) carry into Act III.
+- (M6) Petition signatures are taken as you talk to villagers with 3+ hearts; Shinsuke's ledger
+  (his 10-heart scene) counts for three names.
+- (M6) The Archive holds one of each: fish, forage, crops, relics (artifacts, gems, spirit
+  drops, star fragments) and metals; rewards pay at once, no claiming step.
+
 ## Reference conflicts (logged)
 - Brief: head about a third of body height. Reference 1: ~45%. Followed the reference.
 
@@ -307,6 +364,8 @@ raised higher and drawn behind the body only while raised.
 - The shrine precinct is sparse (gravel, hall, office, ema rack, sacred cedar); the chōzuya basin,
   bell tower and kodama groves arrive with their restorations.
 - Villagers sit by standing on cushions; a seated pose would read better (M7 polish).
-- Heart events, festivals and the remaining cast are M6; romance flows (Red Thread, Shrine Vow)
-  are M6.
+- A married Yuzu leaves the bathhouse at 21:00, two hours before it closes (her shop is shut
+  then).
+- Festival crowds stand still on their spots; small idle gestures and seated poses are M7 polish.
+- Snow lanterns double as the Hyakki Yagyō's spirit lights (a dedicated sprite would read better).
 - Touch controls, rebinding UI and the fuller title/new-game flow are M7 items.

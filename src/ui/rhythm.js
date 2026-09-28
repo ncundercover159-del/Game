@@ -75,9 +75,9 @@ export class RhythmGame {
     ctx.globalAlpha = 0.7;
     rect(ctx, 'ink0', 0, 0, w, h);
     ctx.globalAlpha = 1;
-    const band = 150, top = Math.floor(h / 2 - band / 2), cx = Math.floor(w / 2);
+    const band = 156, top = Math.floor(h / 2 - band / 2), cx = Math.floor(w / 2);
     rect(ctx, 'indigo0', 0, top, w, band);
-    this[this.kind](ctx, cx, top + 96);
+    this[this.kind](ctx, cx, top + 100);
     // The lane.
     const ly = top + band - 30, hitX = cx - 120;
     rect(ctx, 'ink1', 0, ly - 2, w, 26);
@@ -173,7 +173,7 @@ export class RhythmGame {
     ctx.save();
     ctx.scale(2, 2);
     if (who) {
-      const x = (cx + 30) / 2, y = gy / 2 - 10;
+      const x = (cx + 30) / 2, y = gy / 2 - 2;
       a.draw(ctx, who === 'oni' ? 'genzo_down_idle0' : 'kinta_down_idle1', x, y);
       if (who === 'oni') {
         // The mask: a red face, gold eyes and two horns.

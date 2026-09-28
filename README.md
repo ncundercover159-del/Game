@@ -66,13 +66,22 @@ parry, which refunds Ki and leaves the foe open. Food mends Inochi (命); Ume se
 iron bars and your uncle's rusted katana to Genzō for a real blade, and ore and charcoal to be
 smelted. If you fall, you wake in Ume's care; what you dropped waits in a bundle by the mouth.
 
+Village life tips: as bonds grow, villagers share heart events at their places and hours. For
+romance, buy a Red Thread at the shrine's charm stand and give it at eight hearts; for marriage,
+have Tatsu extend the farmhouse and give a Shrine Vow at ten. Festivals fill the calendar (the
+end-of-day screen and Tsukikage remind you): be at the place during its hours. At Hanami compose a
+haiku from word tiles (5-7-5, with a season word of now); at Ōmisoka pound mochi on the beat, and
+never while Okiku's hand is in the mortar. The story turns in summer and autumn: the magistrate's
+toll, a newcomer at the bridge, and an offer from Kuroda-ya you must accept or refuse. Once the
+Altar of Makoto is full, the old kura becomes the Village Archive: donate one of everything.
+
 ## Test
 
 ```sh
 npm install          # dev only: Playwright for headless tests
 npm test             # unit tests (Node's built-in runner)
-npm run test:e2e     # headless tests: farm day, save/load, village; forage, fish, coop, cook; caves, combat, boss
-npm run shots        # regenerate the latest milestone's screenshots (shots/m5; `-- m1` to `m4` for older sets)
+npm run test:e2e     # headless tests: farm day, save/load, village; nature; combat; romance; festivals; story
+npm run shots        # regenerate the latest milestone's screenshots (shots/m6; `-- m1` to `m5` for older sets)
 ```
 
 Tools: `tools/gallery.html` (every palette colour, sprite, tile and autotile case at 1x and 4x) and
