@@ -1,42 +1,61 @@
-# ORBIT
+# Rōnin no Sato (浪人の里)
 
-A one-thumb arcade game for killing five minutes — built for phones, in a single
-file with no dependencies, no build step and no network calls.
+A cozy samurai farming-life sim in pixel art. Edo-period Shinano, the 1780s: a masterless samurai
+inherits an overgrown hillside farm, a rusted sword with opinions, and a valley that needs help.
 
-**Play:** open `index.html` in any browser. That's it.
+Vanilla JavaScript (ES modules), Canvas 2D and WebAudio. No runtime dependencies, no bundler.
 
-## How to play
+## Run
 
-You are the cyan dot, orbiting the core.
+```sh
+npm run dev          # zero-dependency static server on http://localhost:8080
+```
 
-- **Tap anywhere** to reverse your spin direction.
-- **Dodge the pink spikes** flying in at the ring. One touch ends the run.
-- **Grab the gold motes** on the ring — worth 2 points each.
-- Every spike you survive is +1. The game speeds up every 10 points.
+Then open http://localhost:8080/. Any static host works too (itch.io, GitHub Pages): all paths are
+relative.
 
-Your best score is kept in `localStorage`.
+Useful URL parameters:
 
-Space / arrow keys work on desktop, if you're not actually in a cinema.
+| Param | Effect |
+|-------|--------|
+| `?play=1` | skip the title and start a new farm in slot 1 |
+| `?slot=2` | load save slot 2 |
+| `?seed=7` | farm seed (overgrowth layout) |
+| `?season=summer&day=5&time=17:30` | set the calendar and clock |
+| `?debug=1` | debug keys: F1 overlay, F2 skip day, F3 +1000 mon and seeds, F4 +1 hour (Shift+F4 next season) |
 
-## Built for a dark room
+## Controls
 
-- Near-black palette so the screen isn't a nuisance to the row behind you.
-- Everything reachable with one thumb; taps anywhere on the screen count.
-- Pinch-zoom, double-tap-zoom, text selection and overscroll are all disabled,
-  so a fast tap never scrolls or selects anything.
-- `env(safe-area-inset-*)` padding keeps the HUD clear of notches and home bars.
-- Layout adapts to portrait, landscape and short screens; the orbit is sized to
-  stay clear of the score readout.
-- Canvas is DPR-scaled (capped at 2x) and runs at 60fps; glow is drawn with
-  layered fills rather than `shadowBlur` to keep it cheap on mobile GPUs.
-- Light haptics via the Vibration API where supported, and it honours
-  `prefers-reduced-motion`.
+| Action | Keyboard / mouse | Gamepad |
+|--------|------------------|---------|
+| Move | WASD / arrows | left stick, d-pad |
+| Use tool / plant | J, left click (hold to repeat) | X |
+| Interact / harvest / talk | K, E, right click | A |
+| Hotbar | 1-9, 0, -, =, mouse wheel, [ ] | LB / RB |
+| Menu (items, options, save) | Esc, Tab | Start |
 
-## Adding it to your home screen
+With the mouse, any tile next to the player can be targeted directly.
 
-It ships with the `mobile-web-app-capable` and `apple-mobile-web-app-capable`
-meta tags, so "Add to Home Screen" gives you a fullscreen, chrome-free launcher.
+## Test
 
-## Files
+```sh
+npm install          # dev only: Playwright for headless tests
+npm test             # unit tests (Node's built-in runner)
+npm run test:e2e     # headless smoke test: new game, till, plant, water, sleep, grow, save/load
+npm run shots        # regenerate milestone screenshots into shots/
+```
 
-- `index.html` — the whole game: markup, styles, and logic.
+Tools: `tools/gallery.html` (every palette colour, sprite, tile and autotile case at 1x and 4x) and
+`tools/anim-preview.html` (all character animations and tool swings), served by `npm run dev`.
+
+## Project docs
+
+- `DESIGN.md`: working spec (decisions only)
+- `STYLE_GUIDE.md`: art rules measured from the references
+- `PROGRESS.md`: done / next / decisions / known bugs
+- `CREDITS.md`: licences
+
+## Also in this repo
+
+`orbit/index.html` is ORBIT, an earlier one-file arcade game that lived at the repository root.
+It was moved to its own folder, unchanged, when this project started.

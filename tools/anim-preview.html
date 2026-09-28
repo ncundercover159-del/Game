@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rōnin no Sato: animation preview</title>
+<style>
+  body { margin: 0; padding: 16px; background: #241c30; color: #f6efe6; font: 13px/1.4 system-ui, sans-serif; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .cell { background: #3a3048; padding: 8px; border-radius: 3px; text-align: center; font-size: 11px; color: #bdb4c4; }
+  canvas { image-rendering: pixelated; display: block; margin: 4px auto; }
+  label { margin-right: 12px; }
+</style>
+</head>
+<body>
+<h1>Animation preview</h1>
+<div class="row">
+  <label>Tool <select id="tool"><option>hoe</option><option>axe</option><option>pickaxe</option><option>sickle</option><option>can</option></select></label>
+  <label>Speed <select id="speed"><option value="1">1x</option><option value="0.5">0.5x</option><option value="0.25">0.25x</option></select></label>
+</div>
+<div class="row" id="grid"></div>
+<script type="module" src="./anim-preview.js"></script>
+</body>
+</html>
