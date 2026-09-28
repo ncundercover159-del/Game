@@ -9,8 +9,13 @@ import { hitDamage, weaponFor } from '../systems/combat.js';
 import { DIFFICULTY } from '../data/enemies.js';
 import { URN_LOOT } from '../data/caves.js';
 import './boss.js';
+import './brains2.js';
+import './bosses2.js';
 
 const KNOCK = 80;
+// Seconds an orbiting orb flares before it flies; the fire vents' cycle and bite.
+const ORB_FLARE = 0.45;
+const VENT = { glow: 0.9, fire: 0.6, rest: 2.4, dmg: 14 };
 
 export class Combat {
   constructor(w) {
@@ -19,7 +24,10 @@ export class Combat {
     this.foes = [];
     this.shots = [];
     this.floaters = [];
+    this.rings = [];          // shockwave rings, for drawing
     this.hitstop = 0;
+    this.vents = null;        // the foundry's fire vents, found on the first step
+    this.ventRate = 1;        // Kurenai's later phases stoke them
     this.rng = new Rng((w.game.seed ^ 0x3c6ef372 ^ (w.map.def.floor || 0) * 7919) >>> 0);
   }
 
@@ -41,11 +49,14 @@ export class Combat {
   update(dt, input) {
     for (const fl of this.floaters) { fl.t += dt; fl.y -= 18 * dt; }
     this.floaters = this.floaters.filter((fl) => fl.t < 0.8);
+    for (const r of this.rings) r.t += dt;
+    this.rings = this.rings.filter((r) => r.t < 0.35);
     if (this.hitstop > 0) { this.hitstop -= dt; return true; }
     const busy = this.fighter.update(dt, input);
     for (const f of this.foes) if (!f.dead) f.update(this.w, dt);
     this.separate();
     this.updateShots(dt);
+    this.updateVents(dt);
     this.foes = this.foes.filter((f) => !f.dead);
     return busy;
   }
@@ -95,6 +106,14 @@ export class Combat {
 
   damage(f, weapon, hit, fromX, fromY) {
     const g = this.game;
+    if (f.illusion) { this.pop(f); return; }
+    // Armour plates come off to heavy strikes and counters (and then the blow lands).
+    if (f.armour > 0 && (hit.heavy || hit.counter)) {
+      f.armour--;
+      g.sfx('clang');
+      this.w.fx.burst('fx_chip', f.x, f.cy, 10, { speed: 60, up: 50 });
+      g.aside(f.armour ? 'tk_armour' : 'tk_armour_off', { once: f.armour ? 'armour' : 'armour_off' });
+    }
     const [dx, dy] = DIRS[f.dir];
     const facingAway = (g.player.x - f.x) * dx + (g.player.y - f.y) * dy < 0;
     const r = hitDamage(weapon, hit, { weak: f.def.weak, guard: f.guard, facingAway }, { skills: g.skills, virtues: g.virtues, rng: this.rng });
@@ -107,12 +126,14 @@ export class Combat {
       this.floater(f.x, f.cy - 12, `${r.dmg}`, 'ink4');
       this.hitstop = 0.05;
       g.aside('tk_guard', { once: true });
+      // Chip damage through a guard still counts.
+      if (f.hp <= 0) this.kill(f);
       return;
     }
     g.sfx(r.crit ? 'crit' : 'hit');
     f.knock(fromX, fromY, KNOCK * (hit.heavy ? 2.2 : hit.combo === 2 ? 1.6 : 1));
     // Heavy blows and counters shake a guard loose and leave the foe reeling.
-    if ((hit.heavy || hit.counter) && f.state !== 'stagger' && f.kind !== 'jubei') f.stagger(0.5);
+    if ((hit.heavy || hit.counter) && f.state !== 'stagger' && !f.def.boss) f.stagger(0.5);
     this.w.fx.burst('fx_sparkle', f.x, f.cy, r.crit ? 8 : 4, { speed: 50, up: 40 });
     this.floater(f.x, f.cy - 12, `${r.dmg}`, r.crit ? 'gold2' : 'ink6');
     this.hitstop = r.crit ? 0.09 : 0.07;
@@ -127,7 +148,7 @@ export class Combat {
     w.fx.burst('fx_foxfire0', f.x, f.cy, 3, { speed: 20, up: 60, life: 0.6 });
     g.sfx('dissolve');
     const d = DIFFICULTY[g.difficulty] || DIFFICULTY.standard;
-    if (f.kind === 'jubei') { g.bossDown(f); return; }
+    if (f.def.boss) { g.bossDown(f); return; }
     for (const [id, min, max, chance] of f.def.drops) {
       if (this.rng.next() >= chance * d.drops) continue;
       const n = this.rng.int(min, max);
@@ -159,16 +180,56 @@ export class Combat {
     return this.fighter.receive(dmg, f.x, f.y, { parryable: true });
   }
 
-  foxfire(f, p) {
-    const dx = p.x - f.x, dy = p.y - 10 - f.cy, d = Math.hypot(dx, dy) || 1;
-    this.shots.push({ kind: 'foxfire', x: f.x, y: f.cy, vx: (dx / d) * 95, vy: (dy / d) * 95, t: 0, life: 2.4, friendly: false, dmg: f.dmg, owner: f });
-    this.game.sfx('fire');
+  /** A projectile from a foe: foxfire, water, fire, shuriken. Parried, it flies back. */
+  shoot(f, kind, vx, vy, dmg) {
+    this.shots.push({ kind, x: f.x, y: f.cy, vx, vy, t: 0, life: 2.4, friendly: false, dmg, owner: f });
+  }
+
+  /** A shockwave: anyone inside `r` of (x, y) is hit unless they dodged it (no parrying a ring). */
+  area(f, x, y, r, dmg) {
+    const p = this.game.player;
+    if (Math.hypot(p.x - x, p.y - 4 - y) < r) return this.fighter.receive(dmg, x, y, { parryable: false });
+    return null;
+  }
+
+  ring(x, y, r) { this.rings.push({ x, y, r, t: 0 }); }
+
+  /**
+   * Kyūbi's ring: `n` foxfire orbs circle the owner, harmless while they circle; one by one each
+   * flares (FLARE seconds) and flies at the player, `every` seconds apart.
+   */
+  orbs(f, n, r, every) {
+    for (let i = 0; i < n; i++) {
+      this.shots.push({
+        kind: 'foxfire', orbit: true, owner: f, a: (i / n) * Math.PI * 2, r, x: f.x, y: f.cy,
+        vx: 0, vy: 0, t: 0, launchAt: 1 + i * every, life: 1 + i * every + 2.5, friendly: false, dmg: Math.round(f.dmg * 0.6),
+      });
+    }
+  }
+
+  /** An illusion touched: it bursts into smoke. */
+  pop(f) {
+    f.dead = true;
+    this.smoke(f.x, f.y);
+    this.game.sfx('smoke');
   }
 
   updateShots(dt) {
     const map = this.w.map, p = this.game.player;
     for (const s of this.shots) {
       s.t += dt;
+      if (s.orbit) {
+        if (s.owner.dead) { s.done = true; continue; }
+        s.a += dt * 2.2;
+        s.x = s.owner.x + Math.cos(s.a) * s.r;
+        s.y = s.owner.cy + Math.sin(s.a) * s.r * 0.8;
+        s.flare = s.t >= s.launchAt - ORB_FLARE;
+        if (s.t < s.launchAt) continue;
+        const dx = p.x - s.x, dy = p.y - 10 - s.y, d = Math.hypot(dx, dy) || 1;
+        s.orbit = false; s.flare = false;
+        s.vx = (dx / d) * 120; s.vy = (dy / d) * 120;
+        this.game.sfx('fire');
+      }
       s.x += s.vx * dt;
       s.y += s.vy * dt;
       const tx = Math.floor(s.x / TILE), ty = Math.floor((s.y + 6) / TILE);
@@ -192,6 +253,28 @@ export class Combat {
       }
     }
     this.shots = this.shots.filter((s) => !s.done);
+  }
+
+  /** Fire vents in the foundry: rest, glow (the tell), then a column of fire over the vent. */
+  updateVents(dt) {
+    this.vents ??= this.w.map.objects.filter((o) => o.type === 'vent');
+    const p = this.game.player;
+    for (const o of this.vents) {
+      o.t = (o.t ?? this.rng.next() * 3) - dt;
+      if (o.t > 0) {
+        if (o.phase === 'fire' && !o.hit && Math.hypot(p.x - (o.x * TILE + 8), p.y - (o.y * TILE + 12)) < 14) {
+          o.hit = true;
+          this.fighter.receive(VENT.dmg, o.x * TILE + 8, o.y * TILE + 12, { parryable: false });
+        }
+        if (o.phase === 'fire' && Math.floor(o.t * 20) % 2) this.w.fx.burst('fx_ember', o.x * TILE + 8, o.y * TILE + 10, 1, { speed: 15, up: 90, life: 0.5 });
+        continue;
+      }
+      if (o.phase === 'glow') { o.phase = 'fire'; o.t = VENT.fire; o.hit = false; this.game.sfx('fire'); }
+      else if (o.phase === 'fire') { o.phase = 'rest'; o.t = (VENT.rest + this.rng.next() * VENT.rest) / this.ventRate; }
+      else { o.phase = 'glow'; o.t = VENT.glow; }
+      // A column of fire stands up among the other things; a resting vent lies under your feet.
+      o.flat = o.phase !== 'fire';
+    }
   }
 
   /** A smoke bomb's cloud. */

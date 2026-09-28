@@ -1,10 +1,12 @@
 // Mount Kurayama floor generator: rooms joined by two-wide tunnels (a spanning tree plus a loop or
 // two), the rope up in the first room and the ladder down in the farthest, ore along the walls, urns
 // in corners, sometimes a chest, sometimes a sealed side room behind cracked rock, pools in the
-// flooded cellars, and the floor's foes. Pure and deterministic per (seed, floor).
-// Legend: R rock, g floor, ~ water.
+// flooded cellars (lava in the foundry, with fire vents), and the floor's foes; wisps come in packs.
+// The last floor of a zone is its boss's arena. Pure and deterministic per (seed, floor).
+// Legend: R rock, g floor, ~ water (or lava).
 import { Rng } from '../core/rng.js';
-import { zoneOf, LANTERN_EVERY, BOSS_FLOORS, LAST_FLOOR } from '../data/caves.js';
+import { ZONES, zoneOf, LANTERN_EVERY, BOSS_FLOORS, LAST_FLOOR } from '../data/caves.js';
+import { ENEMIES } from '../data/enemies.js';
 
 export const CAVE_W = 48, CAVE_H = 36;
 
@@ -88,8 +90,8 @@ function wallSide(g, x, y) {
 }
 
 export function generateFloor(seed, floor) {
-  if (BOSS_FLOORS[floor]) return bossFloor(seed, floor);
-  const zone = zoneOf(floor), zi = zone === zoneOf(1) ? 1 : 2;
+  if (BOSS_FLOORS[floor]) return bossFloor(floor);
+  const zone = zoneOf(floor), zi = ZONES.indexOf(zone) + 1;
   const rng = new Rng(((seed >>> 0) * 31 + floor * 7919) >>> 0);
   let g, rooms;
   // A floor needs at least five rooms; retry the (deterministic) sequence until it has them.
@@ -157,6 +159,17 @@ export function generateFloor(seed, floor) {
     }
   }
   secretRoom(g, rng, rooms, props, take, zi);
+  // Fire vents on open floor in the foundry, never on the way through.
+  if (zone.vents) {
+    for (let i = 0, n = 0, want = rng.int(3, 5); i < 60 && n < want; i++) {
+      const r = rooms[rng.int(1, rooms.length - 1)];
+      const x = r.x + rng.int(1, Math.max(1, r.w - 2)), y = r.y + rng.int(1, Math.max(1, r.h - 2));
+      if (!free(x, y) || onPath.has(y * g.w + x) || wallSide(g, x, y)) continue;
+      props.push({ type: 'vent', tx: x, ty: y });
+      take(x, y);
+      n++;
+    }
+  }
 
   // Foes: more the deeper you go, never in the first room.
   const count = Math.min(12, 4 + Math.floor((floor - zone.from) / 3) + (zi - 1) * 2);
@@ -164,8 +177,8 @@ export function generateFloor(seed, floor) {
     const x = k % g.w, y = Math.floor(k / g.w);
     return Math.abs(x - start.x) + Math.abs(y - start.y) > 9 && !taken.has(k);
   });
-  const water = rooms.flatMap((r) => r.pool || []);
-  for (let i = 0; i < count && far.length; i++) {
+  const water = zone.lava ? [] : rooms.flatMap((r) => r.pool || []);
+  while (spawns.length < count && far.length) {
     const kind = pick(rng, zone.enemies);
     if (kind === 'kappa' && water.length) {
       const [x, y] = water.splice(rng.int(0, water.length - 1), 1)[0];
@@ -173,7 +186,13 @@ export function generateFloor(seed, floor) {
       continue;
     }
     const k = far.splice(rng.int(0, far.length - 1), 1)[0];
-    spawns.push({ kind, tx: k % g.w, ty: Math.floor(k / g.w) });
+    const x = k % g.w, y = Math.floor(k / g.w);
+    spawns.push({ kind, tx: x, ty: y });
+    // Wisps hunt in packs: the rest of the pack on open tiles beside the first.
+    for (let n = 1; n < (ENEMIES[kind].pack || 1) && spawns.length < count; n++) {
+      const j = far.findIndex((q) => Math.abs((q % g.w) - x) + Math.abs(Math.floor(q / g.w) - y) <= 2);
+      if (j >= 0) { const q = far.splice(j, 1)[0]; spawns.push({ kind, tx: q % g.w, ty: Math.floor(q / g.w) }); }
+    }
   }
   return { ground: g.rows(), props, spawns, start: { tx: start.x, ty: start.y }, exit: { tx: exit.cx, ty: exit.cy }, zone: zi };
 }
@@ -231,16 +250,80 @@ function secretRoom(g, rng, rooms, props, take, zone) {
   }
 }
 
-/** Floor 20: Jūbei's hall. A tunnel from the rope into a round arena; the ladder after he falls. */
-function bossFloor(seed, floor) {
-  const g = new Grid(30, 30, 'R');
-  for (let y = 21; y < 28; y++) for (let x = 13; x < 17; x++) g.set(x, y, 'g');
-  for (let y = 3; y < 22; y++) for (let x = 3; x < 27; x++) if (((x - 14.5) / 11.5) ** 2 + ((y - 12) / 9.5) ** 2 <= 1) g.set(x, y, 'g');
-  const props = [
-    { type: 'rope', tx: 15, ty: 26 },
-    { type: 'cave_lantern', tx: 13, ty: 25, light: [0, -8] },
-    { type: 'timbers', tx: 8, ty: 5 }, { type: 'timbers', tx: 21, ty: 5 },
-    { type: 'brazier', tx: 6, ty: 12, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 12, light: [0, -10] },
-  ];
-  return { ground: g.rows(), props, spawns: [{ kind: 'jubei', tx: 15, ty: 7 }], start: { tx: 15, ty: 27 }, exit: { tx: 15, ty: 6 }, zone: 1, boss: 'jubei' };
+// ---------------------------------------------------------------- boss arenas
+
+/** A round hall (ellipse around cx, cy), a tunnel up from the rope, and the ladder at the far end. */
+function hall(w, h, cx, cy, rx, ry) {
+  const g = new Grid(w, h, 'R');
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1) g.set(x, y, 'g');
+  for (let y = Math.floor(cy + ry) - 1; y < h - 2; y++) for (let x = Math.floor(cx) - 1; x < Math.floor(cx) + 3; x++) g.set(x, y, 'g');
+  return g;
+}
+
+const ARENAS = {
+  // Floor 20: Jūbei's hall, pit-props and braziers.
+  jubei() {
+    const g = hall(30, 30, 14.5, 12, 11.5, 9.5);
+    return {
+      g, start: { tx: 15, ty: 27 }, exit: { tx: 15, ty: 6 }, boss: { tx: 15, ty: 7 },
+      props: [
+        { type: 'rope', tx: 15, ty: 26 }, { type: 'cave_lantern', tx: 13, ty: 25, light: [0, -8] },
+        { type: 'timbers', tx: 8, ty: 5 }, { type: 'timbers', tx: 21, ty: 5 },
+        { type: 'brazier', tx: 6, ty: 12, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 12, light: [0, -10] },
+      ],
+    };
+  },
+  // Floor 40: the Kappa Elder's ring, an island in a moat, two causeways across it.
+  kappa_elder() {
+    const g = hall(34, 32, 16.5, 13, 14, 11);
+    for (let y = 1; y < 31; y++) for (let x = 1; x < 33; x++) {
+      const r = Math.hypot((x - 16.5) / 1.25, y - 13);
+      if (r > 5.6 && r < 8.2 && Math.abs(x - 16.5) > 1.5) g.set(x, y, '~');
+    }
+    return {
+      g, start: { tx: 17, ty: 29 }, exit: { tx: 17, ty: 3 }, boss: { tx: 17, ty: 13 },
+      props: [
+        { type: 'rope', tx: 17, ty: 28 }, { type: 'cave_lantern', tx: 15, ty: 27, light: [0, -8] },
+        { type: 'brazier', tx: 5, ty: 13, light: [0, -10] }, { type: 'brazier', tx: 28, ty: 13, light: [0, -10] },
+        { type: 'brazier', tx: 10, ty: 5, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 5, light: [0, -10] }, { type: 'brazier', tx: 10, ty: 21, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 21, light: [0, -10] },
+      ],
+    };
+  },
+  // Floor 60: Kyūbi's hall of foxfire, wide and open.
+  kyubi() {
+    const g = hall(34, 32, 16.5, 13, 14.5, 10.5);
+    return {
+      g, start: { tx: 17, ty: 29 }, exit: { tx: 17, ty: 3 }, boss: { tx: 17, ty: 8 },
+      props: [
+        { type: 'rope', tx: 17, ty: 28 }, { type: 'cave_lantern', tx: 15, ty: 27, light: [0, -8] },
+        { type: 'brazier', tx: 6, ty: 8, light: [0, -10] }, { type: 'brazier', tx: 27, ty: 8, light: [0, -10] },
+        { type: 'brazier', tx: 6, ty: 18, light: [0, -10] }, { type: 'brazier', tx: 27, ty: 18, light: [0, -10] },
+        { type: 'brazier', tx: 10, ty: 4, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 4, light: [0, -10] }, { type: 'brazier', tx: 10, ty: 22, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 22, light: [0, -10] },
+      ],
+    };
+  },
+  // Floor 80: Kurenai's foundry floor, lava in the corners and vents between.
+  kurenai() {
+    const g = hall(34, 32, 16.5, 13, 14.5, 10.5);
+    for (const [cx, cy] of [[7, 7], [26, 7], [7, 19], [26, 19]]) {
+      for (let y = cy - 2; y <= cy + 2; y++) for (let x = cx - 3; x <= cx + 3; x++) if (((x - cx) / 3) ** 2 + ((y - cy) / 2) ** 2 <= 1 && g.get(x, y) === 'g') g.set(x, y, '~');
+    }
+    return {
+      g, start: { tx: 17, ty: 29 }, exit: { tx: 17, ty: 3 }, boss: { tx: 17, ty: 9 },
+      props: [
+        { type: 'rope', tx: 17, ty: 28 }, { type: 'cave_lantern', tx: 15, ty: 27, light: [0, -8] },
+        { type: 'vent', tx: 11, ty: 10 }, { type: 'vent', tx: 22, ty: 10 }, { type: 'vent', tx: 11, ty: 17 }, { type: 'vent', tx: 22, ty: 17 },
+        { type: 'brazier', tx: 10, ty: 4, light: [0, -10] }, { type: 'brazier', tx: 23, ty: 4, light: [0, -10] }, { type: 'brazier', tx: 4, ty: 13, light: [0, -10] }, { type: 'brazier', tx: 29, ty: 13, light: [0, -10] },
+      ],
+    };
+  },
+};
+
+/** A boss floor: its arena, the boss, and the ladder once it has fallen (see caves.js). */
+function bossFloor(floor) {
+  const kind = BOSS_FLOORS[floor], a = ARENAS[kind](), zone = zoneOf(floor);
+  return {
+    ground: a.g.rows(), props: a.props, spawns: [{ kind, tx: a.boss.tx, ty: a.boss.ty }],
+    start: a.start, exit: a.exit, zone: ZONES.indexOf(zone) + 1, boss: kind,
+  };
 }

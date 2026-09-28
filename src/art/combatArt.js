@@ -4,7 +4,8 @@ import { addCharacter } from './characters.js';
 import { addHeldWeapons, weaponIcons, combatSprites } from './weapons.js';
 import { ENEMY_LOOKS, yokaiFrames } from './enemies.js';
 import { omens } from './spirits.js';
-import { oreNode, urn, chest, ladderHole, ropeUp, caveLantern, timbers, crackedWall, bundle, caveMouth, brazier, deepStair } from './cave.js';
+import { oreNode, urn, chest, ladderHole, ropeUp, caveLantern, timbers, crackedWall, bundle, caveMouth, brazier, deepStair, vent } from './cave.js';
+import { deepFrames, deepShots } from './yokai2.js';
 import { ORES } from '../data/caves.js';
 import { portrait, EXPRESSIONS } from './portraits.js';
 
@@ -17,7 +18,14 @@ export function addCombatArt(atlas, add) {
   for (const [k, g] of Object.entries(yokaiFrames())) add(k, g, 8, g.h);
   for (const [k, g] of Object.entries(omens())) add(`fx_${k}`, g, Math.floor(g.w / 2), Math.floor(g.h / 2));
 
-  for (const zone of [1, 2]) {
+  for (const [k, g] of Object.entries(deepFrames())) add(k, g, Math.floor(g.w / 2), g.h - 1);
+  for (const [k, g] of Object.entries(deepShots())) add(`fx_${k}`, g, Math.floor(g.w / 2), Math.floor(g.h / 2));
+  add('vent', vent('rest'), 9, 41);
+  add('vent_glow', vent('glow'), 9, 41);
+  add('vent_fire0', vent('fire', 0), 9, 41);
+  add('vent_fire1', vent('fire', 1), 9, 41);
+
+  for (const zone of [1, 2, 3, 4]) {
     for (const kind of Object.keys(ORES)) {
       const g = oreNode(kind, zone);
       add(`ore_${kind}_${zone}`, g, 9, g.h - 1);

@@ -3,8 +3,9 @@
 import { MAPS } from './maps/index.js';
 import { generateFloor } from './systems/cavegen.js';
 import { defeatCost, kiMax } from './systems/combat.js';
-import { ORES, CHEST_LOOT, zoneOf, BOSS_FLOORS, LANTERN_EVERY } from './data/caves.js';
+import { ORES, CHEST_LOOT, zoneOf, BOSS_FLOORS, LANTERN_EVERY, LAST_FLOOR } from './data/caves.js';
 import { DIFFICULTY } from './data/enemies.js';
+import { OUTCOMES } from './data/bosses.js';
 import { InkWipe } from './ui/transition.js';
 import { Dialog } from './ui/dialog.js';
 import { t } from './data/strings.js';
@@ -29,11 +30,13 @@ export function caveDef(g, floor) {
     if (p.type === 'cave_lantern') { q.lit = lit; if (!lit) delete q.light; }
     return q;
   });
+  // Lava glows: a soft light over every third tile of it.
+  if (zone.lava) gen.ground.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '~' && (x + y) % 3 === 0) props.push({ type: 'lava_glow', tx: x, ty: y, light: [0, -8] }); }));
   const boss = BOSS_FLOORS[floor];
   const beaten = boss && g.flags[`boss_${boss}`];
-  if (beaten) props.push({ type: 'ladder', tx: gen.exit.tx, ty: gen.exit.ty });
+  if (beaten && floor < LAST_FLOOR) props.push({ type: 'ladder', tx: gen.exit.tx, ty: gen.exit.ty });
   return {
-    id: 'cave', name: `${zone.name} B${floor}`, jp: zone.jp, cave: true, floor, zone: gen.zone, boss: beaten ? null : boss,
+    id: 'cave', name: `${zone.name} B${floor}`, jp: zone.jp, cave: true, floor, zone: gen.zone, boss: beaten ? null : boss, lava: !!zone.lava,
     ground: gen.ground, props, warps: [], exit: gen.exit,
     spawn: { tx: gen.start.tx, ty: gen.start.ty, dir: 'down' },
     spawns: beaten ? [] : gen.spawns,
@@ -55,7 +58,8 @@ export function enterFloor(g, floor) {
       }
       const sp = MAPS.cave.spawn;
       g.enter('cave', sp.tx, sp.ty, sp.dir);
-      g.aside(floor === 1 ? 'tk_cave_first' : BOSS_FLOORS[floor] && !g.flags[`boss_${BOSS_FLOORS[floor]}`] ? 'tk_boss_floor' : 'tk_cave_floor', { once: floor === 1 ? true : `floor${floor}`, vars: { n: floor } });
+      const first = floor === 41 ? 'tk_cave_zone3' : floor === 61 ? 'tk_cave_zone4' : floor === 1 ? 'tk_cave_first' : null;
+      g.aside(first || (BOSS_FLOORS[floor] && !g.flags[`boss_${BOSS_FLOORS[floor]}`] ? 'tk_boss_floor' : 'tk_cave_floor'), { once: first ? first : `floor${floor}`, vars: { n: floor } });
     },
   }));
 }
@@ -155,17 +159,32 @@ export function defeat(g) {
   }));
 }
 
-/** Jūbei falls to his knees: rewards, Yū and Meiyo, and what to do with him. */
+/** A boss falls: Yū, XP, the ladder down, then its scene and what it leaves (see data/bosses.js). */
 export function bossDown(g, f) {
   const w = g.world;
-  g.flags.boss_jubei = true;
+  g.flags[`boss_${f.kind}`] = true;
   g.addVirtue('yu', 5);
   g.xp('sword', f.def.xp);
   g.stats.kills = g.stats.kills || {};
-  g.stats.kills.jubei = 1;
+  g.stats.kills[f.kind] = 1;
   const exit = w.map.def.exit;
-  w.map.addObject({ type: 'ladder', x: exit.tx, y: exit.ty });
+  if (w.map.def.floor < LAST_FLOOR) w.map.addObject({ type: 'ladder', x: exit.tx, y: exit.ty });
   for (const foe of w.combat.foes) if (!foe.dead) { foe.dead = true; w.fx.burst('fx_smoke1', foe.x, foe.y - 8, 4); }
+  w.combat.shots = [];
+  const out = OUTCOMES[f.kind];
+  if (out) {
+    g.hpMax += out.inochi;
+    g.hp = g.hpMax;
+    g.addVirtue(...out.virtue);
+    g.toast('toast_inochi', { n: out.inochi }, null);
+    g.pendingScene = [out.script, ...out.items.map(([id, n]) => `give ${id} ${n}`)].join('\n');
+    return;
+  }
+  jubeiFate(g);
+}
+
+/** Jūbei on his knees: spare him, hand him to the magistrate, or (with Jin) give him honest work. */
+function jubeiFate(g) {
   const kind = virtueTier(g.virtues, 'jin') >= 1;
   g.pendingScene = `
     say jubei "${t('jubei_down1')}"

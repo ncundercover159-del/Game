@@ -11,6 +11,12 @@ export const ENEMY_LOOKS = {
     obi: ['ink0', 'ink2'], feet: ['wood1', 'wood3'], collar: ['ink2', 'ink3'], cord: 'red1',
     style: 'band', sword: true,
   },
+  shinobi: {
+    hair: ['ink0', 'ink1', 'ink2'], skin: ['skin1', 'skin2', 'skin3', 'skin4'],
+    kosode: ['ink0', 'ink0', 'ink1', 'ink2'], hakama: ['ink0', 'ink1', 'ink1', 'ink2'],
+    obi: ['red0', 'red1'], feet: ['ink1', 'ink2'], collar: ['ink1', 'ink2'], cord: 'red1',
+    style: 'cropped', sword: true,
+  },
   jubei: {
     hair: ['ink0', 'ink1', 'ink2'], skin: ['skin1', 'skin2', 'skin3', 'skin4'],
     kosode: ['ink0', 'ink1', 'ink2', 'ink3'], hakama: ['red0', 'red0', 'red1', 'red2'],

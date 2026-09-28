@@ -1,5 +1,6 @@
 import { CAVE_STRINGS } from './strings_caves.js';
 import { HOME_STRINGS } from './strings_home.js';
+import { DEEP_STRINGS } from './strings_deep.js';
 
 // English string table. Every player-facing line lives here (keys are stable ids) so a Japanese
 // table can be dropped in later. `{name}`-style placeholders are filled by t().
@@ -100,6 +101,7 @@ export const STRINGS = {
   forge_back: 'The {tool} comes back {tier}, edge bright as new snow.',
   forge_no_tool: 'Bring the tool itself. Genzō does not upgrade promises.',
   forge_max: 'Nothing left to add to that {tool}.',
+  forge_locked: '{tier} {tool}: not yet (the metal lies deeper)',
 
   // Villagers
   counter_ask: 'Welcome! What can I do for you?',
@@ -249,7 +251,7 @@ export const STRINGS = {
   help_keys: 'WASD move · J use · K interact · 1-0 - = tools · Tab menu',
 };
 
-Object.assign(STRINGS, CAVE_STRINGS, HOME_STRINGS);
+Object.assign(STRINGS, CAVE_STRINGS, HOME_STRINGS, DEEP_STRINGS);
 
 export function t(key, vars) {
   let s = STRINGS[key];

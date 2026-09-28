@@ -92,8 +92,9 @@ test('the Archive: collections cover real items once each; donations pay milesto
   let r;
   for (const id of COLLECTIONS.metals.items) r = donate(st, id);
   assert.equal(r.completed, 'metals');
-  assert.deepEqual(st.claimed, [5]);
+  assert.deepEqual(st.claimed, [5, 10]);
   assert.equal(progress(st, 'fish'), 1);
-  for (const id of COLLECTIONS.crops.items.slice(0, 3)) r = donate(st, id);
-  assert.deepEqual(r.milestones.map((m) => m.n), [10]);
+  const toTwenty = 20 - st.donated.length;
+  for (const id of COLLECTIONS.crops.items.slice(0, toTwenty)) r = donate(st, id);
+  assert.deepEqual(r.milestones.map((m) => m.n), [20]);
 });

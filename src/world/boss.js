@@ -136,4 +136,4 @@ function bossWithSmoke(f, w, dt) {
   boss(f, w, dt);
 }
 
-BRAINS.boss = bossWithSmoke;
+BRAINS.jubei = bossWithSmoke;

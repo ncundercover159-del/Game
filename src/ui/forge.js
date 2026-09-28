@@ -38,6 +38,8 @@ export class ForgeMenu extends RowShop {
       const next = (g.tiers[tool] || 0) + 1;
       const name = itemDef(tool).name;
       if (next >= TIERS.length) { rows.push({ icon: `icon_${tool}@${next - 1}`, label: t('forge_max', { tool: name }), disabled: true }); continue; }
+      // Genzō will not work the deeper metals until what guards them has fallen.
+      if (TIERS[next].after && !g.flags[TIERS[next].after]) { rows.push({ icon: iconName(tool, g.tiers), label: t('forge_locked', { tool: name, tier: TIERS[next].name }), disabled: true }); continue; }
       const cost = TIERS[next].cost;
       const [mat, n] = Object.entries(cost.items)[0];
       rows.push({

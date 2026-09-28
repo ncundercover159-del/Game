@@ -160,15 +160,17 @@ export class Hud {
   drawCave(ctx, atlas, w) {
     const g = this.game, def = g.world.map.def;
     if (!def.cave) return;
-    const boss = g.world.combat.foes.find((f) => f.kind === 'jubei' && f.state !== 'idle');
+    const boss = g.world.combat.foes.find((f) => f.def.boss && !f.illusion && f.state !== 'idle');
     if (boss) {
       const bw = 180, x = Math.floor(w / 2 - bw / 2);
       dark(ctx, atlas, x, 4, bw, 22);
-      const name = t('boss_jubei');
+      const name = `${boss.def.name} ${boss.def.jp}`;
       fonts.small.draw(ctx, name, Math.floor(w / 2 - fonts.small.measure(name) / 2), 6, 'gold2');
       rect(ctx, 'ink1', x + 6, 17, bw - 12, 4);
       rect(ctx, 'red2', x + 6, 17, Math.round((bw - 12) * Math.max(0, boss.hp / boss.maxHp)), 4);
       rect(ctx, 'red4', x + 6, 17, Math.round((bw - 12) * Math.max(0, boss.hp / boss.maxHp)), 1);
+      // Armour plates still on (Kurenai).
+      for (let i = 0; i < boss.armour; i++) rect(ctx, 'gold2', x + bw - 14 - i * 6, 8, 4, 4);
       return;
     }
     const label = t('cave_floor_label', { n: def.floor, zone: def.name.replace(/ B\d+$/, '') });

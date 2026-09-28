@@ -1,6 +1,7 @@
 // Mount Kurayama: rock and floor tiles per zone, and the props of the tunnels (ore veins, urns,
 // chests, the ladder down and the rope up, lanterns, timber props, cracked walls, the lost bundle)
-// plus the cave mouth on the mountainside. Zone 1 is earthy brown-grey, zone 2 wet blue-grey.
+// plus the cave mouth on the mountainside. Zone 1 is earthy brown-grey, zone 2 wet blue-grey,
+// zone 3 violet with foxfire flecks, zone 4 scorched red-brown with glowing seams.
 import { grid, set, fillRect, ellipse, polygon, line, outline, parse } from './raster.js';
 import { hashf } from '../core/rng.js';
 
@@ -12,6 +13,8 @@ const vline = (g, x, y0, y1, c) => { for (let y = y0; y <= y1; y++) set(g, x, y,
 const ZONE_PAL = {
   1: { rock: ['ink1', 'stone0', 'stone1', 'stone2', 'stone3'], floor: ['wood0', 'wood1', 'stone1', 'wood2'], accent: 'wood3' },
   2: { rock: ['ink1', 'indigo0', 'ink2', 'stone1', 'stone2'], floor: ['ink1', 'ink2', 'stone0', 'indigo0'], accent: 'teal1' },
+  3: { rock: ['ink0', 'indigo0', 'sakura0', 'indigo1', 'sakura1'], floor: ['ink0', 'ink1', 'indigo0', 'sakura0'], accent: 'gold1' },
+  4: { rock: ['ink0', 'red0', 'wood0', 'wood1', 'red1'], floor: ['ink0', 'ink1', 'wood0', 'red0'], accent: 'red2' },
 };
 
 /** Rock mass seen from above: dark, knobbly, a few lit edges. */
@@ -37,6 +40,8 @@ export function rockFace(zone, v) {
   hline(g, 0, 15, 0, p[4]);
   hline(g, 0, 15, 14, p[1]); hline(g, 0, 15, 15, p[0]);
   if (zone === 2) for (let x = v % 4; x < T; x += 5) { set(g, x, 1, 'teal1'); set(g, x, 2, 'teal0'); }
+  // The foundry's rock glows along its seams.
+  if (zone === 4) for (let x = (v * 3) % 7; x < T; x += 7) { set(g, x, 8 + (v % 3), 'red3'); set(g, x + 1, 8 + (v % 3), 'red2'); }
   return g;
 }
 
@@ -58,7 +63,10 @@ export function caveFloor(zone, v, shade) {
 
 // ---------------------------------------------------------------- props (anchored at their feet)
 
-const ORE_VEIN = { copper: ['teal1', 'red3'], iron: ['red1', 'wood3'], jade: ['grass2', 'grass5'], crystal: ['water3', 'ink6'], stone: null };
+const ORE_VEIN = {
+  copper: ['teal1', 'red3'], iron: ['red1', 'wood3'], jade: ['grass2', 'grass5'], crystal: ['water3', 'ink6'], stone: null,
+  gold: ['gold1', 'gold3'], satetsu: ['ink0', 'stone1'],
+};
 
 /** A knee-high lump of rock, with a vein of ore or a crystal cluster. */
 export function oreNode(kind, zone) {
@@ -71,6 +79,10 @@ export function oreNode(kind, zone) {
   if (kind === 'crystal') {
     for (const [x, h] of [[5, 7], [8, 10], [11, 6]]) { fillRect(g, x, 12 - h, 2, h, 'water3'); vline(g, x, 12 - h, 11, 'water4'); set(g, x, 12 - h, 'ink6'); }
   }
+  // Spirit stone: a pale egg of stone set in the rock, faintly lit.
+  if (kind === 'reiseki') { ellipse(g, 8, 9, 3, 4, 'indigo3'); ellipse(g, 7, 8, 1, 2, 'ink6'); set(g, 9, 11, 'indigo2'); }
+  // Iron sand: black grit spilling from a crack.
+  if (kind === 'satetsu') for (let i = 0; i < 12; i++) set(g, 4 + ((i * 5) % 9), 9 + ((i * 3) % 6), i % 3 ? 'ink0' : 'stone1');
   return outline(g, { color: 'ink0' });
 }
 
@@ -174,6 +186,24 @@ export function crackedWall(zone) {
   const g = rockFace(zone, 3);
   for (const [x0, y0, x1, y1] of [[3, 2, 7, 8], [7, 8, 5, 13], [7, 8, 12, 10], [12, 10, 13, 14]]) line(g, x0, y0, x1, y1, 'ink0');
   return g;
+}
+
+/** A fire vent in the foundry floor: resting, glowing (the tell), or breathing a column of fire
+ * (two frames). 16x40, the vent at the bottom so every phase shares the anchor. */
+export function vent(phase, frame = 0) {
+  const g = grid(16, 40);
+  ellipse(g, 8, 34, 6, 4, 'wood0');
+  ellipse(g, 8, 34, 4, 2, phase === 'rest' ? 'ink0' : phase === 'glow' ? 'red2' : 'gold2');
+  if (phase === 'glow') { ellipse(g, 8, 34, 2, 1, 'gold2'); for (const x of [3, 13]) set(g, x, 34, 'red3'); }
+  for (const [x, y] of [[2, 34], [14, 34], [8, 30], [8, 38]]) set(g, x, y, 'wood1');
+  if (phase === 'fire') {
+    const tall = frame ? 32 : 28;
+    for (let y = 34 - tall; y < 34; y++) {
+      const k = (y - (34 - tall)) / tall, half = Math.max(1, Math.round(1 + k * 4 + Math.sin(y * 0.9 + frame * 2)));
+      for (let x = 8 - half; x <= 8 + half; x++) set(g, x, y, Math.abs(x - 8) < half * 0.4 ? 'gold3' : Math.abs(x - 8) < half * 0.75 ? 'gold2' : 'red3');
+    }
+  }
+  return outline(g, { color: 'ink0' });
 }
 
 /** The furoshiki bundle your lost things wait in. */

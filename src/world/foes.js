@@ -2,7 +2,7 @@
 // drives (world/brains.js). Foes never hurt by touch: every blow comes from an attack with a tell.
 import { TILE } from '../config.js';
 import { moveBox } from './collision.js';
-import { ENEMIES, BOSS_JUBEI } from '../data/enemies.js';
+import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { enemyHp, depthMult } from '../systems/combat.js';
 import { BRAINS } from './brains.js';
 
@@ -10,15 +10,15 @@ const HW = 5, HH = 5;
 
 export class Foe {
   constructor(kind, x, y, difficulty, floor = 1) {
-    const def = kind === 'jubei' ? BOSS_JUBEI : ENEMIES[kind];
+    const def = BOSSES[kind] || ENEMIES[kind];
     this.kind = kind;
     this.def = def;
-    this.brain = kind === 'jubei' ? 'boss' : def.brain;
+    this.brain = def.brain;
     this.x = x;
     this.y = y;
     this.home = { x, y };
-    // Deeper floors breed tougher foes: a little more health and bite per floor.
-    const depth = kind === 'jubei' ? depthMult(1) : depthMult(floor);
+    // Deeper floors breed tougher foes: a little more health and bite per floor (bosses are fixed).
+    const depth = def.boss ? depthMult(1) : depthMult(floor);
     this.maxHp = enemyHp(def.hp * depth.hp, difficulty);
     this.dmg = Math.round(def.dmg * depth.dmg);
     this.hp = this.maxHp;
@@ -34,13 +34,15 @@ export class Foe {
     this.dead = false;
     this.anim = 0;
     this.mem = {};          // brain scratch
+    this.illusion = false;  // a copy with no shadow: pops at a touch, harms no one
+    this.armour = def.armour || 0;
   }
 
   /** Spirits float over water and kappa swim in it. */
   get wet() { return !!(this.def.float || this.def.water); }
 
-  get radius() { return this.kind === 'jubei' ? 9 : 7; }
-  get cy() { return this.y - (this.kind === 'yurei' || this.kind === 'bandit' || this.kind === 'jubei' ? 14 : 8) - this.z; }
+  get radius() { return this.def.radius || (this.def.big ? 10 : 7); }
+  get cy() { return this.y - (this.def.height ?? (this.def.person || this.kind === 'yurei' ? 14 : this.def.big ? 18 : 8)) - this.z; }
 
   /** Face toward a point (4 directions). */
   face(x, y) {

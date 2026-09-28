@@ -79,6 +79,13 @@ define('iron_ore', { name: 'Iron Ore', jp: '鉄鉱', kind: 'material', sell: 15,
 define('copper_bar', { name: 'Copper Bar', jp: '銅', kind: 'material', sell: 40, price: 90, desc: 'Soft red metal. Bows and fittings need it.' });
 define('jade', { name: 'Jade', jp: '翡翠', kind: 'gem', sell: 180, desc: 'Green stone from the flooded cellars. Spirits are drawn to it.' });
 define('water_crystal', { name: 'Water Crystal', jp: '水晶', kind: 'gem', sell: 140, desc: 'Clear crystal that is always cool to the touch.' });
+define('gold_ore', { name: 'Gold Ore', jp: '金鉱', kind: 'material', sell: 60, desc: 'Quartz threaded with gold, from the Foxfire Halls. The foxes never touched it; they prefer to lie about it.' });
+define('gold_bar', { name: 'Gold Bar', jp: '金', kind: 'material', sell: 380, desc: 'A small bar of soft gold, smelted by Genzō, who holds it as if it might bite.' });
+define('reiseki', { name: 'Spirit Stone', jp: '霊石', kind: 'gem', sell: 220, desc: 'A pale stone that hums near shrines and sulks near money.' });
+define('satetsu', { name: 'Iron Sand', jp: '砂鉄', kind: 'material', sell: 25, desc: 'Black iron sand from the Oni Foundry. Eight measures and a great deal of charcoal make tamahagane.' });
+define('tengu_feather', { name: 'Tengu Feather', jp: '天狗の羽', kind: 'material', sell: 160, desc: 'A long black feather that falls slowly, as if it has somewhere to be.' });
+define('kappa_dish', { name: 'Elder\'s Dish', jp: '河童の皿', kind: 'keepsake', desc: 'The Kappa Elder\'s old head-dish, cracked in your bout and given in respect. It is always faintly damp.' });
+define('kyubi_tail', { name: 'Ninth Tail', jp: '九尾の尾', kind: 'keepsake', desc: 'A tuft of white fur that glows like a lantern at dusk. Kon will not look at it directly.' });
 define('leaf_charm', { name: 'Tanuki Leaf', jp: '狸の葉', kind: 'material', sell: 120, desc: 'The leaf a tanuki wears on its head to change shape. It is still warm.' });
 define('spirit_wisp', { name: 'Spirit Wisp', jp: '魂火', kind: 'material', sell: 45, desc: 'A little cold light that stayed behind when a yūrei was put to rest.' });
 define('arrow', { name: 'Arrows', jp: '矢', kind: 'ammo', sell: 1, desc: 'Bamboo arrows with stone heads. The yumi uses one per shot.' });

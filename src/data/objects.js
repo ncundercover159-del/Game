@@ -121,5 +121,8 @@ export const OBJECT_TYPES = {
   // Festival dressing, put up on the day (see festivals.js): `decor` can be walked past or under,
   // a `fixture` stands on the ground.
   decor: { name: 'Decoration', solid: false, static: true, shadow: null },
+  vent: { name: 'Fire Vent', solid: false, static: true, shadow: null },
+  // An invisible marker that carries a lava pool's light.
+  lava_glow: { name: 'Lava', solid: false, static: true, shadow: null, flat: true, hidden: true },
   fixture: { name: 'Festival Stand', solid: true, static: true, shadow: 'shadow_m' },
 };

@@ -8,6 +8,10 @@ import { SOIL, isFlooded } from '../systems/irrigation.js';
 import { tatami, planks, doma, wallFace, wallTop, steps, bridge, voidTile, cliff, falls, compostSpecks } from '../art/interior.js';
 import { rockTop, rockFace, caveFloor } from '../art/cave.js';
 import { hash } from '../core/rng.js';
+import { recolor } from '../art/raster.js';
+
+// The foundry's pools are lava: the water tiles in fire colours.
+const LAVA = { water0: 'red0', water1: 'red1', water2: 'red2', water3: 'gold1', water4: 'gold2', ink6: 'gold3', ink5: 'gold2' };
 
 const CHUNK = 32;
 const WATER_FRAME = 0.25;
@@ -172,7 +176,9 @@ export class GroundRenderer {
       const mask = this.waterMask[y * m.w + x];
       if (mask < 0) continue;
       const v = variantAt(x, y);
-      const c = this.cells.get(`W${mask}.${v}.${frame}`, () => waterTile(mask, v, frame));
+      const c = m.def.lava
+        ? this.cells.get(`L${mask}.${v}.${frame}`, () => recolor(waterTile(mask, v, frame), LAVA))
+        : this.cells.get(`W${mask}.${v}.${frame}`, () => waterTile(mask, v, frame));
       ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, x * TILE - cam.ix, y * TILE - cam.iy, TILE, TILE);
     }
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {

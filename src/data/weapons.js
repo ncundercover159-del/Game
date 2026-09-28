@@ -42,6 +42,26 @@ export const WEAPONS = {
     name: 'Kurogane', jp: '黒鉄', cls: 'sword', dmg: 18, speed: 1.1, reach: 23, arc: 1.15, crit: 0.12, ki: 22,
     desc: 'Jūbei\'s black-iron blade. Heavier than it looks, and quicker.',
   },
+  // M7: blades from the deep zones, each after the boss that guards the way.
+  kitsunebi: {
+    name: 'Kitsunebi', jp: '狐火', cls: 'sword', dmg: 21, speed: 1.05, reach: 22, arc: 1.1, crit: 0.1, ki: 22, element: 'fire',
+    forge: { mon: 4000, items: [['gold_bar', 3], ['reiseki', 3], ['steel_bar', 2]] }, after: 'boss_kappa_elder',
+    desc: 'A gold-washed blade that leaves a trail of pale fire. Foxes hate it, and say so.',
+  },
+  onikiri: {
+    name: 'Onikiri', jp: '鬼切', cls: 'sword', dmg: 25, speed: 1, reach: 23, arc: 1.15, crit: 0.12, ki: 24, element: 'wind',
+    forge: { mon: 6000, items: [['steel_bar', 4], ['reiseki', 4], ['tengu_feather', 3]] }, after: 'boss_kyubi',
+    desc: 'The oni-cutter. Tengu feathers are bound into the grip; the blade moves before your hand does.',
+  },
+  kanabo: {
+    name: 'Kanabō', jp: '金棒', cls: 'glaive', dmg: 30, speed: 0.7, reach: 26, arc: 1.6, crit: 0.06, ki: 34,
+    desc: 'Kurenai\'s iron club, studded and still warm. Swinging it is like arguing with a landslide.',
+  },
+  tsukikage: {
+    name: 'Tsukikage, Reforged', jp: '月影', cls: 'sword', dmg: 33, speed: 1.1, reach: 24, arc: 1.2, crit: 0.15, ki: 20, element: 'spirit',
+    forge: { mon: 15000, items: [['katana_tetsu', 1], ['tamahagane', 5], ['reiseki', 5]] }, after: 'boss_kurenai',
+    desc: 'Your uncle\'s sword, folded again around jewel steel. Moonlight runs along the edge. It has, for once, nothing to say.',
+  },
 };
 
 // The sickle doubles as a short, weak weapon.
@@ -50,9 +70,12 @@ export const SICKLE = { cls: 'sword', dmg: 4, speed: 1.2, reach: 18, arc: 1, cri
 // Arrows: crafted, one per shot.
 export const ARROW_SPEED = 260;
 
-// Things Genzō smelts: `in` -> `out`, with charcoal (sumi) as fuel. Steel after the bandit chief.
+// Things Genzō smelts: `in` -> `out`, with charcoal (sumi) as fuel. Steel after the bandit chief,
+// gold after the Kappa Elder, tamahagane from iron sand after Kurenai.
 export const SMELT = {
   copper_bar: { in: [['copper_ore', 5], ['sumi', 1]], mon: 20 },
   iron_bar: { in: [['iron_ore', 5], ['sumi', 1]], mon: 40 },
   steel_bar: { in: [['iron_ore', 5], ['sumi', 3]], mon: 150, after: 'boss_jubei' },
+  gold_bar: { in: [['gold_ore', 5], ['sumi', 2]], mon: 300, after: 'boss_kappa_elder' },
+  tamahagane: { in: [['satetsu', 8], ['sumi', 5]], mon: 800, after: 'boss_kurenai' },
 };

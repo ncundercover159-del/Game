@@ -11,6 +11,9 @@ const BLADES = {
   hisui: { edge: 'ink6', flat: 'stone4', back: 'stone2', hilt: 'ink1', wrap: 'grass2', guard: 'grass4', len: 15 },
   mizuchi: { edge: 'ink6', flat: 'water4', back: 'water2', hilt: 'ink1', wrap: 'water1', guard: 'stone3', len: 15 },
   kurogane: { edge: 'stone3', flat: 'ink3', back: 'ink1', hilt: 'red1', wrap: 'ink0', guard: 'gold2', len: 16 },
+  kitsunebi: { edge: 'gold3', flat: 'gold2', back: 'gold1', hilt: 'ink1', wrap: 'red1', guard: 'gold1', len: 15 },
+  onikiri: { edge: 'ink6', flat: 'stone3', back: 'stone1', hilt: 'ink0', wrap: 'ink2', guard: 'stone4', len: 16 },
+  tsukikage: { edge: 'ink6', flat: 'indigo3', back: 'indigo2', hilt: 'ink1', wrap: 'indigo0', guard: 'gold2', len: 16 },
 };
 
 // [hand, tip] in frame coordinates for each direction and pose.
@@ -71,6 +74,21 @@ function poleSprite(kind, dir, pose) {
   return finish(outline(g, { color: 'ink0', pad: 0 }));
 }
 
+/** The kanabō: a thick iron club, studs along its head. */
+function clubSprite(dir, pose) {
+  const [[hx, hy], [ex, ey]] = POSES[dir][pose];
+  const g = grid(16 + PAD * 2, 32 + PAD * 2);
+  const len = Math.hypot(ex - hx, ey - hy), ux = (ex - hx) / len, uy = (ey - hy) / len;
+  const at = (d) => [Math.round(hx + ux * d) + PAD, Math.round(hy + uy * d) + PAD];
+  for (let d = -3; d <= 17; d += 0.5) {
+    const [x, y] = at(d), thick = d > 5 ? 1 : 0;
+    set(g, x, y, d < 2 ? 'red1' : 'ink2');
+    if (thick) { set(g, x + Math.round(uy), y - Math.round(ux), 'ink1'); set(g, x - Math.round(uy), y + Math.round(ux), 'ink3'); }
+    if (thick && Math.round(d) % 3 === 0) set(g, x + 2 * Math.round(uy), y - 2 * Math.round(ux), 'stone3');
+  }
+  return finish(outline(g, { color: 'ink0', pad: 0 }));
+}
+
 /** The bow held out (strike) or across the back (raise, guard). */
 function bowSprite(dir, pose) {
   const g = grid(16 + PAD * 2, 32 + PAD * 2);
@@ -93,12 +111,12 @@ function bowSprite(dir, pose) {
   return finish(outline(g, { color: 'ink0', pad: 0 }));
 }
 
-export const HELD_WEAPONS = [...Object.keys(BLADES), 'yari', 'naginata', 'yumi'];
+export const HELD_WEAPONS = [...Object.keys(BLADES), 'yari', 'naginata', 'yumi', 'kanabo'];
 
 /** Register `held_<weapon>_<dir>_<pose>` for raise, strike and guard. */
 export function addHeldWeapons(atlas) {
   for (const id of HELD_WEAPONS) for (const dir of ['down', 'up', 'right']) for (const pose of ['raise', 'strike', 'guard']) {
-    const s = id === 'yumi' ? bowSprite(dir, pose) : id === 'yari' || id === 'naginata' ? poleSprite(id, dir, pose) : bladeSprite(BLADES[id], dir, pose);
+    const s = id === 'yumi' ? bowSprite(dir, pose) : id === 'kanabo' ? clubSprite(dir, pose) : id === 'yari' || id === 'naginata' ? poleSprite(id, dir, pose) : bladeSprite(BLADES[id], dir, pose);
     atlas.add(`held_${id}_${dir}_${pose}`, s.g, s.ax, s.ay);
   }
 }
@@ -188,6 +206,42 @@ export function weaponIcons() {
     hisui: swordIcon(BLADES.hisui),
     mizuchi: swordIcon(BLADES.mizuchi),
     kurogane: swordIcon(BLADES.kurogane),
+    kitsunebi: swordIcon(BLADES.kitsunebi),
+    onikiri: swordIcon(BLADES.onikiri),
+    tsukikage: swordIcon(BLADES.tsukikage),
+    kanabo: icon((g) => {
+      for (let i = 0; i < 12; i++) { set(g, 2 + i, 14 - i, i < 3 ? 'red1' : 'ink2'); if (i > 3) { set(g, 3 + i, 14 - i, 'ink1'); set(g, 2 + i, 13 - i, 'ink3'); } }
+      for (const [x, y] of [[8, 7], [10, 5], [12, 3], [7, 10], [11, 8], [13, 6]]) set(g, x, y, 'stone3');
+    }),
+    gold_ore: rock(['stone0', 'stone1', 'stone2'], ['gold1', 'gold3'], VEINS),
+    satetsu: icon((g) => {
+      polygon(g, [[2, 13], [6, 7], [10, 6], [14, 13]], 'ink1');
+      for (let i = 0; i < 14; i++) set(g, 4 + ((i * 7) % 9), 9 + ((i * 5) % 4), i % 3 ? 'stone1' : 'ink3');
+    }),
+    gold_bar: (() => {
+      const g = grid(16, 16);
+      for (const [ox, oy] of [[2, 8], [6, 5]]) for (let y = 0; y < 5; y++) for (let x = 0; x < 9; x++) {
+        if (x < y * 0.4 || x > 8 - y * 0.4) continue;
+        set(g, ox + x, oy + y, y === 0 ? 'gold3' : y < 2 ? 'gold2' : y < 4 ? 'gold1' : 'gold0');
+      }
+      return crop(outline(g, { color: null }), 1, 1, 16, 16);
+    })(),
+    reiseki: icon((g) => {
+      ellipse(g, 8, 8.5, 4.5, 5.5, 'indigo2'); ellipse(g, 7, 7, 2.5, 3.5, 'indigo3'); set(g, 6, 5, 'ink6'); set(g, 6, 6, 'ink6');
+    }, 'indigo0'),
+    tengu_feather: icon((g) => {
+      line(g, 3, 14, 13, 2, 'ink2');
+      for (let i = 0; i < 9; i++) { set(g, 4 + i, 12 - i, 'ink1'); set(g, 5 + i, 13 - i, 'ink1'); set(g, 3 + i, 11 - i, 'ink3'); }
+      set(g, 13, 2, 'stone3');
+    }),
+    kappa_dish: icon((g) => {
+      ellipse(g, 8, 9, 6, 3, 'ink5'); ellipse(g, 8, 8.5, 4.5, 2, 'water3'); set(g, 6, 8, 'ink6');
+      line(g, 9, 7, 11, 10, 'ink1');
+    }),
+    kyubi_tail: icon((g) => {
+      ellipse(g, 7, 9, 4, 5, 'ink6'); ellipse(g, 9, 5, 3, 3, 'ink6'); ellipse(g, 10, 4, 1.5, 1.5, 'gold2');
+      line(g, 5, 14, 7, 12, 'ink4');
+    }, 'ink3'),
     yari: poleIcon('yari'),
     naginata: poleIcon('naginata'),
     yumi: bowIcon(),

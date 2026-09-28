@@ -25,7 +25,8 @@ await withBrowser(async (browser, base) => {
 
   await page.goto(`${base}/index.html?play=1&seed=7&time=09:00&day=3&weather=clear`);
   await page.waitForFunction(() => window.__ready === true);
-  await run(() => { const G = window.__game, g = G.game; G.advance(800); g.flags.ev_welcome = true; g.flags.restored_bridge = true; g.modals = []; });
+  // Frozen: only advance() moves the game, so the parry timing below is exact.
+  await run(() => { const G = window.__game, g = G.game; G.freeze(); G.advance(800); g.flags.ev_welcome = true; g.flags.restored_bridge = true; g.modals = []; });
 
   step('the open rear gate leads up to Mount Kurayama, and the mine mouth down to floor 1');
   await run(() => { const G = window.__game, g = G.game; g.enter('shrine', 19, 3, 'up'); G.advance(50); g.hud.aside = null; });

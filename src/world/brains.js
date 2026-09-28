@@ -8,6 +8,9 @@ const AGGRO = 110, LEASH = 220;
 // The last part of a tell shows the glint: the parry cue.
 export const GLINT = 0.15;
 
+/** Wind-up states (every attack starts in one): tell, omen, summon and any `...Tell`. */
+export const isTell = (s) => s === 'tell' || s === 'omen' || s === 'summon' || s.endsWith('Tell');
+
 export const dist = (f, p) => Math.hypot(p.x - f.x, p.y - f.y);
 
 /** Is the player within `reach` of the foe and roughly in front of where it faces? */
@@ -19,10 +22,11 @@ function inFront(f, p, reach) {
   return (dx * fx + dy * fy) / d > 0.2;
 }
 
-/** A melee blow lands (or is parried: the foe reels). */
+/** A melee blow lands (or is parried: the foe reels). Illusions only look as if they strike. */
 export function blow(f, w, dmg = f.dmg ?? f.def.dmg) {
+  if (f.illusion) return null;
   const r = w.combat.enemyBlow(f, dmg);
-  if (r === 'parried') f.stagger(PARRY.stagger * (f.kind === 'jubei' ? 0.6 : 1));
+  if (r === 'parried') f.stagger(PARRY.stagger * (f.def.boss ? 0.6 : 1));
   return r;
 }
 
@@ -223,7 +227,9 @@ function caster(f, w, dt) {
     case 'tell':
       glint(f, d.tell);
       if (f.t >= d.tell) {
-        w.combat.foxfire(f, p);
+        const dx = p.x - f.x, dy = p.y - 10 - f.cy, len = Math.hypot(dx, dy) || 1;
+        w.combat.shoot(f, 'foxfire', (dx / len) * 95, (dy / len) * 95, f.dmg);
+        w.game.sfx('fire');
         f.setState('recover');
       }
       break;

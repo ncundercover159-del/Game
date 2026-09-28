@@ -46,6 +46,7 @@ function objectSprite(o) {
     case 'chest': return o.open ? 'chest_open' : 'chest_shut';
     case 'cave_lantern': return o.lit ? 'cave_lantern_lit' : 'cave_lantern';
     case 'decor': case 'fixture': return `decor_${o.kind}`;
+    case 'vent': return o.phase === 'fire' ? `vent_fire${Math.floor(o.t * 10) % 2}` : o.phase === 'glow' ? 'vent_glow' : 'vent';
     default: return o.kind ? `${o.type}_${o.kind}` : o.type;
   }
 }
@@ -157,6 +158,7 @@ function drawShafts(w, ctx, cam) {
 }
 
 function drawObject(w, ctx, cam, o) {
+  if (OBJECT_TYPES[o.type].hidden) return;
   const atlas = w.game.atlas;
   const bx = o.x * TILE + 8 + (o.ox || 0) - cam.ix + (o.shake > 0 ? Math.round(Math.sin(w.time * 70) * 2 * (o.shake / 0.25)) : 0);
   const by = (o.y + 1) * TILE + (o.oy || 0) - cam.iy;

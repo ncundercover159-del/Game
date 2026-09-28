@@ -3,9 +3,9 @@
 import { hex } from '../art/palette.js';
 import { fonts } from '../core/text.js';
 import { kiMax } from '../systems/combat.js';
+import { isTell } from './brains.js';
 
-const TELL_STATES = new Set(['tell', 'dashTell', 'omen', 'sheathe']);
-const PERSON = { bandit: 'katana_tetsu', jubei: 'kurogane' };
+const PERSON = { bandit: 'katana_tetsu', jubei: 'kurogane', shinobi: 'katana_tetsu' };
 
 /** Frame (and held weapon) for a foe's current state. */
 function foeFrame(f) {
@@ -13,7 +13,7 @@ function foeFrame(f) {
   const step = (n, per) => Math.floor(f.anim / per) % n;
   if (PERSON[f.kind]) {
     const w = PERSON[f.kind], id = f.kind;
-    if (TELL_STATES.has(f.state) && f.state !== 'sheathe') return { name: `${id}_${d}_tool0`, held: `held_${w}_${d}_raise`, behind: true, flip };
+    if (isTell(f.state)) return { name: `${id}_${d}_tool0`, held: `held_${w}_${d}_raise`, behind: true, flip };
     if (f.state === 'attack' || f.state === 'dash') return { name: `${id}_${d}_tool${f.t < 0.1 ? 1 : 2}`, held: `held_${w}_${d}_strike`, behind: d === 'up', flip };
     if (f.state === 'approach' && f.guard) return { name: `${id}_${d}_walk${step(4, 0.15)}`, held: `held_${w}_${d}_guard`, behind: d === 'up', flip };
     if (f.state === 'approach') return { name: `${id}_${d}_walk${step(4, 0.15)}`, flip };
@@ -38,6 +38,49 @@ function foeFrame(f) {
     case 'yurei':
       if (f.state === 'attack' || f.state === 'recover') return { name: 'yurei_reach', flip };
       return { name: `yurei_drift${step(2, 0.4)}`, flip };
+    case 'kitsune':
+      if (f.state === 'tell' || f.state === 'split') return { name: 'kitsune_crouch', flip, shake: f.state === 'split' };
+      if (f.state === 'lunge') return { name: 'kitsune_lunge', flip };
+      return { name: `kitsune_walk${step(2, 0.14)}`, flip };
+    case 'onibi':
+      if (f.state === 'tell') return { name: step(2, 0.08) ? 'onibi_flare' : 'onibi_float0', flip };
+      if (f.state === 'dive') return { name: 'onibi_dive', flip };
+      return { name: `onibi_float${step(2, 0.2)}`, flip };
+    case 'tengu':
+      if (f.state === 'summon') return { name: 'tengu_spread', flip };
+      if (f.state === 'tell' || f.state === 'throwTell' || f.state === 'attack') return { name: 'tengu_fan', flip };
+      return { name: `tengu_idle${step(2, 0.3)}`, flip };
+    case 'karasu':
+      if (f.state === 'dive') return { name: 'karasu_dive', flip };
+      return { name: `karasu_fly${step(2, f.state === 'tell' ? 0.05 : 0.12)}`, flip };
+    case 'oni':
+      if (f.state === 'tell') return { name: 'oni_raise', flip, shake: f.t > f.def.tell - 0.2 };
+      if (f.state === 'attack' || (f.state === 'recover' && f.t < 0.4)) return { name: 'oni_smash', flip };
+      return { name: `oni_walk${step(2, 0.3)}`, flip };
+    case 'inoshishi':
+      if (f.state === 'tell') return { name: 'inoshishi_paw', flip, shake: true };
+      if (f.state === 'roll') return { name: `inoshishi_charge${step(2, 0.08)}`, flip };
+      if (f.state === 'dizzy' || f.state === 'stagger') return { name: 'inoshishi_paw', flip };
+      return { name: `inoshishi_walk${step(2, 0.2)}`, flip };
+    case 'kappa_elder':
+      if (f.state === 'shikoTell') return { name: 'kappa_elder_stomp', flip, shake: f.t > 0.5 };
+      if (f.state === 'tell' || f.state === 'attack') return { name: f.state === 'attack' ? 'kappa_elder_slap' : 'kappa_elder_idle0', flip };
+      if (f.state === 'bowTell' || f.state === 'spilled' || f.state === 'stagger') return { name: 'kappa_elder_bow', flip };
+      if (f.state === 'charge' || f.state === 'lunge' || f.state === 'surfaceTell' || f.state === 'spitTell') return { name: 'kappa_elder_charge', flip };
+      return { name: `kappa_elder_idle${step(2, 0.5)}`, flip };
+    case 'kyubi':
+      if (f.state === 'dash') return { name: 'kyubi_dash', flip };
+      if (f.state === 'tired' || f.state === 'stagger') return { name: 'kyubi_tired', flip };
+      if (isTell(f.state) || f.state === 'channel') return { name: 'kyubi_tell', flip };
+      return { name: `kyubi_idle${step(2, 0.35)}`, flip };
+    case 'kurenai': {
+      const k = f.armour > 0 ? 'kurenai' : 'kurenai_bare';
+      if (f.state === 'tell') return { name: `${k}_raise`, flip };
+      if (f.state === 'attack' || (f.state === 'recover' && f.t < 0.3)) return { name: `${k}_smash`, flip };
+      if (f.state === 'breathTell') return { name: `${k}_breathe`, flip, shake: true };
+      if (f.state === 'leapTell') return { name: `${k}_crouch`, flip };
+      return { name: `${k}_walk${step(2, 0.35)}`, flip };
+    }
     default: return { name: 'karakasa_idle0', flip };
   }
 }
@@ -48,8 +91,10 @@ export function collectCombat(w, rec) {
   for (const s of w.combat.shots) rec(s.y + 10, 'shot', s);
 }
 
+/** Shadows: none for illusions (that is how you tell them), a wide one for bosses and the big. */
 export function foeShadow(w, ctx, cam, f) {
-  w.game.atlas.draw(ctx, f.kind === 'jubei' ? 'fx_boss_shadow' : 'shadow_s', Math.round(f.x) - cam.ix, Math.round(f.y) - 1 - cam.iy);
+  if (f.illusion) return;
+  w.game.atlas.draw(ctx, f.def.boss || f.def.big ? 'fx_boss_shadow' : 'shadow_s', Math.round(f.x) - cam.ix, Math.round(f.y) - 1 - cam.iy);
 }
 
 export function drawFoe(w, ctx, cam, f) {
@@ -65,9 +110,10 @@ export function drawFoe(w, ctx, cam, f) {
   if (fr.held && !fr.behind) atlas.draw(ctx, fr.held, x, y, fr.flip);
   ctx.globalAlpha = 1;
   // The glint: the last moment of a tell, the cue to parry.
-  if (TELL_STATES.has(f.state) && f.mem.glinted && f.state !== 'sheathe') {
+  if (isTell(f.state) && f.mem.glinted) {
     const k = Math.floor(f.t * 20) % 2;
-    atlas.draw(ctx, 'fx_glint', x + (fr.flip ? -6 : 6), y - (f.kind === 'bandit' || f.kind === 'jubei' ? 36 : 22) - k);
+    const top = f.def.person ? 36 : f.def.boss || f.def.big ? (f.def.height || 18) * 2 + 6 : 22;
+    atlas.draw(ctx, 'fx_glint', x + (fr.flip ? -6 : 6), y - top - k);
   }
   if (f.state === 'stagger' || f.state === 'dizzy') atlas.draw(ctx, 'emote_dots', x, y - 30);
 }
@@ -75,7 +121,12 @@ export function drawFoe(w, ctx, cam, f) {
 export function drawShot(w, ctx, cam, s) {
   const atlas = w.game.atlas;
   const x = Math.round(s.x) - cam.ix, y = Math.round(s.y) - cam.iy;
-  if (s.kind === 'foxfire') atlas.draw(ctx, `fx_foxfire${Math.floor(s.t * 8) % 2}`, x, y);
+  const two = Math.floor(s.t * 8) % 2;
+  if (s.flare && two) atlas.draw(ctx, 'fx_orb_flare', x, y);
+  else if (s.kind === 'foxfire') atlas.draw(ctx, `fx_foxfire${two}`, x, y);
+  else if (s.kind === 'water' || s.kind === 'fire') atlas.draw(ctx, `fx_${s.kind}${two}`, x, y);
+  else if (s.kind === 'shuriken') atlas.draw(ctx, `fx_shuriken${Math.floor(s.t * 16) % 2}`, x, y);
+  else if (s.kind === 'feather') atlas.draw(ctx, 'fx_feather', x, y, s.vx < 0);
   else atlas.draw(ctx, s.dir === 'up' || s.dir === 'down' ? 'fx_arrow_down' : 'fx_arrow_right', x, y, s.dir === 'left');
 }
 
@@ -85,6 +136,14 @@ export function drawOmens(w, ctx, cam) {
   for (const f of w.combat.foes) {
     if (f.kind === 'kappa' && f.state === 'lurk') atlas.draw(ctx, `fx_ripple${Math.floor(w.time * 3) % 3}`, Math.round(f.x) - cam.ix, Math.round(f.y) - 4 - cam.iy);
     if (f.kind === 'yurei' && f.state === 'omen') atlas.draw(ctx, `fx_wisp${Math.floor(f.t * 6) % 2}`, Math.round(f.x) - cam.ix, Math.round(f.y) - 10 - cam.iy);
+    // A shinobi's footfalls raise a little dust even while it is unseen.
+    if (f.kind === 'shinobi' && f.state === 'stalk' && Math.floor(f.t * 5) % 2) atlas.draw(ctx, 'fx_pebble', Math.round(f.x) - cam.ix, Math.round(f.y) - 2 - cam.iy);
+    // The Kappa Elder under the moat: his ripple.
+    if (f.kind === 'kappa_elder' && f.hidden) atlas.draw(ctx, `fx_ripple${Math.floor(w.time * 3) % 3}`, Math.round(f.x) - cam.ix, Math.round(f.y) - 4 - cam.iy);
+    // Where Kurenai will land: a shadow that grows as she comes down.
+    if (f.kind === 'kurenai' && f.mem.land && (f.state === 'leapTell' || f.state === 'leap') && Math.floor(w.time * 10) % 2) {
+      atlas.draw(ctx, 'fx_boss_shadow', Math.round(f.mem.land.x) - cam.ix, Math.round(f.mem.land.y) - 1 - cam.iy);
+    }
   }
 }
 
@@ -140,9 +199,17 @@ function drawSlash(w, ctx, x, y) {
   }
 }
 
-/** Damage numbers and the Ki ring around the player's feet. */
+/** Damage numbers, shockwave rings and the Ki ring around the player's feet. */
 export function drawCombatOverlay(w, ctx, cam) {
   const g = w.game;
+  for (const r of w.combat.rings) {
+    const k = r.t / 0.35, rad = r.r * (0.3 + 0.7 * k);
+    ctx.fillStyle = hex(k < 0.5 ? 'ink6' : 'gold2');
+    for (let i = 0; i < 40; i++) {
+      const a = (i / 40) * Math.PI * 2;
+      ctx.fillRect(Math.round(r.x + Math.cos(a) * rad) - cam.ix, Math.round(r.y + Math.sin(a) * rad * 0.6) - cam.iy, 2, 1);
+    }
+  }
   for (const fl of w.combat.floaters) {
     ctx.globalAlpha = Math.min(1, (0.8 - fl.t) * 4);
     fonts.small.draw(ctx, fl.text, Math.round(fl.x) - cam.ix - 3, Math.round(fl.y) - cam.iy, fl.color);
