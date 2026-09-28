@@ -53,6 +53,21 @@ const MACHINE_ART = {
     fillRect(g, 5, 16, 6, 5, 'ink0'); for (const [x, y] of [[6, 19], [8, 18], [9, 20]]) set(g, x, y, 'red3');
     fillRect(g, 11, 2, 3, 6, 'stone1'); hline(g, 11, 13, 2, 'stone3');
   },
+  // Storage chests: a lidded cedar box, and a long iron-bound nagamochi with carrying-pole rings.
+  box_small(g) {
+    fillRect(g, 2, 12, 12, 9, 'wood3');
+    for (const y of [15, 18]) hline(g, 2, 13, y, 'wood2');
+    fillRect(g, 1, 9, 14, 3, 'wood4'); hline(g, 1, 14, 9, 'wood5'); hline(g, 1, 14, 11, 'wood2');
+    fillRect(g, 7, 11, 2, 3, 'gold2'); set(g, 7, 13, 'gold0');
+  },
+  box_large(g) {
+    fillRect(g, 0, 10, 16, 11, 'wood2');
+    for (const y of [13, 16, 19]) hline(g, 0, 15, y, 'wood1');
+    fillRect(g, 0, 6, 16, 4, 'wood3'); hline(g, 0, 15, 6, 'wood4'); hline(g, 0, 15, 9, 'wood1');
+    for (const x of [0, 14]) { fillRect(g, x, 6, 2, 3, 'ink2'); fillRect(g, x, 18, 2, 3, 'ink2'); }
+    for (const x of [3, 12]) { set(g, x, 12, 'ink3'); set(g, x, 14, 'ink3'); vline(g, x - 1, 12, 14, 'ink2'); }
+    fillRect(g, 7, 9, 2, 4, 'gold2'); set(g, 7, 12, 'gold0');
+  },
   compost_bin(g) {
     fillRect(g, 1, 8, 14, 13, 'wood2');
     for (let x = 1; x < 15; x += 4) vline(g, x, 8, 20, 'wood1');

@@ -116,6 +116,9 @@ define('haiku_scroll', { name: 'Prize Haiku', jp: '入選の句', kind: 'materia
 define('kingyo', { name: 'Goldfish', jp: '金魚', kind: 'animal', sell: 30, desc: 'A little red goldfish in a bag of water, from the tub at the fireworks. It regards you with great seriousness.' });
 define('hokora', { name: 'Hokora', jp: '祠', kind: 'place', place: 'hokora', sell: 40, desc: 'A little wayside shrine for a kodama to live in. Place it on your farm: its kodama waters the crops within three steps every night.' });
 
+// Storage chests: placed on your farm or in the farmhouse, taken up again with the axe when empty.
+define('box_small', { name: 'Small Chest', jp: '小箱', kind: 'place', place: 'store', sell: 20, desc: 'A lidded cedar box with room for 12 stacks. Place it on your farm or in the farmhouse; take it up again with the axe when it is empty.' });
+define('box_large', { name: 'Large Chest', jp: '長持', kind: 'place', place: 'store', sell: 60, desc: 'A long, iron-bound nagamochi with room for 36 stacks. Place it on your farm or in the farmhouse; take it up again with the axe when it is empty.' });
 define('pack24', { name: 'Large Pack', jp: '大きな背負子', kind: 'upgrade', slots: 24, price: 2000, desc: 'A second row of pockets: 24 slots.' });
 define('pack36', { name: 'Traveller\'s Pack', jp: '旅の背負子', kind: 'upgrade', slots: 36, price: 10000, desc: 'Room for everything: 36 slots.' });
 

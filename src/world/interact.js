@@ -17,6 +17,7 @@ import { openNotice, openMailbox, openAltar, openCooking, openArchive } from '..
 import { descend, climbOut, lightLantern, openChest, takeBundle } from '../caves.js';
 import { meetKodama, visitHokora } from './kodama.js';
 import { readEma } from './ema.js';
+import { StoreMenu } from '../ui/store.js';
 import { startKata, startKyudo } from '../dojo.js';
 
 // Object types that answer Interact directly.
@@ -48,6 +49,7 @@ const BY_TYPE = {
   brazier: (w) => w.game.say('brazier'),
   kodama: meetKodama,
   ema: readEma,
+  store: (w, o) => { w.game.sfx('chop'); w.game.modals.push(new StoreMenu(w.game, o)); },
   hokora: visitHokora,
   makiwara: (w) => startKata(w.game),
   mato: (w) => startKyudo(w.game),

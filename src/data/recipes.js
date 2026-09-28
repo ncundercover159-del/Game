@@ -8,6 +8,8 @@ export const CRAFTS = {
   uke: { lv: 1, needs: [['bamboo', 5], ['hay', 5]] },
   sluice: { lv: 1, needs: [['wood', 10], ['stone', 10]] },
   arrow: { lv: 1, needs: [['bamboo', 1], ['stone', 1]], n: 5 },
+  box_small: { lv: 1, needs: [['wood', 25]] },
+  box_large: { lv: 2, needs: [['wood', 60], ['iron_bar', 1]] },
   smoker: { lv: 2, needs: [['wood', 20], ['bamboo', 5]] },
   charcoal_kiln: { lv: 2, needs: [['stone', 30], ['wood', 10]] },
   miso_barrel: { lv: 3, needs: [['wood', 25], ['stone', 10]] },

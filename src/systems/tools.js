@@ -9,6 +9,7 @@ import { till, untill, water, cropAt, isRipe, clearDead, digChannel, coverSoil, 
 import { SOIL, computeFlow } from './irrigation.js';
 import { hasPerk } from './skills.js';
 import { dig } from '../world/interact.js';
+import { CHESTS, emptyChest, holdsAnything } from './storage.js';
 
 export const GENKI_COST = 2;
 export const canCapacity = (tier) => TIERS[tier].can;
@@ -56,7 +57,7 @@ function applyOne(w, tool, tx, ty) {
   const o = map.objectAt(tx, ty);
   if (o && o.type === 'dig' && tool === 'hoe') { dig(w, o); return 'dig'; }
   if (o && o.type === 'forage') return 'miss';
-  if (o && o.type === 'machine' && (tool === 'axe' || tool === 'pickaxe')) return pickUpMachine(w, o);
+  if (o && (o.type === 'machine' || o.type === 'store') && (tool === 'axe' || tool === 'pickaxe')) return pickUpMachine(w, o);
   if (o && o.type === 'urn') { w.combat.breakUrn(o); return 'destroy'; }
   if (o) return hitObject(w, o, tool);
   // Village soil is somebody else's: tools only work the farm's.
@@ -151,8 +152,8 @@ function hitObject(w, o, tool) {
   return 'destroy';
 }
 
-/** Machines (and a kodama's hokora) stand on any open, dry, unplanted tile of your own maps (farm,
- * farmhouse, coop). */
+/** Machines (and chests, and a kodama's hokora) stand on any open, dry, unplanted tile of your own
+ * maps (farm, farmhouse, coop). */
 function placeMachine(w, slot, tx, ty) {
   const { game, map } = w;
   const k = map.inside(tx, ty) ? map.i(tx, ty) : -1;
@@ -162,7 +163,9 @@ function placeMachine(w, slot, tx, ty) {
     return false;
   }
   const id = game.inventory.slots[slot].id;
-  map.addObject(id === 'hokora' ? { type: 'hokora', x: tx, y: ty, v: 0 } : { type: 'machine', x: tx, y: ty, v: 0, kind: id });
+  map.addObject(id === 'hokora' ? { type: 'hokora', x: tx, y: ty, v: 0 }
+    : CHESTS[id] ? { type: 'store', x: tx, y: ty, v: 0, kind: id, items: emptyChest(id) }
+      : { type: 'machine', x: tx, y: ty, v: 0, kind: id });
   game.inventory.takeFrom(slot, 1);
   if (id === 'hokora') game.aside('tk_hokora', { once: true });
   game.sfx('rock');
@@ -197,10 +200,11 @@ function placeTrap(w, slot, tx, ty) {
   return true;
 }
 
-/** An empty machine comes back into the pack when struck with the axe or pickaxe. */
+/** An empty machine (or chest) comes back into the pack when struck with the axe or pickaxe. */
 function pickUpMachine(w, o) {
   const { game, map } = w;
   if (o.input) { game.sfx('deny'); o.shake = 0.2; game.aside('tk_machine_busy', { once: true }); return 'deny'; }
+  if (holdsAnything(o)) { game.sfx('deny'); o.shake = 0.2; game.aside('tk_store_full'); return 'deny'; }
   map.removeObject(o);
   w.drops.spawn(w.rng, o.kind, 1, 0, o.x * TILE + 8, o.y * TILE + 10);
   game.sfx('chop');
@@ -240,7 +244,7 @@ export function placeItem(w, slot, tx, ty) {
   const { game, map } = w;
   const s = game.inventory.slots[slot];
   if (s.id === 'uke') return placeTrap(w, slot, tx, ty);
-  if (itemDef(s.id).kind === 'machine' || s.id === 'hokora') return placeMachine(w, slot, tx, ty);
+  if (itemDef(s.id).kind === 'machine' || s.id === 'hokora' || CHESTS[s.id]) return placeMachine(w, slot, tx, ty);
   if (s.id !== 'sluice') return false;
   if (!map.inside(tx, ty) || map.soil[map.i(tx, ty)] !== SOIL.CHANNEL || map.objectAt(tx, ty)) {
     game.sfx('deny');

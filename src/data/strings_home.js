@@ -1,6 +1,9 @@
 // Strings for courting, marriage, the farmhouse, festivals and their minigames (merged into
 // STRINGS by strings.js).
 export const HOME_STRINGS = {
+  store_pack: 'Pack',
+  store_hint: 'Confirm or click moves a stack across · Esc closes',
+  tk_store_full: 'Empty the chest before you take it up.',
   romance_ask: 'Offer the {item} to {npc}?',
   romance_give: 'Offer it',
   toast_courting: 'You are courting {npc}.',

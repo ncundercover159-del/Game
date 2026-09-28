@@ -15,7 +15,7 @@ const SOIL_OF = { p: 1, c: 2 };
 // X: grass that can't be walked on (hedges, cliffs and the like drawn by objects or edges).
 const BLOCKING = new Set(['T', '~', 'f', '#', 'x', 'X', 'C', 'W', 'R']);
 
-const SAVED_FIELDS = ['kind', 'open', 'catch', 'q', 'input', 'ready'];
+const SAVED_FIELDS = ['kind', 'open', 'catch', 'q', 'input', 'ready', 'items'];
 
 export class GameMap {
   constructor(def) {
@@ -152,7 +152,7 @@ export class GameMap {
       fert: Array.from(this.fert).join(''),
       objects: dyn.map((d) => {
         const o = { type: d.type, x: d.x, y: d.y, hp: d.hp, v: d.v };
-        // State some objects carry: sluices open, trap catches, egg quality, machine loads.
+        // State some objects carry: sluices open, trap catches, egg quality, machine loads, chests' stacks.
         for (const f of SAVED_FIELDS) if (d[f] !== undefined && d[f] !== null && d[f] !== 0) o[f] = d[f];
         return o;
       }),

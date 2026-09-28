@@ -59,6 +59,8 @@ export const OBJECT_TYPES = {
   dig: { name: 'Dig Spot', solid: false, hp: 1, shadow: null },
   // Artisan machines (placed from the pack; picked up again with the axe or pickaxe when empty).
   machine: { name: 'Machine', solid: true, hp: 1, shadow: 'shadow_s' },
+  // Storage chests (their stacks in `items`); picked up with the axe or pickaxe when empty.
+  store: { name: 'Chest', solid: true, hp: 1, shadow: 'shadow_s' },
   // A fish trap set in the water; the axe takes it back up.
   trap: { name: 'Fish Trap', solid: true, hp: 1, shadow: null, tools: { axe: 1 }, drops: { any: [['uke', 1, 1]] }, fx: 'fx_chip', sfx: 'chop' },
 

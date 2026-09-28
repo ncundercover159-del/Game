@@ -39,7 +39,7 @@ function objectSprite(o) {
     case 'dig': return 'dig_spot';
     case 'trap': return 'uke';
     case 'produce': return `produce_${o.kind}`;
-    case 'machine': return `machine_${o.kind}`;
+    case 'machine': case 'store': return `machine_${o.kind}`;
     case 'fence': return o.v ? 'fence_post' : 'fence';
     case 'gate': return o.open ? 'gate_open' : 'gate';
     case 'ore': return `ore_${o.kind}_${o.zone}`;

@@ -63,7 +63,10 @@ hoe them). Daigo sends a rod once you have met him: hold Use to cast, press it w
 dips, then hold to lift the bar and keep the fish inside it. Chicks and ducklings from the
 Yorozuya live in the coop beside the farmhouse; keep hay in the hopper and pet them daily. Craft
 machines from the Craft tab in the menu, place them, and interact while holding their input.
-Cook at the irori in the farmhouse; teahouse scrolls teach new dishes, and dishes give buffs.
+Chests are crafted there too: a Small Chest (12 stacks, 25 wood) and, at Craftsmanship 2, a
+Large Chest (36 stacks, 60 wood and an iron bar). Set one down on the farm or in the farmhouse,
+interact to open it, and confirm or click a stack to move it between chest and pack; the axe
+takes an empty chest up again. Cook at the irori in the farmhouse; teahouse scrolls teach new dishes, and dishes give buffs.
 
 Mountain tips: fill the Altar of Yū in the shrine hall (timber, stone, iron bars, road rations)
 and the rear gate opens onto Mount Kurayama. Walk into the mine mouth to go down; ladders lead
