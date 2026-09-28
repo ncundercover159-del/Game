@@ -45,6 +45,7 @@ function objectSprite(o) {
     case 'cracked': return `cracked_${o.zone}`;
     case 'chest': return o.open ? 'chest_open' : 'chest_shut';
     case 'cave_lantern': return o.lit ? 'cave_lantern_lit' : 'cave_lantern';
+    case 'decor': case 'fixture': return `decor_${o.kind}`;
     default: return o.kind ? `${o.type}_${o.kind}` : o.type;
   }
 }
@@ -65,7 +66,7 @@ export function drawWorld(w, ctx, cam) {
     const oi = map.objAt[k];
     if (oi >= 0) {
       const o = map.objects[oi];
-      if (OBJECT_TYPES[o.type].flat) drawObject(w, ctx, cam, o);
+      if (OBJECT_TYPES[o.type].flat || o.flat) drawObject(w, ctx, cam, o);
       else rec((ty + 1) * TILE, 'obj', o);
     }
     const crop = map.crops.get(k);

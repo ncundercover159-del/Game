@@ -95,6 +95,15 @@ define('bokken', { name: 'Kinta\'s Bokken', jp: '金太の木刀', kind: 'keepsa
 define('fox_whisker', { name: 'Fox Whisker', jp: '狐の髭', kind: 'keepsake', desc: 'One silver whisker folded in paper. Hold it up and it turns, very slightly, toward home.' });
 define('bath_salt', { name: 'Yuzu Bath Salt', jp: '柚子湯の塩', kind: 'food', genki: 30, sell: 20, price: 60, desc: 'Salt and dried yuzu peel. Smells like Yuzu insists it does.' });
 
+// M6 festivals: what the day gives out, and the prizes.
+define('mochi', { name: 'Mochi', jp: '餅', kind: 'food', genki: 60, sell: 30, price: 80, desc: 'Pounded rice, soft and stretchy. Better on the day it is made.' });
+define('kakigori', { name: 'Kakigōri', jp: 'かき氷', kind: 'food', genki: 35, buff: ['speed', 0.1, 2], sell: 25, desc: 'Shaved ice with plum syrup, from Kon\'s cart at the fireworks. It melts faster than you eat.' });
+define('fuku_mame', { name: 'Fuku-mame', jp: '福豆', kind: 'food', genki: 20, buff: ['foraging', 0.08, 6], sell: 10, desc: 'Roasted Setsubun beans. Eat one for each year of your age, plus one for luck.' });
+define('amazake', { name: 'Amazake', jp: '甘酒', kind: 'food', genki: 55, sell: 30, desc: 'Warm, sweet rice drink from the snow-lantern night. It is not really sake. It is really good.' });
+define('star_fragment', { name: 'Star Fragment', jp: '星の欠片', kind: 'material', sell: 400, desc: 'A pale stone that fell on Tanabata night. It is warm, and a little heavier when you make a wish.' });
+define('festival_fan', { name: 'Festival Fan', jp: '祭り扇', kind: 'keepsake', desc: 'A painted uchiwa from the Bon dance, given to the best dancer. Heibei swears the judging was fair.' });
+define('haiku_scroll', { name: 'Prize Haiku', jp: '入選の句', kind: 'material', sell: 600, desc: 'Your prize-winning verse in Sōken\'s brush hand. Collectors in Edo pay for such things. So does Chōbei, grudgingly.' });
+
 define('pack24', { name: 'Large Pack', jp: '大きな背負子', kind: 'upgrade', slots: 24, price: 2000, desc: 'A second row of pockets: 24 slots.' });
 define('pack36', { name: 'Traveller\'s Pack', jp: '旅の背負子', kind: 'upgrade', slots: 36, price: 10000, desc: 'Room for everything: 36 slots.' });
 

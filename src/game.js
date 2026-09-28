@@ -13,6 +13,7 @@ import { Cutscene } from './ui/cutscene.js';
 import { askSleep, sleep, openShop, eat, bow } from './flow.js';
 import { askFloor, defeat, bossDown, placeBundle } from './caves.js';
 import { settleHouse } from './home.js';
+import { dressWorld, festivalScene } from './festivals.js';
 import { kiMax } from './systems/combat.js';
 import { EVENTS } from './data/events.js';
 import { heartEventFor } from './systems/hearts.js';
@@ -106,6 +107,7 @@ export class Game {
   /** Switch to a map and put the player on (tx, ty). */
   enter(id, tx, ty, dir) {
     this.world = this.worldFor(id);
+    dressWorld(this, this.world);
     this.world.ground.setSeason(this.cal.season);
     this.world.place(tx, ty, dir);
     const p = this.player, m = this.world.map;
@@ -119,12 +121,22 @@ export class Game {
   /** Story events that fire on entering a map (once each, when their flag is unset). */
   triggerEvents(mapId) {
     if (this.pendingScene) return;
+    if (this.startFestival(mapId)) return;
     const e = EVENTS.find((ev) => ev.map === mapId && !this.flags[ev.flag] && (!ev.when || ev.when(this)));
     const heart = !e && heartEventFor(this, mapId);
     if (!e && !heart) return;
     this.flags[e ? e.flag : heart.flag] = true;
     // Starts once the door wipe (or whatever else is open) has finished.
     this.pendingScene = e ? e.script : heart.event.script;
+  }
+
+  /** The festival's scene, when you are at its place in its hours (on arrival, or as it begins). */
+  startFestival(mapId) {
+    const f = festivalScene(this, mapId);
+    if (!f) return false;
+    this.flags[f.flag] = true;
+    this.pendingScene = f.script;
+    return true;
   }
 
   get rain() { return !!WEATHER[this.weather].rain; }
@@ -355,6 +367,7 @@ export class Game {
       this.clockAcc -= per;
       this.cal.minutes += TICK_MINUTES;
       if (this.cal.minutes === MIDNIGHT) this.aside('tk_late');
+      if (!this.pendingScene) this.startFestival(this.world.map.id);
       expireBuffs(this.buffs, stamp(this.dayIndex, this.cal.minutes));
       // The restored shrine bell rings at dusk (and at dawn, see flow.js).
       if (this.cal.minutes === 18 * 60 && this.flags.restored_bell) this.sfx('bell');

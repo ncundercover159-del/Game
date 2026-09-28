@@ -17,6 +17,7 @@ import { MAPS } from './maps/index.js';
 import { RESTORATIONS } from './data/restorations.js';
 import { endDay } from './systems/day.js';
 import { homeNight, homeMorning, wakeSpot } from './home.js';
+import { festivalMorning } from './festivals.js';
 import { decay } from './systems/bonds.js';
 import { decayMult } from './systems/virtues.js';
 import { refresh } from './systems/requests.js';
@@ -83,6 +84,7 @@ function morning(g, r, passedOut) {
   if (r.upgraded) g.aside('tk_upgrade_ready', { vars: { tool: itemDef(r.upgraded).name } });
   if (r.mail) g.aside('tk_mail', { vars: { n: r.mail } });
   if (g.flags.restored_bell) g.sfx('bell');
+  festivalMorning(g);
   homeMorning(g, r.home);
 }
 

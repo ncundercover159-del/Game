@@ -8,6 +8,7 @@
 //   wait seconds   moveNpc npc tx ty [dir]    placeNpc npc tx ty [dir]   face npc dir   emote npc kind
 //   cameraPan tx ty seconds | cameraPan player seconds       fade out|in seconds
 //   placePlayer tx ty [dir]   learn dish   sfx name   duel rival @won @lost (an iai stand-off)
+//   play game @best @good [@poor] (a festival minigame, branching on its grade)   fireworks seconds
 //
 // The runner is host-agnostic: blocking verbs ask the host for a handle whose `done` becomes true
 // (and, for choices, whose `value` is the picked index). See game/cutscene.js for the real host.
@@ -86,6 +87,8 @@ export function parseScript(text) {
       case 'learn': ops.push({ op: 'learn', dish: a[0] }); break;
       case 'sfx': ops.push({ op: 'sfx', name: a[0] }); break;
       case 'duel': ops.push({ op: 'choice', duel: a[0], options: [{ to: LABEL(a[1], line) }, { to: LABEL(a[2], line) }] }); break;
+      case 'play': ops.push({ op: 'choice', play: a[0], options: a.slice(1).map((l) => ({ to: LABEL(l, line) })) }); break;
+      case 'fireworks': ops.push({ op: 'fireworks', t: NUM(a[0], line) }); break;
       default: throw new Error(`Script line ${line}: unknown verb "${verb}"`);
     }
   });
@@ -98,7 +101,7 @@ export function parseScript(text) {
 /**
  * Runs a parsed script against a host. Call update(dt) every frame until `finished`.
  * Host: say(who, face, text) / choice(texts) / moveNpc(npc, tx, ty, dir) / pan(target, t) /
- * fade(dir, t) and duel(rival) return a handle { done, value }; give, take (returns bool), money,
+ * fade(dir, t), duel(rival), play(game) and fireworks(t) return a handle { done, value }; give, take (returns bool), money,
  * bond, virtue, placeNpc, placePlayer, learn, sfx, face, emote, flag(name) and setFlag(name, value)
  * act immediately.
  */
@@ -133,7 +136,8 @@ export class ScriptRunner {
     const h = this.host;
     switch (o.op) {
       case 'say': this.wait = h.say(o.who, o.face, o.text); break;
-      case 'choice': this.pick = o; this.wait = o.duel ? h.duel(o.duel) : h.choice(o.options.map((x) => x.text)); break;
+      case 'choice': this.pick = o; this.wait = o.duel ? h.duel(o.duel) : o.play ? h.play(o.play) : h.choice(o.options.map((x) => x.text)); break;
+      case 'fireworks': this.wait = h.fireworks(o.t); break;
       case 'goto': this.pc = this.labels[o.to]; break;
       case 'end': this.finished = true; break;
       case 'give': h.give(o.item, o.n); break;

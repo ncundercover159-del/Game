@@ -53,5 +53,47 @@ export function valleyIcons() {
       fillRect(g, 3, 5, 10, 8, 'ink6'); for (let x = 3; x < 13; x += 3) set(g, x, 12, 'ink5');
       line(g, 2, 3, 14, 11, 'ink4'); set(g, 14, 11, 'gold2');
     }),
+    mochi: icon((g) => {
+      ellipse(g, 8, 10, 6, 4, 'ink5');
+      ellipse(g, 8, 9, 5, 3, 'ink6');
+      ellipse(g, 8, 5, 3, 2, 'ink6');
+      set(g, 6, 8, 'stone4'); set(g, 7, 4, 'stone4');
+      set(g, 8, 3, 'red2');
+    }),
+    kakigori: icon((g) => {
+      polygon(g, [[3, 9], [13, 9], [11, 14], [5, 14]], 'water3');
+      hline(g, 3, 13, 9, 'water4');
+      ellipse(g, 8, 6, 5, 4, 'ink6');
+      ellipse(g, 9, 4, 3, 2, 'red3');
+      set(g, 6, 7, 'ink5');
+    }),
+    fuku_mame: icon((g) => {
+      polygon(g, [[2, 9], [14, 9], [12, 14], [4, 14]], 'wood3');
+      hline(g, 2, 14, 9, 'wood5');
+      for (const [x, y] of [[5, 7], [8, 6], [11, 7], [6, 9], [10, 9], [8, 8]]) { ellipse(g, x, y, 1, 1, 'straw3'); set(g, x, y - 1, 'straw4'); }
+    }),
+    amazake: icon((g) => {
+      fillRect(g, 4, 6, 8, 8, 'wood2');
+      fillRect(g, 5, 6, 3, 8, 'wood3');
+      ellipse(g, 8, 6, 4, 1, 'ink6');
+      for (const [x, y] of [[6, 3], [9, 2], [8, 4]]) set(g, x, y, 'ink5');
+    }),
+    star_fragment: icon((g) => {
+      polygon(g, [[8, 1], [10, 6], [15, 7], [11, 10], [12, 15], [8, 12], [4, 15], [5, 10], [1, 7], [6, 6]], 'gold2');
+      polygon(g, [[8, 4], [9, 7], [11, 8], [9, 10], [8, 12], [7, 9]], 'gold3');
+      set(g, 7, 6, 'ink6');
+    }),
+    festival_fan: icon((g) => {
+      ellipse(g, 8, 6, 6, 5, 'ink6');
+      ellipse(g, 8, 6, 3, 3, 'red2');
+      line(g, 8, 11, 8, 15, 'wood2');
+      for (let x = 3; x <= 13; x += 2) set(g, x, 6, 'ink5');
+    }),
+    haiku_scroll: icon((g) => {
+      fillRect(g, 4, 2, 8, 12, 'ink6');
+      hline(g, 3, 12, 2, 'wood2'); hline(g, 3, 12, 14, 'wood2');
+      for (const x of [6, 9]) for (let y = 4; y < 12; y += 2) set(g, x, y, 'ink1');
+      set(g, 10, 12, 'red2');
+    }),
   };
 }

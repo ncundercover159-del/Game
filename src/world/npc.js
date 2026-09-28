@@ -7,6 +7,7 @@ import { navMap, findPath, mapRoute, warpTile } from '../systems/nav.js';
 import { dayIndex } from '../systems/calendar.js';
 import { WEATHER } from '../systems/weather.js';
 import { spouseRoute } from '../systems/romance.js';
+import { festivalOn, castFor, festivalRoute } from '../systems/festivals.js';
 
 const SPEED = 40;            // px/s, a stroll
 const WALK_FRAME = 0.18;
@@ -72,9 +73,13 @@ export class Villagers {
   planDay() {
     const g = this.game;
     const ctx = { season: g.seasonId, weekday: dayIndex(g.cal) % 7, rain: !!WEATHER[g.weather].rain, flags: g.flags };
+    // On a festival day the cast leave their day for the festival spots during its hours.
+    const fest = festivalOn(g.cal), cast = fest ? castFor(fest, g.flags) : [];
     for (const n of this.list) {
-      const route = routeFor(n.id, ctx);
-      this.routes[n.id] = g.romance?.spouse === n.id ? spouseRoute(route) : route;
+      let route = routeFor(n.id, ctx);
+      if (g.romance?.spouse === n.id) route = spouseRoute(route);
+      const i = cast.indexOf(n.id);
+      this.routes[n.id] = i >= 0 ? festivalRoute(route, fest, fest.spots[i]) : route;
     }
   }
 

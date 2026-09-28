@@ -1,4 +1,5 @@
-// Strings for courting, marriage and the farmhouse (merged into STRINGS by strings.js).
+// Strings for courting, marriage, the farmhouse, festivals and their minigames (merged into
+// STRINGS by strings.js).
 export const HOME_STRINGS = {
   romance_ask: 'Offer the {item} to {npc}?',
   romance_give: 'Offer it',
@@ -13,4 +14,43 @@ export const HOME_STRINGS = {
   sp_watered: '{npc} watered the crops before you woke.',
   sp_petted: '{npc} fed and petted the animals this morning.',
   sp_cooked: '{npc} left you a {dish} by the hearth.',
+
+  // Festivals
+  tk_festival: 'Today is {name}: {place}, from {time}. Even a rōnin gets a day off. Especially a rōnin.',
+  sum_festival: 'Festival: {name}, {place}, from {time}.',
+  judge_present: 'You present your {item} to the judges. They turn it over, sniff it, and confer in whispers.',
+  judge_nothing: 'You have no crop in your pack to present. The judges look politely at your empty hands.',
+
+  // Rhythm games
+  rh_perfect: 'Yoi!',
+  rh_good: 'Good',
+  rh_miss: 'Miss',
+  rh_ouch: 'Ouch!',
+  rh_ready: 'Ready…',
+  rh_combo: '{n} in a row',
+  rh_grade0: 'Splendid!',
+  rh_grade1: 'Well done',
+  rh_grade2: 'Clumsy…',
+  rh_tally: '{perfect} yoi · {good} good · {miss} missed · {ouch} ouch · best run {combo}',
+  rh_help_mochi: 'Use: strike on the beat. Never while the hand (red) is in the mortar.',
+  rh_help_bonodori: 'Arrows: step with the dance. Use: clap.',
+  rh_help_otaue: 'Use: plant on each drumbeat. When the drum beats alone (red), wait.',
+  rh_help_mamemaki: 'Use: beans at the oni. Not at Kinta (red)!',
+
+  // Haiku composer
+  hk_title: 'Compose a verse 句',
+  hk_season: 'Season: {season}',
+  hk_spring: 'spring',
+  hk_summer: 'summer',
+  hk_autumn: 'autumn',
+  hk_winter: 'winter',
+  hk_recite: 'Recite',
+  hk_help: 'Arrows pick a word · Confirm lays it · Back takes it off',
+  hk_grade0: 'First prize!',
+  hk_grade1: 'Second prize',
+  hk_grade2: 'No prize this time',
+  hk_score: 'The judge\'s marks: {n}',
+  hk_kigo_yes: 'A season word of now: the verse is rooted.',
+  hk_kigo_no: 'No season word of now: the verse floats.',
+  hk_continue: 'Confirm to bow to the judge',
 };

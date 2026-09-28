@@ -5,9 +5,11 @@ import { panel, thin, centre, iconName } from './widgets.js';
 import { t } from '../data/strings.js';
 import { itemDef, QUALITY } from '../data/items.js';
 import { WEATHER } from '../systems/weather.js';
-import { SEASONS, weekday } from '../systems/calendar.js';
+import { SEASONS, weekday, formatTime } from '../systems/calendar.js';
 import { HAIKU } from '../data/haiku.js';
 import { hash } from '../core/rng.js';
+import { festivalOn } from '../systems/festivals.js';
+import { MAPS } from '../maps/index.js';
 
 const MAX_LINES = 6;
 
@@ -17,6 +19,8 @@ export function summaryLines(r, game) {
   if (r.withered) notes.push(t('sum_withered', { n: r.withered }));
   if (r.typhoonLost) notes.push(t('sum_typhoon', { n: r.typhoonLost }));
   if (r.lost) notes.push(t('sum_lost', { n: r.lost }));
+  const fest = festivalOn(game.cal);
+  if (fest) notes.push(t('sum_festival', { name: fest.name, place: MAPS[fest.map].name, time: formatTime(fest.from) }));
   const verses = HAIKU[r.prev.season];
   return {
     title: t('sum_title', { date: `${SEASONS[r.prev.season].name} ${r.prev.day}` }),

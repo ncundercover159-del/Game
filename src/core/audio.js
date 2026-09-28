@@ -162,6 +162,10 @@ export class Audio {
       case 'dissolve': [880, 1175, 1568].forEach((f, i) => this.tone('sine', f, f * 1.5, 0.08, 0.25, i * 0.06)); break;
       case 'fire': this.hiss('bandpass', 500, 1.5, 0.25, 0.3); this.tone('sine', 300, 520, 0.08, 0.3); break;
       case 'smoke': this.hiss('lowpass', 600, 0.8, 0.4, 0.5); break;
+      case 'taiko': this.tone('sine', 120, 52, 0.55, 0.22); this.hiss('lowpass', 400, 1, 0.25, 0.08); break;
+      case 'pound': this.tone('triangle', 170, 55, 0.5, 0.12); this.hiss('lowpass', 1200, 1, 0.35, 0.06); break;
+      case 'clap': this.hiss('bandpass', 2200, 1.5, 0.35, 0.05); this.hiss('bandpass', 1800, 1.5, 0.2, 0.04, 0.02); break;
+      case 'firework': this.tone('sine', 400, 1600, 0.05, 0.5); this.hiss('lowpass', 1600, 0.6, 0.5, 0.7, 0.5); break;
       case 'chill': this.tone('sine', 1760, 1320, 0.06, 0.6); this.tone('sine', 1320, 990, 0.05, 0.7, 0.15); break;
       default: break;
     }

@@ -118,4 +118,8 @@ export const OBJECT_TYPES = {
   swordRack: { name: 'Sword Rack', solid: false, static: true, shadow: null, say: 'sword_rack' },
   yatai: { name: 'Stall', solid: true, static: true, shadow: 'shadow_l' },
   omamori: { name: 'Charm Stand', solid: true, static: true, shadow: 'shadow_s' },
+  // Festival dressing, put up on the day (see festivals.js): `decor` can be walked past or under,
+  // a `fixture` stands on the ground.
+  decor: { name: 'Decoration', solid: false, static: true, shadow: null },
+  fixture: { name: 'Festival Stand', solid: true, static: true, shadow: 'shadow_m' },
 };
