@@ -27,6 +27,6 @@ export const SHOPS = {
   },
   yakuya: {
     name: 'Yakuya', jp: '薬屋', open: 10 * 60, close: 18 * 60, closedDay: 0, hello: 'ume_hello',
-    stock: () => [{ id: 'tonic', mult: 1 }],
+    stock: () => ['tonic', 'salve', 'kizugusuri'].map((id) => ({ id, mult: 1 })),
   },
 };

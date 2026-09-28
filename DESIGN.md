@@ -172,6 +172,37 @@ events (`src/data/events.js`) play once on entering a map, after the door wipe.
   on sale at a time).
 - Backpacks: 24 and 36 slots from the Yorozuya.
 
+## Combat (M5)
+- Inochi 100 (restored by sleep; food heals 30% of its Genki, salves 40/100). Ki 100 (+5 per Yū
+  tier) refills at 42/s after 0.6 s without spending.
+- Light cut: wind-up 0.07, active 0.08, recovery 0.15 s (divided by weapon speed); a press during
+  a cut queues the next of three; the third deals x1.5. Holding J after the first cut charges a
+  heavy kiai (0.3 s to ready, x2.2, costs the weapon's Ki, breaks guards and staggers).
+- Dodge: 18 Ki, 0.26 s at 185 px/s, 0.24 s invulnerable; cancels a cut or stance. Parry: 8 Ki,
+  the first 0.15 s (0.21 with Guardian) of a 0.32 s stance turns a told blow: +26 Ki, the foe
+  reels 1.1 s, counters crit for 1 s. Foxfire parried flies back for 24.
+- Damage = weapon x (1 + 5%/Swordsmanship level) x Fighter 1.15 x combo x heavy x element 1.5
+  (on a weakness) x crit 2. Guards cut light frontal blows to 20%. Hit-stop 0.07 s (0.09 crit),
+  knockback 80 px/s (x1.6 third cut, x2.2 heavy) divided by the foe's mass.
+- Taken: enemy damage (+2% per floor) x difficulty (Relaxed 0.6, Warrior 1.35) x Unmoving
+  Mountain 0.75; 0.7 s invulnerability after a hit. Enemy health +4% per floor.
+- Every enemy attack is a state sequence approach -> tell (pose, sound, glint in the last 0.15 s)
+  -> attack -> recover; nothing hurts on contact.
+
+## Caves (M5)
+- Floors are 48x36 (Jūbei's hall 30x30), generated from (seed, floor): 5-9 rooms, a spanning tree
+  of two-wide tunnels plus loops, rope in the first room, ladder in the farthest by walking
+  distance, 7-11 ore veins off the main path, urns in corners (loot table per zone), 18% chance
+  of a chest per room, a 35% chance of a secret room behind cracked rock, timber props in the
+  mine, pools in the cellars kept only if every room stays reachable, 4-12 foes more than nine
+  steps from the rope (kappa in pools).
+- Lanterns on floors 5, 10, ... are lit by interacting; the mine mouth then offers those floors.
+  Reaching a new multiple of five raises Yū.
+- Floor 20: Jūbei (260 health) in three phases at 60% and 30%; his defeat sets `boss_jubei`
+  (steel smelting, Hisui and Mizuchi), Yū +5, and a choice: let him go (Gi, Meiyo, flag),
+  the magistrate (Makoto, 1500 mon bounty) or honest work (Jin tier 1: Jin, Gi). He leaves his
+  blade either way.
+
 ## Farm map (Hinata Farm, 64x48)
 Forest border all round; the farmhouse (minka) top-centre with a kura storehouse to its west and a
 well by the door; a pond to the east; the river along the south edge; the northern terraces are
@@ -182,14 +213,17 @@ from the save seed.
 ## Saving
 - localStorage, 3 slots, key `ronin.slot{n}`; JSON `{ version, checksum, meta, state }`. Version 3
   (M3) adds bonds, virtues, requests, mail and offerings; version 4 (M4) adds skills, buffs,
-  foraged spots, animals and known recipes (the coop is a persistent map like the farm).
+  foraged spots, animals and known recipes (the coop is a persistent map like the farm);
+  version 5 (M5) adds Inochi, difficulty and the caves (deepest floor, lit lanterns, the lost
+  bundle, chests opened today). Older farms get the katana by Genzō's letter.
 - Migrations run in order from the file's version to `SAVE_VERSION`. A checksum mismatch or parse
   failure falls back to the slot's `.bak` copy (written before every save).
 - Autosave on sleep. Export/import as a `.json` file from the pause menu.
 
 ## Debug (`?debug=1`)
-F1 overlay (fps, frame ms, tile, collision, entity counts), F2 skip day, F3 +1000 mon and a seed
-kit, F4 cycle time +1 h (Shift: cycle season, Ctrl: cycle weather). URL params: `map, season, day,
+F1 overlay (fps, frame ms, tile, collision, entity counts, Inochi, Ki, foes), F2 skip day, F3
++1000 mon and a seed kit, F4 cycle time +1 h (Shift: cycle season, Ctrl: cycle weather), F5 to the
+mine mouth (Shift: one floor down), F6 spawn the next enemy kind in front of you. URL params: `map, season, day,
 time, weather, seed, slot`. `window.__game` exposes state getters, `advance(ms)`,
 `press(code)`, `hold(code)`, `release(code)`.
 

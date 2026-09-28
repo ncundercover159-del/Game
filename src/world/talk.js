@@ -1,12 +1,13 @@
 // Talking to villagers and giving them gifts: bond bookkeeping, the line they say, and the
 // dialogue box with their portrait and voice.
-import { NPCS } from '../data/npcs.js';
+import { NPCS, SPEAKERS } from '../data/npcs.js';
 import { itemDef } from '../data/items.js';
 import { t } from '../data/strings.js';
 import { dayIndex } from '../systems/calendar.js';
 import { WEATHER } from '../systems/weather.js';
 import { newBond, talk, pickLine, giftBlock, giveGift, isGiftable, isBirthday, parseLine, hearts, addBond } from '../systems/bonds.js';
 import { dueWith, complete } from '../systems/requests.js';
+import { talkBonus, rewardMult } from '../systems/virtues.js';
 import { Dialog } from '../ui/dialog.js';
 import DIALOGUE from '../data/dialogue/index.js';
 
@@ -18,7 +19,7 @@ export function bondOf(game, id) {
 /** A dialogue box spoken by a villager. */
 export function speak(game, id, line, extra = {}) {
   const { face, text } = typeof line === 'string' ? parseLine(line) : line;
-  const npc = NPCS[id];
+  const npc = NPCS[id] || SPEAKERS[id];
   return new Dialog(game, {
     text: text.replace(/\{name\}/g, game.state.name),
     speaker: `${npc.name} ${npc.jp}`,
@@ -69,7 +70,7 @@ function chat(game, n) {
     place: n.map, stop: n.stop && n.stop.slice(1, 4), flags: game.flags, seed: game.seed, day,
   });
   const before = hearts(b.pts);
-  talk(b, day);
+  talk(b, day, talkBonus(game.virtues));
   if (first) n.showEmote('bang');
   if (isBirthday(n.id, game.cal) && !first) game.aside('tk_birthday', { once: `bday_${n.id}_${game.cal.year}`, vars: { npc: NPCS[n.id].name } });
   game.modals.push(speak(game, n.id, line));
@@ -104,11 +105,12 @@ function settle(game, n, q) {
   complete(game.requests, q);
   talk(b, dayIndex(game.cal));
   addBond(b, q.bond);
-  game.money += q.mon;
+  const pay = Math.round(q.mon * rewardMult(game.virtues));
+  game.money += pay;
   game.addVirtue(q.virtue[0], q.virtue[1]);
   n.showEmote('note');
   game.sfx('harvest');
-  game.toast('req_paid', { n: q.mon }, 'icon_coin');
+  game.toast('req_paid', { n: pay }, 'icon_coin');
   game.modals.push(speak(game, n.id, { face: 'happy', text: t(q.type === 'bring' ? 'req_thanks' : 'req_thanks_parcel', { name: game.state.name }) }));
   heartUp(game, n, before);
 }

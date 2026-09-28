@@ -23,18 +23,18 @@ export function addBond(b, n) {
 }
 
 /** Talking once a day earns bond points; returns true the first time today. */
-export function talk(b, day) {
+export function talk(b, day, bonus = 0) {
   b.met = true;
   b.lastSeen = day;
   if (b.talkedDay === day) return false;
   b.talkedDay = day;
-  addBond(b, BOND.talk);
+  addBond(b, BOND.talk + bonus);
   return true;
 }
 
 export function isGiftable(id) {
   const kind = itemDef(id).kind;
-  return kind !== 'tool' && kind !== 'quest';
+  return kind !== 'tool' && kind !== 'weapon' && kind !== 'quest';
 }
 
 export function taste(npc, id) {
@@ -64,10 +64,12 @@ export function giveGift(b, npc, id, day, birthday) {
   return { taste: k, delta };
 }
 
-/** Overnight: villagers you have met but not spoken to for a week drift apart a little. */
-export function decay(bonds, day) {
+/** Overnight: villagers you have met but not spoken to for a week drift apart a little (Chūgi softens it). */
+export function decay(bonds, day, mult = 1) {
+  const n = Math.round(BOND.decay * mult);
+  if (n <= 0) return;
   for (const b of Object.values(bonds)) {
-    if (b.met && b.pts > 0 && day - b.lastSeen > BOND.decayAfterDays) addBond(b, -BOND.decay);
+    if (b.met && b.pts > 0 && day - b.lastSeen > BOND.decayAfterDays) addBond(b, -n);
   }
 }
 

@@ -3,17 +3,17 @@
 import { TILE } from '../config.js';
 import { OBJECT_TYPES } from '../data/objects.js';
 
-export const G = { GRASS: 0, DIRT: 1, WATER: 2, PATH: 3, WALL: 4, WOOD: 5, TATAMI: 6, TATAMI_R: 7, DOMA: 8, BRIDGE: 9, STEPS: 10, VOID: 11, CLIFF: 12, FALLS: 13 };
+export const G = { GRASS: 0, DIRT: 1, WATER: 2, PATH: 3, WALL: 4, WOOD: 5, TATAMI: 6, TATAMI_R: 7, DOMA: 8, BRIDGE: 9, STEPS: 10, VOID: 11, CLIFF: 12, FALLS: 13, ROCK: 14, CAVE: 15 };
 // Ground legend shared by every map (see src/maps/*.js headers).
 const GROUND_OF = {
   T: G.GRASS, '.': G.GRASS, o: G.GRASS, f: G.GRASS, s: G.GRASS, t: G.GRASS, ',': G.DIRT, ':': G.DIRT,
   '~': G.WATER, '=': G.PATH, '#': G.WALL, w: G.WOOD, m: G.TATAMI, n: G.TATAMI_R, d: G.DOMA,
-  b: G.BRIDGE, S: G.STEPS, x: G.VOID, X: G.GRASS, p: G.DIRT, c: G.DIRT, C: G.CLIFF, W: G.FALLS, B: G.GRASS,
+  b: G.BRIDGE, S: G.STEPS, x: G.VOID, X: G.GRASS, p: G.DIRT, c: G.DIRT, C: G.CLIFF, W: G.FALLS, B: G.GRASS, R: G.ROCK, g: G.CAVE,
 };
 // Soil laid out by the map itself (village paddies and their channels).
 const SOIL_OF = { p: 1, c: 2 };
 // X: grass that can't be walked on (hedges, cliffs and the like drawn by objects or edges).
-const BLOCKING = new Set(['T', '~', 'f', '#', 'x', 'X', 'C', 'W']);
+const BLOCKING = new Set(['T', '~', 'f', '#', 'x', 'X', 'C', 'W', 'R']);
 
 const SAVED_FIELDS = ['kind', 'open', 'catch', 'q', 'input', 'ready'];
 
@@ -128,7 +128,7 @@ export class GameMap {
     const k = this.i(x, y);
     if (this.blocked[k]) return true;
     const o = this.objAt[k];
-    return o >= 0 && OBJECT_TYPES[this.objects[o].type].solid;
+    return o >= 0 && OBJECT_TYPES[this.objects[o].type].solid && !this.objects[o].passable;
   }
 
   buildingAt(x, y) {

@@ -3,7 +3,8 @@
 import { Dialog } from './ui/dialog.js';
 import { InkWipe } from './ui/transition.js';
 import { summaryLines, drawSummary } from './ui/summary.js';
-import { ShopMenu, ForgeMenu } from './ui/shop.js';
+import { ShopMenu } from './ui/shop.js';
+import { ForgeMenu } from './ui/forge.js';
 import { NoticeMenu } from './ui/notice.js';
 import { MailMenu } from './ui/mail.js';
 import { OfferingMenu } from './ui/offering.js';
@@ -16,6 +17,7 @@ import { MAPS } from './maps/index.js';
 import { RESTORATIONS } from './data/restorations.js';
 import { endDay } from './systems/day.js';
 import { decay } from './systems/bonds.js';
+import { decayMult } from './systems/virtues.js';
 import { refresh } from './systems/requests.js';
 import { deliverMail } from './systems/mail.js';
 import { coopNight } from './systems/animals.js';
@@ -38,8 +40,9 @@ export function sleep(g, passedOut) {
   g.modals.push(new InkWipe(g, {
     onCovered: () => {
       const r = endDay(g, passedOut);
+      g.hp = g.hpMax;
       const day = dayIndex(g.cal);
-      decay(g.bonds, day);
+      decay(g.bonds, day, decayMult(g.virtues));
       refresh(g.requests, g.seed, day, g.seasonId);
       layEggs(g, day - 1);
       r.mail = deliverMail(g);
@@ -99,12 +102,15 @@ export function openShop(g, id) {
 export function eat(g, slot) {
   const s = g.inventory.slots[slot];
   const def = itemDef(s.id);
-  if (g.genki >= g.genkiMax && !def.buff) { g.sfx('deny'); g.aside('tk_not_hungry', { once: `full_genki${g.cal.day}` }); return; }
+  if (g.genki >= g.genkiMax && g.hp >= g.hpMax && !def.buff) { g.sfx('deny'); g.aside('tk_not_hungry', { once: `full_genki${g.cal.day}` }); return; }
   const n = Math.round(def.genki * (hasPerk(g.skills, 'chef') ? 1.5 : 1));
   g.genki = Math.min(g.genkiMax, g.genki + n);
+  // Food mends a little too; Ume's salves mend a lot.
+  const heal = (def.heal || 0) + Math.round(n * 0.3);
+  g.hp = Math.min(g.hpMax, g.hp + heal);
   g.inventory.takeFrom(slot, 1);
   g.sfx('eat');
-  g.toast('toast_ate', { item: def.name, n }, `icon_${s.id}`);
+  g.toast(def.heal ? 'toast_healed' : 'toast_ate', { item: def.name, n, h: heal }, `icon_${s.id}`);
   if (def.buff) {
     const [kind, amount, hours] = def.buff;
     addBuff(g.buffs, kind, amount, stamp(dayIndex(g.cal), g.cal.minutes) + hours * 60);

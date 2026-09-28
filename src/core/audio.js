@@ -152,6 +152,17 @@ export class Audio {
       case 'talk': this.tone('square', 520, 520, 0.03, 0.025); break;
       case 'bell': this.tone('sine', 196, 190, 0.35, 2.4); this.tone('sine', 523, 515, 0.12, 1.6); this.tone('triangle', 98, 97, 0.2, 2.8); break;
       case 'morning': [523, 659, 784, 1046].forEach((f, i) => this.pluck(f, 0.3, i * 0.15)); break;
+      // Fighting: each enemy tell has a rising scrape, parries ring, hits thud.
+      case 'tell': this.hiss('bandpass', 1600, 6, 0.12, 0.25); this.tone('sawtooth', 220, 330, 0.05, 0.25); break;
+      case 'parry': this.tone('triangle', 1900, 1700, 0.35, 0.25); this.tone('sine', 2850, 2700, 0.15, 0.4); this.hiss('highpass', 4000, 1, 0.2, 0.08); break;
+      case 'clang': this.tone('square', 1400, 1200, 0.1, 0.08); this.hiss('highpass', 3500, 1, 0.15, 0.06); break;
+      case 'hit': this.tone('triangle', 200, 90, 0.35, 0.09); this.hiss('bandpass', 1200, 1, 0.25, 0.07); break;
+      case 'crit': this.tone('triangle', 260, 80, 0.45, 0.14); this.hiss('bandpass', 2200, 1, 0.3, 0.1); this.tone('sine', 1300, 1250, 0.1, 0.2, 0.03); break;
+      case 'hurt': this.tone('sawtooth', 160, 70, 0.22, 0.18); this.hiss('lowpass', 800, 1, 0.3, 0.12); break;
+      case 'dissolve': [880, 1175, 1568].forEach((f, i) => this.tone('sine', f, f * 1.5, 0.08, 0.25, i * 0.06)); break;
+      case 'fire': this.hiss('bandpass', 500, 1.5, 0.25, 0.3); this.tone('sine', 300, 520, 0.08, 0.3); break;
+      case 'smoke': this.hiss('lowpass', 600, 0.8, 0.4, 0.5); break;
+      case 'chill': this.tone('sine', 1760, 1320, 0.06, 0.6); this.tone('sine', 1320, 990, 0.05, 0.7, 0.15); break;
       default: break;
     }
   }

@@ -6,6 +6,7 @@ import { makeCanvas } from '../art/compiler.js';
 import { canonical9, mask9At, variantAt, landTile, waterTile, grassTile, tilledTile, pathTile, channelTile, GRASS_PALS } from '../art/terrain.js';
 import { SOIL, isFlooded } from '../systems/irrigation.js';
 import { tatami, planks, doma, wallFace, wallTop, steps, bridge, voidTile, cliff, falls, compostSpecks } from '../art/interior.js';
+import { rockTop, rockFace, caveFloor } from '../art/cave.js';
 import { hash } from '../core/rng.js';
 
 const CHUNK = 32;
@@ -116,6 +117,17 @@ export class GroundRenderer {
         break;
       }
       case G.FALLS: break; // drawn animated with the water, under the chunks
+      case G.ROCK: {
+        const z = m.def.zone || 1, below = m.groundAt(x, y + 1);
+        if (y + 1 < m.h && below !== G.ROCK) put(`Xrf${z}.${v % 6}`, () => rockFace(z, v % 6));
+        else put(`Xrt${z}.${v % 6}`, () => rockTop(z, v % 6));
+        break;
+      }
+      case G.CAVE: {
+        const z = m.def.zone || 1, shade = m.groundAt(x, y - 1) === G.ROCK && y > 0 ? 1 : 0;
+        put(`Xcf${z}.${v % 8}.${shade}`, () => caveFloor(z, v % 8, !!shade));
+        break;
+      }
       case G.BRIDGE: {
         const w = m.groundAt(x - 1, y) !== G.BRIDGE, e = m.groundAt(x + 1, y) !== G.BRIDGE;
         put(`Xbr${v % 4}${w ? 1 : 0}${e ? 1 : 0}`, () => bridge(v % 4, w, e));

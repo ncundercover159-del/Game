@@ -4,6 +4,7 @@ import { TILE } from '../config.js';
 import { pet, allPetted } from '../systems/animals.js';
 import { dayIndex } from '../systems/calendar.js';
 import { XP } from '../data/skills.js';
+import { petMult } from '../systems/virtues.js';
 
 const SPEED = 18;
 
@@ -64,7 +65,7 @@ export class Flock {
     const g = this.w.game, day = dayIndex(g.cal);
     b.heart = 1.2;
     b.wait = 2;
-    if (!pet(b.a, day)) { g.sfx('ui'); return; }
+    if (!pet(b.a, day, petMult(g.virtues))) { g.sfx('ui'); return; }
     g.sfx('harvest');
     g.xp('farming', XP.animal);
     if (allPetted(g.animals, day)) g.addVirtue('chugi', 1);

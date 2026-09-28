@@ -1,6 +1,6 @@
 // What each completed altar restores. `apply` changes the world now; the rest are flags
-// (`restored_<id>`) that later milestones build on: the caves beyond the bridge (M5), the Archive
-// (M6), the onsen and the kodama helpers (M7).
+// (`restored_<id>`) that later milestones build on: the Archive (M6), the onsen and the kodama
+// helpers (M7). The bridge (Yū) opens the rear gate to Mount Kurayama and its caves.
 export const RESTORATIONS = {
   jin: {
     id: 'terraces',
@@ -33,9 +33,15 @@ export const RESTORATIONS = {
   },
   yu: {
     id: 'bridge',
+    apply: (g) => {
+      const w = g.worlds.get('shrine');
+      const gate = w?.map.objects.find((o) => o.type === 'gate');
+      if (gate) w.openProp(gate);
+    },
     script: `
-      say "The broken bridge behind the shrine is rebuilt with the timber, stone and iron you offered. Beyond it the sealed gate hums."
-      say tomoe sad "The way to the mountain is open. Please do not go through that gate unprepared. Promise me."
+      say "The broken bridge behind the shrine is rebuilt with the timber, stone and iron you offered. The seal on the rear gate is lifted, and the doors swing open onto the mountain path."
+      say tomoe sad "The way to Mount Kurayama is open. Please do not go through that gate unprepared. Promise me."
+      say "Tsukikage stirs at your hip. 'Finally,' it says."
     `,
   },
   makoto: {

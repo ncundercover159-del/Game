@@ -37,7 +37,10 @@ test('every warp is walkable at both ends and lands off any warp', () => {
   for (const def of Object.values(MAPS)) {
     const m = built[def.id];
     for (const wp of def.warps) {
+      // A gated warp (the shrine's rear gate) is checked with its gate open.
+      if (wp.ifFlag) for (const [k, o] of m.blockOwner) if (o.openIf === wp.ifFlag) { m.blocked[k] = 0; o.passable = true; }
       for (let y = wp.y; y < wp.y + wp.h; y++) for (let x = wp.x; x < wp.x + wp.w; x++) assert.ok(!m.solid(x, y), `${def.id} warp tile ${x},${y}`);
+      if (wp.cave) continue;   // the mine mouth leads to generated floors (tests/unit/caves.test.js)
       const to = built[wp.to];
       assert.ok(to, `${def.id} -> ${wp.to}`);
       assert.ok(!to.solid(wp.tx, wp.ty), `${def.id} -> ${wp.to} lands on solid ${wp.tx},${wp.ty}`);

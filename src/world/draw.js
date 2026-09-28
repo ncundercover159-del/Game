@@ -8,6 +8,7 @@ import { ROD_TIPS } from '../art/fish.js';
 import { MACHINES } from '../data/recipes.js';
 import { isReady, progressOf } from '../systems/craft.js';
 import { dayIndex } from '../systems/calendar.js';
+import { collectCombat, foeShadow, drawFoe, drawShot, drawOmens, drawPlayerCombat, drawCombatOverlay } from './drawCombat.js';
 
 const SHADOW_ALPHA = 0.36;
 const pool = [];
@@ -39,6 +40,11 @@ function objectSprite(o) {
     case 'produce': return `produce_${o.kind}`;
     case 'machine': return `machine_${o.kind}`;
     case 'fence': return o.v ? 'fence_post' : 'fence';
+    case 'gate': return o.open ? 'gate_open' : 'gate';
+    case 'ore': return `ore_${o.kind}_${o.zone}`;
+    case 'cracked': return `cracked_${o.zone}`;
+    case 'chest': return o.open ? 'chest_open' : 'chest_shut';
+    case 'cave_lantern': return o.lit ? 'cave_lantern_lit' : 'cave_lantern';
     default: return o.kind ? `${o.type}_${o.kind}` : o.type;
   }
 }
@@ -70,8 +76,10 @@ export function drawWorld(w, ctx, cam) {
   for (const n of game.villagers.onMap(map.id)) rec(n.y, 'npc', n);
   if (w.flock) for (const b of w.flock.beasts.values()) rec(b.y, 'beast', b);
   rec(player.y, 'player', player);
+  collectCombat(w, rec);
 
   if (game.scene === 'play') drawTarget(w, ctx, cam);
+  drawOmens(w, ctx, cam);
 
   // Shadows under everything that stands up.
   ctx.globalAlpha = SHADOW_ALPHA;
@@ -85,6 +93,8 @@ export function drawWorld(w, ctx, cam) {
       atlas.draw(ctx, 'shadow_s', Math.round(r.ref.x) - cam.ix, Math.round(r.ref.y) - 1 - cam.iy);
     } else if (r.kind === 'drop') {
       atlas.draw(ctx, 'shadow_s', r.ref.x - cam.ix, r.ref.y - cam.iy);
+    } else if (r.kind === 'foe') {
+      foeShadow(w, ctx, cam, r.ref);
     }
   }
   ctx.globalAlpha = 1;
@@ -114,13 +124,16 @@ export function drawWorld(w, ctx, cam) {
       const x = Math.round(n.x) - cam.ix, y = Math.round(n.y) - cam.iy;
       atlas.draw(ctx, f.name, x, y, f.flip);
       if (n.emote) atlas.draw(ctx, `emote_${n.emote.kind}`, x, y - 32 - Math.round(Math.min(1, (1.6 - n.emote.t) * 8) * 2));
-    } else drawPlayer(w, ctx, cam);
+    } else if (r.kind === 'foe') drawFoe(w, ctx, cam, r.ref);
+    else if (r.kind === 'shot') drawShot(w, ctx, cam, r.ref);
+    else drawPlayer(w, ctx, cam);
   }
   for (const r of list) pool.push(r);
   list.length = 0;
 
   drawShafts(w, ctx, cam);
   w.fx.draw(ctx, atlas, cam);
+  drawCombatOverlay(w, ctx, cam);
 }
 
 /** Slanting shafts of daylight through bamboo: two stepped bands, added onto the scene. */
@@ -173,6 +186,7 @@ function drawPlayer(w, ctx, cam) {
   const atlas = w.game.atlas;
   const f = p.frame();
   const x = Math.round(p.x) - cam.ix, y = Math.round(p.y) - cam.iy;
+  if (drawPlayerCombat(w, ctx, cam, x, y)) return;
   const fishing = w.fishing.active;
   const tool = fishing ? 'rod' : p.swing ? p.swing.tool : p.charge ? p.chargeTool : null;
   const pose = fishing ? w.fishing.pose() : f.pose;

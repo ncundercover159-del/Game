@@ -73,10 +73,11 @@ export default {
     { type: 'toro', tx: 23, ty: 12, light: [0, 6] },
     { type: 'ema', tx: 11, ty: 11 },
     { type: 'sacred', tx: 8, ty: 8, kind: 'pine', v: 1 },
-    { type: 'gate', tx: 19, ty: 1, ox: 8, block: [2, 1] },
+    { type: 'gate', tx: 19, ty: 1, ox: 8, block: [2, 1], openIf: 'restored_bridge' },
   ],
   warps: [
     { x: 18, y: 49, w: 4, h: 1, to: 'village', tx: 39, ty: 1, dir: 'down' },
+    { x: 19, y: 1, w: 2, h: 1, to: 'kurayama', tx: 14, ty: 21, dir: 'up', ifFlag: 'restored_bridge' },
   ],
   spawn: { tx: 19, ty: 47, dir: 'up' },
 };

@@ -1,5 +1,6 @@
 // What pressing Interact does, by what is in front of you: villagers, animals, forage, machines,
-// shop counters, boards, altars, beds, crops and signs. Split out of world.js.
+// shop counters, boards, altars, beds, crops, signs, and the cave's ladders, ropes, lanterns and
+// chests. Split out of world.js.
 import { TILE } from '../config.js';
 import { OBJECT_TYPES } from '../data/objects.js';
 import { itemDef } from '../data/items.js';
@@ -13,6 +14,7 @@ import { hasPerk } from '../systems/skills.js';
 import { accepts, load, isReady, collect } from '../systems/craft.js';
 import { dayIndex } from '../systems/calendar.js';
 import { openNotice, openMailbox, openAltar, openCooking } from '../flow.js';
+import { descend, climbOut, lightLantern, openChest, takeBundle } from '../caves.js';
 
 // Object types that answer Interact directly.
 const BY_TYPE = {
@@ -35,6 +37,12 @@ const BY_TYPE = {
   mailbox: (w) => openMailbox(w.game),
   altar: (w, o) => openAltar(w.game, o.kind),
   irori: (w) => (w.map.id === 'house_farm' ? openCooking(w.game) : w.game.say('irori')),
+  ladder: (w) => descend(w.game),
+  rope: (w) => climbOut(w.game),
+  cave_lantern: (w, o) => lightLantern(w.game, w, o),
+  chest: (w, o) => openChest(w.game, w, o),
+  bundle: (w, o) => takeBundle(w.game, w, o),
+  brazier: (w) => w.game.say('brazier'),
 };
 
 export function interact(w) {

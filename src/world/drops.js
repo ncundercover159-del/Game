@@ -28,8 +28,10 @@ export class Drops {
       const dist = Math.hypot(dx, dy);
       if (d.t > 0.45 && dist < MAGNET) {
         const sp = 140 * dt;
-        d.x += (dx / dist) * Math.min(sp, dist);
-        d.y += (dy / dist) * Math.min(sp, dist);
+        if (dist > 0.01) {
+          d.x += (dx / dist) * Math.min(sp, dist);
+          d.y += (dy / dist) * Math.min(sp, dist);
+        }
         d.z = Math.max(0, d.z - 60 * dt);
         if (dist < PICKUP) {
           const left = take(d);

@@ -79,7 +79,12 @@ export class Cutscene {
     return handle;
   }
 
-  give(id, n) { this.game.pickUp(id, n); this.game.toast('toast_got', { n, item: itemDef(id).name }, `icon_${id}`); }
+  give(id, n) {
+    const g = this.game, left = g.pickUp(id, n);
+    // Whatever doesn't fit lands at your feet rather than vanishing.
+    if (left > 0) g.world.drops.spawn(g.rng, id, left, 0, g.player.x, g.player.y);
+    g.toast('toast_got', { n, item: itemDef(id).name }, `icon_${id}`);
+  }
   take(id, n) { if (this.game.inventory.count(id) < n) return false; this.game.inventory.remove(id, n); return true; }
   money(n) { this.game.money += n; }
   bond(id, n) { const b = bondOf(this.game, id); addBond(b, n); b.met = true; }

@@ -1,19 +1,19 @@
-// Village shops: stock lists (Yorozuya buys and sells; the teahouse and apothecary only sell) and
-// Genzō's forge (iron, tool upgrades). Row lists work with keys, mouse and gamepad.
+// Village shops: stock lists (Yorozuya buys and sells; the teahouse and apothecary only sell).
+// Row lists work with keys, mouse and gamepad; Genzō's forge (ui/forge.js) shares them.
 import { fonts } from '../core/text.js';
 import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { t } from '../data/strings.js';
 import { itemDef } from '../data/items.js';
 import { sellValue } from '../systems/skills.js';
 import { adopt } from '../systems/animals.js';
+import { buyMult } from '../systems/virtues.js';
 import { SHOPS } from '../data/shops.js';
-import { TIERS, UPGRADABLE, UPGRADE_DAYS } from '../data/tools.js';
 import { dayIndex, SEASONS } from '../systems/calendar.js';
 import { sellable } from './ship.js';
 
 const ROW = 18;
 
-class RowShop {
+export class RowShop {
   constructor(game, title, greeting) {
     this.game = game;
     this.title = title;
@@ -86,7 +86,7 @@ export class ShopMenu extends RowShop {
     this.stock = shop.stock(SEASONS[game.cal.season].id, dayIndex(game.cal) % 7, game);
   }
 
-  price(s) { return Math.round(itemDef(s.id).price * s.mult); }
+  price(s) { return Math.round(itemDef(s.id).price * s.mult * buyMult(this.game.virtues)); }
 
   update(dt, input) {
     const g = this.game;
@@ -164,91 +164,5 @@ export class ShopMenu extends RowShop {
       thin(ctx, g.atlas, bx, this.y + this.h - 22, 52, 16);
       fonts.body.draw(ctx, t(k), Math.round(bx + 26 - fonts.body.measure(t(k)) / 2), this.y + this.h - 20, i === this.tab ? 'red1' : 'wood3');
     });
-  }
-}
-
-/** Genzō's forge: iron bars and two-day tool upgrades. */
-export class ForgeMenu extends RowShop {
-  constructor(game) {
-    super(game, `${SHOPS.kajiya.name} ${SHOPS.kajiya.jp}`, t(SHOPS.kajiya.hello));
-  }
-
-  rows() {
-    const g = this.game;
-    const rows = [{ icon: 'icon_iron_bar', label: itemDef('iron_bar').name + (this.sel === 0 && this.qty > 1 ? `  ×${this.qty}` : ''), right: `${itemDef('iron_bar').price * (this.sel === 0 ? this.qty : 1)} 文`, act: () => this.buyIron() }];
-    const up = g.upgrade;
-    if (up) {
-      const ready = dayIndex(g.cal) >= up.ready;
-      const name = itemDef(up.tool).name;
-      rows.push(ready
-        ? { icon: `icon_${up.tool}@${up.tier}`, label: t('forge_collect', { tool: name }), act: () => this.collect() }
-        : { icon: `icon_${up.tool}@${up.tier}`, label: t('forge_busy', { tool: name, day: `${SEASONS[g.cal.season].name} ${g.cal.day + (up.ready - dayIndex(g.cal))}` }), disabled: true });
-    }
-    for (const tool of UPGRADABLE) {
-      const next = (g.tiers[tool] || 0) + 1;
-      const name = itemDef(tool).name;
-      if (next >= TIERS.length) { rows.push({ icon: `icon_${tool}@${next - 1}`, label: t('forge_max', { tool: name }), disabled: true }); continue; }
-      const cost = TIERS[next].cost;
-      const [mat, n] = Object.entries(cost.items)[0];
-      rows.push({
-        icon: iconName(tool, g.tiers), label: t('forge_upgrade', { tool: name, tier: TIERS[next].name }),
-        right: t('forge_needs', { mon: cost.mon, n, item: itemDef(mat).name }), disabled: !!up, act: () => this.upgrade(tool, next),
-      });
-    }
-    return rows;
-  }
-
-  buyIron() {
-    const g = this.game, cost = itemDef('iron_bar').price * this.qty;
-    if (g.money < cost) { g.sfx('deny'); g.toast('shop_poor'); return; }
-    if (g.inventory.room('iron_bar') < this.qty) { g.sfx('deny'); g.aside('tk_full'); return; }
-    g.money -= cost;
-    g.inventory.add('iron_bar', this.qty);
-    g.sfx('pickup');
-  }
-
-  upgrade(tool, tier) {
-    const g = this.game, cost = TIERS[tier].cost;
-    const [mat, n] = Object.entries(cost.items)[0];
-    const slot = g.inventory.find(tool);
-    if (slot < 0) { g.sfx('deny'); g.say('forge_no_tool'); return; }
-    if (g.money < cost.mon || g.inventory.count(mat) < n) { g.sfx('deny'); g.toast('shop_poor'); return; }
-    g.money -= cost.mon;
-    g.inventory.remove(mat, n);
-    g.inventory.slots[slot] = null;
-    g.upgrade = { tool, tier, ready: dayIndex(g.cal) + UPGRADE_DAYS };
-    g.sfx('rock');
-    g.say('forge_left', { tool: itemDef(tool).name });
-  }
-
-  collect() {
-    const g = this.game, up = g.upgrade;
-    if (g.inventory.room(up.tool) < 1) { g.sfx('deny'); g.aside('tk_full'); return; }
-    g.tiers[up.tool] = up.tier;
-    if (up.tool === 'can') g.can = TIERS[up.tier].can;
-    g.inventory.add(up.tool, 1);
-    g.upgrade = null;
-    g.flags.upgraded_once = true;
-    g.sfx('harvest');
-    g.toast('forge_back', { tool: itemDef(up.tool).name, tier: TIERS[up.tier].name }, iconName(up.tool, g.tiers));
-  }
-
-  update(dt, input) {
-    const g = this.game;
-    this.layout();
-    if (input.pressed('cancel') || input.pressed('menu') || input.pressed('rclick')) { g.sfx('ui_back'); return false; }
-    const rows = this.rows();
-    if (this.navigate(input, rows.length)) {
-      const r = rows[this.sel];
-      if (r.disabled) g.sfx('deny');
-      else r.act();
-    }
-    return true;
-  }
-
-  draw(ctx) {
-    this.frame(ctx);
-    this.drawRows(ctx, this.rows());
-    fonts.small.draw(ctx, `◀ ▶ ${t('shop_qty', { n: this.qty })}`, this.x + 12, this.y + this.h - 18, 'wood3');
   }
 }

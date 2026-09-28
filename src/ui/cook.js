@@ -121,7 +121,7 @@ export class CraftPage {
     if (r.locked || !r.ok) { g.sfx('deny'); return; }
     if (g.inventory.room(r.id) < 1) { g.sfx('deny'); g.aside('tk_full'); return; }
     for (const [id, n] of r.needs) g.inventory.remove(id, n);
-    g.pickUp(r.id, 1);
+    g.pickUp(r.id, CRAFTS[r.id].n || 1);
     g.xp('craft', XP.craft);
     g.sfx('rock');
   }

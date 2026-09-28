@@ -57,6 +57,11 @@ export class Menu {
         g.setSetting('speed', order[(order.indexOf(s.speed) + d + 3) % 3]);
       } },
       { label: t('opt_shake'), value: t(s.shake ? 'on' : 'off'), change: () => g.setSetting('shake', !s.shake) },
+      // Difficulty belongs to the farm (it is saved with it), not to the machine.
+      { label: t('opt_difficulty'), value: t(`diff_${g.difficulty}`), change: (d) => {
+        const order = ['relaxed', 'standard', 'warrior'];
+        g.difficulty = order[(order.indexOf(g.difficulty) + d + 3) % 3];
+      } },
     ];
   }
 
@@ -147,14 +152,14 @@ export class Menu {
     rect(ctx, 'wood6', this.x + 6 + this.tab * TAB_W + 4, this.y + 1, TAB_W - 12, 3);
     if (this.tab === 0) this.drawItems(ctx, atlas);
     else if (this.tab === 1) this.craft.draw(ctx, this.x, this.y, this.w, this.h);
-    else if (this.tab === 2) drawSkillsPage(ctx, g, this.x, this.y, this.w);
+    else if (this.tab === 2) drawSkillsPage(ctx, g, this.x, this.y, this.w, this.h);
     else if (this.tab === 3) this.bonds.draw(ctx, this.x, this.y, this.w);
     else if (this.tab === 4) this.drawOptions(ctx);
     else {
       fonts.body.draw(ctx, `${g.state.name} · ${g.state.farm} Farm`, this.x + 12, this.y + 12, 'wood2');
       this.saveList.draw(ctx, this.x + 10, this.y + 32, this.w - 20);
     }
-    fonts.small.draw(ctx, t('help_keys'), this.x + 8, this.y + this.h - 12, 'wood3');
+    if (this.tab !== 2) fonts.small.draw(ctx, t('help_keys'), this.x + 8, this.y + this.h - 12, 'wood3');
   }
 
   drawItems(ctx, atlas) {

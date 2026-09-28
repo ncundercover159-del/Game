@@ -1,5 +1,5 @@
 // Compiles indexed grids into canvases and packs them into texture atlases with named frames.
-import { RGBA } from './palette.js';
+import { RGBA, COLORS } from './palette.js';
 
 export function makeCanvas(w, h) {
   if (typeof OffscreenCanvas !== 'undefined' && !globalThis.__FORCE_DOM_CANVAS) return new OffscreenCanvas(w, h);
@@ -75,18 +75,31 @@ export class Atlas {
     return f;
   }
 
+  /** Draw a frame as a solid `ink6` silhouette (the white flash of a hit). */
+  drawWhite(ctx, name, x, y, flip = false) {
+    if (!this.white) {
+      this.white = makeCanvas(this.canvas.width, this.canvas.height);
+      const c = this.white.getContext('2d');
+      c.drawImage(this.canvas, 0, 0);
+      c.globalCompositeOperation = 'source-in';
+      c.fillStyle = COLORS.ink6;
+      c.fillRect(0, 0, this.white.width, this.white.height);
+    }
+    this.draw(ctx, name, x, y, flip, this.white);
+  }
+
   /** Draw a frame so its anchor lands on (x, y). Coordinates are rounded to whole pixels. */
-  draw(ctx, name, x, y, flip = false) {
+  draw(ctx, name, x, y, flip = false, src = this.canvas) {
     const f = this.frame(name);
     const dx = Math.round(x) - (flip ? f.w - f.ax : f.ax);
     const dy = Math.round(y) - f.ay;
     if (flip) {
       ctx.save();
       ctx.scale(-1, 1);
-      ctx.drawImage(this.canvas, f.x, f.y, f.w, f.h, -dx - f.w, dy, f.w, f.h);
+      ctx.drawImage(src, f.x, f.y, f.w, f.h, -dx - f.w, dy, f.w, f.h);
       ctx.restore();
     } else {
-      ctx.drawImage(this.canvas, f.x, f.y, f.w, f.h, dx, dy, f.w, f.h);
+      ctx.drawImage(src, f.x, f.y, f.w, f.h, dx, dy, f.w, f.h);
     }
   }
 }

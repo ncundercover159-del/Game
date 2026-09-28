@@ -7,6 +7,7 @@ export const CRAFTS = {
   tsukemono_tub: { lv: 1, needs: [['wood', 20], ['stone', 5]] },
   uke: { lv: 1, needs: [['bamboo', 5], ['hay', 5]] },
   sluice: { lv: 1, needs: [['wood', 10], ['stone', 10]] },
+  arrow: { lv: 1, needs: [['bamboo', 1], ['stone', 1]], n: 5 },
   smoker: { lv: 2, needs: [['wood', 20], ['bamboo', 5]] },
   charcoal_kiln: { lv: 2, needs: [['stone', 30], ['wood', 10]] },
   miso_barrel: { lv: 3, needs: [['wood', 25], ['stone', 10]] },

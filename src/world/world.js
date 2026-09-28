@@ -21,6 +21,7 @@ import { learnRecipe } from '../flow.js';
 import { XP } from '../data/skills.js';
 import { buffAmount, hasPerk } from '../systems/skills.js';
 import { hasDucks } from '../systems/animals.js';
+import { Combat } from './combat.js';
 
 const REACH = 1;
 const CHARGEABLE = new Set(['hoe', 'can']);
@@ -36,6 +37,7 @@ export class World {
     // Anything growing where a building now stands (older saves predate the coop) is cleared.
     for (const o of this.map.objects.filter((x) => !OBJECT_TYPES[x.type].static && this.map.buildingAt(x.x, x.y))) this.map.removeObject(o);
     if (game.flags.restored_terraces) this.openTerraces();
+    for (const o of this.map.objects) if (o.openIf && game.flags[o.openIf]) this.openProp(o);
     this.spawnSpots();
     computeFlow(this.map);
     this.ground = new GroundRenderer(this.map, game.cells, game.atlas, game.cal.season);
@@ -43,6 +45,8 @@ export class World {
     this.fishing = new Fishing(this);
     this.flock = def.id === 'coop' ? new Flock(this) : null;
     this.drops = new Drops();
+    this.combat = new Combat(this);
+    for (const s of def.spawns || []) this.combat.spawn(s.kind, s.tx, s.ty);
     this.time = 0;
     this.target = { x: -1, y: -1 };
     this.mouseTarget = false;
@@ -63,7 +67,10 @@ export class World {
     this.aim();
     this.fishing.update(dt);
     this.flock?.update(dt);
-    if (this.fishing.active) {
+    const fighting = this.combat.update(dt, input);
+    if (fighting) {
+      // A swing, dodge, parry or knockback (or the hit-stop of a blow) has the player.
+    } else if (this.fishing.active) {
       // Rooted to the bank while the line is out.
     } else if (p.charge) {
       p.charge.t += dt;
@@ -77,7 +84,10 @@ export class World {
       }
     } else if (p.swing) {
       const sw = p.swing;
-      if (p.updateSwing(dt)) applyTool(this, sw.tool, swingArea(p.tx, p.ty, sw.tx, sw.ty, sw.level), sw.level);
+      if (p.updateSwing(dt)) {
+        applyTool(this, sw.tool, swingArea(p.tx, p.ty, sw.tx, sw.ty, sw.level), sw.level);
+        this.combat.toolStrike(sw.tool);
+      }
       // Hold-to-repeat: keep swinging while the button stays down.
       if (!p.swing && input.isDown('use')) this.use();
     } else {
@@ -87,6 +97,8 @@ export class World {
       if (this.stepDist > 18) { this.stepDist = 0; this.game.sfx('step'); }
       if (input.pressed('use')) this.use();
       else if (input.pressed('interact')) this.interact();
+      else if (this.map.def.cave && input.pressed('dodge')) this.combat.fighter.dodge(a.x, a.y);
+      else if (this.map.def.cave && input.pressed('parry')) this.combat.fighter.parry();
       if (moved) this.warps();
       this.edges(a);
     }
@@ -123,6 +135,7 @@ export class World {
     if (def.kind === 'recipe') { learnRecipe(g, slot); return; }
     if (def.kind === 'machine') { placeItem(this, slot, t.x, t.y); return; }
     if (def.kind === 'fertiliser') { fertilise(this, slot, t.x, t.y); return; }
+    if (def.kind === 'weapon') { if (this.mouseTarget) this.player.face(t.x, t.y); this.combat.fighter.attack(); return; }
     if (def.tool === 'rod') { if (this.mouseTarget) this.player.face(t.x, t.y); this.fishing.start(); return; }
     if (def.kind === 'place') { placeItem(this, slot, t.x, t.y); return; }
     if (item.id === 'hay') { spreadStraw(this, slot, t.x, t.y); return; }
@@ -193,7 +206,7 @@ export class World {
   /** Stepping onto a warp tile (a doorway or a road out of the map) moves to its destination. */
   warps() {
     const p = this.player;
-    const wp = this.map.def.warps.find((r) => p.tx >= r.x && p.tx < r.x + r.w && p.ty >= r.y && p.ty < r.y + r.h);
+    const wp = this.map.def.warps.find((r) => p.tx >= r.x && p.tx < r.x + r.w && p.ty >= r.y && p.ty < r.y + r.h && (!r.ifFlag || this.game.flags[r.ifFlag]));
     if (wp) this.game.warp(wp);
   }
 
@@ -224,6 +237,13 @@ export class World {
       this.map.removeObject(o);
       this.map.blocked[this.map.i(o.x, o.y)] = 0;
     }
+  }
+
+  /** A gate or door prop opens for good (its flag is set): drawn open, walked through. */
+  openProp(o) {
+    o.open = true;
+    o.passable = true;
+    for (const [k, owner] of this.map.blockOwner) if (owner === o) { this.map.blocked[k] = 0; this.map.blockOwner.delete(k); }
   }
 
   lights() {

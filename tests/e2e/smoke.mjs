@@ -77,7 +77,7 @@ await withBrowser(async (browser, base) => {
   const t0 = (await state(page)).target;
   assert.deepEqual(t0, { x: 24, y: 18 });
   assert.equal((await tile(page, 24, 18)).soil, 1, 'tilled');
-  await press(page, 'Digit6');
+  await press(page, 'Digit7');
   await press(page, 'KeyJ', 100);
   assert.equal((await tile(page, 24, 18)).crop.id, 'daikon', 'planted');
   await press(page, 'Digit2');
@@ -85,7 +85,7 @@ await withBrowser(async (browser, base) => {
   assert.equal((await tile(page, 24, 18)).wet, 1, 'watered');
   s = await state(page);
   assert.equal(s.genki, 196, 'two swings cost 4 genki');
-  assert.equal(s.inventory.slots[5].n, 14, 'one seed used');
+  assert.equal(s.inventory.slots[6].n, 14, 'one seed used');
 
   step('clears a weed with the sickle and picks up the drop');
   // Put a weed on the clear strip south of the patch so the check does not depend on the seed.
@@ -227,6 +227,8 @@ await withBrowser(async (browser, base) => {
   assert.ok(s.inventory.slots.some((x) => x && x.id === 'dango'), 'Heibei gave dango');
   assert.ok(s.bonds.heibei.met && s.bonds.heibei.pts >= 40, 'met Heibei');
   step('takes a request from the notice board');
+  // Make room in the pack (Heibei's dango filled it; a delivery request needs a slot for its parcel).
+  await page.evaluate(() => { const g = window.__game.game; g.inventory.remove('dango', 2); g.inventory.remove('daikon', 1); });
   await walkTo(page, 43, 12);
   await face(page, 'KeyW');
   await press(page, 'KeyK', 100);
@@ -234,8 +236,6 @@ await withBrowser(async (browser, base) => {
   await press(page, 'Enter', 50);
   await press(page, 'Escape', 50);
   assert.equal((await state(page)).requests.active.length, 1, 'one request taken');
-  // Make room in the pack (Heibei's dango and a request parcel may have filled it).
-  await page.evaluate(() => { const g = window.__game.game; g.inventory.remove('dango', 2); g.inventory.remove('daikon', 1); });
   await walkTo(page, 16, 12);
   await through(page, 'KeyW', 'chaya');
   await walkTo(page, 2, 5);

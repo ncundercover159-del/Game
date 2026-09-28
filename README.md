@@ -23,14 +23,16 @@ Useful URL parameters:
 | `?seed=7` | farm seed (overgrowth layout) |
 | `?season=summer&day=5&time=17:30&weather=rain` | set the calendar, clock and weather |
 | `?map=village` | start on another map (`farm`, `village`, `shrine`, or an interior such as `chaya`) |
-| `?debug=1` | debug keys: F1 overlay, F2 skip day, F3 +1000 mon and seeds, F4 +1 hour (Shift+F4 next season, Ctrl+F4 next weather) |
+| `?debug=1` | debug keys: F1 overlay, F2 skip day, F3 +1000 mon and seeds, F4 +1 hour (Shift+F4 next season, Ctrl+F4 next weather), F5 to the Kurayama mine mouth (Shift+F5 one floor down), F6 spawn an enemy |
 
 ## Controls
 
 | Action | Keyboard / mouse | Gamepad |
 |--------|------------------|---------|
 | Move | WASD / arrows | left stick, d-pad |
-| Use tool / plant | J, left click (hold to repeat) | X |
+| Use tool / plant / attack | J, left click (hold to repeat; hold with a blade for a heavy strike) | X |
+| Dodge step (caves) | Space | B |
+| Parry (caves) | L | Y |
 | Interact / harvest / talk / give | K, E, right click | A |
 | Hotbar | 1-9, 0, -, =, mouse wheel, [ ] | LB / RB |
 | Menu (items, options, save) | Esc, Tab | Start |
@@ -56,13 +58,21 @@ Yorozuya live in the coop beside the farmhouse; keep hay in the hopper and pet t
 machines from the Craft tab in the menu, place them, and interact while holding their input.
 Cook at the irori in the farmhouse; teahouse scrolls teach new dishes, and dishes give buffs.
 
+Mountain tips: fill the Altar of Yū in the shrine hall (timber, stone, iron bars, road rations)
+and the rear gate opens onto Mount Kurayama. Walk into the mine mouth to go down; ladders lead
+deeper, the rope climbs out, and a lit lantern on every fifth floor lets you start from there.
+Watch for the tell (a wind-up and a glint): step aside with Space, or press L as it lands to
+parry, which refunds Ki and leaves the foe open. Food mends Inochi (命); Ume sells salves. Take
+iron bars and your uncle's rusted katana to Genzō for a real blade, and ore and charcoal to be
+smelted. If you fall, you wake in Ume's care; what you dropped waits in a bundle by the mouth.
+
 ## Test
 
 ```sh
 npm install          # dev only: Playwright for headless tests
 npm test             # unit tests (Node's built-in runner)
-npm run test:e2e     # headless tests: farm day, save/load, village, villagers; forage, fish, coop, craft, cook
-npm run shots        # regenerate the latest milestone's screenshots (shots/m4; `-- m1`, `m2` or `m3` for older sets)
+npm run test:e2e     # headless tests: farm day, save/load, village; forage, fish, coop, cook; caves, combat, boss
+npm run shots        # regenerate the latest milestone's screenshots (shots/m5; `-- m1` to `m4` for older sets)
 ```
 
 Tools: `tools/gallery.html` (every palette colour, sprite, tile and autotile case at 1x and 4x) and

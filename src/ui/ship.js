@@ -10,7 +10,7 @@ const SLOT = 20;
 
 export function sellable(id) {
   const d = itemDef(id);
-  return d.kind !== 'tool' && (d.sell || 0) > 0;
+  return d.kind !== 'tool' && d.kind !== 'weapon' && (d.sell || 0) > 0;
 }
 
 export class ShipMenu {

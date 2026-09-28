@@ -65,14 +65,34 @@
   15 dishes at the farmhouse irori from 12 teahouse recipe scrolls, dishes with Genki and timed
   buffs (speed, farming, foraging, fishing) shown on the HUD; 24- and 36-slot backpacks; save v4
   with a v3 migration.
-- [ ] M5 Combat and caves
+- [x] **M5 Combat and caves**: Inochi (命) and Ki (気) gauges; the rusted katana in the starting
+  pack; a three-hit light combo with small lunges and a swept slash arc, a held heavy kiai that
+  costs Ki and breaks guards, a dodge step with invulnerability, a parry that turns a blow on the
+  glint, refunds Ki, staggers the foe and opens a counter window (crits), hit-stop, white hit
+  flashes, knockback, sparks, damage numbers and screen kick; spears, glaives, the bow and
+  craftable arrows; six enemies, each with its own tell (nobushi guard and raise, karakasa squat
+  and leap, bake-danuki drum and roll into walls, kappa lurk-splash-lunge from pools,
+  chōchin-obake glow and foxfire that a parry sends back, yūrei fade and gather as cold wisps)
+  and no touch damage; the Yū altar opens the shrine's rear gate onto Mount Kurayama (30x24) and
+  its mine mouth; a seeded floor generator (rooms, two-wide tunnels with loops, the rope up and
+  the ladder down in the farthest room, ore veins, urns, chests, secret rooms behind cracked
+  rock, pools in the cellars, depth-scaled foes) for zone 1 Old Mine Tunnels (1-20) and zone 2
+  Flooded Cellars (21-40); darkness with a carried lantern and lit lanterns every fifth floor to
+  start from; Kurogane no Jūbei on floor 20 in three phases (cut combos and a dash, calling his
+  men and vanishing in smoke, then an iai stand-off best of three with feints) and a choice of
+  his fate by virtue; Genzō's forge with Tools, Blades and Smelt tabs (reforging the old sword,
+  six more blades, copper, iron and steel bars from ore and charcoal); Ume's salves; defeat
+  (wake in the apothecary, lose a capped share of mon and a few stacks to a bundle at the mine
+  mouth) and Relaxed/Standard/Warrior difficulty; virtues wired into systems (seven tiered
+  effects, Tsukikage's remarks, shown on the Skills tab); save v5 with a v4 migration.
 - [ ] M6 Story and festivals
 - [ ] M7 Content and polish
 
 ## Next
-M5 Combat and caves: katana strikes and combos, parry, dodge and Ki, six enemies, the cave
-generator for zones 1-2 behind the Yū restoration, the first boss, weapons from the forge, defeat
-handling, and virtues wired into systems (the Swordsmanship perks already exist).
+M6 Story and festivals: the three acts told through letters, heart events (five per villager)
+with choices, the magistrate's tolls and the Kuroda contract, the festivals and their minigames
+(haiku, mochi pounding), the Archive restoration, romance and rivals (Rin), Jūbei's return if he
+was offered work.
 
 ## Verification (M1)
 - `npm test`: 36 unit tests (calendar, farming rules and regrowth, inventory, save checksum and
@@ -126,6 +146,27 @@ handling, and virtues wired into systems (the Swordsmanship perks already exist)
   an egg; cooks tamagoyaki at the irori and eats it for a farming buff. Zero console errors.
 - `npm run shots` writes shots/m4 (the falls, autumn bamboo, a cast, the reel, the coop, a row of
   machines, the Craft tab, the irori, Skills and virtues with buffs running, recipe scrolls).
+
+## Verification (M5)
+- `npm test`: 124 unit tests, adding combat rules (combo, heavy and crit damage, guards and
+  facing, elements, difficulty and Unmoving Mountain, Ki regeneration, the parry window and
+  Guardian, Kensei and Meiyo crits, defeat costs), virtue tiers and effects, the cave generator
+  over three seeds and all 40 floors (determinism, the ladder and every prop reachable from the
+  rope, lanterns every five floors, the boss floor, no ladder on the last, foes from their zone
+  on floor or water and away from the rope, maps build), the iai duel (early, late, on the bell,
+  best of three), and for every enemy and Jūbei a simulation that every blow follows a tell of
+  at least 0.28 s within the last 1.2 s; v1 -> v5 migration.
+- `npm run test:e2e` adds a combat test: through the open rear gate and into the mine mouth; a
+  combo kills a karakasa for XP; a parry on a nobushi's glint staggers him with no damage and a Ki
+  refund; a dodge spends Ki for invulnerability; the pickaxe breaks a copper vein; the ladder to
+  floor 2 and the rope back up; a defeat wakes you in the apothecary with 10% less mon and the
+  bundle at the mouth, taken back; Jūbei's stand-off won on the bell twice, spared, his blade
+  and Yū; Genzō reforges the rusted katana. Zero console errors.
+- A scripted bot (approach, cut, parry glints) cleared floors 1, 3, 6, 21 and 26 losing about a
+  third of its Inochi per floor, and beat Jūbei with the Tetsu Katana at 24 Inochi.
+- `npm run shots` writes shots/m5 (the open gate, the mine mouth, a combo with a nobushi's
+  glint, a parry, the flooded cellars with foxfire, a yūrei's omen, Jūbei's hall, the
+  stand-off, the forge's blades, waking in Ume's care, virtues on the Skills tab).
 
 ## Decisions
 - The repository already contained ORBIT (a small arcade game) at the root; it was moved to
@@ -203,6 +244,25 @@ handling, and virtues wired into systems (the Swordsmanship perks already exist)
 - (M4) Machines are placed like any object and keep their state in the farm save; they finish at
   dawn of their ready day.
 
+- (M5) The Yū altar's last set asks for soramame (spring) instead of edamame so the mountain can
+  open in the first season. Its restoration opens the shrine's rear gate (an `openIf` prop).
+- (M5) Parry is a stance (L) whose first 150 ms turn any told blow; parrying earlier or later is
+  just a guard that gets hit. Dodge and parry work in the caves only, where fights happen.
+- (M5) Holding J with a blade starts a light cut and then charges the heavy kiai (release when
+  the sparkle shows); the sickle stays a tool but its swings cut foes in front.
+- (M5) Cave floors are not saved: they regenerate on each visit (the same layout per seed and
+  floor); chests opened today stay open today. Saving underground records the mine mouth.
+- (M5) Weapons are forged on the spot (tool upgrades still take two days); the Blades tab lists
+  what Genzō can make now, later blades after Jūbei.
+- (M5) Defeat on Standard costs 10% of your mon (at most 1000) and two random stacks (never tools
+  or weapons), which wait in a bundle at the mine mouth; Warrior costs more, Relaxed nothing.
+  You wake in Ume's apothecary two hours later at half Inochi. Food mends 30% of its Genki as
+  Inochi; sleeping restores all of it.
+- (M5) Virtues work in tiers of 25 (Gi shop prices, Yū max Ki, Jin petting, Rei talk bonds,
+  Makoto request pay, Meiyo crits, Chūgi slower bond neglect). Jūbei's third option (honest work)
+  needs Jin tier 1. Iai rivals and dojo kata use the same duel rules in M6.
+- (M5) Floor 40 ends in a drowned stair; the Kappa Elder and deeper zones are M7.
+
 ## Reference conflicts (logged)
 - Brief: head about a third of body height. Reference 1: ~45%. Followed the reference.
 
@@ -237,7 +297,12 @@ raised higher and drawn behind the body only while raised.
 ## Known issues
 - The thatch roof is serviceable but plain (M7 polish).
 - Animals have no outdoor pasture or barn animals yet; the coop holds six.
-- The Skills tab leaves empty space between the bars and the heptagon; a perk list could fill it.
+- The Skills tab leaves space between the bars and the heptagon (the virtue effects now run along
+  the bottom).
+- Enemies steer straight at you and slide along walls; in winding tunnels they can get stuck
+  behind a corner until you come around it.
+- Cave light pools show their stepped rings clearly on water; acceptable, but could be softened.
+- Touch controls for Dodge/Parry arrive with the touch layer (M7).
 - Weather has no audio yet (the procedural soundscape is M7); thunder uses a stand-in rumble.
 - The shrine precinct is sparse (gravel, hall, office, ema rack, sacred cedar); the chōzuya basin,
   bell tower and kodama groves arrive with their restorations.

@@ -140,6 +140,17 @@ Extracted dominant colours (median-cut) that the ramps were fitted to:
 - Machines are 16x24 props in `wood0-3` with iron bands `ink1-2`; a working machine shows a thin
   progress bar above it; a ready one a small bubble with the goods' icon.
 
+- Caves (M5): rock tops in the zone's darkest two tones with a few lit knobs; rock faces in
+  strata lit from above with a dark foot row; floors in 2x2 grit clumps (zone 1 browns, zone 2
+  blue-greys with teal moss). Props (ore veins, urns, chests, ladder, rope, lanterns, pit-props,
+  braziers) follow the object rules with `ink0` outlines.
+- Enemies (M5): people are built on the character grids (nobushi in stone greys, Jūbei in black
+  and red); yōkai are hand-drawn with a readable wind-up pose each. A hit flashes the whole
+  silhouette `ink6` for 0.12 s; tells end with a 7x7 `ink6`/`gold3` glint.
+- Weapons in hand are drawn like tools, anchored at the feet; slash arcs are drawn at runtime as
+  pixel sweeps at the weapon's reach (`ink6` core, `stone3/4` edges). Underground the scene is
+  multiplied by `ink3` and lit by stepped discs: the carried lantern (84 px), lanterns, braziers.
+
 ## 8. UI
 
 - Nine-slice wooden frames: `wood1` outline, `wood4/wood5` bevel, `wood6/straw4` cream inset

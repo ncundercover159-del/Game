@@ -26,10 +26,10 @@ export function adopt(st, kind, seed) {
 }
 
 /** Petting once a day raises affection; returns true the first time today. */
-export function pet(a, day) {
+export function pet(a, day, mult = 1) {
   if (a.petDay === day) return false;
   a.petDay = day;
-  a.affection = Math.min(1000, a.affection + PET);
+  a.affection = Math.min(1000, a.affection + Math.round(PET * mult));
   return true;
 }
 

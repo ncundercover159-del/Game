@@ -6,6 +6,7 @@ import { NPC_LOOKS } from './looks.js';
 import { portrait, EXPRESSIONS } from './portraits.js';
 import { emotes, heartIcon, smallHeart } from './emotes.js';
 import { addHeldTools } from './held.js';
+import { addCombatArt } from './combatArt.js';
 import { treeParts, STONES, TWIGS, STUMP, weed, bamboo, DECALS, shadow, bareCanopy, bigLog, boulder } from './nature.js';
 import { minka, kura, well, toro, sign, fence, crate, sluice, ishigaki } from './buildings.js';
 import { cropGrids, CROP_ART } from './crops.js';
@@ -176,6 +177,8 @@ export function buildArt() {
   add('shimenawa', shimenawa(), 12, 0);
   add('gate', rearGate());
   add('gate@winter', recolor(rearGate(), SNOW_TILE.ink));
+  add('gate_open', rearGate(true));
+  add('gate_open@winter', recolor(rearGate(true), SNOW_TILE.ink));
 
   // Furniture.
   add('futon', futon());
@@ -243,6 +246,8 @@ export function buildArt() {
   add('icon_heart', heartIcon(), 0, 0);
   add('ui_heart_s', smallHeart(true), 0, 0);
   add('ui_heart_s_empty', smallHeart(false), 0, 0);
+
+  addCombatArt(atlas, add);
 
   for (const [k, [rows, legend]] of Object.entries(FX)) {
     const g = parse(rows, legend);

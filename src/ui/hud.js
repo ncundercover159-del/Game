@@ -82,6 +82,7 @@ export class Hud {
     const { w, h } = g.screen;
     this.drawClock(ctx, atlas, w);
     this.drawGenki(ctx, atlas, w, h);
+    this.drawCave(ctx, atlas, w);
     this.drawHotbar(ctx, atlas);
     this.drawToasts(ctx, atlas, h);
     this.drawAside(ctx, atlas);
@@ -134,18 +135,46 @@ export class Hud {
 
   drawGenki(ctx, atlas, w, h) {
     const g = this.game;
-    const bh = 64, bx = w - 16, by = h - bh - 6;
-    panel(ctx, atlas, bx - 2, by, 14, bh);
-    const inner = bh - 10;
     const f = Math.max(0, g.genki / g.genkiMax);
-    const fill = Math.round(inner * f);
-    rect(ctx, 'ink1', bx + 3, by + 5, 4, inner);
     const col = f > 0.5 ? ['grass3', 'grass5'] : f > 0.2 ? ['gold1', 'gold2'] : ['red1', 'red3'];
     if (this.flash > 0 && Math.floor(this.flash * 12) % 2) col[0] = col[1] = 'ink6';
+    this.bar(ctx, atlas, w - 16, h, f, col, t('genki'), 'gold2');
+    // Inochi beside it: red, and always shown (it only falls in a fight).
+    const life = Math.max(0, g.hp / g.hpMax);
+    this.bar(ctx, atlas, w - 34, h, life, life > 0.3 ? ['red1', 'red3'] : ['red0', 'red2'], t('inochi'), 'red3');
+  }
+
+  /** A vertical gauge with its kanji label on a dark plate above it. */
+  bar(ctx, atlas, bx, h, f, col, label, labelColor) {
+    const bh = 64, by = h - bh - 6, inner = bh - 10;
+    panel(ctx, atlas, bx - 2, by, 14, bh);
+    const fill = Math.round(inner * f);
+    rect(ctx, 'ink1', bx + 3, by + 5, 4, inner);
     rect(ctx, col[0], bx + 3, by + 5 + inner - fill, 4, fill);
     rect(ctx, col[1], bx + 3, by + 5 + inner - fill, 1, fill);
     dark(ctx, atlas, bx - 3, by - 13, 16, 13);
-    fonts.body.draw(ctx, t('genki'), bx, by - 12, 'gold2');
+    fonts.body.draw(ctx, label, bx, by - 12, labelColor);
+  }
+
+  /** Underground: the floor and zone at the top, or the boss's name and health in a fight. */
+  drawCave(ctx, atlas, w) {
+    const g = this.game, def = g.world.map.def;
+    if (!def.cave) return;
+    const boss = g.world.combat.foes.find((f) => f.kind === 'jubei' && f.state !== 'idle');
+    if (boss) {
+      const bw = 180, x = Math.floor(w / 2 - bw / 2);
+      dark(ctx, atlas, x, 4, bw, 22);
+      const name = t('boss_jubei');
+      fonts.small.draw(ctx, name, Math.floor(w / 2 - fonts.small.measure(name) / 2), 6, 'gold2');
+      rect(ctx, 'ink1', x + 6, 17, bw - 12, 4);
+      rect(ctx, 'red2', x + 6, 17, Math.round((bw - 12) * Math.max(0, boss.hp / boss.maxHp)), 4);
+      rect(ctx, 'red4', x + 6, 17, Math.round((bw - 12) * Math.max(0, boss.hp / boss.maxHp)), 1);
+      return;
+    }
+    const label = t('cave_floor_label', { n: def.floor, zone: def.name.replace(/ B\d+$/, '') });
+    const lw = fonts.small.measure(label) + 10;
+    dark(ctx, atlas, Math.floor(w / 2 - lw / 2), 4, lw, 13);
+    fonts.small.draw(ctx, label, Math.floor(w / 2 - lw / 2) + 5, 6, 'ink6');
   }
 
   drawHotbar(ctx, atlas) {

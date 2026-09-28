@@ -4,6 +4,7 @@ import { CROPS } from './crops.js';
 import { FORAGE, ARTIFACTS } from './forage.js';
 import { FISH, JUNK } from './fish.js';
 import { MACHINES, GOODS, DISHES, SCROLLS, SCROLL_PRICE } from './recipes.js';
+import { WEAPONS } from './weapons.js';
 
 export const QUALITY = [
   { name: '', stars: 0, mult: 1 },
@@ -72,6 +73,19 @@ for (const [id, d] of Object.entries(DISHES)) {
   define(id, { name: d.name, jp: d.jp, kind: 'food', genki: d.genki, buff: d.buff, sell: Math.round(d.genki * 0.9), desc: d.desc });
 }
 for (const id of SCROLLS) define(`scroll_${id}`, { name: `Recipe: ${ITEMS[id].name}`, jp: `${ITEMS[id].jp}の作り方`, kind: 'recipe', dish: id, price: SCROLL_PRICE, desc: `Okiku's recipe for ${ITEMS[id].name}. Use it to learn the dish.` });
+// Mount Kurayama: ores, gems, bars, what spirits leave behind, and weapons.
+define('copper_ore', { name: 'Copper Ore', jp: '銅鉱', kind: 'material', sell: 8, desc: 'Green-streaked rock. Genzō smelts five into a bar.' });
+define('iron_ore', { name: 'Iron Ore', jp: '鉄鉱', kind: 'material', sell: 15, desc: 'Heavy, rust-red rock from the old mine.' });
+define('copper_bar', { name: 'Copper Bar', jp: '銅', kind: 'material', sell: 40, price: 90, desc: 'Soft red metal. Bows and fittings need it.' });
+define('jade', { name: 'Jade', jp: '翡翠', kind: 'gem', sell: 180, desc: 'Green stone from the flooded cellars. Spirits are drawn to it.' });
+define('water_crystal', { name: 'Water Crystal', jp: '水晶', kind: 'gem', sell: 140, desc: 'Clear crystal that is always cool to the touch.' });
+define('leaf_charm', { name: 'Tanuki Leaf', jp: '狸の葉', kind: 'material', sell: 120, desc: 'The leaf a tanuki wears on its head to change shape. It is still warm.' });
+define('spirit_wisp', { name: 'Spirit Wisp', jp: '魂火', kind: 'material', sell: 45, desc: 'A little cold light that stayed behind when a yūrei was put to rest.' });
+define('arrow', { name: 'Arrows', jp: '矢', kind: 'ammo', sell: 1, desc: 'Bamboo arrows with stone heads. The yumi uses one per shot.' });
+define('salve', { name: 'Ume\'s Salve', jp: '膏薬', kind: 'food', genki: 10, heal: 40, sell: 40, price: 120, desc: 'A pot of herbal salve. Restores 40 Inochi.' });
+define('kizugusuri', { name: 'Wound Draught', jp: '傷薬', kind: 'food', genki: 20, heal: 100, sell: 110, price: 350, desc: 'Ume\'s strongest draught. Restores 100 Inochi.' });
+for (const [id, w] of Object.entries(WEAPONS)) define(id, { name: w.name, jp: w.jp, kind: 'weapon', weapon: id, sell: w.forge ? Math.round(w.forge.mon / 3) : 0, desc: w.desc });
+
 define('pack24', { name: 'Large Pack', jp: '大きな背負子', kind: 'upgrade', slots: 24, price: 2000, desc: 'A second row of pockets: 24 slots.' });
 define('pack36', { name: 'Traveller\'s Pack', jp: '旅の背負子', kind: 'upgrade', slots: 36, price: 10000, desc: 'Room for everything: 36 slots.' });
 
@@ -84,7 +98,8 @@ export function itemDef(id) {
 }
 
 export function isStackable(id) {
-  return itemDef(id).kind !== 'tool';
+  const k = itemDef(id).kind;
+  return k !== 'tool' && k !== 'weapon';
 }
 
 export function sellPrice(id, quality = 0) {

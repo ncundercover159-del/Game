@@ -266,17 +266,23 @@ export function shimenawa() {
 }
 
 /** The sealed rear gate of the precinct: a plank door between posts under a small tile roof. 36x40. */
-export function rearGate() {
+/** The rear gate to the mountain: sealed with a lock bar, or (restored) standing open on the path. */
+export function rearGate(open = false) {
   const g = grid(36, 40);
-  fillRect(g, 6, 12, 24, 28, 'wood2');
-  for (let x = 8; x < 30; x += 4) vline(g, x, 12, 39, 'wood1');
-  hline(g, 6, 29, 22, 'wood0');
-  hline(g, 6, 29, 30, 'wood0');
+  if (open) {
+    fillRect(g, 6, 12, 24, 28, 'ink1');
+    for (let y = 26; y < 40; y++) fillRect(g, 14 - Math.floor((y - 26) / 3), y, 8 + Math.floor((y - 26) / 3) * 2, 1, (y & 1) ? 'stone2' : 'stone3');
+    for (const x of [6, 26]) { fillRect(g, x, 12, 4, 28, 'wood2'); vline(g, x + (x < 20 ? 3 : 0), 12, 39, 'wood1'); }
+  } else {
+    fillRect(g, 6, 12, 24, 28, 'wood2');
+    for (let x = 8; x < 30; x += 4) vline(g, x, 12, 39, 'wood1');
+    hline(g, 6, 29, 22, 'wood0');
+    hline(g, 6, 29, 30, 'wood0');
+  }
   for (const x of [2, 30]) { fillRect(g, x, 8, 4, 32, 'wood1'); vline(g, x, 8, 39, 'wood3'); }
   tileRoof(g, 0, 35, 4, 11, 5);
-  // A shimenawa across the gate and a lock bar: sealed.
+  // A shimenawa across the gate; the lock bar only while sealed.
   for (let x = 4; x < 32; x++) set(g, x, 14 + Math.round(Math.sin(((x - 4) / 27) * Math.PI) * 2), 'straw3');
-  fillRect(g, 14, 25, 8, 3, 'ink2');
-  hline(g, 14, 21, 25, 'ink4');
+  if (!open) { fillRect(g, 14, 25, 8, 3, 'ink2'); hline(g, 14, 21, 25, 'ink4'); }
   return outline(g, { color: 'ink0' });
 }

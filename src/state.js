@@ -11,6 +11,7 @@ import { newOfferings } from './systems/offerings.js';
 import { newSkills } from './systems/skills.js';
 import { newAnimals } from './systems/animals.js';
 import { DISHES } from './data/recipes.js';
+import { newCaves } from './caves.js';
 
 const START_RECIPES = () => Object.keys(DISHES).filter((id) => DISHES[id].known);
 
@@ -28,6 +29,7 @@ export function newState(seed) {
     bonds: {}, virtues: newVirtues(), requests: newRequests(), mail: newMail(), offerings: newOfferings(),
     skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] }, animals: newAnimals(),
     recipes: START_RECIPES(),
+    hp: START.inochiMax, hpMax: START.inochiMax, difficulty: 'standard', caves: newCaves(),
   };
 }
 
@@ -48,3 +50,7 @@ MIGRATIONS[2] = (s) => ({ ...s, bonds: {}, virtues: newVirtues(), requests: newR
 
 // v3 (M3) -> v4 (M4): skills and XP, food buffs, today's picked forage, coop animals, recipes.
 MIGRATIONS[3] = (s) => ({ ...s, skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] }, animals: newAnimals(), recipes: START_RECIPES() });
+
+// v4 (M4) -> v5 (M5): Inochi, difficulty, the caves' progress. Older farms never had the katana in
+// the pack: Genzō sends it by letter (see data/letters.js).
+MIGRATIONS[4] = (s) => ({ ...s, hp: START.inochiMax, hpMax: START.inochiMax, difficulty: 'standard', caves: newCaves(), flags: { ...s.flags, needs_katana: true } });

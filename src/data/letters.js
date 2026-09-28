@@ -25,6 +25,16 @@ export const LETTERS = [
     items: [['rod', 1]],
   },
   {
+    id: 'genzo_katana', from: 'genzo', when: (g) => g.flags.needs_katana,
+    text: 'Your uncle left his sword with me to mend and never came back for it. I have not mended it. Rust is honest, at least. It is yours now. Bring it to the forge with some iron when you want it to be a sword again. And listen: if it starts talking, you are not going mad. It does that.',
+    items: [['katana_rusted', 1]],
+  },
+  {
+    id: 'tomoe_mountain', from: 'tomoe', when: (g) => g.flags.restored_bridge,
+    text: 'The gate behind the hall stands open now. Beyond it the path climbs to the old mine of Kurayama, where the seals are weakest. Things live there that used to be kinder. If you go down, take food, and the salve Ume sells, and do not go deeper than you can climb back from. The lanterns in the tunnels, if you can light them, will remember you. Please come back.',
+    items: [['salve', 2]],
+  },
+  {
     id: 'uncle_2', from: 'Jirōbei', when: (g) => dayIndex(g.cal) >= 5,
     text: 'You will have seen the terraces north of the house, fenced off. I stopped working them when the shrine went quiet. Call it superstition. The old people say the valley gives what the shrine is given. Seven altars, seven virtues. Fill them and see. I never managed it; my virtues were mostly stubbornness. A little tea, for the climb.',
     items: [['tea', 2]],

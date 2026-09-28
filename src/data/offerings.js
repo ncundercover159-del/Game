@@ -44,7 +44,7 @@ export const ALTARS = {
       { name: 'Timber', items: [['wood', 50], ['bamboo', 10]], reward: { mon: 500 } },
       { name: 'Stone Piers', items: [['stone', 50]], reward: { items: [['onigiri', 3]] } },
       { name: 'Iron Bands', items: [['iron_bar', 5]], reward: { mon: 1200 } },
-      { name: 'Road Rations', items: [['onigiri', 3], ['tonic', 1], ['edamame', 3]], reward: { items: [['iron_bar', 3]] } },
+      { name: 'Road Rations', items: [['onigiri', 3], ['tonic', 1], ['soramame', 3]], reward: { items: [['iron_bar', 3]] } },
     ],
   },
   makoto: {

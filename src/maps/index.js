@@ -4,10 +4,11 @@ import farm from './farm.js';
 import village from './village.js';
 import shrine from './shrine.js';
 import grove from './grove.js';
+import kurayama from './kurayama.js';
 import { INTERIORS } from './interiors.js';
 
 export const MAPS = {};
-for (const def of [farm, village, shrine, grove, ...INTERIORS]) MAPS[def.id] = { warps: [], ...def };
+for (const def of [farm, village, shrine, grove, kurayama, ...INTERIORS]) MAPS[def.id] = { warps: [], ...def };
 
 for (const outside of Object.values(MAPS)) {
   for (const b of outside.buildings || []) {

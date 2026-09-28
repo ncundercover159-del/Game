@@ -49,7 +49,26 @@ export class Lighting {
     this.pools = {
       window: pool(20, [[1, 'red0'], [0.7, 'wood2'], [0.4, 'wood4']]),
       lantern: pool(34, [[1, 'red0'], [0.7, 'wood2'], [0.42, 'wood4'], [0.2, 'gold1']]),
+      // The lantern at your belt underground: wide, warm, stepped.
+      carried: pool(84, [[1, 'ink3'], [0.78, 'wood2'], [0.56, 'wood4'], [0.34, 'straw3'], [0.16, 'ink6']]),
     };
+  }
+
+  /** Underground: near-black, lit only by lanterns, braziers and the one you carry. */
+  cave(ctx, w, h, lights, cam, player) {
+    if (this.map.width !== w || this.map.height !== h) { this.map.width = w; this.map.height = h; }
+    const c = this.ctx;
+    c.globalCompositeOperation = 'source-over';
+    c.fillStyle = COLORS.ink3;
+    c.fillRect(0, 0, w, h);
+    c.globalCompositeOperation = 'lighter';
+    const put = (img, x, y) => c.drawImage(img, Math.round(x - cam.ix - img.width / 2), Math.round(y - cam.iy - img.height / 2));
+    for (const l of lights) put(this.pools[l.kind], l.x, l.y);
+    put(this.pools.carried, player.x, player.y - 10);
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.drawImage(this.map, 0, 0);
+    ctx.restore();
   }
 
   /** Multiply the scene in ctx by the ambient colour, with light pools at `lights` (world px). */

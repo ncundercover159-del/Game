@@ -1,4 +1,6 @@
 // World object types: what they look like, which tools affect them, what they drop.
+import { ORES } from './caves.js';
+
 // drops: [itemId, min, max, chance=1]. `tools` lists tools that damage it; `power` is per tool.
 // `xp`: [skill, amount] earned when it is cleared.
 // `flat` things lie on the floor and are drawn under everything that stands.
@@ -92,4 +94,18 @@ export const OBJECT_TYPES = {
   nets: { name: 'Nets', solid: false, static: true, shadow: null },
   altar: { name: 'Altar', solid: true, static: true, shadow: null },
   kamidana: { name: 'Kamidana', solid: false, static: true, shadow: null },
+
+  // Mount Kurayama. Ore takes its hit points, drops and needed pickaxe tier from ORES by kind.
+  ore: { name: 'Ore', solid: true, hp: 3, shadow: 'shadow_s', tools: { pickaxe: 1 }, byKind: ORES, fx: 'fx_pebble', sfx: 'rock', hint: 'pickaxe' },
+  urn: { name: 'Urn', solid: true, hp: 1, shadow: 'shadow_s', tools: { pickaxe: 1, axe: 1, hoe: 1, sickle: 1 } },
+  cracked: { name: 'Cracked Rock', solid: true, hp: 3, shadow: null, tools: { pickaxe: 1 }, xp: ['mining', 5], fx: 'fx_pebble', sfx: 'rock', hint: 'pickaxe' },
+  chest: { name: 'Chest', solid: true, static: true, shadow: 'shadow_s' },
+  ladder: { name: 'Ladder', solid: false, static: true, shadow: null, flat: true },
+  rope: { name: 'Rope', solid: true, static: true, shadow: null },
+  cave_lantern: { name: 'Lantern', solid: true, static: true, shadow: 'shadow_s' },
+  timbers: { name: 'Pit-props', solid: false, static: true, shadow: null },
+  deep: { name: 'Flooded Stair', solid: true, static: true, shadow: null, flat: true, say: 'deep' },
+  brazier: { name: 'Brazier', solid: true, static: true, shadow: 'shadow_s' },
+  bundle: { name: 'Lost Bundle', solid: true, static: true, shadow: 'shadow_s' },
+  mouth: { name: 'Cave Mouth', solid: false, static: true, shadow: null, flat: true },
 };

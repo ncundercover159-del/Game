@@ -38,7 +38,7 @@ export function applyTool(w, tool, tiles, level = 0) {
   }
 
   // Quarryman: breaking rock with the pickaxe costs nothing.
-  const rock = tool === 'pickaxe' && ['stone', 'boulder'].includes(map.objectAt(tx, ty)?.type) && hasPerk(game.skills, 'quarryman');
+  const rock = tool === 'pickaxe' && ['stone', 'boulder', 'ore'].includes(map.objectAt(tx, ty)?.type) && hasPerk(game.skills, 'quarryman');
   if (!rock) game.spendGenki(GENKI_COST * (level + 1));
   let result = 'miss';
   for (const [x, y] of tiles) {
@@ -57,6 +57,7 @@ function applyOne(w, tool, tx, ty) {
   if (o && o.type === 'dig' && tool === 'hoe') { dig(w, o); return 'dig'; }
   if (o && o.type === 'forage') return 'miss';
   if (o && o.type === 'machine' && (tool === 'axe' || tool === 'pickaxe')) return pickUpMachine(w, o);
+  if (o && o.type === 'urn') { w.combat.breakUrn(o); return 'destroy'; }
   if (o) return hitObject(w, o, tool);
   // Village soil is somebody else's: tools only work the farm's.
   if (!map.def.farmable) return 'miss';
@@ -103,13 +104,16 @@ function hitObject(w, o, tool) {
   const def = OBJECT_TYPES[o.type];
   const cx = o.x * TILE + 8, cy = o.y * TILE + 10;
   const tier = game.tiers[tool] || 0;
+  // Ore veins look their numbers up by kind.
+  const kd = def.byKind ? def.byKind[o.kind] : null;
+  const minTier = kd ? kd.tier : def.minTier;
   if (def.static || !def.tools || !def.tools[tool]) {
     game.sfx('deny');
     o.shake = 0.2;
     if (def.hint && def.hint !== tool) game.aside(`tk_wrong_tool_${def.hint}`, { once: true });
     return 'deny';
   }
-  if (def.minTier && tier < def.minTier) {
+  if (minTier && tier < minTier) {
     game.sfx('deny');
     o.shake = 0.25;
     game.aside('tk_need_upgrade', { once: `upgrade_${o.type}` });
@@ -122,7 +126,7 @@ function hitObject(w, o, tool) {
   if (o.hp > 0) return 'hit';
 
   // Destroyed: drops, then maybe leave something behind (a felled tree leaves its stump).
-  const table = (def.drops && (def.drops[tool] || def.drops.any)) || [];
+  const table = kd ? kd.drops : (def.drops && (def.drops[tool] || def.drops.any)) || [];
   const perk = (id) => hasPerk(game.skills, id);
   for (const [id, min, max, chance = 1] of table) {
     if (rng.next() >= chance) continue;
@@ -132,7 +136,8 @@ function hitObject(w, o, tool) {
     if (n > 0) w.drops.spawn(rng, id, n, 0, cx, cy);
   }
   if (o.type === 'boulder' && perk('prospector') && rng.next() < 0.25) w.drops.spawn(rng, 'iron_bar', 1, 0, cx, cy);
-  if (def.xp) game.xp(def.xp[0], def.xp[1]);
+  if (kd) game.xp('mining', kd.xp);
+  else if (def.xp) game.xp(def.xp[0], def.xp[1]);
   fx.burst(def.fx, cx, cy, 10, { speed: 45, up: 80, life: 0.7 });
   map.removeObject(o);
   if (o.type === 'sluice') computeFlow(map);

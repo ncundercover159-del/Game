@@ -6,6 +6,7 @@ import { hex } from '../art/palette.js';
 import { SKILLS, SKILL_IDS, PERKS, MAX_LEVEL } from '../data/skills.js';
 import { VIRTUES, VIRTUE_IDS } from '../data/virtues.js';
 import { levelOf, progress } from '../systems/skills.js';
+import { effectText } from '../systems/virtues.js';
 import { t } from '../data/strings.js';
 
 const perkName = (id) => Object.values(PERKS).flat(2).find((p) => p.id === id)?.name || id;
@@ -40,7 +41,7 @@ function pfill(ctx, color, pts) {
   }
 }
 
-export function drawSkillsPage(ctx, game, x, y, w) {
+export function drawSkillsPage(ctx, game, x, y, w, h) {
   SKILL_IDS.forEach((id, i) => {
     const s = game.skills[id], lv = levelOf(s.xp);
     const ry = y + 10 + i * 20;
@@ -70,4 +71,8 @@ export function drawSkillsPage(ctx, game, x, y, w) {
     fonts.body.draw(ctx, label, Math.round(lx - fonts.body.measure(label) / 2), Math.round(ly - 5), 'wood1');
   });
   fonts.small.draw(ctx, t('virtues'), cx - fonts.small.measure(t('virtues')) / 2, cy + R + 16, 'wood2');
+  // What the virtues are doing for you, along the bottom (two lines at most).
+  const effects = VIRTUE_IDS.map((v) => [v, effectText(game.virtues, v)]).filter(([, e]) => e).map(([v, e]) => `${VIRTUES[v].jp} ${e}`);
+  const lines = effects.length ? fonts.small.wrap(effects.join('  ·  '), w - 16).slice(0, 2) : [t('virtue_none')];
+  lines.forEach((l, i) => fonts.small.draw(ctx, l, x + 8, y + h - 12 - (lines.length - 1 - i) * 10, effects.length ? 'gold0' : 'wood3'));
 }

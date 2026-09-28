@@ -1,3 +1,5 @@
+import { CAVE_STRINGS } from './strings_caves.js';
+
 // English string table. Every player-facing line lives here (keys are stable ids) so a Japanese
 // table can be dropped in later. `{name}`-style placeholders are filled by t().
 
@@ -235,6 +237,8 @@ export const STRINGS = {
   genki: '元',
   help_keys: 'WASD move · J use · K interact · 1-0 - = tools · Tab menu',
 };
+
+Object.assign(STRINGS, CAVE_STRINGS);
 
 export function t(key, vars) {
   let s = STRINGS[key];

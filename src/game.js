@@ -3,13 +3,16 @@
 // Systems talk back to it through the small service methods below.
 import { Camera } from './core/camera.js';
 import { Rng } from './core/rng.js';
-import { makeDoc, writeSlot, readSlot, exportDoc, importDoc } from './core/save.js';
+import { writeSlot, readSlot, exportDoc, importDoc } from './core/save.js';
+import { snapshot, saveNow, docOf } from './saving.js';
 import { World } from './world/world.js';
 import { Player } from './world/player.js';
 import { Villagers } from './world/npc.js';
 import { interactNpc, counter } from './world/talk.js';
 import { Cutscene } from './ui/cutscene.js';
 import { askSleep, sleep, openShop, eat, bow } from './flow.js';
+import { askFloor, defeat, bossDown, placeBundle } from './caves.js';
+import { kiMax } from './systems/combat.js';
 import { EVENTS } from './data/events.js';
 import { VIRTUES } from './data/virtues.js';
 import { SKILLS, PERKS } from './data/skills.js';
@@ -35,7 +38,8 @@ const SETTINGS_KEY = 'ronin.settings';
 const INDOOR_DIM = 0.15;
 // Saved state the game holds as plain fields (copied in on load, out on save).
 const STATE_FIELDS = ['seed', 'money', 'genki', 'genkiMax', 'can', 'cal', 'flags', 'weather', 'tomorrow', 'tiers', 'upgrade',
-  'shipped', 'stats', 'bonds', 'virtues', 'requests', 'mail', 'offerings', 'skills', 'buffs', 'foraged', 'animals', 'recipes'];
+  'shipped', 'stats', 'bonds', 'virtues', 'requests', 'mail', 'offerings', 'skills', 'buffs', 'foraged', 'animals', 'recipes',
+  'hp', 'hpMax', 'difficulty', 'caves'];
 const DEFAULT_SETTINGS = { sfx: 0.8, speed: 'normal', shake: true, flashes: true };
 
 export class Game {
@@ -65,6 +69,9 @@ export class Game {
     this.state = s;
     for (const k of STATE_FIELDS) this[k] = structuredClone(s[k]);
     this.pendingPerks = [];
+    this.ki = kiMax(this.virtues);
+    this.kiIdle = 0;
+    this.defeating = false;
     this.inventory = Inventory.from(s.inventory);
     this.rng = new Rng(s.rng);
     this.applyParams();
@@ -102,6 +109,7 @@ export class Game {
     this.camera.setView(this.screen.w, this.screen.h);
     this.camera.follow(p.x, p.y - 12, m.pw, m.ph, 1);
     if (id === 'honden') this.flags.seen_honden = true;
+    if (id === 'kurayama') placeBundle(this, this.world);
     if (this.scene === 'play') this.triggerEvents(id);
   }
 
@@ -119,6 +127,9 @@ export class Game {
     const before = this.virtues[id];
     this.virtues[id] = Math.max(0, Math.min(100, before + n));
     if (this.virtues[id] !== before && n > 0) this.toast('toast_virtue', { virtue: VIRTUES[id].name, jp: VIRTUES[id].jp, n }, null);
+    // Tsukikage remarks when a virtue crosses into a new tier (once per tier).
+    const tier = Math.floor(this.virtues[id] / 25);
+    if (tier > Math.floor(before / 25)) this.aside(`tk_virtue_${id}`, { once: `virtue_${id}_${tier}` });
   }
 
   /** Earn skill XP; level-ups toast, and Lv 5 and 10 queue a perk choice. */
@@ -153,6 +164,7 @@ export class Game {
 
   /** Walk through a warp (door or road) behind a quick ink wipe. */
   warp(wp) {
+    if (wp.cave) { askFloor(this); return; }
     this.sfx(wp.door ? 'door' : 'step');
     this.modals.push(new InkWipe(this, { sweep: 0.28, hold: 0.05, onCovered: () => this.enter(wp.to, wp.tx, wp.ty, wp.dir) }));
   }
@@ -208,45 +220,12 @@ export class Game {
     this.title = new Title(this);
   }
 
-  // ------------------------------------------------------------------ saving
+  // ------------------------------------------------------------------ saving (see saving.js)
 
-  snapshot() {
-    const out = Object.fromEntries(STATE_FIELDS.map((k) => [k, structuredClone(this[k])]));
-    return {
-      ...out, name: this.state.name, farm: this.state.farm,
-      inventory: this.inventory.serialize(), rng: this.rng.state(),
-      player: { ...this.player.serialize(), map: this.world.map.id }, maps: this.mapsSnapshot(),
-    };
-  }
-
-  /** Saved state of every map that keeps any (the farm), visited this session or not. */
-  mapsSnapshot() {
-    const out = { ...this.savedMaps };
-    for (const [id, w] of this.worlds) if (w.map.def.persist) out[id] = w.map.serialize();
-    return out;
-  }
-
-  doc() {
-    const c = this.cal;
-    return makeDoc(this.snapshot(), { name: this.state.name, farm: this.state.farm, day: c.day, season: c.season, year: c.year, money: this.money });
-  }
-
-  saveNow(quiet = false) {
-    const ok = writeSlot(this.slot, this.doc());
-    if (!quiet) this.toast(ok ? 'toast_saved' : 'menu_corrupt', { n: this.slot });
-    return ok;
-  }
-
-  exportSave() {
-    exportDoc(this.doc(), `ronin-no-sato-slot${this.slot}.json`);
-  }
-
-  importSave() {
-    importDoc().then((doc) => {
-      writeSlot(this.slot, doc);
-      this.loadSlot(this.slot);
-    }).catch(() => this.sfx('deny'));
-  }
+  snapshot() { return snapshot(this, STATE_FIELDS); }
+  saveNow(quiet = false) { return saveNow(this, STATE_FIELDS, quiet); }
+  exportSave() { exportDoc(docOf(this, STATE_FIELDS), `ronin-no-sato-slot${this.slot}.json`); }
+  importSave() { importDoc().then((doc) => { writeSlot(this.slot, doc); this.loadSlot(this.slot); }).catch(() => this.sfx('deny')); }
 
   get menuOpen() { return this.modals.some((m) => m instanceof Menu); }
 
@@ -295,6 +274,8 @@ export class Game {
   openShop(id) { openShop(this, id); }
   eat(slot) { eat(this, slot); }
   bow() { bow(this); }
+  defeat() { defeat(this); }
+  bossDown(f) { bossDown(this, f); }
 
   openShipping() {
     this.modals.push(new ShipMenu(this));
@@ -390,9 +371,13 @@ export class Game {
     drawWorld(this.world, ctx, cam);
     cam.x -= sx;
     // Indoors: a little shade by day, no sky weather; lamps and hearths light the room at night.
-    const dim = this.indoors ? INDOOR_DIM : WEATHER[this.weather].tint || 0;
-    this.lighting.apply(ctx, w, h, this.smoothMinutes(), this.world.lights(), cam, dim);
-    if (!this.indoors) this.weatherFx.draw(ctx, this.clockTime, w, h);
+    const cave = this.world.map.def.cave;
+    if (cave) this.lighting.cave(ctx, w, h, this.world.lights(), cam, this.player);
+    else {
+      const dim = this.indoors ? INDOOR_DIM : WEATHER[this.weather].tint || 0;
+      this.lighting.apply(ctx, w, h, this.smoothMinutes(), this.world.lights(), cam, dim);
+    }
+    if (!this.indoors && !cave) this.weatherFx.draw(ctx, this.clockTime, w, h);
     if (this.scene === 'title') this.title.draw(ctx);
     else {
       this.hud.draw(ctx);

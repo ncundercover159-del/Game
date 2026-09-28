@@ -147,3 +147,8 @@ export function stopAt(route, minutes) {
   for (const s of route) if (s[0] <= minutes) cur = s;
   return cur;
 }
+
+// People who speak in scenes but are not villagers (no schedule, bond or gifts).
+export const SPEAKERS = {
+  jubei: { name: 'Jūbei', jp: '十兵衛', voice: 95 },
+};
