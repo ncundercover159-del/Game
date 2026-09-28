@@ -8,6 +8,7 @@ import { Debug, exposeTestHooks } from './core/debug.js';
 import { buildArt } from './art/index.js';
 import { CellCache } from './art/compiler.js';
 import { Game } from './game.js';
+import { TouchControls } from './ui/touch.js';
 
 async function boot() {
   const params = new URLSearchParams(location.search);
@@ -19,6 +20,7 @@ async function boot() {
   const input = new Input(window, screen);
   const audio = new Audio();
   const game = new Game({ screen, input, atlas, cells, audio, params });
+  game.touch = new TouchControls(game, screen, input);
   const debug = params.get('debug') === '1' ? new Debug(game, null) : null;
   const loop = new Loop({
     update: (dt) => { game.update(dt); debug?.update(); },

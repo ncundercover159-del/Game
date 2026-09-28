@@ -1,7 +1,7 @@
 // The reel minigame: a water column with the fish darting inside it. Hold Use to lift the catch
 // bar; keep the fish inside it until the progress gauge on the right fills. Time is frozen.
 import { fonts } from '../core/text.js';
-import { panel, rect } from './widgets.js';
+import { panel, rect, signal } from './widgets.js';
 import { t } from '../data/strings.js';
 import { itemDef } from '../data/items.js';
 import { Reel, TRACK } from '../systems/fishing.js';
@@ -53,7 +53,7 @@ export class ReelMenu {
     // Progress gauge.
     rect(ctx, 'wood1', x + 28, ty, 8, TRACK);
     const ph = Math.round((TRACK - 2) * Math.max(0, Math.min(1, r.progress)));
-    rect(ctx, r.progress > 0.66 ? 'grass4' : r.progress > 0.33 ? 'gold2' : 'red2', x + 29, ty + TRACK - 1 - ph, 6, ph);
+    rect(ctx, r.progress > 0.66 ? signal(g, 'goodBar') : r.progress > 0.33 ? 'gold2' : 'red2', x + 29, ty + TRACK - 1 - ph, 6, ph);
     const label = r.done === 'caught' ? t('fish_got', { fish: itemDef(this.fishId).name }) : r.done ? t('fish_gone') : t('fish_hold');
     fonts.body.drawShadow(ctx, label, Math.round(x + 22 - fonts.body.measure(label) / 2), y + TRACK + 20);
   }

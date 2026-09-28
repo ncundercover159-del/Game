@@ -7,7 +7,7 @@ export function snapshot(g, fields) {
   const inCave = g.world.map.id === 'cave';
   const player = inCave ? { x: 14 * 16 + 8, y: 6 * 16 + 14, dir: 'down', map: 'kurayama' } : { ...g.player.serialize(), map: g.world.map.id };
   return {
-    ...out, name: g.state.name, farm: g.state.farm,
+    ...out, name: g.state.name, farm: g.state.farm, look: g.state.look, layout: g.state.layout,
     inventory: g.inventory.serialize(), rng: g.rng.state(),
     player, maps: mapsSnapshot(g),
   };

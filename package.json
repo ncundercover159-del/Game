@@ -8,7 +8,7 @@
     "dev": "node server.js",
     "start": "node server.js",
     "test": "node --test \"tests/unit/*.test.js\"",
-    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/nature.mjs && node tests/e2e/combat.mjs && node tests/e2e/romance.mjs && node tests/e2e/festivals.mjs && node tests/e2e/story.mjs && node tests/e2e/deep.mjs && node tests/e2e/minigames.mjs && node tests/e2e/audio.mjs",
+    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/nature.mjs && node tests/e2e/combat.mjs && node tests/e2e/romance.mjs && node tests/e2e/festivals.mjs && node tests/e2e/story.mjs && node tests/e2e/deep.mjs && node tests/e2e/minigames.mjs && node tests/e2e/audio.mjs && node tests/e2e/newgame.mjs",
     "shots": "node tools/shots.mjs"
   },
   "devDependencies": {

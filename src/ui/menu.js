@@ -6,6 +6,7 @@ import { List } from './list.js';
 import { BondsPage } from './bonds.js';
 import { drawSkillsPage } from './skills.js';
 import { CraftPage } from './cook.js';
+import { SettingsPage } from './settings.js';
 import { t } from '../data/strings.js';
 import { itemDef, QUALITY } from '../data/items.js';
 import { sellValue } from '../systems/skills.js';
@@ -20,7 +21,7 @@ export class Menu {
     this.tab = 0;
     this.cursor = game.inventory.selected;
     this.held = -1;          // slot index picked up for moving
-    this.optSel = 0;
+    this.settings = new SettingsPage(game, { inGame: true });
     this.saveList = this.makeSaveList();
     this.bonds = new BondsPage(game);
     this.craft = new CraftPage(game);
@@ -47,26 +48,10 @@ export class Menu {
     ]);
   }
 
-  options() {
-    const g = this.game;
-    const s = g.settings;
-    return [
-      ...['music', 'sfx', 'ambience'].map((k) => ({ label: t(`opt_${k}`), value: `${Math.round(s[k] * 10)}`, change: (d) => g.setSetting(k, Math.max(0, Math.min(1, Math.round((s[k] + d * 0.1) * 10) / 10))) })),
-      { label: t('opt_speed'), value: t(`opt_speed_${s.speed}`), change: (d) => {
-        const order = ['normal', 'slow', 'relaxed'];
-        g.setSetting('speed', order[(order.indexOf(s.speed) + d + 3) % 3]);
-      } },
-      { label: t('opt_shake'), value: t(s.shake ? 'on' : 'off'), change: () => g.setSetting('shake', !s.shake) },
-      // Difficulty belongs to the farm (it is saved with it), not to the machine.
-      { label: t('opt_difficulty'), value: t(`diff_${g.difficulty}`), change: (d) => {
-        const order = ['relaxed', 'standard', 'warrior'];
-        g.difficulty = order[(order.indexOf(g.difficulty) + d + 3) % 3];
-      } },
-    ];
-  }
-
   update(dt, input) {
     const g = this.game;
+    // Rebinding a key, or in the Controls list: the settings page has the keys to itself.
+    if (this.tab === 4 && this.settings.busy) return this.settings.update(input, this.x + 10, this.y + 14, this.w - 20, this.h - 30);
     if (input.pressed('menu') || (input.pressed('cancel') && this.held < 0)) { g.sfx('ui_back'); return false; }
     if (input.pressed('prev')) { this.tab = (this.tab + TABS.length - 1) % TABS.length; g.sfx('ui'); }
     if (input.pressed('next')) { this.tab = (this.tab + 1) % TABS.length; g.sfx('ui'); }
@@ -77,7 +62,7 @@ export class Menu {
     if (this.tab === 0) this.updateItems(input);
     else if (this.tab === 1) this.craft.update(input, this.x, this.y, this.w, this.h);
     else if (this.tab === 3) this.bonds.update(input, this.x, this.y);
-    else if (this.tab === 4) this.updateOptions(input);
+    else if (this.tab === 4) this.settings.update(input, this.x + 10, this.y + 14, this.w - 20, this.h - 30);
     else if (this.tab === 5) {
       const it = this.saveList.update(input);
       if (it) { it.act(); if (!g.menuOpen) return false; }
@@ -119,19 +104,6 @@ export class Menu {
     if (input.pressed('cancel') && this.held >= 0) this.held = -1;
   }
 
-  updateOptions(input) {
-    const opts = this.options();
-    if (input.pressed('up')) this.optSel = (this.optSel + opts.length - 1) % opts.length;
-    if (input.pressed('down')) this.optSel = (this.optSel + 1) % opts.length;
-    const o = opts[this.optSel];
-    if (input.pressed('left')) { o.change(-1); this.game.sfx('ui'); }
-    if (input.pressed('right') || input.pressed('confirm')) { o.change(1); this.game.sfx('ui'); }
-    const m = input.mouse;
-    if (input.pressed('click')) opts.forEach((opt, i) => {
-      if (hit(m.x, m.y, this.x + 10, this.y + 16 + i * 20, this.w - 20, 18)) { this.optSel = i; opt.change(1); this.game.sfx('ui'); }
-    });
-  }
-
   draw(ctx) {
     const g = this.game;
     const atlas = g.atlas;
@@ -154,7 +126,7 @@ export class Menu {
     else if (this.tab === 1) this.craft.draw(ctx, this.x, this.y, this.w, this.h);
     else if (this.tab === 2) drawSkillsPage(ctx, g, this.x, this.y, this.w, this.h);
     else if (this.tab === 3) this.bonds.draw(ctx, this.x, this.y, this.w);
-    else if (this.tab === 4) this.drawOptions(ctx);
+    else if (this.tab === 4) this.settings.draw(ctx, this.x + 10, this.y + 14, this.w - 20, this.h - 30);
     else {
       fonts.body.draw(ctx, `${g.state.name} · ${g.state.farm} Farm`, this.x + 12, this.y + 12, 'wood2');
       this.saveList.draw(ctx, this.x + 10, this.y + 32, this.w - 20);
@@ -183,16 +155,5 @@ export class Menu {
     if (s.q) fonts.body.draw(ctx, `${'★'.repeat(QUALITY[s.q].stars)} ${QUALITY[s.q].name}`, x + 22, y + 15, 'gold0');
     fonts.body.wrap(d.desc, this.w - 40).forEach((l, i) => fonts.body.draw(ctx, l, x, y + 28 + i * 12, 'wood2'));
     if (d.sell) fonts.body.draw(ctx, t('sell', { n: sellValue(this.game.skills, s.id, s.q) }), x, y + 66, 'red1');
-  }
-
-  drawOptions(ctx) {
-    this.options().forEach((o, i) => {
-      const y = this.y + 16 + i * 20;
-      const on = i === this.optSel;
-      if (on) fonts.big.draw(ctx, '▶', this.x + 10, y, 'red2');
-      fonts.big.draw(ctx, o.label, this.x + 22, y, on ? 'red1' : 'wood1');
-      const v = `◀ ${o.value} ▶`;
-      fonts.big.draw(ctx, v, this.x + this.w - 16 - fonts.big.measure(v), y, 'wood1');
-    });
   }
 }

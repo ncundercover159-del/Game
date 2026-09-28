@@ -2,7 +2,7 @@
 // dance round the yagura, the planting line in the paddy, the anvil, the dōjō floor) above a lane of
 // notes scrolling to a ring. Rules and charts live in systems/rhythm.js. Time is frozen while it runs.
 import { fonts } from '../core/text.js';
-import { rect, centre } from './widgets.js';
+import { rect, centre, signal } from './widgets.js';
 import { t } from '../data/strings.js';
 import { Rhythm, CHARTS, KEYS } from '../systems/rhythm.js';
 import { Rng } from '../core/rng.js';
@@ -11,7 +11,6 @@ const SPEED = 96;            // px/s the notes travel
 const POSE = 0.14;           // s a strike pose is held
 // Animation clocks run from the count-in, when time is still negative.
 const mod = (a, n) => ((Math.floor(a) % n) + n) % n;
-const JUDGE_COLOR = { perfect: 'gold3', good: 'grass5', miss: 'ink4', ouch: 'red3' };
 
 /** A small pixel arrow (7x8) pointing `dir`: a four-row head and a three-wide stem. */
 function arrow(ctx, dir, x, y, c) {
@@ -45,6 +44,7 @@ export class RhythmGame {
     this.after = 0;
     this.beat = -1;
     this.hush = true;        // the music steps aside for the beat
+    this.stick = true;       // touch: the stick gives the arrows
     this.cued = -1;          // the last partner cue sounded
     this.sparks = [];        // { x, y, vx, vy, t } at the anvil
   }
@@ -65,7 +65,7 @@ export class RhythmGame {
     const cue = r.notes.findIndex((n) => n.cue !== null && !n.rest && n.cue <= r.t && n.cue > r.t - dt - 0.001);
     if (cue >= 0 && cue !== this.cued) { this.cued = cue; g.sfx('clang'); }
     for (const n of r.step(dt, pressed)) {
-      this.pops.push({ text: t(`rh_${n.judge}`), color: JUDGE_COLOR[n.judge], t: 0.6 });
+      this.pops.push({ text: t(`rh_${n.judge}`), color: { perfect: 'gold3', good: signal(g, 'good'), miss: 'ink4', ouch: signal(g, 'bad') }[n.judge], t: 0.6 });
       if (n.judge === 'ouch') { g.sfx('hurt'); g.shake(0.12); }
       else if (n.judge === 'miss') g.sfx('step');
       else {
@@ -113,7 +113,7 @@ export class RhythmGame {
     if (r.combo >= 4) fonts.small.draw(ctx, t('rh_combo', { n: r.combo }), w - 70, top + 6, 'gold2');
     if (r.t < 0) centre(ctx, fonts.big, t('rh_ready'), cx, top + 20, 'gold3');
     if (r.done) {
-      centre(ctx, fonts.big, t(`rh_grade${r.grade}`), cx, top + 16, ['gold3', 'grass5', 'ink5'][r.grade]);
+      centre(ctx, fonts.big, t(`rh_grade${r.grade}`), cx, top + 16, ['gold3', signal(g, 'good'), 'ink5'][r.grade]);
       const { perfect, good, miss, ouch } = r.tally;
       centre(ctx, fonts.small, t('rh_tally', { perfect, good, miss, ouch, combo: r.maxCombo }), cx, top + 36, 'ink5');
     }

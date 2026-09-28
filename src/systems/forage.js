@@ -31,9 +31,10 @@ function free(map, x, y, dirt) {
 
 /**
  * Replace a map's forage and dig spots with today's. `taken` holds "map:x,y" keys already picked
- * today; `digMult` doubles dig spots for the Tracker perk. Returns the spots placed.
+ * today; `digMult` doubles dig spots for the Tracker perk; `extra` adds forage spots (a woodland
+ * farm). Returns the spots placed.
  */
-export function spawnSpots(map, { seed, day, seasonId, taken = [], digMult = 1 }) {
+export function spawnSpots(map, { seed, day, seasonId, taken = [], digMult = 1, extra = 0 }) {
   for (const o of map.objects.filter((x) => x.type === 'forage' || x.type === 'dig')) map.removeObject(o);
   const conf = SPOTS[map.id];
   if (!conf) return [];
@@ -53,7 +54,7 @@ export function spawnSpots(map, { seed, day, seasonId, taken = [], digMult = 1 }
     }
   };
   if (kinds.length) {
-    place('forage', conf.forage, conf.forage * 40, (h, x, y) => {
+    place('forage', conf.forage + extra, (conf.forage + extra) * 40, (h, x, y) => {
       const k = kinds[(h >>> 20) % kinds.length];
       return FORAGE[k].pine && !nearPine(map, x, y) ? null : k;
     });

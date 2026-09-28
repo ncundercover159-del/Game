@@ -3,6 +3,7 @@
 // every save.
 // populate(): the overgrowth for a new game, driven by the save seed.
 import { hash, hashf, valueNoise } from '../core/rng.js';
+import { LAYOUTS } from '../data/layouts.js';
 
 const FOREST_KINDS = ['pine', 'pine', 'broadleaf', 'pine', 'broadleaf', 'sakura'];
 
@@ -26,16 +27,13 @@ export function decorate(map) {
   }
 }
 
-// Overgrowth table: weights for what grows on an overgrown cell.
-const GROWTH = [
-  ['weed', 60], ['stone', 12], ['twig', 10], ['stump', 3], ['tree', 3], ['bamboo', 1.5], ['log', 0.7], ['boulder', 0.7],
-];
 const TREE_KINDS = ['broadleaf', 'broadleaf', 'pine', 'sakura'];
 const TALL = new Set(['tree', 'bamboo', 'log', 'boulder']);
 
-export function populate(map, seed) {
-  const def = map.def;
-  const total = GROWTH.reduce((a, [, w]) => a + w, 0);
+/** The overgrowth for a new farm, by its layout (data/layouts.js: what grows, and how thick). */
+export function populate(map, seed, layout = LAYOUTS.hinata) {
+  const def = map.def, growth = layout.growth;
+  const total = growth.reduce((a, [, w]) => a + w, 0);
   for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) {
     const ch = def.ground[y][x];
     if (ch === 's' || ch === 't') {
@@ -44,11 +42,11 @@ export function populate(map, seed) {
     }
     if (ch !== 'o' && ch !== ':') continue;
     // Density varies in broad patches so the field has thickets and clearings.
-    const density = 0.12 + 0.55 * valueNoise(x, y, 6, 1 << 16, seed);
+    const density = (0.12 + 0.55 * valueNoise(x, y, 6, 1 << 16, seed)) * layout.density;
     if (hashf(x, y, seed, 1) > density) continue;
     let r = hashf(x, y, seed, 2) * total;
     let type = 'weed';
-    for (const [t, w] of GROWTH) if ((r -= w) < 0) { type = t; break; }
+    for (const [t, w] of growth) if ((r -= w) < 0) { type = t; break; }
     if (TALL.has(type) && crowded(map, x, y)) type = 'weed';
     const h = hash(x, y, seed, 3);
     const o = { type, x, y };

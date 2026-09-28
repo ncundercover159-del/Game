@@ -14,24 +14,30 @@ import { DISHES } from './data/recipes.js';
 import { newCaves } from './caves.js';
 import { newRomance } from './systems/romance.js';
 import { newArchive } from './systems/archive.js';
+import { LAYOUTS } from './data/layouts.js';
+import { DEFAULT_LOOK } from './data/appearance.js';
 
 const START_RECIPES = () => Object.keys(DISHES).filter((id) => DISHES[id].known);
 
 export const TOOL_TIERS = () => ({ hoe: 0, can: 0, axe: 0, pickaxe: 0, sickle: 0 });
 
-export function newState(seed) {
+/** A fresh farm. `opts` are the new-farm choices: name, farm, look, layout, difficulty. */
+export function newState(seed, opts = {}) {
   const cal = newCalendar();
+  const layout = LAYOUTS[opts.layout] ? opts.layout : 'hinata';
+  const slots = [...START.inventory.map((s) => ({ ...s })), ...LAYOUTS[layout].items.map(([id, n]) => ({ id, n, q: 0 }))];
   return {
-    seed, name: START.name, farm: START.farm, money: START.money,
+    seed, name: opts.name || START.name, farm: opts.farm || START.farm, look: { ...DEFAULT_LOOK, ...opts.look }, layout,
+    money: START.money,
     genki: START.genkiMax, genkiMax: START.genkiMax, can: TIERS[0].can,
     cal, weather: weatherFor(seed, cal), tomorrow: weatherFor(seed, nextDay(cal).t),
     tiers: TOOL_TIERS(), upgrade: null, shipped: [],
-    inventory: { size: 12, slots: START.inventory, selected: 0 },
+    inventory: { size: 12, slots, selected: 0 },
     flags: {}, stats: { shippedValue: 0 }, rng: seed ^ 0x5bd1e995, maps: {},
     bonds: {}, virtues: newVirtues(), requests: newRequests(), mail: newMail(), offerings: newOfferings(),
     skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] }, animals: newAnimals(),
     recipes: START_RECIPES(),
-    hp: START.inochiMax, hpMax: START.inochiMax, difficulty: 'standard', caves: newCaves(),
+    hp: START.inochiMax, hpMax: START.inochiMax, difficulty: opts.difficulty || 'standard', caves: newCaves(),
     romance: newRomance(), construction: null, archive: newArchive(),
   };
 }

@@ -3,7 +3,8 @@
 import { fonts } from '../core/text.js';
 import { panel, thin, hit } from './widgets.js';
 
-const CPS = 70;
+// Characters a second, by the Text speed setting.
+const CPS = { slow: 35, normal: 70, fast: 140, instant: Infinity };
 const PORTRAIT = 48;
 
 export class Dialog {
@@ -45,7 +46,7 @@ export class Dialog {
 
   update(dt, input) {
     const before = Math.floor(this.shown);
-    this.shown = Math.min(this.text.length, this.shown + dt * CPS);
+    this.shown = Math.min(this.text.length, this.shown + dt * (CPS[this.game.settings.textSpeed] || CPS.normal));
     if (Math.floor(this.shown) !== before && before % 3 === 0 && this.text[before] !== ' ') {
       if (this.voice) this.game.audio.blip(this.voice + (before % 7) * 6);
       else this.game.sfx('ui');

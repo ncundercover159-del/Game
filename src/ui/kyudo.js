@@ -2,7 +2,7 @@
 // and a streamer that shows the wind; an inset of the target face with your aim and the arrows
 // already in it. Rules in systems/kyudo.js. Time is frozen while it runs.
 import { fonts } from '../core/text.js';
-import { rect, centre } from './widgets.js';
+import { rect, centre, signal } from './widgets.js';
 import { t } from '../data/strings.js';
 import { Kyudo, ARROWS, FLIGHT, TIRE, RINGS } from '../systems/kyudo.js';
 import { levelOf } from '../systems/skills.js';
@@ -22,6 +22,7 @@ export class KyudoGame {
     this.after = 0;
     this.armed = false;      // the key that opened the range must come up before a draw starts
     this.hush = true;        // quiet on the range
+    this.stick = true;       // touch: the stick steers the aim
   }
 
   update(dt, input) {
@@ -81,7 +82,7 @@ export class KyudoGame {
       ctx.globalAlpha = 1;
     }
     if (k.done) {
-      centre(ctx, fonts.big, t(`ky_grade${k.grade}`), w / 2 - 40, top + 16, ['gold3', 'grass5', 'ink5'][k.grade]);
+      centre(ctx, fonts.big, t(`ky_grade${k.grade}`), w / 2 - 40, top + 16, ['gold3', signal(g, 'good'), 'ink5'][k.grade]);
       centre(ctx, fonts.small, t('ky_tally', { total: k.total, hits: k.hits, n: ARROWS }), w / 2 - 40, top + 36, 'ink5');
     }
     centre(ctx, fonts.small, t('ky_help'), w / 2, top + band + 6, 'ink5');

@@ -369,6 +369,13 @@ export function childFrame(g) {
 }
 
 /** Register every frame of a character in the atlas as `${id}_${dir}_${anim}${i}`. */
+/** Repaint a registered character's frames with a new look (same frames, same sizes). */
+export function restyleCharacter(atlas, id, look, anims = Object.keys(ANIMS)) {
+  for (const dir of DIRS) for (const anim of anims) {
+    ANIMS[anim].frames.forEach(([t, l, bob, breath = 0], i) => atlas.repaint(`${id}_${dir}_${anim}${i}`, composeFrame(look, dir, t, l, bob, breath)));
+  }
+}
+
 export function addCharacter(atlas, id, look, anims = Object.keys(ANIMS)) {
   for (const dir of DIRS) {
     for (const anim of anims) {

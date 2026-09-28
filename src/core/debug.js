@@ -82,6 +82,8 @@ export function exposeTestHooks(game, loop) {
     press: (code, ms = 50) => { input.keyDown(code); loop.advance(ms); input.keyUp(code); loop.advance(17); },
     hold: (code) => input.keyDown(code),
     release: (code) => input.keyUp(code),
+    // Type into whatever takes text (the name fields), a character at a time; '\b' deletes.
+    type: (s) => { for (const ch of s) input.textListener?.(ch === '\b' ? 'Backspace' : ch); },
     // Stop real-time stepping (rendering goes on) so screenshots catch exactly what advance() left.
     freeze: (on = true) => { loop.paused = on; },
     state: () => ({

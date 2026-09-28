@@ -1,6 +1,7 @@
-// Action-mapped input: keyboard, mouse and gamepad feed one set of actions.
+// Action-mapped input: keyboard, mouse, gamepad and touch feed one set of actions.
 // Events are buffered and latched at the start of each sim step, so a tap between two steps is
-// seen as `pressed` for exactly one step.
+// seen as `pressed` for exactly one step. The main keys can be rebound (their first code); a text
+// listener, when set, takes printable keys for name entry instead.
 
 export const DEFAULT_BINDINGS = {
   up: ['KeyW', 'ArrowUp'],
@@ -11,6 +12,7 @@ export const DEFAULT_BINDINGS = {
   interact: ['KeyK', 'KeyE'],
   dodge: ['Space'],
   parry: ['KeyL'],
+  run: ['ShiftLeft', 'ShiftRight'],
   menu: ['Escape', 'Tab'],
   map: ['KeyM'],
   confirm: ['Enter', 'KeyK', 'KeyE', 'KeyJ', 'Space'],
@@ -23,9 +25,12 @@ export const DEFAULT_BINDINGS = {
   debug1: ['F1'], debug2: ['F2'], debug3: ['F3'], debug4: ['F4'], debug5: ['F5'], debug6: ['F6'],
 };
 
+// The actions whose first key can be rebound, in the order the Controls list shows them.
+export const REBINDABLE = ['up', 'down', 'left', 'right', 'use', 'interact', 'dodge', 'parry', 'run', 'menu'];
+
 // Standard-mapping gamepad buttons -> actions.
 const PAD = { 0: ['interact', 'confirm'], 1: ['dodge', 'cancel'], 2: ['use'], 3: ['parry'],
-  4: ['prev'], 5: ['next'], 8: ['map'], 9: ['menu'], 12: ['up'], 13: ['down'], 14: ['left'], 15: ['right'] };
+  4: ['prev'], 5: ['next'], 7: ['run'], 8: ['map'], 9: ['menu'], 12: ['up'], 13: ['down'], 14: ['left'], 15: ['right'] };
 
 // Mouse buttons: left uses the tool / clicks UI, right interacts.
 const MOUSE = { 0: ['use', 'click'], 2: ['interact', 'rclick'] };
@@ -46,7 +51,29 @@ export class Input {
     this.wheelQ = 0;
     this.textListener = null;     // when set, receives printable keys (name entry etc.)
     this.padAxes = { x: 0, y: 0 };
+    this.touchActions = new Map();// touch source id -> actions (see ui/touch.js)
+    this.lastKey = null;          // the last key code pressed (for rebinding)
     if (target) this.attach(target);
+  }
+
+  /** Rebind an action's first key; a key already first on another action swaps over to it. */
+  rebind(action, code) {
+    const b = this.bindings, old = b[action][0];
+    for (const a of REBINDABLE) if (a !== action && b[a][0] === code) b[a][0] = old;
+    b[action][0] = code;
+    // Confirm follows the keys you use and interact with.
+    b.confirm = [...new Set(['Enter', 'Space', b.use[0], ...b.interact])];
+    this.rebuild();
+  }
+
+  /** The rebound first keys, for saving: { action: code } where it differs from the default. */
+  customKeys() {
+    return Object.fromEntries(REBINDABLE.filter((a) => this.bindings[a][0] !== DEFAULT_BINDINGS[a][0]).map((a) => [a, this.bindings[a][0]]));
+  }
+
+  resetKeys() {
+    this.bindings = structuredClone(DEFAULT_BINDINGS);
+    this.rebuild();
   }
 
   rebuild() {
@@ -61,8 +88,14 @@ export class Input {
 
   attach(target) {
     target.addEventListener('keydown', (e) => {
+      if (this.textListener && (e.key.length === 1 || e.key === 'Backspace')) {
+        e.preventDefault();
+        this.textListener(e.key);
+        return;
+      }
       if (this.codeMap.has(e.code) || e.code === 'Tab') e.preventDefault();
       if (e.repeat) return;
+      this.lastKey = e.code;
       this.sourceDown('key:' + e.code, this.codeMap.get(e.code));
     });
     target.addEventListener('keyup', (e) => this.sourceUp('key:' + e.code, this.codeMap.get(e.code)));
@@ -96,7 +129,24 @@ export class Input {
 
   actionsOf(src) {
     const [kind, code] = src.split(':');
-    return kind === 'key' ? this.codeMap.get(code) : kind === 'mouse' ? MOUSE[code] : PAD[code];
+    return kind === 'key' ? this.codeMap.get(code) : kind === 'mouse' ? MOUSE[code] : kind === 'touch' ? this.touchActions.get(code) : PAD[code];
+  }
+
+  /** A touch control goes down or up (ui/touch.js): `id` names it, `actions` are what it means. */
+  touchDown(id, actions) {
+    this.touchActions.set(id, actions);
+    this.sourceDown('touch:' + id, actions);
+  }
+
+  touchUp(id) {
+    this.sourceUp('touch:' + id, this.touchActions.get(id));
+  }
+
+  /** A tap on the screen outside the controls: a click at (x, y) for menus and lists. */
+  tap(x, y) {
+    this.mouse.x = x;
+    this.mouse.y = y;
+    this.queued.add('click');
   }
 
   sourceDown(src, actions) {
@@ -171,6 +221,6 @@ export class Input {
   }
 
   // Test hooks: synthesise key presses by code.
-  keyDown(code) { this.sourceDown('key:' + code, this.codeMap.get(code)); }
+  keyDown(code) { this.lastKey = code; this.sourceDown('key:' + code, this.codeMap.get(code)); }
   keyUp(code) { this.sourceUp('key:' + code, this.codeMap.get(code)); }
 }

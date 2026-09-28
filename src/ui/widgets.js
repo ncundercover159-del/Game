@@ -28,6 +28,11 @@ export function panel(ctx, atlas, x, y, w, h) { frame(ctx, atlas, 'ui_frame', x,
 export function thin(ctx, atlas, x, y, w, h) { frame(ctx, atlas, 'ui_frame_thin', x, y, w, h, 2); }
 export function dark(ctx, atlas, x, y, w, h) { frame(ctx, atlas, 'ui_frame_dark', x, y, w, h, 2); }
 
+// Signal colours for good and bad cues. With colour-blind signals on, the greens become blues
+// (reds stay red-orange), a pairing most colour-blind players can tell apart.
+const SIGNALS = { good: ['grass5', 'water4'], goodDim: ['grass3', 'water2'], goodBar: ['grass4', 'water3'], bad: ['red3', 'red4'] };
+export const signal = (game, name) => SIGNALS[name][game.settings.colourblind ? 1 : 0];
+
 export function rect(ctx, color, x, y, w, h) {
   ctx.fillStyle = hex(color);
   ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));

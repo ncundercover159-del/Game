@@ -48,6 +48,16 @@ export class Atlas {
     return this.frames.has(name);
   }
 
+  /** Repaint a built frame in place with a grid of the same size (the player's new look). */
+  repaint(name, g) {
+    const f = this.frame(name);
+    if (g.w !== f.w || g.h !== f.h) throw new Error(`Repaint of "${name}" changes its size`);
+    const ctx = this.canvas.getContext('2d');
+    ctx.clearRect(f.x, f.y, f.w, f.h);
+    putGrid(ctx, g, f.x, f.y);
+    this.white = null;
+  }
+
   build() {
     const items = this.pending.sort((a, b) => b.g.h - a.g.h || b.g.w - a.g.w);
     let x = 0, y = 0, shelfH = 0;

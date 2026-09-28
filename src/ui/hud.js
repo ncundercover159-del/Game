@@ -1,7 +1,7 @@
 // HUD: clock plate with sun/moon dial, money, Genki bar, 12-slot hotbar, pickup toasts and
 // Tsukikage's asides.
 import { fonts } from '../core/text.js';
-import { panel, thin, dark, rect, item, hit } from './widgets.js';
+import { panel, thin, dark, rect, item, hit, signal } from './widgets.js';
 import { t } from '../data/strings.js';
 import { MODS } from '../data/caves.js';
 import { itemDef } from '../data/items.js';
@@ -137,7 +137,7 @@ export class Hud {
   drawGenki(ctx, atlas, w, h) {
     const g = this.game;
     const f = Math.max(0, g.genki / g.genkiMax);
-    const col = f > 0.5 ? ['grass3', 'grass5'] : f > 0.2 ? ['gold1', 'gold2'] : ['red1', 'red3'];
+    const col = f > 0.5 ? [signal(g, 'goodDim'), signal(g, 'good')] : f > 0.2 ? ['gold1', 'gold2'] : ['red1', 'red3'];
     if (this.flash > 0 && Math.floor(this.flash * 12) % 2) col[0] = col[1] = 'ink6';
     this.bar(ctx, atlas, w - 16, h, f, col, t('genki'), 'gold2');
     // Inochi beside it: red, and always shown (it only falls in a fight).

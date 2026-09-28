@@ -23,8 +23,10 @@ import { buffAmount, hasPerk } from '../systems/skills.js';
 import { hasDucks } from '../systems/animals.js';
 import { Combat } from './combat.js';
 import { placeKodama, kodamaLights } from './kodama.js';
+import { LAYOUTS } from '../data/layouts.js';
 
 const REACH = 1;
+const RUN = 1.35;
 const CHARGEABLE = new Set(['hoe', 'can']);
 
 // What your feet sound like on each ground (grass and earth outdoors crunch in winter).
@@ -42,7 +44,7 @@ export class World {
     this.map = new GameMap(def);
     decorate(this.map);
     if (saved) this.map.restore(saved);
-    else if (def.wild) populate(this.map, game.seed);
+    else if (def.wild) populate(this.map, game.seed, LAYOUTS[game.state.layout] || LAYOUTS.hinata);
     // Anything growing where a building now stands (older saves predate the coop) is cleared.
     for (const o of this.map.objects.filter((x) => !OBJECT_TYPES[x.type].static && this.map.buildingAt(x.x, x.y))) this.map.removeObject(o);
     if (game.flags.restored_terraces) this.openTerraces();
@@ -101,7 +103,9 @@ export class World {
       if (!p.swing && input.isDown('use')) this.use();
     } else {
       const a = input.axis();
-      const moved = p.walk(dt, a.x, a.y, this.map, this.game.genki <= 0, 1 + buffAmount(this.game.buffs, 'speed'));
+      // Running: hold the run key, or the reverse with auto-run on.
+      const run = this.game.settings.autorun !== input.isDown('run') ? RUN : 1;
+      const moved = p.walk(dt, a.x, a.y, this.map, this.game.genki <= 0, (1 + buffAmount(this.game.buffs, 'speed')) * run);
       this.stepDist += moved;
       if (this.stepDist > 18) { this.stepDist = 0; this.game.sfx(`step_${footing(this.map, p.tx, p.ty, this.game.seasonId)}`); }
       if (input.pressed('use')) this.use();
@@ -239,7 +243,8 @@ export class World {
     const g = this.game, day = dayIndex(g.cal);
     if (g.foraged.day !== day) g.foraged = { day, keys: [] };
     placeKodama(this);
-    spawnSpots(this.map, { seed: g.seed, day, seasonId: g.seasonId, taken: g.foraged.keys, digMult: hasPerk(g.skills, 'tracker') ? 2 : 1 });
+    const extra = this.map.id === 'farm' ? LAYOUTS[g.state.layout]?.forage || 0 : 0;
+    spawnSpots(this.map, { seed: g.seed, day, seasonId: g.seasonId, taken: g.foraged.keys, digMult: hasPerk(g.skills, 'tracker') ? 2 : 1, extra });
   }
 
   /** The terraces' fence comes down (the Altar of Jin restores them). */

@@ -37,6 +37,8 @@ import { InkWipe } from './ui/transition.js';
 import { rect } from './ui/widgets.js';
 import { t } from './data/strings.js';
 import { MAPS } from './maps/index.js';
+import { restyleCharacter } from './art/characters.js';
+import { playerLook, DEFAULT_LOOK } from './data/appearance.js';
 
 const SETTINGS_KEY = 'ronin.settings';
 const INDOOR_DIM = 0.15;
@@ -44,8 +46,13 @@ const INDOOR_DIM = 0.15;
 const STATE_FIELDS = ['seed', 'money', 'genki', 'genkiMax', 'can', 'cal', 'flags', 'weather', 'tomorrow', 'tiers', 'upgrade',
   'shipped', 'stats', 'bonds', 'virtues', 'requests', 'mail', 'offerings', 'skills', 'buffs', 'foraged', 'animals', 'recipes',
   'hp', 'hpMax', 'difficulty', 'caves', 'romance', 'construction', 'archive'];
-const DEFAULT_SETTINGS = { sfx: 0.8, music: 0.6, ambience: 0.7, speed: 'normal', shake: true, flashes: true };
+const DEFAULT_SETTINGS = {
+  sfx: 0.8, music: 0.6, ambience: 0.7, speed: 'normal', shake: true, flashes: true,
+  textSize: 'normal', textSpeed: 'normal', colourblind: false, autorun: false, touch: 'auto', keys: {},
+};
 const VOLUMES = ['sfx', 'music', 'ambience'];
+// Text size is the logical screen height aimed for: fewer, bigger pixels read larger.
+export const TEXT_SIZES = { normal: 270, large: 230, larger: 200 };
 
 export class Game {
   constructor({ screen, input, atlas, cells, audio, params }) {
@@ -61,6 +68,8 @@ export class Game {
     this.settings = { ...DEFAULT_SETTINGS, ...readSettings() };
     this.audio.setVolume({ sfx: this.settings.sfx, music: this.settings.music, ambience: this.settings.ambience });
     this.director = new Director(audio);
+    for (const [a, code] of Object.entries(this.settings.keys || {})) input.rebind(a, code);
+    screen.setIdeal(TEXT_SIZES[this.settings.textSize] || TEXT_SIZES.normal);
     this.slot = 1;
     this.setup(Number(params.get('seed')) || 20260928);
     this.scene = 'title';
@@ -70,9 +79,13 @@ export class Game {
   // ------------------------------------------------------------------ lifecycle
 
   /** Fresh farm state (also used as the title-screen backdrop). */
-  setup(seed, saved = null) {
-    const s = saved || newState(seed);
+  setup(seed, saved = null, opts = {}) {
+    const s = saved || newState(seed, opts);
     this.state = s;
+    // Older saves predate the new-farm choices: the look and layout the game shipped with.
+    s.look ||= { ...DEFAULT_LOOK };
+    s.layout ||= 'hinata';
+    this.wearLook(s.look);
     for (const k of STATE_FIELDS) this[k] = structuredClone(s[k]);
     this.pendingPerks = [];
     this.ki = kiMax(this.virtues);
@@ -209,9 +222,18 @@ export class Game {
     else if (season >= 0 || p.get('day')) this.weather = weatherFor(this.seed, this.cal);
   }
 
-  startNew(slot) {
+  /** Paint the player's frames in a look (skipped when it is already the one on show). */
+  wearLook(look) {
+    const key = JSON.stringify(look);
+    if (key === this.lookWorn) return;
+    restyleCharacter(this.atlas, 'player', playerLook(look));
+    this.lookWorn = key;
+  }
+
+  /** A new farm in `slot`, with the choices from the new-farm screen (name, farm, look, layout, difficulty). */
+  startNew(slot, opts = {}) {
     this.slot = slot;
-    this.setup(Number(this.params.get('seed')) || (Date.now() % 2147483647));
+    this.setup(opts.seed || Number(this.params.get('seed')) || (Date.now() % 2147483647), null, opts);
     this.play();
     this.modals.push(new InkWipe(this, { hold: 0.2, covered: true }));
     this.aside('tk_intro');
@@ -310,6 +332,7 @@ export class Game {
   setSetting(k, v) {
     this.settings[k] = v;
     if (VOLUMES.includes(k)) this.audio.setVolume({ [k]: v });
+    if (k === 'textSize') this.screen.setIdeal(TEXT_SIZES[v]);
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings)); } catch { /* private mode */ }
   }
 
@@ -321,13 +344,7 @@ export class Game {
     this.clockTime += dt;
     this.shakeT = Math.max(0, this.shakeT - dt);
     this.director.update(dt, this);
-    if (this.scene === 'title') {
-      this.world.time += dt;
-      this.weatherFx.update(dt, this.weather, this.cal.season, this.screen.w, this.screen.h, this.cal.minutes, false);
-      this.title.update(dt, input);
-      this.titleCamera();
-      return;
-    }
+    if (this.scene === 'title') { this.title.update(dt, input); return; }
     this.hud.update(dt);
     if (this.pendingPerks.length && !this.modals.length && !this.pendingScene) this.choosePerk(this.pendingPerks.shift());
     if (this.pendingScene && !this.modals.length) {
@@ -379,17 +396,11 @@ export class Game {
     }
   }
 
-  titleCamera() {
-    const map = this.world.map;
-    this.camera.setView(this.screen.w, this.screen.h);
-    const tx = map.pw / 2 + Math.sin(this.clockTime * 0.05) * map.pw * 0.3;
-    this.camera.follow(tx, 190 + Math.sin(this.clockTime * 0.037) * 60, map.pw, map.ph, 1);
-  }
-
   render() {
     const ctx = this.screen.ctx;
     const { w, h } = this.screen;
     rect(ctx, 'ink0', 0, 0, w, h);
+    if (this.scene === 'title') { this.title.draw(ctx); this.touch?.draw(ctx); return; }
     const cam = this.camera;
     const sx = this.shakeT > 0 ? Math.round(Math.sin(this.clockTime * 90) * 2) : 0;
     cam.x += sx;
@@ -403,11 +414,9 @@ export class Game {
       this.lighting.apply(ctx, w, h, this.smoothMinutes(), this.world.lights(), cam, dim);
     }
     if (!this.indoors && !cave) this.weatherFx.draw(ctx, this.clockTime, w, h);
-    if (this.scene === 'title') this.title.draw(ctx);
-    else {
-      this.hud.draw(ctx);
-      for (const m of this.modals) m.draw(ctx);
-    }
+    this.hud.draw(ctx);
+    for (const m of this.modals) m.draw(ctx);
+    this.touch?.draw(ctx);
   }
 }
 

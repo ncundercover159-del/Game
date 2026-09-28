@@ -2,7 +2,7 @@
 // as it weakens), a bowl for the catch, the paper's strength and the time left. Rules in
 // systems/kingyo.js. Time is frozen while it runs.
 import { fonts } from '../core/text.js';
-import { rect, centre } from './widgets.js';
+import { rect, centre, signal } from './widgets.js';
 import { t } from '../data/strings.js';
 import { Kingyo, TUB, POI_R, LIMIT } from '../systems/kingyo.js';
 import { Rng } from '../core/rng.js';
@@ -18,6 +18,7 @@ export class KingyoGame {
     this.after = 0;
     this.splash = [];       // rings on the water { x, y, t }
     this.armed = false;     // the key that opened the tub must come up before the first dip
+    this.stick = true;      // touch: the stick moves the scoop
   }
 
   update(dt, input) {
@@ -76,7 +77,7 @@ export class KingyoGame {
     fonts.small.draw(ctx, t('kg_time', { n: Math.max(0, Math.ceil(LIMIT - k.t)) }), bx - 22, by + 34, 'ink5');
     if (k.done) {
       centre(ctx, fonts.big, t(k.torn ? 'kg_torn' : 'kg_time_up'), ox + TUB.w, oy + TUB.h - 12, 'gold3');
-      centre(ctx, fonts.small, t(`kg_grade${k.grade}`, { n: k.caught.length }), ox + TUB.w, oy + TUB.h + 6, ['gold3', 'grass5', 'ink5'][k.grade]);
+      centre(ctx, fonts.small, t(`kg_grade${k.grade}`, { n: k.caught.length }), ox + TUB.w, oy + TUB.h + 6, ['gold3', signal(g, 'good'), 'ink5'][k.grade]);
     }
     centre(ctx, fonts.small, t('kg_help'), w / 2, top + band + 6, 'ink5');
   }

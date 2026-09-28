@@ -1,4 +1,5 @@
-// Headless smoke test (Playwright): boot, new game from the title menu, walk, till, plant, water,
+// Headless smoke test (Playwright): boot, new game from the title menu (through the new-farm
+// steps), walk, till, plant, water,
 // go indoors and sleep in the futon, check overnight growth, walk to the village and shop, then
 // reload and verify the save.
 // Fails on any console error or page exception.
@@ -56,9 +57,14 @@ await withBrowser(async (browser, base) => {
   await page.waitForFunction(() => window.__ready === true);
   assert.equal((await state(page)).scene, 'title');
 
-  step('new farm from the title menu (New Farm -> first empty slot)');
+  step('new farm from the title menu (New Farm -> first empty slot -> the new-farm steps, as they come)');
   await press(page, 'Enter', 50);
-  await press(page, 'Enter', 800);
+  await press(page, 'Enter', 100);
+  // Name and farm name as offered, the look as it is (up to Next), Standard, Terraced Fields, Begin.
+  await press(page, 'Enter', 50);
+  await press(page, 'Enter', 50);
+  await press(page, 'ArrowUp', 50);
+  for (let i = 0; i < 4; i++) await press(page, 'Enter', i === 3 ? 800 : 50);
   let s = await state(page);
   assert.equal(s.scene, 'play');
   assert.deepEqual(s.cal, { day: 1, season: 0, year: 1, minutes: 360 });
