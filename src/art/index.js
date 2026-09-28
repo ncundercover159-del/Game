@@ -7,6 +7,7 @@ import { portrait, EXPRESSIONS } from './portraits.js';
 import { emotes, heartIcon, smallHeart } from './emotes.js';
 import { addHeldTools } from './held.js';
 import { addCombatArt } from './combatArt.js';
+import { addValleyArt } from './valleyArt.js';
 import { treeParts, STONES, TWIGS, STUMP, weed, bamboo, DECALS, shadow, bareCanopy, bigLog, boulder } from './nature.js';
 import { minka, kura, well, toro, sign, fence, crate, sluice, ishigaki } from './buildings.js';
 import { cropGrids, CROP_ART } from './crops.js';
@@ -63,6 +64,10 @@ const TOWN = {
   b_shamusho: { w: 84, wall: 'plaster', noren: 'red', glaze: 'water', seed: 21 },
   b_house1: { w: 84, roof: 'thatch', noren: 'indigo', seed: 23 },
   b_house2: { w: 84, wall: 'plaster', noren: 'sakura', seed: 25 },
+  b_tera: { w: 84, wall: 'plaster', noren: 'gold', sign: 'ink1', seed: 27 },
+  b_toyo: { w: 84, roof: 'thatch', noren: 'indigo', seed: 29 },
+  b_tatsu: { w: 84, noren: 'grass', sign: 'wood2', seed: 31 },
+  b_sento: { w: 84, wall: 'plaster', noren: 'water', sign: 'water1', seed: 33 },
 };
 // Snow on tile roofs (by glaze) and on thatch.
 const SNOW_TILE = { ink: { ink2: 'ink5', ink3: 'ink6' }, water: { water2: 'ink5', water3: 'ink6' } };
@@ -248,6 +253,7 @@ export function buildArt() {
   add('ui_heart_s_empty', smallHeart(false), 0, 0);
 
   addCombatArt(atlas, add);
+  addValleyArt(atlas, add);
 
   for (const [k, [rows, legend]] of Object.entries(FX)) {
     const g = parse(rows, legend);

@@ -357,13 +357,25 @@ export function composeFrame(look, dir, torsoPose, legsPose, bob, breath = 0) {
 
 export const DIRS = ['down', 'up', 'right'];
 
+/**
+ * A child: the same drawing with the legs shortened (head and body drop 5 px onto the hem and
+ * feet), so children read small beside adults.
+ */
+export function childFrame(g) {
+  const out = grid(16, 32);
+  for (let y = 0; y < 24; y++) for (let x = 0; x < 16; x++) out.px[(y + 5) * 16 + x] = g.px[y * 16 + x];
+  for (let y = 29; y < 32; y++) for (let x = 0; x < 16; x++) if (g.px[y * 16 + x]) out.px[y * 16 + x] = g.px[y * 16 + x];
+  return out;
+}
+
 /** Register every frame of a character in the atlas as `${id}_${dir}_${anim}${i}`. */
 export function addCharacter(atlas, id, look, anims = Object.keys(ANIMS)) {
   for (const dir of DIRS) {
     for (const anim of anims) {
       const def = ANIMS[anim];
       def.frames.forEach(([t, l, bob, breath = 0], i) => {
-        atlas.add(`${id}_${dir}_${anim}${i}`, composeFrame(look, dir, t, l, bob, breath), 8, 32);
+        const g = composeFrame(look, dir, t, l, bob, breath);
+        atlas.add(`${id}_${dir}_${anim}${i}`, look.child ? childFrame(g) : g, 8, 32);
       });
     }
   }

@@ -52,11 +52,12 @@ export const DISHES = {
   kurigohan: { name: 'Kuri Gohan', jp: '栗ご飯', genki: 130, needs: [['rice', 1], ['kuri', 2]], buff: ['farming', 0.08, 5], desc: 'Rice steamed with chestnuts.' },
   matsutake_gohan: { name: 'Matsutake Gohan', jp: '松茸ご飯', genki: 180, needs: [['rice', 1], ['matsutake', 1]], buff: ['foraging', 0.15, 6], desc: 'Rice perfumed with the king of mushrooms.' },
   unadon: { name: 'Unadon', jp: '鰻丼', genki: 200, needs: [['unagi', 1], ['rice', 1]], buff: ['speed', 0.15, 6], desc: 'Grilled eel on rice. Summer stamina in a bowl.' },
+  inari: { name: 'Inari-zushi', jp: '稲荷寿司', genki: 90, needs: [['rice', 1], ['tofu', 1]], buff: ['foraging', 0.06, 3], desc: 'Sweet fried tofu pouches packed with rice. Foxes are said to love them.' },
   oden: { name: 'Oden', jp: 'おでん', genki: 160, needs: [['daikon', 1], ['egg', 1], ['tofu', 1]], buff: ['fishing', 0.12, 6], desc: 'A winter pot of simmered daikon, egg and tofu.' },
 };
 
 /** Recipe scrolls Okiku sells at the teahouse: using one teaches the dish. */
-export const SCROLLS = ['miso_soup', 'shioyaki', 'tempura', 'soba_noodles', 'sekihan', 'yudofu', 'kinpira', 'ochazuke', 'kurigohan', 'matsutake_gohan', 'unadon', 'oden'];
+export const SCROLLS = ['miso_soup', 'shioyaki', 'tempura', 'soba_noodles', 'sekihan', 'yudofu', 'kinpira', 'ochazuke', 'kurigohan', 'matsutake_gohan', 'unadon', 'oden', 'inari'];
 export const SCROLL_PRICE = 250;
 
 // Vegetables for the pickling tub: crops that are not grain or fruit.

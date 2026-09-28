@@ -87,13 +87,16 @@ function morning(g, r, passedOut) {
 export function openShop(g, id) {
   const shop = SHOPS[id];
   const m = g.cal.minutes;
-  const keeper = MAPS[id].keeper && g.villagers.get(MAPS[id].keeper.npc);
-  if (dayIndex(g.cal) % 7 === shop.closedDay || m < shop.open || m >= shop.close) {
-    const day = WEEKDAYS[shop.closedDay];
-    g.say('shop_closed', { name: shop.name, open: formatTime(shop.open), close: formatTime(shop.close), closed: t('shop_closed_day', { day: `${day.name} ${day.jp}` }) });
+  const keeperId = MAPS[id]?.keeper?.npc || shop.keeper;
+  const keeper = keeperId && g.villagers.get(keeperId);
+  const wd = dayIndex(g.cal) % 7;
+  if (wd === shop.closedDay || (shop.days && !shop.days.includes(wd)) || m < shop.open || m >= shop.close) {
+    const closed = shop.days ? t('shop_days', { days: shop.days.map((d) => `${WEEKDAYS[d].name} ${WEEKDAYS[d].jp}`).join(', ') })
+      : shop.closedDay === undefined ? '' : t('shop_closed_day', { day: `${WEEKDAYS[shop.closedDay].name} ${WEEKDAYS[shop.closedDay].jp}` });
+    g.say('shop_closed', { name: shop.name, open: formatTime(shop.open), close: formatTime(shop.close), closed });
     return;
   }
-  if (keeper && keeper.map !== id) { g.say('shop_away', { npc: keeper.def.name }); return; }
+  if (keeper && keeper.map !== (shop.at || id)) { g.say('shop_away', { npc: keeper.def.name }); return; }
   g.sfx('ui_ok');
   g.modals.push(id === 'kajiya' ? new ForgeMenu(g) : new ShopMenu(g, id));
 }

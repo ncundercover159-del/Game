@@ -51,7 +51,7 @@ function hair(g, look) {
   ellipse(g, CX, 12, 12.5, 8.5, h);
   ellipse(g, CX - 3, 9, 6, 3.5, j);
   for (let x = 13; x <= 35; x++) {
-    const fringe = style === 'cropped' ? 15 + ((x * 7) % 3) : style === 'bun' || style === 'long' ? 14 + (x > CX ? 1 : 0) : 14;
+    const fringe = style === 'cropped' || style === 'shaved' ? 15 + ((x * 7) % 3) : style === 'bun' || style === 'long' ? 14 + (x > CX ? 1 : 0) : 14;
     for (let y = 12; y <= fringe; y++) set(g, x, y, h);
   }
   // Side locks framing the face.

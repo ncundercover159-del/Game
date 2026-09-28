@@ -55,7 +55,7 @@ test('requests: at most MAX_ACTIVE at once', () => {
 
 test('offerings: seven altars of four sets, all obtainable, each with a restoration', () => {
   assert.deepEqual(Object.keys(ALTARS).sort(), [...VIRTUE_IDS].sort());
-  const buyable = new Set(Object.values(SHOPS).flatMap((s) => (s.stock ? s.stock('spring', 0, { inventory: { size: 12 }, recipes: [], seed: 1, dayIndex: 0 }).map((x) => x.id) : [])).concat(['iron_bar']));
+  const buyable = new Set(Object.values(SHOPS).flatMap((s) => (s.stock ? s.stock('spring', 0, { inventory: { size: 12 }, recipes: [], seed: 1, dayIndex: 0, flags: {} }).map((x) => x.id) : [])).concat(['iron_bar']));
   for (const [id, a] of Object.entries(ALTARS)) {
     assert.equal(a.sets.length, 4, id);
     assert.ok(RESTORATIONS[id] && parseScript(RESTORATIONS[id].script), id);

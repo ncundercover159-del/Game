@@ -74,6 +74,7 @@ export default {
     { type: 'ema', tx: 11, ty: 11 },
     { type: 'sacred', tx: 8, ty: 8, kind: 'pine', v: 1 },
     { type: 'gate', tx: 19, ty: 1, ox: 8, block: [2, 1], openIf: 'restored_bridge' },
+    { type: 'omamori', tx: 25, ty: 13, shop: 'omamori' },
   ],
   warps: [
     { x: 18, y: 49, w: 4, h: 1, to: 'village', tx: 39, ty: 1, dir: 'down' },

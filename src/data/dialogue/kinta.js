@@ -1,0 +1,63 @@
+// Kinta 金太, nine years old, Toyo's grandson. Idolises samurai; makes trouble; is a friend only.
+export default {
+  intro: '[surprised] Whoa, is that a real sword? Is it? Can I hold it? I am Kinta. I am going to be a samurai. Or a pirate. Probably a samurai.',
+  tiers: [
+    [
+      'Hyah! Hyah! That is my sword stance. It is called the Falling Tiger. I made it up.',
+      '[happy] Do you fight monsters? Grandma says there are monsters in the mountain. I am not scared. A bit scared.',
+      'I found a crab in the river. His name is General. He lives in a bucket.',
+      'Don\'t tell Grandma I was on the kura roof. It was for training.',
+      '[angry] Kaito says I\'m too short to be a samurai. Samurai don\'t have to be tall! Right? Right?',
+      'Sōken made me sit still for the length of a candle. The WHOLE candle. It was the worst day of my life.',
+    ],
+    [
+      'I practised the Falling Tiger a hundred times. My arms fell off. Then they came back.',
+      '[happy] Rin looked at me! She didn\'t say anything, but she looked. That is basically training.',
+      'I know where every frog in the valley lives. That is secret samurai information.',
+      'Grandma makes me eat komatsuna. Samurai shouldn\'t have to eat komatsuna.',
+      'If the magistrate\'s men come to your farm, I\'ll throw pinecones at them. I have a pile.',
+      '[neutral] My parents are in Edo. They\'re very busy. Grandma says so.',
+    ],
+    [
+      'I carved a wooden sword. It broke. I carved another one. It broke too. Wood is weak.',
+      '[happy] Can I help on your farm? I can pull weeds really fast. Some of them are weeds.',
+      'I asked Genzō to make me a real sword and he laughed so hard he coughed.',
+      '[sad] Sometimes I think my parents forgot about me. Grandma says that is not true. Grandma never lies. Except about vegetables.',
+      'I found an old arrowhead by the river! Sōken says someone fought here, a long time ago. Cool.',
+      'You\'re my best friend. Don\'t tell General the crab.',
+    ],
+    [
+      'When I grow up I\'m going to protect the valley. Like you do.',
+      '[happy] I read all of a book. By myself. It was about a samurai who was also a cat.',
+      'I\'m not going to be a pirate anymore. Pirates can\'t farm.',
+      'Grandma is getting slower. I carry the heavy barrels now. I\'m very strong. Mostly.',
+      '[neutral] I wrote a letter to my parents. I told them about you. They didn\'t write back yet.',
+      'Teach me the thing where you step to the side. The dodge! Please please please.',
+    ],
+    [
+      '[happy] {name}! Guess what! Grandma said I can visit your farm on my own now! I\'m basically grown up.',
+      'When I\'m a real samurai I\'ll serve the Hinata clan. That\'s you. You\'re the clan.',
+      'I don\'t mind that my parents don\'t write so much. I have Grandma. And you. And General.',
+      '[happy] I planted a seed you gave me. It came up! It\'s the best plant in the world.',
+      'Sōken said I sat still for a whole candle yesterday. I didn\'t even notice. Is that bad?',
+      'Thank you for being my friend. That\'s all. That\'s the whole thing I wanted to say.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: '[happy] Tadpoles! Millions of them! I counted to forty and gave up.' },
+    { season: 'summer', text: 'Summer means river swimming and watermelon. Samurai need watermelon.' },
+    { season: 'autumn', text: 'I\'m collecting chestnuts. They\'re spiky. I\'m braver than a chestnut.' },
+    { season: 'winter', text: '[happy] Snow fight! Snow fight! Nobody will snow fight with me except Kaito and he cheats.' },
+    { rain: true, text: '[sad] Grandma won\'t let me out. I\'m practising stances inside. I broke a bowl.' },
+    { flag: 'rin_arrived', text: '[surprised] There\'s a lady with a real sword in the dōjō! Do you think she\'d teach me? Do you think she\'s a hero?' },
+    { flag: 'boss_jubei', text: '[surprised] You beat a bandit chief? A real one? With a real sword? I\'m telling EVERYONE.' },
+  ],
+  gift: {
+    loved: '[happy] WHOA! For me? This is the best thing anybody ever gave me ever!',
+    liked: '[happy] Thanks! I\'m keeping it in my secret box.',
+    neutral: 'Huh. Thanks, I guess! What is it for?',
+    disliked: '[angry] Ugh. This is a grown-up present.',
+    hated: '[angry] Gobō? GOBŌ? That\'s a stick! You gave me a stick that you eat!',
+  },
+  birthday: '[happy] You remembered my birthday! I\'m ten! That\'s almost twenty!',
+};

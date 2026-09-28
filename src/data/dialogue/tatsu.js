@@ -1,0 +1,63 @@
+// Tatsu 辰, carpenter. Quiet perfectionist; builds the shrine's frames and the valley's houses.
+export default {
+  intro: '[neutral] Tatsu. Carpenter. If you want the farmhouse bigger, I can do it. If you want it crooked, ask someone else.',
+  tiers: [
+    [
+      'Measure twice. Cut once. Measure again, because the wood moved while you were cutting.',
+      '[neutral] Your farmhouse beams are good cedar. Your uncle\'s grandfather knew what he was doing.',
+      'I do not use nails. Nails are for people who do not trust wood.',
+      'The shrine bell tower. I built it. Then the flood took it. [neutral] Then I built it again.',
+      'Talk slower. I am thinking about a joint.',
+      'Hinata needs a proper kitchen. When you have the money, come see me.',
+    ],
+    [
+      'You hold a hammer too close to the head. It is not a spoon.',
+      '[happy] That was a good question about the rafters. Nobody asks about the rafters.',
+      'Yuzu wants me to rebuild her bath. I told her the bath is fine. She said the bath is not the problem. I did not ask what the problem was.',
+      'Kaito wants a house in Edo. I told him Edo houses fall down in every fire. He said that is why he wants one there, to see it.',
+      'Wood remembers. Where the branch was, where the wind blew, where the tree leaned for the light.',
+      '[neutral] I am not unfriendly. I am concentrating. It looks the same.',
+    ],
+    [
+      'I apprenticed at a temple in Nara. The master made me plane one board for a whole year.',
+      '[happy] Here. Feel this edge. That is a joint that will outlast both of us.',
+      'I never finish anything. I just stop, when it is good enough that I cannot see how to make it better.',
+      '[sad] My father was a carpenter too. He built the Kuroda-ya. I do not go in.',
+      'Sōken says my work is a kind of prayer. I say it is a kind of carpentry. We are both right.',
+      'The magistrate wanted a gate for his office. I built it slightly too narrow. He has to turn sideways.',
+    ],
+    [
+      '[happy] I made you something. A box. For nothing in particular. It closes very well.',
+      'I watch you work the farm. You are careful with your fences. I notice things like that.',
+      'When I was young I wanted to build castles. Now I want to build houses where people are warm.',
+      '[neutral] I am not good with words. Wood is easier. It tells you when you are wrong.',
+      'Every house I build, I leave one hidden joint that only I know about. It is how I sign my work.',
+      'Come by the workshop in the evening. I will show you how to cut a dovetail. By hand.',
+    ],
+    [
+      '[happy] {name}. I have been thinking about you while I plane. The boards come out very straight.',
+      'Whatever you build, I will help. That is simple. I like simple things.',
+      'I left a hidden joint in your farmhouse. I will not tell you where. You will find it one day.',
+      '[neutral] I do not say much. I say this: I am glad you came to the valley.',
+      'A good house is quiet. You do not notice it until you are home. I think you are like that.',
+      '[happy] Let me build you a porch. A long one. Somewhere to sit and watch the fields.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: 'Spring wood is wet. I do not cut in spring. I sharpen.' },
+    { season: 'summer', text: '[neutral] Summer: everything swells. Doors stick. Everybody blames the carpenter.' },
+    { season: 'autumn', text: 'Autumn is felling season. The sap is down. The wood is honest.' },
+    { season: 'winter', text: 'Winter is for fine work indoors. Joinery. Boxes. Thinking.' },
+    { rain: true, text: 'Rain. I am checking every roof I ever built, in my head.' },
+    { weekday: 6, text: 'On Nichi I work on the shrine. For free. Do not tell Heibei; he will want his roof done too.' },
+    { flag: 'house_upgraded', text: '[happy] How is the new room? Does the door slide true? It should slide true.' },
+  ],
+  gift: {
+    loved: '[happy] Good wood. You know what I like. Thank you.',
+    liked: '[neutral] That is kind. Thank you.',
+    neutral: 'Thank you.',
+    disliked: '[neutral] I will find a use for it. Maybe.',
+    hated: '[angry] Hay. It gets in the joints. Please, take it away.',
+  },
+  birthday: '[surprised] My birthday. I forget it myself. Thank you. I will carve you something.',
+};

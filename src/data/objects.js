@@ -108,4 +108,14 @@ export const OBJECT_TYPES = {
   brazier: { name: 'Brazier', solid: true, static: true, shadow: 'shadow_s' },
   bundle: { name: 'Lost Bundle', solid: true, static: true, shadow: 'shadow_s' },
   mouth: { name: 'Cave Mouth', solid: false, static: true, shadow: null, flat: true },
+
+  // M6 fittings and the market stalls.
+  butsudan: { name: 'Altar', solid: true, static: true, shadow: null, say: 'butsudan' },
+  tub: { name: 'Bath', solid: true, static: true, shadow: null },
+  barrels: { name: 'Pickling Barrels', solid: true, static: true, shadow: null, say: 'barrels' },
+  sawhorse: { name: 'Sawhorse', solid: true, static: true, shadow: null, say: 'sawhorse' },
+  desk: { name: 'Desk', solid: true, static: true, shadow: null, say: 'desk' },
+  swordRack: { name: 'Sword Rack', solid: false, static: true, shadow: null, say: 'sword_rack' },
+  yatai: { name: 'Stall', solid: true, static: true, shadow: 'shadow_l' },
+  omamori: { name: 'Charm Stand', solid: true, static: true, shadow: 'shadow_s' },
 };

@@ -1,0 +1,63 @@
+// Magistrate Ōkubo 大久保, the daikan. Polished, patient, and sure the valley exists to be taxed.
+export default {
+  intro: '[neutral] You are the heir to Hinata. I am Ōkubo, the daikan. I administer this valley on behalf of the domain. Your uncle and I had... disagreements. I hope you are more reasonable.',
+  tiers: [
+    [
+      'The domain requires order. Order requires revenue. Revenue requires farmers. You see how it all fits.',
+      '[neutral] Your land register lists three terraces. I would not want to discover a fourth.',
+      'Heibei is an admirable man. Admirable men are very expensive to govern.',
+      'I read your uncle\'s file. It is thick. Most of it is complaints he filed about me.',
+      '[happy] Tea? No. I do not offer tea to farmers during office hours. It sets expectations.',
+      'The shrine is charming. Charm does not pay the rice tax.',
+    ],
+    [
+      'You have been busy. The crate collections are up. The domain is pleased. I am pleased. You should be pleased.',
+      '[neutral] Shinsuke speaks well of you. Shinsuke speaks well of everyone. It is a weakness.',
+      'Kuroda is a man of vision. He sees this valley as a machine. Machines do not complain.',
+      'I was a clerk in Edo once. I learned that every coin passes through someone\'s hand. Best that it is mine.',
+      'The villagers call me greedy. I call myself efficient. History will settle it, and history is written by clerks.',
+      '[angry] Do not bring mud into my office. I have had the floor oiled.',
+    ],
+    [
+      'You refused the contract, or you signed it. Either way, you have made yourself interesting. That is rarely wise.',
+      '[neutral] The domain\'s inspectors are lazy. They read summaries. I write the summaries.',
+      'I have no quarrel with you. I have a quarrel with arithmetic. The numbers never come out in the valley\'s favour.',
+      '[sad] My father was a farmer. He died owing rice to a man like me. I decided to be the man like me.',
+      'The mountain grows restless. That is a matter for priests. I have enough to do.',
+      'You bring me gifts. I accept them. Do not imagine they change anything. They change a little.',
+    ],
+    [
+      '[neutral] Between us: I did not choose this valley. The domain sent me here for being too honest in Edo. Imagine.',
+      'I have begun to doubt Kuroda\'s numbers. Do not repeat that. I will deny it with my whole seal.',
+      'Your uncle once told me I would die alone counting coins. He was right about the counting.',
+      '[sad] The villagers do not greet me. You do. It is a small thing. I notice small things.',
+      'If the petition reaches the castle, I will be recalled. I am not sure I would mind.',
+      'I will say this once: you have done more for this valley than I have. I resent it very much.',
+    ],
+    [
+      '[neutral] {name}. I have lowered the salt tax. Quietly. If anyone asks, it was a clerical error.',
+      'I am told I smile more. I have ordered an inquiry.',
+      '[happy] Tea? Yes. During office hours. Let the expectations fall where they may.',
+      'I will not become a good man. It is too late and I am too tired. I may become a slightly less bad one.',
+      'When they recall me, and they will, I would like you to have the office garden. It is the only thing here I tended myself.',
+      'You are a difficult farmer. The valley needs difficult farmers. I needed one to remind me.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: 'Spring: the season of land surveys. Everyone\'s fields grow a little overnight.' },
+    { season: 'autumn', text: '[neutral] Harvest season. The only season that matters, administratively.' },
+    { rain: true, text: 'Rain delays the collections. Rain is inefficient.' },
+    { place: 'daikansho', text: 'This is a place of business. State your business.' },
+    { flag: 'tolls', text: 'The tolls are temporary. Everything temporary lasts forever. That is the first rule of government.' },
+    { flag: 'kuroda_signed', text: '[happy] You signed. Excellent. You will find the arrangement very comfortable. Comfort is underrated.' },
+    { flag: 'petition_won', text: '[angry] The castle has overturned my tolls. Congratulations. I hope you enjoy the paperwork you have caused me.' },
+  ],
+  gift: {
+    loved: '[happy] Hm. This is... a gift of taste. I will overlook the implied bribe.',
+    liked: '[neutral] Acceptable. Thank you.',
+    neutral: 'I have been given this. I will note it in the register.',
+    disliked: '[angry] Is this meant as a comment on my office?',
+    hated: '[angry] Refuse. From the road. Guards!',
+  },
+  birthday: '[surprised] Nobody has given me a birthday gift since I left Edo. I do not know what to do with my face.',
+};

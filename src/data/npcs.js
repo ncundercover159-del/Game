@@ -1,5 +1,6 @@
 // The villagers: who they are, where they live, when they were born, what they like, and where they
-// are through the day. Dialogue lives in data/dialogue/<id>.js.
+// are through the day. Dialogue lives in data/dialogue/<id>.js; the M6 cast is in npcs2.js.
+import { NPCS2 } from './npcs2.js';
 //
 // Schedules: a list of variants; the first whose `when` matches today is used (keys: season id,
 // weekday index 0-6 = Getsu..Nichi, rain true/false). A route is [minutes, map, tx, ty, facing]
@@ -123,6 +124,8 @@ export const NPCS = {
   },
 };
 
+Object.assign(NPCS, NPCS2);
+
 export const NPC_IDS = Object.keys(NPCS);
 
 // Bonds (kizuna): 250 points a heart, ten hearts.
@@ -132,12 +135,16 @@ export const BOND = {
   decayAfterDays: 7, decay: 10,
 };
 
+/** Does a story-flag condition hold ('name' set, '!name' unset)? */
+const flagOk = (cond, flags = {}) => (cond[0] === '!' ? !flags[cond.slice(1)] : !!flags[cond]);
+
 /** Which schedule variant applies today. */
-export function routeFor(npc, { season, weekday, rain }) {
+export function routeFor(npc, { season, weekday, rain, flags }) {
   const v = NPCS[npc].schedule.find(({ when = {} }) =>
     (when.season === undefined || when.season === season) &&
     (when.weekday === undefined || when.weekday === weekday) &&
-    (when.rain === undefined || when.rain === rain));
+    (when.rain === undefined || when.rain === rain) &&
+    (when.flag === undefined || flagOk(when.flag, flags)));
   return v.route;
 }
 

@@ -152,6 +152,11 @@ export function goodsIcons() {
     matsutake_gohan: bowl((g) => { rice(g, 'straw4'); for (const [x, y] of [[5, 5], [9, 4]]) { fillRect(g, x, y, 2, 3, 'wood3'); set(g, x, y, 'wood2'); } set(g, 7, 6, 'grass4'); }),
     unadon: bowl((g) => { rice(g); fillRect(g, 3, 4, 9, 3, 'wood2'); for (let x = 4; x < 11; x += 2) set(g, x, 4, 'wood4'); set(g, 11, 5, 'grass4'); }, ['ink0', 'ink1', 'red1']),
     oden: (() => { const g = grid(16, 16); line(g, 8, 1, 8, 15, 'wood3'); ellipse(g, 8, 4, 3, 2.5, 'straw3'); fillRect(g, 5, 7, 6, 3, 'ink6'); ellipse(g, 8, 12, 3, 2, 'ink5'); set(g, 7, 11, 'gold2'); return outline(g, { color: 'wood0', pad: 0 }); })(),
+    inari: (() => {
+      const g = grid(16, 16);
+      for (const [x, y] of [[3, 6], [9, 8]]) { ellipse(g, x + 2.5, y + 3, 3.5, 2.8, 'gold1'); ellipse(g, x + 2, y + 2, 2.5, 1.8, 'gold2'); set(g, x + 1, y + 1, 'straw4'); }
+      return outline(g, { color: 'wood0', pad: 0 });
+    })(),
     pack24: parse(`
       ................
       ....oooooooo....

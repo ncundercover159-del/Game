@@ -29,4 +29,29 @@ export const SHOPS = {
     name: 'Yakuya', jp: '薬屋', open: 10 * 60, close: 18 * 60, closedDay: 0, hello: 'ume_hello',
     stock: () => ['tonic', 'salve', 'kizugusuri'].map((id) => ({ id, mult: 1 })),
   },
+  // M6. Stalls in the square (`keeper`, `at` the map they stand on) and shops open only on `days`.
+  sakuya: {
+    name: 'Sakuya\'s Stall', jp: '咲耶の店', open: 8 * 60, close: 17 * 60, days: [3, 4], keeper: 'sakuya', at: 'village', hello: 'sakuya_hello',
+    stock: (seasonId, weekdayIdx, g) => {
+      const rare = ['jade', 'water_crystal', 'magatama', 'steel_bar'][hash(g.seed, g.dayIndex, 0, 93) % 4];
+      return [...['tofu', 'miso', 'sake', 'copper_bar', 'arrow', 'uke'], rare].map((id) => ({ id, mult: 1 }));
+    },
+  },
+  kon: {
+    name: 'Night Market', jp: '夜市', open: 18 * 60, close: 24 * 60, days: [5], keeper: 'kon', at: 'village', hello: 'kon_hello',
+    stock: (seasonId, weekdayIdx, g) => [...['inari', 'spirit_wisp', 'leaf_charm', 'water_crystal'], ...(g.recipes.includes('inari') ? [] : ['scroll_inari'])].map((id) => ({ id, mult: 1 })),
+  },
+  tatsu: {
+    name: 'Daiku', jp: '大工', open: 9 * 60, close: 17 * 60, closedDay: 6, hello: 'tatsu_hello',
+    stock: (seasonId, weekdayIdx, g) => [...(g.flags.house_upgraded || g.construction ? [] : ['house_ext']), 'sluice', 'uke'].map((id) => ({ id, mult: 1 })),
+  },
+  sento: {
+    name: 'Sentō', jp: '銭湯', open: 15 * 60, close: 23 * 60, closedDay: 1, hello: 'yuzu_hello',
+    stock: () => ['bath_salt', 'tea', 'dango'].map((id) => ({ id, mult: 1 })),
+  },
+  // The shrine's charm stand: no keeper, an honesty box.
+  omamori: {
+    name: 'Charm Stand', jp: 'お守り', open: 6 * 60, close: 22 * 60, hello: 'omamori_hello',
+    stock: () => ['red_thread', 'shrine_vow'].map((id) => ({ id, mult: 1 })),
+  },
 };

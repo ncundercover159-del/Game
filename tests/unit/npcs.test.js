@@ -36,12 +36,14 @@ test('every schedule stop is walkable and reachable from home', () => {
   for (const [id, npc] of Object.entries(NPCS)) {
     for (const { route } of npc.schedule) {
       for (const [t, map, x, y] of route) {
+        if (map === 'away') continue;   // out of the valley
         assert.ok(MAPS[map], `${id}: map ${map}`);
         assert.ok(!navMap(map).solid(x, y), `${id} @${t}: ${map} ${x},${y} is solid`);
       }
       for (let i = 1; i < route.length; i++) {
         const a = route[i - 1], b = route[i];
         assert.ok(b[0] > a[0], `${id}: stops in time order`);
+        if (a[1] === 'away' || b[1] === 'away') continue;
         assert.ok(reachable([a[1], a[2], a[3]], [b[1], b[2], b[3]]), `${id}: ${a.slice(1, 4)} -> ${b.slice(1, 4)}`);
       }
     }

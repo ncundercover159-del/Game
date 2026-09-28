@@ -162,6 +162,102 @@ export const INTERIORS = [
       { type: 'andon', tx: 8, ty: 3, light: [0, 4] },
     ],
   }),
+  // M6 homes. Sōken's hermitage: a small hall with the altar he tends.
+  room('tera', 'Hermitage', '庵', [
+    'mmmmmmmmm',
+    'mmmmmmmmm',
+    'wwwwwwwww',
+    'wwwwwwwww',
+  ], 5, {
+    props: [
+      { type: 'butsudan', tx: 4, ty: 3, ox: 8, block: [2, 1] },
+      { type: 'zabuton', tx: 4, ty: 5, kind: 'indigo' },
+      { type: 'andon', tx: 1, ty: 4, light: [0, 4] },
+      { type: 'andon', tx: 8, ty: 4, light: [0, 4] },
+      { type: 'futon', tx: 8, ty: 5 },
+    ],
+  }),
+  // Toyo and her grandson Kinta: pickling barrels along the wall, the family futon.
+  room('toyo', 'Toyo\'s House', 'トヨの家', [
+    'mmmmwwwww',
+    'mmmmwwwww',
+    'ddddddddd',
+    'ddddddddd',
+  ], 5, {
+    props: [
+      { type: 'barrels', tx: 6, ty: 3, ox: 8, block: [2, 1] },
+      { type: 'futon', tx: 1, ty: 3 },
+      { type: 'kamidana', tx: 3, ty: WALL },
+      { type: 'zabuton', tx: 3, ty: 4, kind: 'red' },
+      { type: 'andon', tx: 5, ty: 3, light: [0, 4] },
+    ],
+  }),
+  // Tatsu's workshop: timber, a sawhorse, and a counter for commissions.
+  room('tatsu', 'Carpenter', '大工', [
+    'ddddddddddd',
+    'ddddddddddd',
+    'ddddddddddd',
+    'ddddddddddd',
+    'ddddddddddd',
+  ], 6, {
+    props: [
+      { type: 'sawhorse', tx: 2, ty: 4, ox: 8, block: [2, 1] },
+      ...counter(6, 9, 5, 'tatsu'),
+      { type: 'shelf', tx: 7, ty: WALL, ox: 8, kind: 'goods' },
+      { type: 'bales', tx: 1, ty: 7 },
+      { type: 'andon', tx: 10, ty: 7, light: [0, 4] },
+    ],
+    keeper: { npc: 'tatsu', tx: 7, ty: 4 },
+  }),
+  // Yuzu's bathhouse: pay at the counter, soak in the cypress tub.
+  room('sento', 'Bathhouse', '銭湯', [
+    'wwwwwwwwwww',
+    'wwwwwwwwwww',
+    'wwwwwwwwwww',
+    'ddddddddddd',
+    'ddddddddddd',
+  ], 6, {
+    props: [
+      { type: 'tub', tx: 7, ty: 4, ox: 8, block: [2, 1] },
+      ...counter(1, 3, 5, 'sento'),
+      { type: 'shelf', tx: 1, ty: WALL, ox: 8, kind: 'herbs' },
+      { type: 'andon', tx: 10, ty: 6, light: [0, 4] },
+    ],
+    keeper: { npc: 'yuzu', tx: 2, ty: 4 },
+  }),
+  // The magistrate's office: a desk, his swords, and a very clean floor.
+  room('daikansho', 'Magistrate\'s Office', '代官所', [
+    'nnnnnnnnnnnnn',
+    'nnnnnnnnnnnnn',
+    'wwwwwwwwwwwww',
+    'wwwwwwwwwwwww',
+    'wwwwwwwwwwwww',
+  ], 7, {
+    props: [
+      { type: 'desk', tx: 6, ty: 4, ox: 8, block: [2, 1] },
+      { type: 'swordRack', tx: 10, ty: WALL, ox: 8 },
+      { type: 'kamidana', tx: 3, ty: WALL },
+      { type: 'zabuton', tx: 6, ty: 3, kind: 'indigo' },
+      { type: 'andon', tx: 1, ty: 3, light: [0, 4] },
+      { type: 'andon', tx: 13, ty: 3, light: [0, 4] },
+    ],
+  }),
+  // The dōjō: bare boards, racks of practice swords. Rin trains here when she is in the valley.
+  room('dojo', 'Dōjō', '道場', [
+    'wwwwwwwwwwwww',
+    'wwwwwwwwwwwww',
+    'wwwwwwwwwwwww',
+    'wwwwwwwwwwwww',
+    'wwwwwwwwwwwww',
+  ], 7, {
+    props: [
+      { type: 'swordRack', tx: 2, ty: WALL, ox: 8 },
+      { type: 'swordRack', tx: 10, ty: WALL, ox: 8 },
+      { type: 'kamidana', tx: 6, ty: WALL },
+      { type: 'andon', tx: 1, ty: 7, light: [0, 4] },
+      { type: 'andon', tx: 13, ty: 7, light: [0, 4] },
+    ],
+  }),
   // Uncle's coop: a hay hopper by the wall and straw nests. Eggs laid overnight lie on the floor.
   room('coop', 'Coop', '鶏小屋', [
     'ddddddddd',

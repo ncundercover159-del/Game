@@ -1,0 +1,63 @@
+// Rin 凛, a wandering swordswoman. Cool, exact, honourable; comes and goes like weather.
+export default {
+  intro: '[neutral] Rin. I am passing through. I have been passing through for three years. You carry a sword like someone who used to know how.',
+  tiers: [
+    [
+      'I do not need help. I do not need company. I will take tea, if it is offered.',
+      '[neutral] The dōjō floor is warped near the door. Step to the left of the third board.',
+      'You breathe through your mouth when you walk uphill. An opponent would notice.',
+      'I stay where the road ends and move on when it starts again.',
+      'Your valley is quiet. Quiet places are either at peace or waiting.',
+      '[angry] Do not touch my sword. Do not ask about my sword.',
+    ],
+    [
+      'You came back. Most people do not, after the first conversation.',
+      '[neutral] I trained in Edo, in Kyōto, and on a hill in Ōmi that no map remembers.',
+      'Kaito challenged me to a race. I let him win. He knows. He is still happy. I do not understand him.',
+      'Genzō looked at my blade and said nothing for a long time. That is the highest praise he has.',
+      'I watch the notice board. Someone always needs a road walked safely.',
+      '[happy] The tea here is terrible. I like it anyway.',
+    ],
+    [
+      'I am looking for a man. He wore the crest of a clan that no longer exists. That is all I will say.',
+      '[neutral] You parry late. Late is better than early. Early is a guess.',
+      'The mountain spirits are not wicked. Something is pulling at them. I felt it on the lower floors.',
+      '[happy] Toyo gave me pickles for the road. I have not eaten them. I do not want the road to end.',
+      'My teacher said a sword is a question. I have been answering it wrongly for years.',
+      'Sōken and I sit without talking. He is the only one who knows how.',
+    ],
+    [
+      '[sad] The clan whose crest I chase burned my village. I was eight. I remember the colour of the smoke.',
+      'I stayed a week longer than I meant to. Then a month. I blame the tea.',
+      '[happy] Draw with me at dawn tomorrow. No, not a duel. Just the drawing. It is better with two.',
+      'You fight to protect. I fought to punish. Yours is the harder way. Also the better one.',
+      '[neutral] If I leave without saying so, it is not because I did not want to say so.',
+      'I have been thinking about staying. That is a new thought. I am turning it over carefully.',
+    ],
+    [
+      '[happy] {name}. I stopped looking at the road when I wake. I look at the farm instead.',
+      'The man I chased is dead, or he is not. I find I care less than I did. I care about other things now.',
+      'You are the only person I would let stand behind me.',
+      '[happy] Teach me to plant something. Something slow. I want to see it come up.',
+      'My sword is quieter these days. It used to hum at night. Now it sleeps like a cat.',
+      'I will not wander far anymore. If I do, I will come back. That is a promise, and I do not make many.',
+    ],
+  ],
+  when: [
+    { season: 'autumn', text: 'Autumn is when I arrive places. Something about the light makes me want to stop.' },
+    { season: 'winter', text: '[neutral] Winter roads are honest. They tell you exactly how cold you will be.' },
+    { rain: true, text: 'Rain. I train indoors. The dōjō roof leaks in one spot; I practise around it.' },
+    { place: 'dojo', text: 'The dōjō has been closed for years. Heibei gave me the key. I sweep it. Somebody should.' },
+    { place: 'chaya', text: '[happy] Okiku keeps a cup aside for me. I did not ask. I have not stopped her.' },
+    { flag: 'boss_jubei', text: 'You beat Jūbei. I have fought him twice and lost once. Tell me how you read his draw.' },
+    { flag: 'kuroda_signed', text: '[angry] You put your seal on Kuroda\'s paper. I hope the money was heavy enough to be worth carrying.' },
+  ],
+  gift: {
+    loved: '[happy] ...This is a very good gift. I do not know what to say. Thank you.',
+    liked: '[neutral] Useful. Thank you.',
+    neutral: 'Hm. Thank you.',
+    disliked: '[neutral] I will not eat this. You may have it back if you like.',
+    hated: '[angry] Hay. Do I look like a horse?',
+  },
+  birthday: '[surprised] How did you know? I have not told anyone my birthday in years. ...Thank you. I mean it.',
+};

@@ -16,7 +16,7 @@ for (const outside of Object.values(MAPS)) {
     if (!d?.to) continue;
     const room = MAPS[d.to];
     if (!room) throw new Error(`Map ${outside.id}: door to unknown map "${d.to}"`);
-    outside.warps.push({ x: d.tx, y: d.ty, w: 1, h: 1, to: room.id, tx: room.spawn.tx, ty: room.spawn.ty, dir: 'up', door: true });
+    outside.warps.push({ x: d.tx, y: d.ty, w: 1, h: 1, to: room.id, tx: room.spawn.tx, ty: room.spawn.ty, dir: 'up', door: true, ifFlag: d.ifFlag });
     room.warps.push({ x: room.door.tx, y: room.door.ty, w: 1, h: 1, to: outside.id, tx: d.tx, ty: d.ty + 1, dir: 'down', door: true });
     room.outside = outside.id;
   }

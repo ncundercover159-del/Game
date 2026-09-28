@@ -70,7 +70,7 @@ export class Villagers {
   /** Today's schedule for everyone (call at dawn, after loading, and when the weather changes). */
   planDay() {
     const g = this.game;
-    const ctx = { season: g.seasonId, weekday: dayIndex(g.cal) % 7, rain: !!WEATHER[g.weather].rain };
+    const ctx = { season: g.seasonId, weekday: dayIndex(g.cal) % 7, rain: !!WEATHER[g.weather].rain, flags: g.flags };
     for (const n of this.list) this.routes[n.id] = routeFor(n.id, ctx);
   }
 
@@ -126,6 +126,8 @@ export class Villagers {
   /** Walk toward the current goal: the scripted spot, else the schedule stop (maybe via warps). */
   follow(n, dt) {
     const goal = n.script || { map: n.stop[1], tx: n.stop[2], ty: n.stop[3], dir: n.stop[4] };
+    // Leaving the valley, or coming back into it: no walking to or from 'away'.
+    if (goal.map === 'away' || n.map === 'away') { if (n.map !== goal.map || n.tx !== goal.tx || n.ty !== goal.ty) n.placeAt(goal.map, goal.tx, goal.ty, goal.dir); n.moving = false; return; }
     const live = (id) => this.game.worlds.get(id)?.map || null;
     if (!n.path.length) {
       let tx = goal.tx, ty = goal.ty, warp = null;

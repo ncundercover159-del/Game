@@ -86,6 +86,12 @@ define('salve', { name: 'Ume\'s Salve', jp: '膏薬', kind: 'food', genki: 10, h
 define('kizugusuri', { name: 'Wound Draught', jp: '傷薬', kind: 'food', genki: 20, heal: 100, sell: 110, price: 350, desc: 'Ume\'s strongest draught. Restores 100 Inochi.' });
 for (const [id, w] of Object.entries(WEAPONS)) define(id, { name: w.name, jp: w.jp, kind: 'weapon', weapon: id, sell: w.forge ? Math.round(w.forge.mon / 3) : 0, desc: w.desc });
 
+// M6: courting and marriage, the farmhouse extension, the bathhouse's salt.
+define('red_thread', { name: 'Red Thread', jp: '赤い糸', kind: 'romance', price: 500, desc: 'A charm of red silk thread. Give it to someone dear (eight hearts) to court them.' });
+define('shrine_vow', { name: 'Shrine Vow', jp: '誓いの札', kind: 'romance', price: 5000, desc: 'A vow tablet from the shrine. Give it to the one you court (ten hearts, and a house with room for two) to propose.' });
+define('house_ext', { name: 'Farmhouse Extension', jp: '母屋の増築', kind: 'building', price: 10000, needs: [['wood', 150], ['stone', 50]], desc: 'Tatsu adds a kitchen and a second room to the farmhouse. Three days of work; 150 wood and 50 stone.' });
+define('bath_salt', { name: 'Yuzu Bath Salt', jp: '柚子湯の塩', kind: 'food', genki: 30, sell: 20, price: 60, desc: 'Salt and dried yuzu peel. Smells like Yuzu insists it does.' });
+
 define('pack24', { name: 'Large Pack', jp: '大きな背負子', kind: 'upgrade', slots: 24, price: 2000, desc: 'A second row of pockets: 24 slots.' });
 define('pack36', { name: 'Traveller\'s Pack', jp: '旅の背負子', kind: 'upgrade', slots: 36, price: 10000, desc: 'Room for everything: 36 slots.' });
 

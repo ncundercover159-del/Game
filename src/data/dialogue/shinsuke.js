@@ -1,0 +1,63 @@
+// Shinsuke 新助, the magistrate's officer. Young, dutiful, uneasy about his orders; redeemable.
+export default {
+  intro: '[neutral] Officer Shinsuke, of the daikan\'s office. I am to keep the peace. And record things. Mostly record things. Welcome to Yamabuki.',
+  tiers: [
+    [
+      'I patrol the street every morning. Nothing happens. I write down that nothing happened.',
+      '[neutral] Please keep your sword wrapped in the village. It is a regulation. I did not write it.',
+      'The magistrate is a careful man. Careful men are hard to work for.',
+      'My mother lives in the castle town. She thinks I am very important. Please do not tell her otherwise.',
+      '[sad] People stop talking when I walk past. I would stop talking too.',
+      'If you see bandits on the road, report them to me. I will report them to the magistrate. He will... consider it.',
+    ],
+    [
+      'You talk to me like a person. Most people talk to me like a coat of arms.',
+      '[happy] Okiku gives me the burnt dango for free. I am very grateful for burnt dango.',
+      'I wanted to be a scholar. My father wanted me to wear a sword. My father usually wins.',
+      'The ledgers do not add up. I am sure it is my arithmetic. It must be my arithmetic.',
+      '[neutral] Kuroda\'s clerks come to the office after dark. That is not a crime. I have checked.',
+      'I take my bath at closing time. Yuzu does not ask me questions. It is very restful.',
+    ],
+    [
+      '[sad] The magistrate asked me to count the villagers\' rice twice and write down the smaller number. I did. I feel sick about it.',
+      'You fought bandits in the mountain. I have never fought anyone. I have filed a great deal of paperwork about fighting.',
+      '[happy] I read a book of poems Sōken lent me. I did not understand any of them. I read it twice.',
+      'Heibei looks at me like I am his son gone wrong. I think I would rather he shouted.',
+      'I keep a second ledger. For myself. With the real numbers. I do not know why.',
+      'The toll money does not go to the castle. I do not know where it goes. I have stopped not wanting to know.',
+    ],
+    [
+      '[sad] If I gave the second ledger to Heibei, I would lose my post. My mother would lose her rooms.',
+      'You make it sound simple. Do the right thing. It is simple. It is not easy.',
+      '[neutral] I have started saying no to small things. It is practice for a large no.',
+      'Rin asked me why I wear the sword if I do not want to use it. I had no answer. I am still looking for one.',
+      '[happy] Kinta saluted me today. Properly, like a soldier. I saluted back. I felt like a real officer for once.',
+      'Thank you for not treating me like the magistrate\'s hand. I am trying to be my own.',
+    ],
+    [
+      '[happy] {name}. I did it. I gave the ledger to Heibei. My hands have not stopped shaking. It feels wonderful.',
+      'Whatever happens to me, the valley will be better for it. That is enough.',
+      'I wrote to my mother and told her the truth. She wrote back that she was proud. Of the truth.',
+      '[happy] I am going to learn to farm. Badly. Will you teach me? Badly is fine.',
+      'I used to be afraid of the magistrate. Now I am only a little afraid of him. Progress.',
+      'You are the first person who believed I could be better than my coat. Thank you.',
+    ],
+  ],
+  when: [
+    { season: 'summer', text: '[sad] Summer in uniform. I am cooked like a dumpling.' },
+    { season: 'winter', text: 'Winter patrols are short. The magistrate does not want to pay for the lamp oil.' },
+    { rain: true, text: 'Rain means I patrol under the eaves. Very slowly. Very thoroughly.' },
+    { place: 'daikansho', text: '[neutral] This is the office. Please wait, the magistrate is... busy. He is always busy.' },
+    { flag: 'tolls', text: '[sad] I have to collect the toll at the bridge on market days. I hate it. I do it very slowly.' },
+    { flag: 'petition_won', text: '[happy] The tolls are gone! I burned the toll board myself. Heibei cried. I may have too.' },
+    { flag: 'kuroda_signed', text: '[sad] You signed with Kuroda. I understand. Everybody needs to eat. I just thought, perhaps, you...' },
+  ],
+  gift: {
+    loved: '[happy] For me? This is very kind. I will eat it slowly and think of it all week.',
+    liked: '[happy] Thank you! I will not tell the magistrate. He would call it a bribe.',
+    neutral: 'Oh, thank you. That is kind.',
+    disliked: '[neutral] Ah. I am on duty. I should not. Thank you anyway.',
+    hated: '[sad] A rock? Is that... is that what people think of me?',
+  },
+  birthday: '[surprised] My birthday! I did not think anyone knew. I will write it in the ledger. The real one.',
+};

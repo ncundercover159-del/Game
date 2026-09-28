@@ -60,13 +60,13 @@ export function interact(w) {
   if (o && o.action === 'sleep') { g.askSleep(); return; }
   if (o && o.shop) {
     // With the keeper behind the counter you can shop or chat; otherwise it's just the shop.
-    const keeper = g.villagers.at(map.id, x, y - 1);
+    const keeper = [0, -1, 1].map((dx) => g.villagers.at(map.id, x + dx, y - 1)).find(Boolean);
     if (keeper) g.counter(o.shop, keeper); else g.openShop(o.shop);
     return;
   }
   const b = map.buildingAt(x, y);
   if (b) {
-    if (b.door?.say && b.door.tx === x && b.door.ty === y) g.say(b.door.say);
+    if (b.door?.say && b.door.tx === x && b.door.ty === y && !(b.door.ifFlag && g.flags[b.door.ifFlag])) g.say(b.door.say);
     else g.say(b.id === 'kura' ? 'kura' : b.id === 'well' ? 'well' : null);
     return;
   }

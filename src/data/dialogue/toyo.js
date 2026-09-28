@@ -1,0 +1,63 @@
+// Toyo トヨ, grandmother, pickle-maker, the valley's best cook. Raising her grandson Kinta.
+export default {
+  intro: '[happy] So you are Jirōbei\'s one! Come here, let me look. Too thin. Everybody is too thin. I am Toyo. I pickle things. Kinta is mine; I apologise in advance.',
+  tiers: [
+    [
+      'Rice bran, salt, patience. That is the whole secret. Nobody believes me.',
+      '[happy] Eat something. You look like a stalk of negi in a strong wind.',
+      'My barrels are older than the magistrate and twice as sour.',
+      'If Kinta stole anything from you, it is in the loose board under the step. Take it back.',
+      'The daikon from your uncle\'s field pickled better than anyone\'s. Do not let the soil go to ruin.',
+      '[neutral] Cook with your nose. Your eyes lie; your nose never does.',
+    ],
+    [
+      'I taught Okiku to make dango. She will tell you she learned it in Kyōto. She learned it on my step.',
+      '[happy] You brought mud into my house. Good. A house without mud is a house without work.',
+      'Kinta\'s parents went to Edo when he was two. They send money. They do not send letters.',
+      'Put a little shiso in with the ume. Just a little. You will taste summer in winter.',
+      'The magistrate\'s men came to count my barrels for tax. I gave them pickles. They stopped counting.',
+      '[neutral] Every good cook burns something every day. The trick is to burn it on purpose.',
+    ],
+    [
+      'Here. My miso soup method. Do not boil the miso. Boiling is for people in a hurry.',
+      '[sad] My husband used to sit where you are sitting. He said my pickles would outlive us both. He was right about one of us.',
+      '[happy] You are good with Kinta. He talks about you at supper. Endlessly. I have had to learn what a parry is.',
+      'Sōken pretends my pickles are an offering. I pretend I do not know he eats them at breakfast.',
+      'Cooking is how the old look after the young when their knees stop working.',
+      'When the tolls came, I hid two barrels in the hermitage. Sōken is a very good accomplice.',
+    ],
+    [
+      '[sad] I will not see Kinta grown. I know it. Promise me you will look in on him.',
+      'I have started teaching you my recipes in the order I learned them. That means something. Pay attention.',
+      '[happy] You are family now. Do not argue. Old women decide these things.',
+      'The secret ingredient is not love. It is salt. But love helps you remember the salt.',
+      'I gave Okiku my barrel from the wedding year. It has forty years of flavour in its staves.',
+      '[neutral] Do not let anybody tell you a farmer is small. Farmers feed everybody who thinks they are big.',
+    ],
+    [
+      '[happy] {name}, you are the grandchild I did not have to raise. Much less shouting.',
+      'When I am gone, the barrels go to you and Kinta together. He will need someone to tell him the salt.',
+      'I sleep well now. I did not, for years. Then someone moved into Hinata and the valley started breathing again.',
+      '[happy] Come for supper on the last day of the year. Kinta insists. So do I.',
+      'The best pickles take a year. The best people take longer. You are coming along nicely.',
+      'Here, take this. My mother\'s knife. It has cut ten thousand daikon and never a finger. Mostly.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: '[happy] Spring greens! Bitter ones are best. Bitter in spring, sweet in autumn, that is how the body likes it.' },
+    { season: 'summer', text: 'Summer is cucumber pickle season. Quick, salty, cold from the well.' },
+    { season: 'autumn', text: 'Autumn: daikon, hakusai, kabu. My barrels get very greedy in autumn.' },
+    { season: 'winter', text: '[neutral] Winter is when we eat what we saved. Did you save anything? Good.' },
+    { rain: true, text: 'Rain means my knees hurt and my pickles sulk. We stay in together.' },
+    { place: 'chaya', text: '[happy] Okiku lets me sit here and criticise her tea. It is our friendship.' },
+    { flag: 'kuroda_signed', text: '[angry] Kuroda\'s men came and asked to buy my barrels. I told them to pickle themselves.' },
+  ],
+  gift: {
+    loved: '[happy] Oh, now THIS is the good stuff. You have taste. I am delighted and a little suspicious.',
+    liked: '[happy] Thank you, dear. That goes in a barrel tonight.',
+    neutral: 'A gift! Thank you. I will find something to do with it.',
+    disliked: '[neutral] Hm. Kinta might eat it. Kinta eats anything.',
+    hated: '[angry] Smoked fish? In a pickling house? Everything will taste of smoke for a month!',
+  },
+  birthday: '[happy] My birthday! I am eighty-one. Or seventy-nine. Somebody lost count and it was not me.',
+};

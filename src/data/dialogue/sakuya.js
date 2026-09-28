@@ -1,0 +1,63 @@
+// Sakuya 咲耶, travelling merchant; in Yamabuki on market days (Moku and Kin). Worldly, amused.
+export default {
+  intro: '[happy] A customer with dirt under the nails! My favourite kind. Sakuya. I carry what the valley does not have, twice a week, at prices I call fair and you will call robbery.',
+  tiers: [
+    [
+      'Silk from Kyōto, tea from Uji, seeds from places I cannot pronounce. Look, do not touch, then touch and pay.',
+      '[happy] I haggle for sport. If you do not haggle back I will be disappointed in you.',
+      'I sleep at Okiku\'s. She charges me in stories. I pay in lies. We are both happy.',
+      'Every road has a toll now. Your magistrate is not the only greedy one. He is only the closest.',
+      '[neutral] Twice a week. Moku and Kin. If I am not here, I am on the Nakasendō, or dead in a ditch.',
+      'Nobody in this valley has seen the sea. It is very large and very wet. You are not missing much.',
+    ],
+    [
+      'Jade from the Kurayama mine sells for a fortune in Ōsaka. Bring me some and I will make us both rich. Mostly me.',
+      '[happy] You remembered my prices. Dangerous. I will have to raise them.',
+      'I was a merchant\'s daughter in Sakai. Then I was a merchant\'s widow. Now I am just a merchant.',
+      'Yuzu buys every orange soap I carry. I have started bringing more oranges. That is the whole of business.',
+      'Kuroda offered me a warehouse. Too many strings. I like my goods on a cart that turns around.',
+      '[neutral] You have a good eye for quality. Did your uncle teach you, or was it the sword?',
+    ],
+    [
+      'Here is a secret of trade: never sell someone a thing. Sell them the day they will have with it.',
+      '[sad] I used to write letters home. There is no home now. I write them anyway, and burn them.',
+      '[happy] I brought you something from Kyōto. No, not to sell. For you. Do not faint.',
+      'The magistrate\'s tax on salt is higher than in Edo. Somebody in this valley is lining a sleeve.',
+      'Kon and I trade sometimes, at the night market. I have never once won. I cannot work out how.',
+      'You are the only customer who asks where things come from. It matters to you. I like that.',
+    ],
+    [
+      '[sad] I told myself I would never stop in one place again. Then I started stopping here twice a week.',
+      'My husband drowned bringing a boat in late for a buyer. I have not been late for anything since.',
+      '[happy] Show me your farm sometime. I want to see where the things I buy come from, just once.',
+      'I have walked the whole Tōkaidō three times. The best view is still from your fields.',
+      '[neutral] If the Nakasendō reopens, this valley will change. Be ready to decide what kind of change.',
+      'I keep a list of people I trust. It is very short. You are on it.',
+    ],
+    [
+      '[happy] {name}. I came on a Sui this week. It is not a market day. I came anyway.',
+      'I am thinking of keeping a room at Okiku\'s all year. Do not tell her; she will raise the rent.',
+      'You are the first place I have wanted to come back to since Sakai.',
+      '[happy] I sold my best silk and did not feel anything. I bought you a hairpin and felt everything. That is how I knew.',
+      'When I am old I want to sit on a porch and watch someone else haggle. Your porch, ideally.',
+      'You made a merchant stop counting. That has never happened in the history of merchants.',
+    ],
+  ],
+  when: [
+    { season: 'spring', text: 'Spring roads are mud up to the knee. I charge extra for mud.' },
+    { season: 'summer', text: '[neutral] Summer: fans, parasols, cold tea. I sell the heat back to people.' },
+    { season: 'autumn', text: '[happy] Autumn markets are the best. Everyone has money from the harvest and no sense yet.' },
+    { season: 'winter', text: 'Winter travel is foolish. I am very foolish. Here I am.' },
+    { rain: true, text: 'Rain on the cart cover. My goods are dry. My feet are not.' },
+    { flag: 'restored_nakasendo', text: '[happy] The Nakasendō is open to the south! My cart will thank you. My purse too.' },
+    { flag: 'kuroda_signed', text: '[neutral] You signed with Kuroda. His prices, his roads, his rules. I hope you read the small print. I did not see any.' },
+  ],
+  gift: {
+    loved: '[surprised] This is worth a fortune. And you gave it to me. You are a terrible merchant and a wonderful person.',
+    liked: '[happy] Oh, I can sell this. No, I will keep it. That is a compliment.',
+    neutral: 'A gift! Thank you. I will add it to my inventory of kindnesses.',
+    disliked: '[neutral] I cannot sell this and I cannot eat this. Thank you for the thought.',
+    hated: '[angry] An old sandal. Do you know how many of these I have seen on the road? Thousands. Each one a small tragedy.',
+  },
+  birthday: '[happy] My birthday. On the road nobody knows it. Here, someone does. That is worth more than silk.',
+};
