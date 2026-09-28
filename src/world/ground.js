@@ -40,8 +40,20 @@ export class GroundRenderer {
     }
     this.waterMask = new Int16Array(map.w * map.h).fill(-1);
     this.rebuildWater();
-    for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) this.drawTile(x, y);
+    this.paint(function* all() { for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) yield [x, y]; });
     map.dirty.clear();
+  }
+
+  /**
+   * Paint tiles in two passes: first make any tile art not yet in the cell cache, then draw. Writing
+   * new cells between draws from the same cache canvas stalls the canvas pipeline on every one;
+   * batching them first costs one stall at most.
+   */
+  paint(tiles) {
+    this.prep = true;
+    for (const [x, y] of tiles()) this.drawTile(x, y);
+    this.prep = false;
+    for (const [x, y] of tiles()) this.drawTile(x, y);
   }
 
   /** Water mask per tile (or -1 when no water is needed under it). */
@@ -59,14 +71,14 @@ export class GroundRenderer {
     const chunk = this.chunks[Math.floor(y / CHUNK) * this.cols + Math.floor(x / CHUNK)];
     const ctx = chunk.ctx;
     const lx = (x % CHUNK) * TILE, ly = (y % CHUNK) * TILE;
-    ctx.clearRect(lx, ly, TILE, TILE);
+    if (!this.prep) ctx.clearRect(lx, ly, TILE, TILE);
     const k = y * m.w + x;
     const g = m.ground[k];
     if (g === G.WATER) return;
     const v = variantAt(x, y);
     const put = (key, gen) => {
       const c = this.cells.get(key, gen);
-      ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, lx, ly, TILE, TILE);
+      if (!this.prep) ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, lx, ly, TILE, TILE);
     };
     if (g >= G.WALL) { this.structure(g, x, y, v, put); return; }
     const se = this.season, snow = se === 3;
@@ -145,10 +157,12 @@ export class GroundRenderer {
   setSeason(season) {
     if (season === this.season) return;
     this.season = season;
-    for (let y = 0; y < this.map.h; y++) for (let x = 0; x < this.map.w; x++) this.drawTile(x, y);
+    const map = this.map;
+    this.paint(function* all() { for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) yield [x, y]; });
   }
 
   decal(ctx, x, y, lx, ly, table) {
+    if (this.prep) return;
     const h = hash(x, y, 0, 909);
     const r = (h & 0xffff) / 65536;
     const hit = table.find(([t]) => r < t);
@@ -163,7 +177,8 @@ export class GroundRenderer {
   flush() {
     const m = this.map;
     if (!m.dirty.size) return;
-    for (const k of m.dirty) this.drawTile(k % m.w, Math.floor(k / m.w));
+    const keys = [...m.dirty];
+    this.paint(function* dirty() { for (const k of keys) yield [k % m.w, Math.floor(k / m.w)]; });
     m.dirty.clear();
   }
 
@@ -172,14 +187,15 @@ export class GroundRenderer {
     const frame = Math.floor(time / WATER_FRAME) & 3;
     const x0 = Math.max(0, Math.floor(cam.ix / TILE)), y0 = Math.max(0, Math.floor(cam.iy / TILE));
     const x1 = Math.min(m.w - 1, Math.floor((cam.ix + cam.w) / TILE)), y1 = Math.min(m.h - 1, Math.floor((cam.iy + cam.h) / TILE));
-    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const cell = (mask, v) => (m.def.lava
+      ? this.cells.get(`L${mask}.${v}.${frame}`, () => recolor(waterTile(mask, v, frame), LAVA))
+      : this.cells.get(`W${mask}.${v}.${frame}`, () => waterTile(mask, v, frame)));
+    // New animation frames' cells first (see paint), then the drawing.
+    for (let pass = 0; pass < 2; pass++) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       const mask = this.waterMask[y * m.w + x];
       if (mask < 0) continue;
-      const v = variantAt(x, y);
-      const c = m.def.lava
-        ? this.cells.get(`L${mask}.${v}.${frame}`, () => recolor(waterTile(mask, v, frame), LAVA))
-        : this.cells.get(`W${mask}.${v}.${frame}`, () => waterTile(mask, v, frame));
-      ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, x * TILE - cam.ix, y * TILE - cam.iy, TILE, TILE);
+      const c = cell(mask, variantAt(x, y));
+      if (pass) ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, x * TILE - cam.ix, y * TILE - cam.iy, TILE, TILE);
     }
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       if (m.ground[y * m.w + x] !== G.FALLS) continue;

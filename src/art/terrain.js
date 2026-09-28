@@ -69,7 +69,17 @@ function blurField(m, r) {
  * Inside/outside map for the super-tile. `jitter` scales the tileable noise on the threshold so
  * edges are organic; noise uses tile-local coordinates (period 16) so neighbouring tiles agree.
  */
+// Shapes are the same for every animation frame and every map, so each is worked out once.
+const SHAPES = new Map();
+
 function insideMap(m, { r = 5, t = 0.6, jitter = 0.1, seed = 1 } = {}) {
+  const key = `${m}:${r}:${t}:${jitter}:${seed}`;
+  let inside = SHAPES.get(key);
+  if (!inside) SHAPES.set(key, (inside = shapeOf(m, r, t, jitter, seed)));
+  return inside;
+}
+
+function shapeOf(m, r, t, jitter, seed) {
   const f = blurField(m, r);
   const inside = new Uint8Array(S * S);
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
@@ -151,7 +161,19 @@ export function tilledTex(x, y, wet) {
 }
 
 /** Water: deep blue with short ripple dashes that shimmer in and out over 4 frames. */
+// The water texture repeats every 64px, so each animation frame's is worked out once.
+const WATER_TEX = [];
+
 export function waterTex(x, y, frame) {
+  const f = frame & 3;
+  if (!WATER_TEX[f]) {
+    WATER_TEX[f] = [];
+    for (let yy = 0; yy < P; yy++) for (let xx = 0; xx < P; xx++) WATER_TEX[f].push(waterTexel(xx, yy, f));
+  }
+  return WATER_TEX[f][(((y % P) + P) % P) * P + (((x % P) + P) % P)];
+}
+
+function waterTexel(x, y, frame) {
   const low = valueNoise(x, y, 16, P, 404) * 0.5 + valueNoise(x, y, 4, P, 405) * 0.5;
   if ((y & 3) === 1) {
     const off = Math.floor(hashf(y >> 2, 0, 0, 55) * P);
