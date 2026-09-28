@@ -7,15 +7,16 @@ import { hashf } from '../core/rng.js';
 const SWEEP = 0.55;
 
 export class InkWipe {
-  constructor(game, { onCovered, card = null, hold = 0.3, minCard = 1.2 }) {
+  constructor(game, { onCovered, card = null, hold = 0.3, minCard = 1.2, covered = false }) {
     this.game = game;
     this.onCovered = onCovered;
     this.card = card;
     this.hold = hold;
     this.minCard = minCard;
     this.t = 0;
-    this.phase = 'in';
-    this.covered = false;
+    // `covered` starts on black and only sweeps away (entering the game from the title).
+    this.phase = covered ? 'hold' : 'in';
+    this.covered = covered;
   }
 
   update(dt, input) {

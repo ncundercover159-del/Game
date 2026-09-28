@@ -23,9 +23,9 @@ export default {
     'TToooooooooooooo.......................TooooooooooooooooooooooTT',
     'TToooooooooooooo.......................TooooooooooooooooooooooTT',
     'TToooooooooooooo.......................ffffffffffffffffffffffTTT',
-    'TToooooooooooooo.............=.........oooooooooooooooooooooooTT',
-    'TToooooooooooooo.s...........=......s..oooooooooooooooooooooooTT',
-    'TTooooooooooooooooooooooooooo=ooooooooooooooooooooooooooooooooTT',
+    'TToooooooooooooo............===........oooooooooooooooooooooooTT',
+    'TToooooooooooooo.s..........===.....s..oooooooooooooooooooooooTT',
+    'TToooooooooooooooooooooooooo===oooooooooooooooooooooooooooooooTT',
     ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,oooooooooooooooooooooooooooooooTT',
     ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,oooooooooooooooooooooooooooooooTT',
     'TToooooooooooooooooo.........oooooooooooooooooooooooooooooooooTT',
@@ -65,7 +65,7 @@ export default {
   // tiles (impassable), and interaction spots.
   buildings: [
     { id: 'house', sprite: 'minka', tx: 26, ty: 8, w: 7, h: 3, px: -1, py: -64, door: { tx: 29, ty: 11, action: 'sleep' },
-      lights: [[20, 76], [38, 76], [76, 76], [92, 76], [56, 66]] },
+      lights: [[20, 84], [38, 84], [76, 84], [92, 84], [56, 88]] },
     { id: 'kura', sprite: 'kura', tx: 19, ty: 8, w: 3, h: 3, px: -5, py: -32, door: { tx: 20, ty: 11, action: 'kura' } },
     { id: 'well', sprite: 'well', tx: 34, ty: 10, w: 2, h: 1, px: -2, py: -24, water: true },
   ],

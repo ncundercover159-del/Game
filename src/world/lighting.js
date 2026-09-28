@@ -7,8 +7,8 @@ import { gridToCanvas, makeCanvas } from '../art/compiler.js';
 // [minutes, palette colour, strength 0..1 toward that colour from white]
 const KEYS = [
   [360, 'sakura4', 0.55], [420, 'gold3', 0.2], [480, null, 0], [990, null, 0],
-  [1050, 'gold3', 0.45], [1110, 'red4', 0.35], [1170, 'indigo3', 0.75], [1230, 'indigo2', 0.85],
-  [1320, 'indigo2', 1], [1440, 'indigo1', 0.78], [1560, 'indigo1', 0.85],
+  [1050, 'gold3', 0.4], [1095, 'red4', 0.45], [1140, 'sakura2', 0.5], [1185, 'indigo3', 0.8],
+  [1245, 'indigo2', 0.9], [1320, 'indigo2', 1], [1440, 'indigo1', 0.78], [1560, 'indigo1', 0.85],
 ];
 
 const rgb = (name) => {
@@ -47,7 +47,7 @@ export class Lighting {
     this.map = makeCanvas(8, 8);
     this.ctx = this.map.getContext('2d');
     this.pools = {
-      window: pool(26, [[1, 'red0'], [0.72, 'wood2'], [0.45, 'wood4']]),
+      window: pool(20, [[1, 'red0'], [0.7, 'wood2'], [0.4, 'wood4']]),
       lantern: pool(34, [[1, 'red0'], [0.7, 'wood2'], [0.42, 'wood4'], [0.2, 'gold1']]),
     };
   }

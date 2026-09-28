@@ -7,7 +7,7 @@ import { World } from './world/world.js';
 import { drawWorld } from './world/draw.js';
 import { Lighting } from './world/lighting.js';
 import { Inventory } from './systems/inventory.js';
-import { newCalendar, TICK_SECONDS, TICK_MINUTES, DAY_END, MIDNIGHT, dateLabel, weekday, SEASONS } from './systems/calendar.js';
+import { newCalendar, TICK_SECONDS, TICK_MINUTES, DAY_END, MIDNIGHT, dateLabel, weekday, parseTime, SEASONS } from './systems/calendar.js';
 import { endDay } from './systems/day.js';
 import { CAN_CAPACITY } from './systems/tools.js';
 import { Hud } from './ui/hud.js';
@@ -73,19 +73,15 @@ export class Game {
     const season = SEASONS.findIndex((x) => x.id === p.get('season'));
     if (season >= 0) this.cal.season = season;
     if (p.get('day')) this.cal.day = Math.max(1, Math.min(28, Number(p.get('day'))));
-    if (p.get('time')) {
-      const [h, m] = p.get('time').split(':').map(Number);
-      let mins = h * 60 + (m || 0);
-      if (mins < 360) mins += MIDNIGHT;
-      this.cal.minutes = Math.min(DAY_END - TICK_MINUTES, Math.max(360, mins - (mins % TICK_MINUTES)));
-    }
+    const mins = parseTime(p.get('time'));
+    if (mins !== null) this.cal.minutes = mins - (mins % TICK_MINUTES);
   }
 
   startNew(slot) {
     this.slot = slot;
     this.setup(Number(this.params.get('seed')) || (Date.now() % 2147483647));
     this.play();
-    this.modals.push(new InkWipe(this, { hold: 0.1, onCovered: () => {} }));
+    this.modals.push(new InkWipe(this, { hold: 0.2, covered: true }));
     this.aside('tk_intro');
     this.flags.intro = true;
   }

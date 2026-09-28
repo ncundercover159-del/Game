@@ -21,10 +21,10 @@ export class Menu {
 
   layout() {
     const { w, h } = this.game.screen;
-    this.w = Math.min(320, w - 16);
-    this.h = 190;
+    this.w = Math.min(300, w - 16);
+    this.h = 150;
     this.x = Math.floor(w / 2 - this.w / 2);
-    this.y = Math.floor(h / 2 - this.h / 2) - 8;
+    this.y = Math.floor(h / 2 - this.h / 2) - 4;
   }
 
   makeSaveList() {
@@ -57,7 +57,7 @@ export class Menu {
     if (input.pressed('next')) { this.tab = (this.tab + 1) % 3; g.sfx('ui'); }
     const m = input.mouse;
     if (input.pressed('click')) {
-      TABS.forEach((_, i) => { if (hit(m.x, m.y, this.x + 6 + i * 70, this.y - 14, 66, 16)) { this.tab = i; g.sfx('ui'); } });
+      TABS.forEach((_, i) => { if (hit(m.x, m.y, this.x + 6 + i * 70, this.y - 20, 66, 20)) { this.tab = i; g.sfx('ui'); } });
     }
     if (this.tab === 0) this.updateItems(input);
     else if (this.tab === 1) this.updateOptions(input);
@@ -71,7 +71,7 @@ export class Menu {
   slotRect(i) {
     const cols = 12;
     const gx = this.x + Math.floor((this.w - cols * SLOT) / 2);
-    return { x: gx + (i % cols) * SLOT, y: this.y + 16 + Math.floor(i / cols) * SLOT };
+    return { x: gx + (i % cols) * SLOT, y: this.y + 12 + Math.floor(i / cols) * SLOT };
   }
 
   updateItems(input) {
@@ -122,12 +122,17 @@ export class Menu {
     ctx.globalAlpha = 0.45;
     rect(ctx, 'ink0', 0, 0, g.screen.w, g.screen.h);
     ctx.globalAlpha = 1;
-    TABS.forEach((k, i) => {
+    // Folder tabs sit on the panel's top edge; the active one is taller and drawn over it.
+    const tab = (k, i) => {
       const tx = this.x + 6 + i * 70, on = i === this.tab;
-      panel(ctx, atlas, tx, this.y - (on ? 16 : 13), 66, 22);
-      fonts.body.draw(ctx, t(k), tx + 33 - fonts.body.measure(t(k)) / 2, this.y - (on ? 11 : 8), on ? 'red1' : 'wood2');
-    });
+      const ty = this.y - (on ? 20 : 17);
+      panel(ctx, atlas, tx, ty, 66, on ? 24 : 19);
+      fonts.body.draw(ctx, t(k), Math.round(tx + 33 - fonts.body.measure(t(k)) / 2), ty + 5, on ? 'red1' : 'wood2');
+    };
+    TABS.forEach((k, i) => { if (i !== this.tab) tab(k, i); });
     panel(ctx, atlas, this.x, this.y, this.w, this.h);
+    tab(TABS[this.tab], this.tab);
+    rect(ctx, 'wood6', this.x + 6 + this.tab * 70 + 4, this.y + 1, 58, 3);
     if (this.tab === 0) this.drawItems(ctx, atlas);
     else if (this.tab === 1) this.drawOptions(ctx);
     else {
@@ -150,14 +155,14 @@ export class Menu {
     const s = inv.slots[this.held >= 0 ? this.held : this.cursor];
     if (!s) return;
     const d = itemDef(s.id);
-    const x = this.x + 12, y = this.y + 62;
-    thin(ctx, atlas, x - 4, y - 4, this.w - 16, 84);
+    const x = this.x + 12, y = this.y + 46;
+    thin(ctx, atlas, x - 4, y - 4, this.w - 16, 86);
     atlas.draw(ctx, `icon_${s.id}`, x, y);
     fonts.big.draw(ctx, d.name, x + 22, y, 'wood1');
     fonts.big.draw(ctx, d.jp, x + 26 + fonts.big.measure(d.name), y, 'red1');
     if (s.q) fonts.body.draw(ctx, `${'★'.repeat(QUALITY[s.q].stars)} ${QUALITY[s.q].name}`, x + 22, y + 15, 'gold0');
-    fonts.body.wrap(d.desc, this.w - 40).forEach((l, i) => fonts.body.draw(ctx, l, x, y + 30 + i * 12, 'wood2'));
-    if (d.sell) fonts.body.draw(ctx, t('sell', { n: sellPrice(s.id, s.q) }), x, y + 64, 'red1');
+    fonts.body.wrap(d.desc, this.w - 40).forEach((l, i) => fonts.body.draw(ctx, l, x, y + 28 + i * 12, 'wood2'));
+    if (d.sell) fonts.body.draw(ctx, t('sell', { n: sellPrice(s.id, s.q) }), x, y + 66, 'red1');
   }
 
   drawOptions(ctx) {

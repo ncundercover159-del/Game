@@ -180,37 +180,44 @@ export const STUMP = parse(`
   ooooooooooooooo.`, { o: 'wood0', d: 'wood1', m: 'wood2', l: 'wood4', h: 'wood5' });
 
 /**
- * A clump of wild grass (zassō): pointed leaves fanning from the root, each lit on its left half
- * with a bright midrib; back leaves darker. Outlined so it reads against the turf.
+ * Pointed leaves fanning out from a root at (bx, by): each lit on its left half with a bright
+ * midrib; leaves drawn first sit behind and take the darker tones.
  */
-export function weed(seed, flowers = false) {
-  const g = grid(18, 18);
-  const rng = new Rng(seed);
-  const n = rng.int(6, 8);
+function leafFan(g, rng, { bx, by, n, lenMin, lenMax, spread, center = 0, wMin = 3.4, wMax = 4.6, back, front, tipBack = 'grass4', tipFront = 'grass6' }) {
   const leaves = [];
   for (let i = 0; i < n; i++) {
-    const a = ((i + 0.5) / n - 0.5) * 2.5 + rng.float(-0.2, 0.2);
-    leaves.push({ a, len: rng.float(10, 15) * (1 - Math.abs(a) * 0.2), w: rng.float(3.4, 4.6), z: rng.next() });
+    const a = center + ((i + 0.5) / n - 0.5) * spread + rng.float(-0.2, 0.2);
+    leaves.push({ a, len: rng.float(lenMin, lenMax) * (1 - Math.abs(a - center) * 0.2), w: rng.float(wMin, wMax), z: rng.next() });
   }
   leaves.sort((p, q) => p.z - q.z);
-  const bx = 9, by = 16.5;
   leaves.forEach((L, i) => {
-    const back = i < n / 2;
-    const [dark, mid, lit, rib] = back ? ['grass2', 'grass2', 'grass3', 'grass4'] : ['grass2', 'grass3', 'grass4', 'grass5'];
+    const isBack = i < n / 2;
+    const [dark, mid, lit, rib] = isBack ? back : front;
     const ca = Math.cos(L.a), sa = Math.sin(L.a);
-    for (let y = 0; y < 18; y++) for (let x = 0; x < 18; x++) {
+    const r = Math.ceil(L.len) + 1;
+    for (let y = Math.floor(by - r); y <= by + r; y++) for (let x = Math.floor(bx - r); x <= bx + r; x++) {
       const dx = x + 0.5 - bx, dy = y + 0.5 - by;
-      const u = dx * sa - dy * ca;            // along the leaf, from the root
-      const v = dx * ca + dy * sa;            // across the leaf
+      const u = dx * sa - dy * ca;
+      const v = dx * ca + dy * sa;
       if (u < 0 || u > L.len) continue;
       const half = (L.w / 2) * Math.pow(Math.sin((Math.PI * u) / L.len), 0.8);
       if (Math.abs(v) > half) continue;
       let c = v < 0 ? lit : mid;
       if (Math.abs(v) < 0.5 && u > 2) c = rib;
       if (Math.abs(v) > half - 0.8) c = dark;
-      if (u > L.len - 2) c = back ? 'grass4' : 'grass6';
+      if (u > L.len - 2) c = isBack ? tipBack : tipFront;
       set(g, x, y, c);
     }
+  });
+}
+
+/** A clump of wild grass (zassō), optionally with tiny flowers. Outlined to read against the turf. */
+export function weed(seed, flowers = false) {
+  const g = grid(18, 18);
+  const rng = new Rng(seed);
+  leafFan(g, rng, {
+    bx: 9, by: 16.5, n: rng.int(6, 8), lenMin: 10, lenMax: 15, spread: 2.5,
+    back: ['grass2', 'grass2', 'grass3', 'grass4'], front: ['grass2', 'grass3', 'grass4', 'grass5'],
   });
   if (flowers) for (let i = 0; i < 3; i++) {
     const fx = rng.int(4, 13), fy = rng.int(4, 9);
@@ -219,24 +226,28 @@ export function weed(seed, flowers = false) {
   return outline(g, { color: 'grass0' });
 }
 
-/** Bamboo clump: three-tone culms with dark nodes, and leaf sprays near the top. */
+/** Bamboo clump: three-tone culms with ringed nodes and sprays of narrow leaves up top. */
 export function bamboo(seed) {
-  const w = 24, h = 46;
+  const w = 28, h = 48;
   const g = grid(w, h);
   const rng = new Rng(seed);
-  const culms = [4, 9, 14, 18].map((x) => ({ x: x + rng.int(-1, 1), top: rng.int(6, 14) }));
+  const culms = [4, 10, 15, 21].map((x) => ({ x, top: rng.int(8, 18) }));
   for (const c of culms) {
     for (let y = c.top; y < h; y++) {
-      const node = (y - c.top) % 8 === 7;
-      set(g, c.x, y, node ? 'teal0' : 'grass5');
+      const node = (y - c.top) % 9 === 8;
+      set(g, c.x, y, node ? 'teal0' : 'grass6');
       set(g, c.x + 1, y, node ? 'teal0' : 'grass4');
       set(g, c.x + 2, y, node ? 'teal0' : 'teal1');
+      if (node) { set(g, c.x, y - 1, 'grass6'); set(g, c.x + 1, y - 1, 'grass5'); }
     }
   }
-  for (let k = 0; k < 7; k++) {
-    const sx = rng.int(2, w - 6), sy = rng.int(1, 16);
-    const leaves = canopy(8, 5, ['teal0', 'grass2', 'grass3', 'grass5'], seed * 31 + k, { count: 3, rMin: 1.6, rMax: 2.4 });
-    blit(g, leaves, sx, sy);
+  for (let k = 0; k < 9; k++) {
+    const c = culms[k % culms.length];
+    leafFan(g, rng, {
+      bx: c.x + 1.5, by: c.top + rng.int(1, 12), n: 4, lenMin: 7, lenMax: 11, spread: 2.0,
+      center: k % 2 ? 0.9 : -0.9, wMin: 2.2, wMax: 2.8,
+      back: ['teal0', 'grass2', 'grass3', 'grass4'], front: ['grass2', 'grass3', 'grass4', 'grass5'], tipFront: 'grass5',
+    });
   }
   return outline(g, { color: 'grass0' });
 }

@@ -112,29 +112,10 @@ export function blit(dst, src, ox, oy, flip = false) {
   return dst;
 }
 
-export function mirror(g) {
-  return blit(grid(g.w, g.h), g, 0, 0, true);
-}
-
-/** Palette swap: map is { fromName: toName }. */
-export function recolor(g, map) {
-  const lut = new Uint8Array(256);
-  for (let i = 0; i < 256; i++) lut[i] = i;
-  for (const [from, to] of Object.entries(map)) lut[idx(from)] = toIdx(to);
-  const out = clone(g);
-  for (let i = 0; i < out.px.length; i++) out.px[i] = lut[out.px[i]];
-  return out;
-}
-
 /** Darkest tone on the ramp of palette index i (for selective outlines). */
 export function rampDark(i, steps = 0) {
   const r = RAMP_OF[i];
   return INDEX[r.ramp + Math.min(steps, r.len - 1)];
-}
-
-export function rampStep(i, delta) {
-  const r = RAMP_OF[i];
-  return INDEX[r.ramp + Math.max(0, Math.min(r.len - 1, r.step + delta))];
 }
 
 /**
@@ -155,21 +136,6 @@ export function outline(g, { color = null, pad = 1, diagonal = false } = {}) {
         const c = get(src, x + dx, y + dy);
         if (c) { out.px[y * out.w + x] = color ? toIdx(color) : rampDark(c); break; }
       }
-    }
-  }
-  return out;
-}
-
-/** Replace the outermost opaque ring of pixels with their ramp's darkest tone (keeps size). */
-export function innerOutline(g, { color = null, sides = 'all' } = {}) {
-  const out = clone(g);
-  for (let y = 0; y < g.h; y++) {
-    for (let x = 0; x < g.w; x++) {
-      const c = get(g, x, y);
-      if (!c) continue;
-      const edge = !get(g, x, y - 1) || !get(g, x + 1, y) || !get(g, x - 1, y) ||
-        (sides === 'all' && !get(g, x, y + 1));
-      if (edge) out.px[y * g.w + x] = color ? toIdx(color) : rampDark(c);
     }
   }
   return out;

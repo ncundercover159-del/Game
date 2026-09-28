@@ -68,12 +68,6 @@ export function listSlots() {
   return out;
 }
 
-export function latestSlot() {
-  let best = null;
-  for (const s of listSlots()) if (s.doc && (!best || s.doc.savedAt > best.doc.savedAt)) best = s;
-  return best;
-}
-
 export function exportDoc(doc, filename) {
   const blob = new Blob([JSON.stringify(doc)], { type: 'application/json' });
   const a = document.createElement('a');

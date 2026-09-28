@@ -7,7 +7,7 @@ import { treeParts, STONES, TWIGS, STUMP, weed, bamboo, DECALS, shadow } from '.
 import { minka, kura, well, toro, sign, fence } from './buildings.js';
 import { cropGrids } from './crops.js';
 import { toolIcons, itemIcons, coinIcon } from './icons.js';
-import { FRAME, FRAME_THIN, FRAME_DARK, SLOT, SLOT_SEL, TARGET, REACH, dialSky, SUN, MOON } from './ui.js';
+import { FRAME, FRAME_THIN, FRAME_DARK, SLOT, SLOT_SEL, TARGET, dialSky, SUN, MOON } from './ui.js';
 import { parse } from './raster.js';
 
 export const TREE_KINDS = ['broadleaf', 'sakura', 'pine'];
@@ -63,7 +63,7 @@ export function buildArt() {
   add('stump', STUMP, 8, STUMP.h + 1);
   for (let i = 0; i < 3; i++) add(`weed${i}`, weed(40 + i * 13, false), 10, 18);
   add('weed_flower', weed(91, true), 10, 18);
-  for (let i = 0; i < 2; i++) add(`bamboo${i}`, bamboo(5 + i * 9), undefined, 46);
+  for (let i = 0; i < 2; i++) add(`bamboo${i}`, bamboo(5 + i * 9), undefined, 49);
   for (const [k, g] of Object.entries(DECALS)) add(`decal_${k}`, g, 0, 0);
   add('shadow_s', shadow(12, 4), 6, 2);
   add('shadow_m', shadow(20, 6), 10, 3);
@@ -91,7 +91,6 @@ export function buildArt() {
   add('ui_slot', SLOT, 0, 0);
   add('ui_slot_sel', SLOT_SEL, 0, 0);
   add('ui_target', TARGET, 0, 0);
-  add('ui_reach', REACH, 0, 0);
   add('ui_dial_day', dialSky(false), 0, 0);
   add('ui_dial_night', dialSky(true), 0, 0);
   add('ui_sun', SUN, 2, 2);
