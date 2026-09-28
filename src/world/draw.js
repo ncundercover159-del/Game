@@ -30,7 +30,7 @@ function objectSprite(o) {
     case 'twig': return `twig${o.v}`;
     case 'bamboo': return `bamboo${o.v}`;
     case 'fence': return o.v ? 'fence_post' : 'fence';
-    default: return o.type;
+    default: return o.kind ? `${o.type}_${o.kind}` : o.type;
   }
 }
 
@@ -48,7 +48,11 @@ export function drawWorld(w, ctx, cam) {
   for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
     const k = ty * map.w + tx;
     const oi = map.objAt[k];
-    if (oi >= 0) rec((ty + 1) * TILE, 'obj', map.objects[oi]);
+    if (oi >= 0) {
+      const o = map.objects[oi];
+      if (OBJECT_TYPES[o.type].flat) drawObject(w, ctx, cam, o);
+      else rec((ty + 1) * TILE, 'obj', o);
+    }
     const crop = map.crops.get(k);
     if (crop) rec((ty + 1) * TILE - 2, 'crop', { crop, tx, ty });
   }
@@ -81,7 +85,8 @@ export function drawWorld(w, ctx, cam) {
       atlas.draw(ctx, name, tx * TILE + 8 - cam.ix, ty * TILE + 15 - cam.iy);
     } else if (r.kind === 'bld') {
       const b = r.ref;
-      atlas.draw(ctx, seasonal(atlas, b.sprite, game.seasonId), b.tx * TILE + b.px - cam.ix, b.ty * TILE + b.py - cam.iy);
+      const [bx, by] = map.spriteOrigin(b);
+      atlas.draw(ctx, seasonal(atlas, b.sprite, game.seasonId), bx - cam.ix, by - cam.iy);
     } else if (r.kind === 'drop') {
       const d = r.ref;
       const bob = d.z === 0 ? Math.round(Math.sin(w.time * 4 + d.x) * 1) : 0;
@@ -96,11 +101,12 @@ export function drawWorld(w, ctx, cam) {
 
 function drawObject(w, ctx, cam, o) {
   const atlas = w.game.atlas;
-  const bx = o.x * TILE + 8 - cam.ix + (o.shake > 0 ? Math.round(Math.sin(w.time * 70) * 2 * (o.shake / 0.25)) : 0);
-  const by = (o.y + 1) * TILE - cam.iy;
-  if (o.type === 'tree' || o.type === 'forest') {
+  const bx = o.x * TILE + 8 + (o.ox || 0) - cam.ix + (o.shake > 0 ? Math.round(Math.sin(w.time * 70) * 2 * (o.shake / 0.25)) : 0);
+  const by = (o.y + 1) * TILE + (o.oy || 0) - cam.iy;
+  if (o.type === 'tree' || o.type === 'forest' || o.type === 'sacred') {
     const base = `tree_${o.kind}${o.v}`;
     atlas.draw(ctx, `${base}_trunk`, bx, by - 1);
+    if (o.type === 'sacred') atlas.draw(ctx, 'shimenawa', bx, by - 16);
     const sway = Math.round(Math.sin(w.time * 1.1 + o.x * 0.9 + o.y * 0.3) * 0.7);
     // Walk-behind: fade the canopy when the player is hidden under it.
     const p = w.player;

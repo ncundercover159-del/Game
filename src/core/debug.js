@@ -76,7 +76,8 @@ export function exposeTestHooks(game, loop) {
       money: game.money,
       genki: game.genki,
       can: game.can,
-      player: { x: game.world.player.x, y: game.world.player.y, tx: game.world.player.tx, ty: game.world.player.ty, dir: game.world.player.dir },
+      map: game.world.map.id,
+      player: { x: game.player.x, y: game.player.y, tx: game.player.tx, ty: game.player.ty, dir: game.player.dir },
       target: { ...game.world.target },
       inventory: game.inventory.serialize(),
       selected: game.inventory.selected,
@@ -85,8 +86,8 @@ export function exposeTestHooks(game, loop) {
       tiers: { ...game.tiers },
       shipped: game.shipped.length,
     }),
-    tile: (x, y) => {
-      const m = game.world.map, k = m.i(x, y);
+    tile: (x, y, map = game.world.map.id) => {
+      const m = game.worldFor(map).map, k = m.i(x, y);
       return { ground: m.ground[k], soil: m.soil[k], wet: m.wet[k], crop: m.crops.get(k) || null, object: m.objectAt(x, y)?.type || null };
     },
   };

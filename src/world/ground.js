@@ -5,6 +5,7 @@ import { G } from './gamemap.js';
 import { makeCanvas } from '../art/compiler.js';
 import { canonical9, mask9At, variantAt, landTile, waterTile, grassTile, tilledTile, pathTile, channelTile, GRASS_PALS } from '../art/terrain.js';
 import { SOIL, isFlooded } from '../systems/irrigation.js';
+import { tatami, planks, doma, wallFace, wallTop, steps, bridge, voidTile } from '../art/interior.js';
 import { hash } from '../core/rng.js';
 
 const CHUNK = 32;
@@ -41,7 +42,7 @@ export class GroundRenderer {
   /** Water mask per tile (or -1 when no water is needed under it). */
   rebuildWater() {
     const m = this.map;
-    const water = (x, y) => m.isWater(x, y);
+    const water = (x, y) => m.isWaterish(x, y);
     for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) {
       const mask = mask9At(water, x, y);
       this.waterMask[y * m.w + x] = mask ? mask : -1;
@@ -62,8 +63,9 @@ export class GroundRenderer {
       const c = this.cells.get(key, gen);
       ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, lx, ly, TILE, TILE);
     };
+    if (g >= G.WALL) { this.structure(g, x, y, v, put); return; }
     const se = this.season, snow = se === 3;
-    const land = canonical9(mask9At((a, b) => !m.isWater(a, b), x, y));
+    const land = canonical9(mask9At((a, b) => !m.isWaterish(a, b), x, y));
     put(`L${land}.${v}.${snow ? 1 : 0}`, () => landTile(land, v, snow));
     const soil = m.soil[k];
     if (soil === SOIL.CHANNEL) {
@@ -88,6 +90,30 @@ export class GroundRenderer {
       put(`P${pm}.${v}`, () => pathTile(pm, v));
     } else if (g === G.DIRT && !snow) {
       this.decal(ctx, x, y, lx, ly, DIRT_DECALS);
+    }
+  }
+
+  /** Floors, walls, steps and bridges: plain tiles chosen by type and neighbours. */
+  structure(g, x, y, v, put) {
+    const m = this.map;
+    switch (g) {
+      case G.WALL: {
+        const below = m.groundAt(x, y + 1);
+        if (below === G.WALL || below === G.VOID || y + 1 >= m.h) put('Xtop', wallTop);
+        else put(`Xwall${v % 6}`, () => wallFace(v));
+        break;
+      }
+      case G.WOOD: put(`Xwood${v % 4}`, () => planks(v % 4)); break;
+      case G.TATAMI: put(`Xtat${y % 2}`, () => tatami(y % 2, false)); break;
+      case G.TATAMI_R: put(`Xtatr${x % 2}`, () => tatami(x % 2, true)); break;
+      case G.DOMA: put(`Xdoma${v % 4}`, () => doma(v % 4)); break;
+      case G.STEPS: put(`Xstep${v % 3}`, () => steps(v % 3)); break;
+      case G.BRIDGE: {
+        const w = m.groundAt(x - 1, y) !== G.BRIDGE, e = m.groundAt(x + 1, y) !== G.BRIDGE;
+        put(`Xbr${v % 4}${w ? 1 : 0}${e ? 1 : 0}`, () => bridge(v % 4, w, e));
+        break;
+      }
+      default: put('Xvoid', voidTile);
     }
   }
 

@@ -1,5 +1,5 @@
-// Shops reached from the valley road: Chōbei's Yorozuya (buy/sell) and Genzō's forge (iron,
-// tool upgrades). Row lists work with keys, mouse and gamepad.
+// Village shops: stock lists (Yorozuya buys and sells; the teahouse and apothecary only sell) and
+// Genzō's forge (iron, tool upgrades). Row lists work with keys, mouse and gamepad.
 import { fonts } from '../core/text.js';
 import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { t } from '../data/strings.js';
@@ -75,12 +75,13 @@ class RowShop {
   }
 }
 
-/** Chōbei's general store: season's seeds and sundries; sells your goods at full price. */
+/** A shop's stock list; shops that `buys` also take your goods at full price on the Sell tab. */
 export class ShopMenu extends RowShop {
-  constructor(game) {
-    super(game, `${SHOPS.yorozuya.name} ${SHOPS.yorozuya.jp}`, t('chobei_hello'));
-    this.stock = SHOPS.yorozuya.stock(SEASONS[game.cal.season].id, dayIndex(game.cal) % 7);
-    this.cursor = 0;
+  constructor(game, id) {
+    const shop = SHOPS[id];
+    super(game, `${shop.name} ${shop.jp}`, t(shop.hello));
+    this.buys = !!shop.buys;
+    this.stock = shop.stock(SEASONS[game.cal.season].id, dayIndex(game.cal) % 7);
   }
 
   price(s) { return Math.round(itemDef(s.id).price * s.mult); }
@@ -89,9 +90,9 @@ export class ShopMenu extends RowShop {
     const g = this.game;
     this.layout();
     if (input.pressed('cancel') || input.pressed('menu') || input.pressed('rclick')) { g.sfx('ui_back'); return false; }
-    if (input.pressed('prev') || input.pressed('next')) { this.tab = 1 - this.tab; this.sel = 0; g.sfx('ui'); }
+    if (this.buys && (input.pressed('prev') || input.pressed('next'))) { this.tab = 1 - this.tab; this.sel = 0; g.sfx('ui'); }
     const m = input.mouse;
-    if (input.pressed('click')) [0, 1].forEach((i) => { if (hit(m.x, m.y, this.x + this.w - 120 + i * 56, this.y + this.h - 22, 52, 16)) { this.tab = i; this.sel = 0; } });
+    if (this.buys && input.pressed('click')) [0, 1].forEach((i) => { if (hit(m.x, m.y, this.x + this.w - 120 + i * 56, this.y + this.h - 22, 52, 16)) { this.tab = i; this.sel = 0; } });
     if (this.tab === 0) {
       if (this.navigate(input, this.stock.length)) this.buy(this.stock[this.sel]);
     } else {
@@ -136,7 +137,7 @@ export class ShopMenu extends RowShop {
       }));
       this.drawRows(ctx, rows);
     }
-    ['shop_buy', 'shop_sell'].forEach((k, i) => {
+    if (this.buys) ['shop_buy', 'shop_sell'].forEach((k, i) => {
       const bx = this.x + this.w - 120 + i * 56;
       thin(ctx, g.atlas, bx, this.y + this.h - 22, 52, 16);
       fonts.body.draw(ctx, t(k), Math.round(bx + 26 - fonts.body.measure(t(k)) / 2), this.y + this.h - 20, i === this.tab ? 'red1' : 'wood3');
@@ -147,7 +148,7 @@ export class ShopMenu extends RowShop {
 /** Genzō's forge: iron bars and two-day tool upgrades. */
 export class ForgeMenu extends RowShop {
   constructor(game) {
-    super(game, `${SHOPS.kajiya.name} ${SHOPS.kajiya.jp}`, t('genzo_hello'));
+    super(game, `${SHOPS.kajiya.name} ${SHOPS.kajiya.jp}`, t(SHOPS.kajiya.hello));
   }
 
   rows() {

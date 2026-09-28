@@ -50,6 +50,8 @@ function applyOne(w, tool, tx, ty) {
   const cx = tx * TILE + 8, cy = ty * TILE + 12;
   const o = map.objectAt(tx, ty);
   if (o) return hitObject(w, o, tool);
+  // Village soil is somebody else's: tools only work the farm's.
+  if (!map.def.farmable) return 'miss';
   if (clearDead(map, tx, ty)) { fx.burst('fx_hay', cx, cy, 5); game.sfx('cut'); return 'clear'; }
   const k = map.inside(tx, ty) ? map.i(tx, ty) : -1;
 

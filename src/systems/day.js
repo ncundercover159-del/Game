@@ -29,9 +29,9 @@ export function shippingValue(shipped) {
  * end-of-day screen: shipping, growth, typhoon losses, tomorrow's forecast.
  */
 export function endDay(game, passedOut) {
-  const w = game.world;
-  const map = w.map;
-  for (const d of w.drops.drain()) game.inventory.add(d.id, d.n, d.q);
+  // Anything left lying on the ground is gathered up overnight.
+  for (const w of game.worlds.values()) for (const d of w.drops.drain()) game.inventory.add(d.id, d.n, d.q);
+  const map = game.worldFor('farm').map;
 
   const ship = shippingValue(game.shipped);
   game.money += ship.total;
@@ -54,6 +54,5 @@ export function endDay(game, passedOut) {
   let upgraded = null;
   if (game.upgrade && dayIndex(t) >= game.upgrade.ready) upgraded = game.upgrade.tool;
 
-  w.placeAtHome();
   return { ship, grew, withered, typhoonLost, lost, prev, newSeason, newYear, upgraded };
 }

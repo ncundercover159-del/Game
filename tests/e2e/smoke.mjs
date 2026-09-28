@@ -1,5 +1,6 @@
 // Headless smoke test (Playwright): boot, new game from the title menu, walk, till, plant, water,
-// sleep through the door dialogue, check overnight growth, then reload and verify the save.
+// go indoors and sleep in the futon, check overnight growth, walk to the village and shop, then
+// reload and verify the save.
 // Fails on any console error or page exception.
 import assert from 'node:assert/strict';
 import { withBrowser } from '../../tools/render-page.mjs';
@@ -31,7 +32,17 @@ async function wake(page) {
   }
   throw new Error('stuck in the night');
 }
-const tile = (page, x, y) => page.evaluate(([a, b]) => window.__game.tile(a, b), [x, y]);
+const tile = (page, x, y, map) => page.evaluate(([a, b, m]) => window.__game.tile(a, b, m), [x, y, map]);
+/** Step through a warp tile by walking one tile in `key`'s direction, then let the wipe finish. */
+async function through(page, key, map) {
+  await page.evaluate((k) => { const G = window.__game; G.hold(k); G.advance(400); G.release(k); G.advance(1200); }, key);
+  assert.equal((await state(page)).map, map, `arrived in ${map}`);
+}
+/** From the farmhouse bed-side back out to the doorstep. */
+async function leaveHouse(page) {
+  await walkTo(page, 6, 8);
+  await through(page, 'KeyS', 'farm');
+}
 
 await withBrowser(async (browser, base) => {
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
@@ -86,12 +97,14 @@ await withBrowser(async (browser, base) => {
   assert.equal((await tile(page, 25, 23)).object, null, 'weed cleared');
   assert.equal(await page.evaluate(() => window.__game.game.world.drops.list.length), 0, 'drops collected');
 
-  step('sleeps through the farmhouse door');
+  step('goes indoors and sleeps in the futon');
   await walkTo(page, 25, 17);
   await walkTo(page, 24, 15);
   await walkTo(page, 29, 14);
   await walkTo(page, 29, 11);
-  await face(page, 'KeyW');
+  await through(page, 'KeyW', 'house_farm');
+  await walkTo(page, 3, 5);
+  await face(page, 'KeyA');
   await press(page, 'KeyK', 300);
   s = await state(page);
   assert.deepEqual(s.modals, ['Dialog'], 'sleep prompt open');
@@ -102,12 +115,14 @@ await withBrowser(async (browser, base) => {
   assert.equal(s.cal.day, 2);
   assert.equal(s.cal.minutes, 360);
   assert.equal(s.genki, 200);
-  const grown = await tile(page, 24, 18);
+  assert.equal(s.map, 'house_farm', 'woke up indoors');
+  const grown = await tile(page, 24, 18, 'farm');
   assert.equal(grown.crop.growth, 1, 'watered crop grew overnight');
   assert.equal(grown.wet, 0, 'soil dried');
 
   step('harvests a ripe crop by hand');
-  await page.evaluate(() => { const g = window.__game.game, m = g.world.map; m.crops.get(m.i(24, 18)).growth = 4; });
+  await page.evaluate(() => { const m = window.__game.game.worldFor('farm').map; m.crops.get(m.i(24, 18)).growth = 4; });
+  await leaveHouse(page);
   await walkTo(page, 29, 14);
   await walkTo(page, 24, 15);
   await walkTo(page, 24, 17);
@@ -177,6 +192,7 @@ await withBrowser(async (browser, base) => {
 
   step('an iron hoe charged for a second tills three tiles in a line');
   await page.evaluate(() => { const g = window.__game.game; g.tiers.hoe = 1; });
+  await leaveHouse(page);
   await walkTo(page, 29, 12);
   await walkTo(page, 29, 14);
   await walkTo(page, 24, 15);
@@ -186,8 +202,36 @@ await withBrowser(async (browser, base) => {
   await page.evaluate(() => { const G = window.__game; G.hold('KeyJ'); G.advance(900); G.release('KeyJ'); G.advance(600); });
   for (const y of [17, 18, 19]) assert.equal((await tile(page, 23, y)).soil, 1, `tilled 23,${y}`);
 
-  step('passing out at 02:00 costs money and wakes you at home');
-  await page.evaluate(() => { const g = window.__game.game; g.cal.minutes = 25 * 60 + 50; g.world.player.x = 40 * 16; g.world.player.y = 30 * 16; });
+  step('walks the valley road to the village, buys at the teahouse counter and eats');
+  await page.evaluate(() => { window.__game.game.cal.minutes = 600; });
+  await walkTo(page, 23, 15);
+  await walkTo(page, 1, 15);
+  await through(page, 'KeyA', 'village');
+  await walkTo(page, 14, 12);
+  await walkTo(page, 14, 11);
+  await through(page, 'KeyW', 'chaya');
+  await walkTo(page, 2, 5);
+  await face(page, 'KeyW');
+  await press(page, 'KeyK', 100);
+  assert.deepEqual((await state(page)).modals, ['ShopMenu'], 'counter opens the shop');
+  const purse = (await state(page)).money;
+  await press(page, 'ArrowDown');
+  await press(page, 'ArrowDown');
+  await press(page, 'Enter', 50);
+  await press(page, 'Escape', 50);
+  s = await state(page);
+  assert.equal(s.money, purse - 90, 'paid for an onigiri');
+  const onigiri = s.inventory.slots.findIndex((x) => x && x.id === 'onigiri');
+  await page.evaluate((i) => { const g = window.__game.game; g.genki = 100; g.inventory.select(i); }, onigiri);
+  await press(page, 'KeyJ', 100);
+  assert.equal((await state(page)).genki, 170, 'eating restores Genki');
+  await walkTo(page, 6, 7);
+  await through(page, 'KeyS', 'village');
+  s = await state(page);
+  assert.deepEqual([s.player.tx, s.player.ty], [14, 11], 'back on the street');
+
+  step('passing out at 02:00 costs money and wakes you in the farmhouse');
+  await page.evaluate(() => { const g = window.__game.game; g.cal.minutes = 25 * 60 + 50; });
   const money = (await state(page)).money;
   await page.evaluate(() => window.__game.advance(9000));
   await wake(page);
@@ -195,7 +239,8 @@ await withBrowser(async (browser, base) => {
   assert.equal(s.cal.day, before.cal.day + 2);
   assert.equal(s.money, money - Math.floor(money * 0.1));
   assert.equal(s.genki, 100);
-  assert.deepEqual([s.player.tx, s.player.ty], [29, 12], 'woke at the farmhouse');
+  assert.equal(s.map, 'house_farm');
+  assert.deepEqual([s.player.tx, s.player.ty], [3, 5], 'woke beside the futon');
 
   assert.deepEqual(errors, [], 'no console errors');
   console.log('smoke test passed');

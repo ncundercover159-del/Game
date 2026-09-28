@@ -24,6 +24,12 @@ export const ITEMS = {
   steel_bar: { name: 'Steel Bar', jp: '鋼', kind: 'material', sell: 120, desc: 'Folded steel. Genzō smelts it from ore dug deep in Mount Kurayama.' },
   tamahagane: { name: 'Tamahagane', jp: '玉鋼', kind: 'material', sell: 400, desc: 'Jewel steel from the Oni Foundry, fit for a master blade.' },
   sluice: { name: 'Sluice Gate', jp: '水門', kind: 'place', place: 'sluice', sell: 15, price: 120, desc: 'Place on an irrigation channel. Open or shut it to steer the water.' },
+
+  // Food and medicine: eaten from the hotbar for Genki.
+  tea: { name: 'Sencha', jp: '煎茶', kind: 'food', genki: 25, sell: 10, price: 30, desc: 'Green tea from Okiku\'s teahouse. A small lift.' },
+  dango: { name: 'Hanami Dango', jp: '花見団子', kind: 'food', genki: 45, sell: 20, price: 60, desc: 'Three sweet rice dumplings on a skewer.' },
+  onigiri: { name: 'Onigiri', jp: 'おにぎり', kind: 'food', genki: 70, sell: 30, price: 90, desc: 'A rice ball wrapped in nori. A proper meal for a working day.' },
+  tonic: { name: 'Yōjō Tonic', jp: '養生酒', kind: 'food', genki: 140, sell: 100, price: 320, desc: 'Ume\'s bitter herbal tonic. Tastes of bark; works like sleep.' },
 };
 
 // Produce and seeds come from the crop table.

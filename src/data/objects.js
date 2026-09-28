@@ -1,5 +1,6 @@
 // World object types: what they look like, which tools affect them, what they drop.
 // drops: [itemId, min, max, chance=1]. `tools` lists tools that damage it; `power` is per tool.
+// `flat` things lie on the floor and are drawn under everything that stands.
 
 export const OBJECT_TYPES = {
   weed: {
@@ -48,4 +49,32 @@ export const OBJECT_TYPES = {
   fence: { name: 'Fence', solid: true, static: true, shadow: null },
   crate: { name: 'Shipping Crate', solid: true, static: true, shadow: 'shadow_m' },
   ishigaki: { name: 'Terrace Wall', solid: true, static: true, shadow: null, say: 'terrace_wall' },
+
+  // Village and shrine props.
+  notice: { name: 'Notice Board', solid: true, static: true, shadow: null },
+  jizo: { name: 'Jizō', solid: true, static: true, shadow: 'shadow_s', say: 'jizo' },
+  bench: { name: 'Bench', solid: true, static: true, shadow: null, say: 'bench' },
+  parasol: { name: 'Parasol', solid: false, static: true, shadow: null },
+  bales: { name: 'Rice Bales', solid: true, static: true, shadow: 'shadow_m', say: 'bales' },
+  torii: { name: 'Torii', solid: false, static: true, shadow: null },
+  ema: { name: 'Ema Rack', solid: true, static: true, shadow: null, say: 'ema' },
+  sacred: { name: 'Sacred Cedar', solid: true, static: true, shadow: 'shadow_l', say: 'sacred' },
+  gate: { name: 'Rear Gate', solid: true, static: true, shadow: null, say: 'gate_sealed' },
+  mailbox: { name: 'Mailbox', solid: true, static: true, shadow: 'shadow_s' },
+
+  // Furniture.
+  futon: { name: 'Futon', solid: false, static: true, shadow: null, flat: true },
+  irori: { name: 'Hearth', solid: true, static: true, shadow: null, say: 'irori' },
+  tansu: { name: 'Tansu', solid: true, static: true, shadow: null, say: 'tansu' },
+  andon: { name: 'Andon', solid: true, static: true, shadow: null },
+  counter: { name: 'Counter', solid: true, static: true, shadow: null },
+  shelf: { name: 'Shelf', solid: false, static: true, shadow: null },
+  teaTable: { name: 'Tea Table', solid: true, static: true, shadow: null },
+  zabuton: { name: 'Cushion', solid: false, static: true, shadow: null, flat: true },
+  forge: { name: 'Forge', solid: true, static: true, shadow: null, say: 'forge' },
+  anvil: { name: 'Anvil', solid: true, static: true, shadow: null },
+  drawers: { name: 'Medicine Drawers', solid: false, static: true, shadow: null },
+  nets: { name: 'Nets', solid: false, static: true, shadow: null },
+  altar: { name: 'Altar', solid: true, static: true, shadow: null },
+  kamidana: { name: 'Kamidana', solid: false, static: true, shadow: null },
 };

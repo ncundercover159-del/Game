@@ -13,7 +13,7 @@ export function isRipe(crop) {
 }
 
 export function canTill(map, x, y) {
-  if (!map.inside(x, y)) return false;
+  if (!map.def.farmable || !map.inside(x, y)) return false;
   const k = map.i(x, y);
   const g = map.ground[k];
   return (g === G.GRASS || g === G.DIRT) && !map.soil[k] && !map.blocked[k] && map.objAt[k] < 0;

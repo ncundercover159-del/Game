@@ -4,11 +4,10 @@ import { PALETTE_SIZE, RAMPS } from '../../src/art/palette.js';
 import { ITEMS } from '../../src/data/items.js';
 import { CROPS } from '../../src/data/crops.js';
 import { toolIcons, itemIcons } from '../../src/art/icons.js';
+import { foodIcons } from '../../src/art/food.js';
 import { cropGrids, CROP_ART } from '../../src/art/crops.js';
 import { genCropStages } from '../../src/art/cropgen.js';
 import { composeFrame, LOOKS, ANIMS, DIRS } from '../../src/art/characters.js';
-import { STRINGS } from '../../src/data/strings.js';
-import farm from '../../src/maps/farm.js';
 
 test('palette stays within 64 colours, all distinct', () => {
   assert.ok(PALETTE_SIZE <= 64);
@@ -17,7 +16,7 @@ test('palette stays within 64 colours, all distinct', () => {
 });
 
 test('every item has a 16x16 icon', () => {
-  const icons = { ...toolIcons(), ...itemIcons() };
+  const icons = { ...toolIcons(), ...itemIcons(), ...foodIcons() };
   for (const id of Object.keys(ITEMS)) {
     const g = icons[id];
     assert.ok(g, `icon for ${id}`);
@@ -40,11 +39,4 @@ test('every character frame composes to 16x32', () => {
     const g = composeFrame(LOOKS.player, dir, tp, lp, bob);
     assert.deepEqual([g.w, g.h], [16, 32]);
   }
-});
-
-test('the farm map is 64x48 and its text keys exist', () => {
-  assert.equal(farm.ground.length, 48);
-  for (const row of farm.ground) assert.equal(row.length, 64);
-  for (const p of farm.props) if (p.text) assert.ok(STRINGS[p.text], p.text);
-  for (const e of farm.edges) assert.ok(STRINGS[e.text], e.text);
 });

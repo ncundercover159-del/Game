@@ -4,7 +4,6 @@ import { TILE } from '../config.js';
 import { GameMap } from './gamemap.js';
 import { GroundRenderer } from './ground.js';
 import { decorate, populate } from './populate.js';
-import { Player } from './player.js';
 import { Fx } from './fx.js';
 import { Drops } from './drops.js';
 import { OBJECT_TYPES } from '../data/objects.js';
@@ -24,19 +23,20 @@ export class World {
     this.map = new GameMap(def);
     decorate(this.map);
     if (saved) this.map.restore(saved);
-    else populate(this.map, game.seed);
+    else if (def.wild) populate(this.map, game.seed);
     computeFlow(this.map);
     this.ground = new GroundRenderer(this.map, game.cells, game.atlas, game.cal.season);
-    this.player = new Player({ x: 0, y: 0 });
-    this.placeAtHome();
     this.fx = new Fx();
     this.drops = new Drops();
     this.time = 0;
-    this.target = this.player.facingTile();
+    this.target = { x: -1, y: -1 };
     this.mouseTarget = false;
     this.edgeLatch = false;
     this.stepDist = 0;
   }
+
+  /** The one player, shared by every map. */
+  get player() { return this.game.player; }
 
   // ------------------------------------------------------------------ simulation
 
@@ -68,6 +68,7 @@ export class World {
       if (this.stepDist > 18) { this.stepDist = 0; this.game.sfx('step'); }
       if (input.pressed('use')) this.use();
       else if (input.pressed('interact')) this.interact();
+      if (moved) this.warps();
       this.edges(a);
     }
     for (const o of this.map.objects) if (o.shake > 0) o.shake = Math.max(0, o.shake - dt);
@@ -99,6 +100,7 @@ export class World {
     const def = itemDef(item.id);
     const t = this.target;
     if (def.kind === 'seed') { plantSeed(this, slot, t.x, t.y); return; }
+    if (def.kind === 'food') { g.eat(slot); return; }
     if (def.kind === 'place') { placeItem(this, slot, t.x, t.y); return; }
     if (item.id === 'hay') { spreadStraw(this, slot, t.x, t.y); return; }
     if (def.kind !== 'tool') return;
@@ -154,10 +156,12 @@ export class World {
       return;
     }
     if (o0 && o0.type === 'crate') { g.openShipping(); return; }
+    if (o0 && o0.action === 'sleep') { g.askSleep(); return; }
+    if (o0 && o0.shop) { g.openShop(o0.shop); return; }
     const b = map.buildingAt(x, y);
     if (b) {
-      if (b.door && b.door.tx === x && b.door.ty - 1 === y && b.door.action === 'sleep') { g.askSleep(); return; }
-      g.say(b.id === 'kura' ? 'kura' : b.id === 'well' ? 'well' : null);
+      if (b.door?.say && b.door.tx === x && b.door.ty === y) g.say(b.door.say);
+      else g.say(b.id === 'kura' ? 'kura' : b.id === 'well' ? 'well' : null);
       return;
     }
     const o = map.objectAt(x, y);
@@ -186,15 +190,22 @@ export class World {
     return plant(this.map, x, y, crop, this.game.seasonId);
   }
 
-  /** Walking into a map edge that leads elsewhere shows its message (maps arrive in M3). */
-  edges(a) {
+  /** Stepping onto a warp tile (a doorway or a road out of the map) moves to its destination. */
+  warps() {
     const p = this.player;
-    const e = (this.map.def.edges || []).find((ed) => p.tx === ed.tx && p.ty >= ed.ty && p.ty < ed.ty + ed.h);
-    if (!e) { this.edgeLatch = false; return; }
-    const pushing = (e.tx === 0 && a.x < 0) || (e.tx === this.map.w - 1 && a.x > 0);
-    if (pushing && !this.edgeLatch) {
+    const wp = this.map.def.warps.find((r) => p.tx >= r.x && p.tx < r.x + r.w && p.ty >= r.y && p.ty < r.y + r.h);
+    if (wp) this.game.warp(wp);
+  }
+
+  /** Pushing against a map edge that leads nowhere yet shows its message once per push. */
+  edges(a) {
+    const p = this.player, m = this.map;
+    const e = (m.def.edges || []).find((ed) => p.tx >= ed.tx && p.tx < ed.tx + (ed.w || 1) && p.ty >= ed.ty && p.ty < ed.ty + (ed.h || 1));
+    const pushing = e && ((p.tx === 0 && a.x < 0) || (p.tx === m.w - 1 && a.x > 0) || (p.ty === 0 && a.y < 0) || (p.ty === m.h - 1 && a.y > 0));
+    if (!pushing) { this.edgeLatch = false; return; }
+    if (!this.edgeLatch) {
       this.edgeLatch = true;
-      this.game.edgeAction(e);
+      this.game.say(e.text);
     }
   }
 
@@ -202,14 +213,16 @@ export class World {
     return this.map.lights;
   }
 
-  /** Put the player on the doorstep facing the fields (morning, or after passing out). */
-  placeAtHome() {
-    const sp = this.map.def.spawn;
+  /** Drop the player on a tile, facing `dir`, with any swing cancelled. */
+  place(tx, ty, dir) {
     const p = this.player;
-    p.x = sp.tx * TILE + 8;
-    p.y = sp.ty * TILE + 14;
-    p.dir = sp.dir;
+    p.x = tx * TILE + 8;
+    p.y = ty * TILE + 14;
+    p.dir = dir;
     p.swing = null;
+    p.charge = null;
     p.anim = 'idle';
+    this.target = p.facingTile();
+    this.edgeLatch = true;
   }
 }

@@ -5,7 +5,7 @@ import { till, digChannel, untill } from '../../src/systems/farming.js';
 import { computeFlow, isFlooded, watery } from '../../src/systems/irrigation.js';
 
 // Pond on the left; a channel dug east along row 1, a field beside it.
-const def = { id: 'i', ground: ['~.......', '~.......', '~.......'] };
+const def = { id: 'i', farmable: true, ground: ['~.......', '~.......', '~.......'] };
 function dig(m, x, y) { till(m, x, y); return digChannel(m, x, y); }
 
 test('water flows from the pond along connected channel tiles only', () => {

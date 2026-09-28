@@ -142,6 +142,9 @@ export class Audio {
       case 'ui_back': this.pluck(440, 0.3); break;
       case 'step': this.hiss('lowpass', 900, 1, 0.05, 0.04); break;
       case 'sleep': [392, 330, 294, 262].forEach((f, i) => this.pluck(f, 0.3, i * 0.22)); break;
+      case 'door': this.hiss('bandpass', 700, 1.5, 0.2, 0.18); this.tone('triangle', 160, 120, 0.12, 0.1, 0.12); break;
+      case 'eat': [0, 0.12, 0.24].forEach((d) => this.hiss('bandpass', 1200, 2, 0.15, 0.05, d)); this.pluck(880, 0.2, 0.35); break;
+      case 'talk': this.tone('square', 520, 520, 0.03, 0.025); break;
       case 'morning': [523, 659, 784, 1046].forEach((f, i) => this.pluck(f, 0.3, i * 0.15)); break;
       default: break;
     }

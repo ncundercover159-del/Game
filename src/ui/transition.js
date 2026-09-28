@@ -4,11 +4,11 @@ import { fonts } from '../core/text.js';
 import { rect, centre } from './widgets.js';
 import { hashf } from '../core/rng.js';
 
-const SWEEP = 0.55;
 
 export class InkWipe {
-  constructor(game, { onCovered, card = null, hold = 0.3, minCard = 1.2, covered = false, waitConfirm = false }) {
+  constructor(game, { onCovered, card = null, hold = 0.3, minCard = 1.2, covered = false, waitConfirm = false, sweep = 0.55 }) {
     this.game = game;
+    this.sweep = sweep;
     this.onCovered = onCovered;
     this.card = card;
     this.hold = hold;
@@ -22,7 +22,7 @@ export class InkWipe {
 
   update(dt, input) {
     this.t += dt;
-    if (this.phase === 'in' && this.t >= SWEEP) {
+    if (this.phase === 'in' && this.t >= this.sweep) {
       this.phase = 'hold';
       this.t = 0;
       if (!this.covered) { this.covered = true; this.onCovered?.(); }
@@ -30,7 +30,7 @@ export class InkWipe {
       const pressed = input.pressed('confirm') || input.pressed('click');
       const cardDone = !this.card || (this.t > this.minCard && (pressed || (!this.waitConfirm && this.t > this.minCard + 2.5)));
       if (this.t >= this.hold && cardDone) { this.phase = 'out'; this.t = 0; }
-    } else if (this.phase === 'out' && this.t >= SWEEP) {
+    } else if (this.phase === 'out' && this.t >= this.sweep) {
       return false;
     }
     return true;
@@ -38,7 +38,7 @@ export class InkWipe {
 
   draw(ctx) {
     const { w, h } = this.game.screen;
-    const f = this.phase === 'in' ? this.t / SWEEP : this.phase === 'hold' ? 1 : 1 - this.t / SWEEP;
+    const f = this.phase === 'in' ? this.t / this.sweep : this.phase === 'hold' ? 1 : 1 - this.t / this.sweep;
     if (f >= 1) rect(ctx, 'ink0', 0, 0, w, h);
     else {
       // Rows of brush strokes with ragged, bristly leading edges.

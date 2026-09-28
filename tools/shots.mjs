@@ -135,9 +135,9 @@ await withBrowser(async (browser, base) => {
   await shot('16-irrigation-paddies');
 
   await boot(page, base, 'play=1&seed=7&season=spring&day=6&time=10:00');
-  await page.evaluate(() => { const G = window.__game; G.advance(1500); G.game.hud.aside = null; G.game.visitShop('yorozuya'); G.press('ArrowDown'); G.advance(100); });
+  await page.evaluate(() => { const G = window.__game; G.advance(1500); G.game.hud.aside = null; G.game.openShop('yorozuya'); G.press('ArrowDown'); G.advance(100); });
   await shot('17-yorozuya');
-  await page.evaluate(() => { const G = window.__game, g = G.game; g.modals = []; g.money = 9000; g.inventory.add('iron_bar', 5); g.visitShop('kajiya'); G.advance(100); });
+  await page.evaluate(() => { const G = window.__game, g = G.game; g.modals = []; g.money = 9000; g.inventory.add('iron_bar', 5); g.openShop('kajiya'); G.advance(100); });
   await shot('18-forge');
 
   await boot(page, base, 'play=1&seed=7&season=spring&day=28&time=21:00');

@@ -8,6 +8,9 @@ import { minka, kura, well, toro, sign, fence, crate, sluice, ishigaki } from '.
 import { cropGrids, CROP_ART } from './crops.js';
 import { genCropStages, witheredStage } from './cropgen.js';
 import { toolIcons, itemIcons, coinIcon, tierToolIcons } from './icons.js';
+import { foodIcons } from './food.js';
+import { townhouse, torii, honden, noticeBoard, jizo, bench, parasol, riceBales, mailbox, emaRack, shimenawa, rearGate } from './town.js';
+import { futon, irori, tansu, andon, counter, shelf, teaTable, zabuton, forge, anvil, drawers, nets, altar, kamidana } from './furniture.js';
 import { CROPS } from '../data/crops.js';
 import { FRAME, FRAME_THIN, FRAME_DARK, SLOT, SLOT_SEL, TARGET, dialSky, SUN, MOON, WEATHER_ICONS } from './ui.js';
 import { parse, recolor } from './raster.js';
@@ -36,6 +39,27 @@ function addSeasonal(add, name, g, kind, v, ax, ay, seed) {
     add(`${name}@${SEASON_IDS[i + 1]}`, sg, map === 'bare' ? Math.floor(sg.w / 2) : ax, ay);
   });
 }
+
+// Village buildings: townhouse parameters per building (see art/town.js).
+const TOWN = {
+  b_yorozuya: { w: 116, wall: 'plaster', noren: 'indigo', sign: 'ink1', seed: 3 },
+  b_chaya: { w: 116, roof: 'thatch', noren: 'red', seed: 5 },
+  b_kajiya: { w: 116, sign: 'red2', seed: 7 },
+  b_yakuya: { w: 116, wall: 'plaster', noren: 'grass', sign: 'grass1', seed: 9 },
+  b_daikansho: { w: 180, wallH: 40, roofH: 36, wall: 'plaster', noren: 'indigo', seed: 11 },
+  b_kaito: { w: 84, roof: 'thatch', noren: 'water', lattice: false, seed: 13 },
+  b_dojo: { w: 148, wallH: 34, sign: 'ink1', seed: 15 },
+  b_kuroda: { w: 116, wall: 'plaster', noren: 'gold', seed: 17 },
+  b_daigo: { w: 84, roof: 'thatch', lattice: false, seed: 19 },
+  b_shamusho: { w: 84, wall: 'plaster', noren: 'red', glaze: 'water', seed: 21 },
+  b_house1: { w: 84, roof: 'thatch', noren: 'indigo', seed: 23 },
+  b_house2: { w: 84, wall: 'plaster', noren: 'sakura', seed: 25 },
+};
+// Snow on tile roofs (by glaze) and on thatch.
+const SNOW_TILE = { ink: { ink2: 'ink5', ink3: 'ink6' }, water: { water2: 'ink5', water3: 'ink6' } };
+const SNOW_THATCH = { straw4: 'ink6', straw3: 'ink6', straw2: 'ink5', teal1: 'ink5' };
+// Altar cloth colour for each of the seven virtues.
+export const VIRTUE_CLOTH = { gi: 'indigo', yu: 'red', jin: 'grass', rei: 'sakura', makoto: 'water', meiyo: 'gold', chugi: 'straw' };
 
 export const TREE_KINDS = ['broadleaf', 'sakura', 'pine'];
 export const TREE_VARIANTS = 3;
@@ -113,7 +137,6 @@ export function buildArt() {
   add('shadow_l', shadow(34, 9), 17, 4);
 
   // Snow settles on the thatch in winter.
-  const SNOW_THATCH = { straw4: 'ink6', straw3: 'ink6', straw2: 'ink5', teal1: 'ink5' };
   for (const [name, g] of [['minka', minka()], ['well', well()]]) {
     add(name, g, 0, 0);
     add(`${name}@winter`, recolor(g, SNOW_THATCH), 0, 0);
@@ -124,6 +147,42 @@ export function buildArt() {
   add('fence_post', fence(true), 9, 21);
   add('fence', fence(false), 9, 21);
 
+  for (const [name, opts] of Object.entries(TOWN)) {
+    const g = townhouse(opts);
+    add(name, g);
+    add(`${name}@winter`, recolor(g, opts.roof === 'thatch' ? SNOW_THATCH : SNOW_TILE[opts.glaze || 'ink']));
+  }
+  add('honden', honden());
+  add('torii', torii());
+  add('notice', noticeBoard());
+  add('jizo', jizo());
+  add('bench', bench());
+  add('parasol', parasol());
+  add('bales', riceBales());
+  add('mailbox', mailbox());
+  add('ema', emaRack());
+  add('shimenawa', shimenawa(), 12, 0);
+  add('gate', rearGate());
+  add('gate@winter', recolor(rearGate(), SNOW_TILE.ink));
+
+  // Furniture.
+  add('futon', futon());
+  add('irori', irori());
+  add('tansu', tansu());
+  add('andon', andon());
+  add('counter', counter());
+  add('shelf_goods', shelf('goods'));
+  add('shelf_herbs', shelf('herbs'));
+  add('teaTable', teaTable());
+  add('zabuton_red', zabuton('red'));
+  add('zabuton_indigo', zabuton('indigo'));
+  add('forge', forge());
+  add('anvil', anvil());
+  add('drawers', drawers());
+  add('nets', nets());
+  add('kamidana', kamidana());
+  for (const [v, cloth] of Object.entries(VIRTUE_CLOTH)) add(`altar_${v}`, altar(cloth));
+
   for (const id of Object.keys(CROPS)) {
     (CROP_ART[id] ? cropGrids(id) : genCropStages(id)).forEach((g, stage) => add(`crop_${id}_${stage}`, g, 8, 20));
   }
@@ -132,6 +191,7 @@ export function buildArt() {
   for (const [k, g] of Object.entries(toolIcons())) add(`icon_${k}`, g, 0, 0);
   for (const [k, g] of Object.entries(itemIcons())) add(`icon_${k}`, g, 0, 0);
   for (const [k, g] of Object.entries(tierToolIcons())) add(`icon_${k}`, g, 0, 0);
+  for (const [k, g] of Object.entries(foodIcons())) add(`icon_${k}`, g, 0, 0);
   add('icon_coin', coinIcon(), 0, 0);
 
   add('ui_frame', FRAME, 0, 0);

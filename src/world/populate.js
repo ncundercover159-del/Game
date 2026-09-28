@@ -1,5 +1,6 @@
 // Deterministic placement of world objects.
-// decorate(): fixed scenery from the map itself (forest edge, fences) - the same on every farm.
+// decorate(): fixed scenery from the map itself (forest edge, fences, village trees) - the same in
+// every save.
 // populate(): the overgrowth for a new game, driven by the save seed.
 import { hash, hashf, valueNoise } from '../core/rng.js';
 
@@ -14,6 +15,8 @@ export function decorate(map) {
   for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) {
     const ch = def.ground[y][x];
     if (ch === 'f') map.addObject({ type: 'fence', x, y, v: x % 3 === 0 ? 1 : 0 });
+    // Outside the farm, trees are scenery rather than timber.
+    if (!def.wild && (ch === 's' || ch === 't')) map.addObject({ type: 'forest', x, y, kind: ch === 's' ? 'sakura' : 'broadleaf', v: hash(x, y, 0, 78) % 3 });
     // Forest edge: a staggered lattice so canopies overlap into a continuous treeline.
     if (ch === 'T' && y % 2 === 0 && (x + (y % 4 === 0 ? 0 : 1)) % 2 === 0) {
       const h = hash(x, y, 0, 77);

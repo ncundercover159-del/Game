@@ -3,9 +3,17 @@
 import { TILE } from '../config.js';
 import { OBJECT_TYPES } from '../data/objects.js';
 
-export const G = { GRASS: 0, DIRT: 1, WATER: 2, PATH: 3 };
-const GROUND_OF = { T: G.GRASS, '.': G.GRASS, o: G.GRASS, f: G.GRASS, s: G.GRASS, t: G.GRASS, ',': G.DIRT, ':': G.DIRT, '~': G.WATER, '=': G.PATH };
-const BLOCKING = new Set(['T', '~', 'f']);
+export const G = { GRASS: 0, DIRT: 1, WATER: 2, PATH: 3, WALL: 4, WOOD: 5, TATAMI: 6, TATAMI_R: 7, DOMA: 8, BRIDGE: 9, STEPS: 10, VOID: 11 };
+// Ground legend shared by every map (see src/maps/*.js headers).
+const GROUND_OF = {
+  T: G.GRASS, '.': G.GRASS, o: G.GRASS, f: G.GRASS, s: G.GRASS, t: G.GRASS, ',': G.DIRT, ':': G.DIRT,
+  '~': G.WATER, '=': G.PATH, '#': G.WALL, w: G.WOOD, m: G.TATAMI, n: G.TATAMI_R, d: G.DOMA,
+  b: G.BRIDGE, S: G.STEPS, x: G.VOID, X: G.GRASS, p: G.DIRT, c: G.DIRT,
+};
+// Soil laid out by the map itself (village paddies and their channels).
+const SOIL_OF = { p: 1, c: 2 };
+// X: grass that can't be walked on (hedges, cliffs and the like drawn by objects or edges).
+const BLOCKING = new Set(['T', '~', 'f', '#', 'x', 'X']);
 
 export class GameMap {
   constructor(def) {
@@ -33,16 +41,30 @@ export class GameMap {
       if (g === undefined) throw new Error(`Map ${def.id}: unknown ground "${ch}" at ${x},${y}`);
       this.ground[y * this.w + x] = g;
       if (BLOCKING.has(ch)) this.blocked[y * this.w + x] = 1;
+      if (SOIL_OF[ch]) this.soil[y * this.w + x] = SOIL_OF[ch];
     }
     this.buildings = (def.buildings || []).map((b) => ({ ...b }));
     for (const b of this.buildings) {
       for (let y = b.ty; y < b.ty + b.h; y++) for (let x = b.tx; x < b.tx + b.w; x++) this.blocked[this.i(x, y)] = 1;
-      for (const [lx, ly] of b.lights || []) this.lights.push({ x: b.tx * TILE + b.px + lx, y: b.ty * TILE + b.py + ly, r: 1, kind: 'window' });
+      // A door that leads inside is walked through; a shut one stays part of the wall.
+      if (b.door?.to) this.blocked[this.i(b.door.tx, b.door.ty)] = 0;
+      // Light offsets are from the sprite's top-left when it has (px, py), else from its bottom-centre.
+      const [sx, sy] = this.spriteOrigin(b);
+      for (const [lx, ly] of b.lights || []) this.lights.push({ x: sx + lx, y: sy + ly, kind: 'window' });
     }
     for (const p of def.props || []) {
-      this.addObject({ type: p.type, x: p.tx, y: p.ty, text: p.text });
-      if (p.light) this.lights.push({ x: p.tx * TILE + 8, y: (p.ty + 1) * TILE - 16 + p.light[1], r: 0, kind: 'lantern' });
+      const { tx, ty, block, light, ...rest } = p;
+      this.addObject({ ...rest, x: tx, y: ty });
+      // `block: [w, h]` makes a wide piece solid: w tiles right and h tiles up from its anchor tile.
+      if (block) for (let y = ty - block[1] + 1; y <= ty; y++) for (let x = tx; x < tx + block[0]; x++) this.blocked[this.i(x, y)] = 1;
+      if (light) this.lights.push({ x: tx * TILE + 8 + light[0], y: ty * TILE + light[1], kind: 'lantern' });
     }
+  }
+
+  /** Origin of a building's light offsets in world px (see above). */
+  spriteOrigin(b) {
+    if (b.px !== undefined) return [b.tx * TILE + b.px, b.ty * TILE + b.py];
+    return [b.tx * TILE + (b.w * TILE) / 2, (b.ty + b.h) * TILE];
   }
 
   i(x, y) { return y * this.w + x; }
@@ -56,6 +78,12 @@ export class GameMap {
   }
 
   isWater(x, y) { return this.groundAt(x, y) === G.WATER; }
+
+  /** Water for drawing purposes: bridges sit over water. */
+  isWaterish(x, y) {
+    const g = this.groundAt(x, y);
+    return g === G.WATER || g === G.BRIDGE;
+  }
 
   objectAt(x, y) {
     if (!this.inside(x, y)) return null;

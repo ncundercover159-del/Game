@@ -1,9 +1,11 @@
-// The game: owns state (calendar, money, Genki, backpack, flags), the World, the clock, modal UI and
-// scene flow (title <-> play). Systems talk back to it through the small service methods below.
+// The game: owns state (calendar, money, Genki, backpack, flags), the player, one World per visited
+// map (created on first visit and kept), the clock, modal UI and scene flow (title <-> play).
+// Systems talk back to it through the small service methods below.
 import { Camera } from './core/camera.js';
 import { Rng } from './core/rng.js';
 import { makeDoc, writeSlot, readSlot, exportDoc, importDoc } from './core/save.js';
 import { World } from './world/world.js';
+import { Player } from './world/player.js';
 import { drawWorld } from './world/draw.js';
 import { Lighting } from './world/lighting.js';
 import { Inventory } from './systems/inventory.js';
@@ -15,7 +17,7 @@ import { newState } from './state.js';
 import { summaryLines, drawSummary } from './ui/summary.js';
 import { ShipMenu } from './ui/ship.js';
 import { ShopMenu, ForgeMenu } from './ui/shop.js';
-import { SHOPS, TRIP_MINUTES } from './data/shops.js';
+import { SHOPS } from './data/shops.js';
 import { itemDef } from './data/items.js';
 import { Hud } from './ui/hud.js';
 import { Dialog } from './ui/dialog.js';
@@ -24,9 +26,10 @@ import { Title } from './ui/title.js';
 import { InkWipe } from './ui/transition.js';
 import { rect } from './ui/widgets.js';
 import { t } from './data/strings.js';
-import farmDef from './maps/farm.js';
+import { MAPS } from './maps/index.js';
 
 const SETTINGS_KEY = 'ronin.settings';
+const INDOOR_DIM = 0.15;
 const DEFAULT_SETTINGS = { sfx: 0.8, speed: 'normal', shake: true, flashes: true };
 
 export class Game {
@@ -70,10 +73,46 @@ export class Game {
     this.inventory = Inventory.from(s.inventory);
     this.rng = new Rng(s.rng);
     this.applyParams();
-    this.world = new World(this, farmDef, s.maps.farm || null);
-    if (s.player) Object.assign(this.world.player, s.player);
+    this.savedMaps = { ...s.maps };
+    this.worlds = new Map();
+    this.player = new Player({ x: 0, y: 0 });
+    // Resume where the save left off (old saves predate maps: the farm), or at a map's spawn.
+    const at = s.player ? { map: 'farm', ...s.player } : null;
+    const param = this.params.get('map');
+    const id = MAPS[param] ? param : at ? at.map : 'farm';
+    const sp = MAPS[id].spawn;
+    this.enter(id, sp.tx, sp.ty, sp.dir);
+    if (at && at.map === id) Object.assign(this.player, { x: at.x, y: at.y, dir: at.dir });
     this.clockAcc = 0;
   }
+
+  /** The World for a map, created on first visit (from its save data, if any) and then kept. */
+  worldFor(id) {
+    let w = this.worlds.get(id);
+    if (!w) {
+      w = new World(this, MAPS[id], this.savedMaps[id] || null);
+      this.worlds.set(id, w);
+    }
+    return w;
+  }
+
+  /** Switch to a map and put the player on (tx, ty). */
+  enter(id, tx, ty, dir) {
+    this.world = this.worldFor(id);
+    this.world.ground.setSeason(this.cal.season);
+    this.world.place(tx, ty, dir);
+    const p = this.player, m = this.world.map;
+    this.camera.setView(this.screen.w, this.screen.h);
+    this.camera.follow(p.x, p.y - 12, m.pw, m.ph, 1);
+  }
+
+  /** Walk through a warp (door or road) behind a quick ink wipe. */
+  warp(wp) {
+    this.sfx(wp.door ? 'door' : 'step');
+    this.modals.push(new InkWipe(this, { sweep: 0.28, hold: 0.05, onCovered: () => this.enter(wp.to, wp.tx, wp.ty, wp.dir) }));
+  }
+
+  get indoors() { return !!this.world.map.def.indoor; }
 
   get seasonId() { return SEASONS[this.cal.season].id; }
 
@@ -130,9 +169,16 @@ export class Game {
       cal: { ...this.cal }, weather: this.weather, tomorrow: this.tomorrow, tiers: { ...this.tiers },
       upgrade: this.upgrade, shipped: this.shipped.map((x) => ({ ...x })), stats: { ...this.stats },
       inventory: this.inventory.serialize(), flags: { ...this.flags },
-      rng: this.rng.state(), player: this.world.player.serialize(),
-      maps: { farm: this.world.map.serialize() },
+      rng: this.rng.state(), player: { ...this.player.serialize(), map: this.world.map.id },
+      maps: this.mapsSnapshot(),
     };
+  }
+
+  /** Saved state of every map that keeps any (the farm), visited this session or not. */
+  mapsSnapshot() {
+    const out = { ...this.savedMaps };
+    for (const [id, w] of this.worlds) if (w.map.def.persist) out[id] = w.map.serialize();
+    return out;
   }
 
   doc() {
@@ -211,9 +257,9 @@ export class Game {
     let summary = null;
     const wipe = new InkWipe(this, {
       onCovered: () => {
-        const season = this.cal.season;
         const r = endDay(this, passedOut);
-        if (this.cal.season !== season) this.world.ground.setSeason(this.cal.season);
+        const bed = MAPS.house_farm.wake;
+        this.enter('house_farm', bed.tx, bed.ty, bed.dir);
         this.saveNow(true);
         summary = summaryLines(r, this);
         this.morning(r, passedOut);
@@ -239,27 +285,28 @@ export class Game {
     this.modals.push(new ShipMenu(this));
   }
 
-  /** The valley road: until the village map exists (M3), a trip opens the shop directly. */
-  edgeAction(e) {
-    if (e.action !== 'village') { this.say(e.text); return; }
-    this.modals.push(new Dialog(this, {
-      text: t('village_ask'),
-      choices: [t('village_yorozuya'), t('village_kajiya'), t('village_stay')],
-      onChoose: (i) => { if (i < 2) this.visitShop(i === 0 ? 'yorozuya' : 'kajiya'); },
-    }));
-  }
-
-  visitShop(id) {
+  /** Open a shop from its counter: only in opening hours, and never on its closed day. */
+  openShop(id) {
     const shop = SHOPS[id];
-    const arrive = this.cal.minutes + TRIP_MINUTES / 2;
-    const closedToday = dayIndex(this.cal) % 7 === shop.closedDay;
-    if (closedToday || arrive < shop.open || arrive >= shop.close) {
+    const m = this.cal.minutes;
+    if (dayIndex(this.cal) % 7 === shop.closedDay || m < shop.open || m >= shop.close) {
       const day = WEEKDAYS[shop.closedDay];
       this.say('shop_closed', { name: shop.name, open: formatTime(shop.open), close: formatTime(shop.close), closed: t('shop_closed_day', { day: `${day.name} ${day.jp}` }) });
       return;
     }
-    this.cal.minutes = Math.min(DAY_END - TICK_MINUTES, this.cal.minutes + TRIP_MINUTES);
-    this.modals.push(id === 'yorozuya' ? new ShopMenu(this) : new ForgeMenu(this));
+    this.sfx('ui_ok');
+    this.modals.push(id === 'kajiya' ? new ForgeMenu(this) : new ShopMenu(this, id));
+  }
+
+  /** Eat the selected food for Genki. */
+  eat(slot) {
+    const s = this.inventory.slots[slot];
+    const def = itemDef(s.id);
+    if (this.genki >= this.genkiMax) { this.sfx('deny'); this.aside('tk_not_hungry', { once: `full_genki${this.cal.day}` }); return; }
+    this.genki = Math.min(this.genkiMax, this.genki + def.genki);
+    this.inventory.takeFrom(slot, 1);
+    this.sfx('eat');
+    this.toast('toast_ate', { item: def.name, n: def.genki }, `icon_${s.id}`);
   }
 
   smoothMinutes() {
@@ -297,7 +344,7 @@ export class Game {
     this.world.update(dt);
     this.tickClock(dt);
     if (this.weatherFx.update(dt, this.weather, this.cal.season, this.screen.w, this.screen.h, this.cal.minutes, this.settings.flashes) === 'thunder') this.sfx('fall');
-    const p = this.world.player;
+    const p = this.player;
     this.camera.setView(this.screen.w, this.screen.h);
     this.camera.follow(p.x, p.y - 12, this.world.map.pw, this.world.map.ph);
   }
@@ -340,8 +387,10 @@ export class Game {
     cam.x += sx;
     drawWorld(this.world, ctx, cam);
     cam.x -= sx;
-    this.lighting.apply(ctx, w, h, this.smoothMinutes(), this.world.lights(), cam, WEATHER[this.weather].tint || 0);
-    this.weatherFx.draw(ctx, this.clockTime, w, h);
+    // Indoors: a little shade by day, no sky weather; lamps and hearths light the room at night.
+    const dim = this.indoors ? INDOOR_DIM : WEATHER[this.weather].tint || 0;
+    this.lighting.apply(ctx, w, h, this.smoothMinutes(), this.world.lights(), cam, dim);
+    if (!this.indoors) this.weatherFx.draw(ctx, this.clockTime, w, h);
     if (this.scene === 'title') this.title.draw(ctx);
     else {
       this.hud.draw(ctx);

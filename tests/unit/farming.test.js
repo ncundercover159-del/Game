@@ -6,7 +6,7 @@ import { computeFlow, isFlooded, SOIL } from '../../src/systems/irrigation.js';
 import { stageOf, RIPE } from '../../src/data/crops.js';
 import { Rng } from '../../src/core/rng.js';
 
-const def = { id: 't', ground: ['.....', '.,,,.', '.,~,.', '.....'] };
+const def = { id: 't', farmable: true, ground: ['.....', '.,,,.', '.,~,.', '.....'] };
 const fresh = () => new GameMap(def);
 
 test('stages advance from seeds to ripe over the crop\'s days', () => {
@@ -81,7 +81,7 @@ test('map state round-trips through serialize/restore', () => {
 });
 
 test('a harvest can yield several (rice gives 2-3)', () => {
-  const m = new GameMap({ id: 'p', ground: ['~....', '.....'] });
+  const m = new GameMap({ id: 'p', farmable: true, ground: ['~....', '.....'] });
   till(m, 1, 0);
   assert.ok(isFlooded(m, 1, 0), 'next to the pond');
   assert.ok(plant(m, 1, 0, 'rice', 'spring'));
@@ -92,7 +92,7 @@ test('a harvest can yield several (rice gives 2-3)', () => {
 });
 
 test('seeds refuse the wrong season, dry soil for rice, bare soil for winter crops', () => {
-  const m = new GameMap({ id: 'p', ground: ['.....', '.....'] });
+  const m = new GameMap({ id: 'p', farmable: true, ground: ['.....', '.....'] });
   till(m, 1, 0);
   assert.equal(plantProblem(m, 1, 0, 'nasu', 'spring'), 'wrong_season');
   assert.equal(plantProblem(m, 1, 0, 'rice', 'spring'), 'needs_paddy');
@@ -102,7 +102,7 @@ test('seeds refuse the wrong season, dry soil for rice, bare soil for winter cro
 });
 
 test('crops wither when the season they need ends; any tool clears them', () => {
-  const m = new GameMap({ id: 'p', ground: ['.....'] });
+  const m = new GameMap({ id: 'p', farmable: true, ground: ['.....'] });
   till(m, 1, 0); plant(m, 1, 0, 'daikon', 'spring');
   till(m, 3, 0); plant(m, 3, 0, 'rice', null);
   assert.deepEqual(growNight(m, 'summer').withered, 1, 'daikon dies, rice lives on in summer');
@@ -113,10 +113,16 @@ test('crops wither when the season they need ends; any tool clears them', () => 
 });
 
 test('rain waters tilled soil; typhoons spare straw-covered beds', () => {
-  const m = new GameMap({ id: 'p', ground: ['......'] });
+  const m = new GameMap({ id: 'p', farmable: true, ground: ['......'] });
   for (let x = 0; x < 6; x++) { till(m, x, 0); plant(m, x, 0, 'daikon'); }
   rainWater(m);
   assert.ok([0, 1, 2, 3, 4, 5].every((x) => m.wet[x] === 1));
   for (let x = 0; x < 6; x++) coverSoil(m, x, 0);
   assert.equal(typhoonDamage(m, new Rng(2), 1), 0);
+});
+
+test('only farmable maps can be tilled', () => {
+  const m = new GameMap({ id: 'v', ground: ['...'] });
+  assert.equal(canTill(m, 1, 0), false);
+  assert.equal(till(m, 1, 0), false);
 });
