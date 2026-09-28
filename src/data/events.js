@@ -1,5 +1,8 @@
-// Story events that play when you first enter a map. Scripts use the language in
-// systems/script.js; `flag` marks the event as seen; `when(game)` can hold it back.
+// Story events that play when you first enter a map (the main story's are in data/story.js).
+// Scripts use the language in systems/script.js; `flag` marks the event as seen; `when(game)` can
+// hold it back.
+import { STORY } from './story.js';
+
 export const EVENTS = [
   {
     // Heibei meets you on the road the first time you walk in from the farm.
@@ -26,4 +29,5 @@ export const EVENTS = [
       setFlag met_heibei
     `,
   },
+  ...STORY,
 ];

@@ -247,6 +247,7 @@ export const FESTIVALS = [
       say kon neutral "Ah. Good eyes. Foxes have... never mind. Ask me another night."
       say soken sad "Then the seals are not keeping evil in. They are keeping something from hurting what lives up there."
       setFlag spirits_corrupted
+      setFlag hyakki_seen
       virtue gi 3
       bond kon 60
     `,

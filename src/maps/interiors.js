@@ -279,6 +279,25 @@ export const INTERIORS = [
       { type: 'andon', tx: 13, ty: 7, light: [0, 4] },
     ],
   }),
+  // The Village Archive: the old kura, restored, with shelves of the valley's things and the ledger desk.
+  room('archive', 'Village Archive', '集蔵館', [
+    'wwwwwwwwwww',
+    'wwwwwwwwwww',
+    'wwwwwwwwwww',
+    'wwwwwwwwwww',
+    'ddddddddddd',
+  ], 6, {
+    props: [
+      { type: 'shelf', tx: 2, ty: WALL, ox: 8, kind: 'goods' },
+      { type: 'shelf', tx: 5, ty: WALL, ox: 8, kind: 'herbs' },
+      { type: 'shelf', tx: 9, ty: WALL, ox: 8, kind: 'goods' },
+      { type: 'desk', tx: 6, ty: 4, action: 'archive' },
+      { type: 'tansu', tx: 1, ty: 4 },
+      { type: 'tansu', tx: 11, ty: 4 },
+      { type: 'barrels', tx: 10, ty: 7 },
+      { type: 'andon', tx: 2, ty: 7, light: [0, 4] },
+    ],
+  }),
   // Uncle's coop: a hay hopper by the wall and straw nests. Eggs laid overnight lie on the floor.
   room('coop', 'Coop', '鶏小屋', [
     'ddddddddd',

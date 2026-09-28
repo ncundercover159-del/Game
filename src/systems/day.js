@@ -4,6 +4,7 @@ import { nextDay, dayIndex, MIDNIGHT, SEASONS } from './calendar.js';
 import { weatherFor, WEATHER } from './weather.js';
 import { sellValue, hasPerk } from './skills.js';
 import { trapsNight } from './fishing.js';
+import { shippingAdjust } from './story.js';
 
 export const PASS_OUT = { frac: 0.1, cap: 1000 };
 
@@ -35,7 +36,9 @@ export function endDay(game, passedOut) {
   const map = game.worldFor('farm').map;
 
   const ship = shippingValue(game.shipped, game.skills);
-  game.money += ship.total;
+  // The magistrate's toll takes its tenth; with Kuroda's contract he pays over the price instead.
+  const { toll, bonus } = shippingAdjust(game.flags, ship.total);
+  game.money += ship.total - toll + bonus;
   game.stats.shippedValue += ship.total;
   game.shipped = [];
 
@@ -58,5 +61,5 @@ export function endDay(game, passedOut) {
   let upgraded = null;
   if (game.upgrade && dayIndex(t) >= game.upgrade.ready) upgraded = game.upgrade.tool;
 
-  return { ship, grew, withered, typhoonLost, lost, prev, newSeason, newYear, upgraded };
+  return { ship, toll, bonus, grew, withered, typhoonLost, lost, prev, newSeason, newYear, upgraded };
 }

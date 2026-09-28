@@ -12,6 +12,7 @@ import { Dialog } from '../ui/dialog.js';
 import DIALOGUE from '../data/dialogue/index.js';
 import { ROMANCE } from '../data/romance.js';
 import { offerRomance } from '../home.js';
+import { petitionTalk } from '../story.js';
 
 export function bondOf(game, id) {
   if (!game.bonds[id]) game.bonds[id] = newBond();
@@ -79,7 +80,7 @@ function chat(game, n) {
   talk(b, day, talkBonus(game.virtues));
   if (first) n.showEmote('bang');
   if (isBirthday(n.id, game.cal) && !first) game.aside('tk_birthday', { once: `bday_${n.id}_${game.cal.year}`, vars: { npc: NPCS[n.id].name } });
-  game.modals.push(speak(game, n.id, line));
+  game.modals.push(speak(game, n.id, line, { onClose: () => petitionTalk(game, n.id) }));
   heartUp(game, n, before);
 }
 

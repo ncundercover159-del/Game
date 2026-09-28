@@ -158,4 +158,5 @@ export function stopAt(route, minutes) {
 // People who speak in scenes but are not villagers (no schedule, bond or gifts).
 export const SPEAKERS = {
   jubei: { name: 'Jūbei', jp: '十兵衛', voice: 95 },
+  kuroda: { name: 'Kuroda', jp: '黒田', voice: 85 },
 };

@@ -9,6 +9,7 @@ import { NoticeMenu } from './ui/notice.js';
 import { MailMenu } from './ui/mail.js';
 import { OfferingMenu } from './ui/offering.js';
 import { CookMenu } from './ui/cook.js';
+import { ArchiveMenu } from './ui/archive.js';
 import { Cutscene } from './ui/cutscene.js';
 import { t } from './data/strings.js';
 import { itemDef } from './data/items.js';
@@ -18,6 +19,7 @@ import { RESTORATIONS } from './data/restorations.js';
 import { endDay } from './systems/day.js';
 import { homeNight, homeMorning, wakeSpot } from './home.js';
 import { festivalMorning } from './festivals.js';
+import { storyMorning } from './story.js';
 import { decay } from './systems/bonds.js';
 import { decayMult } from './systems/virtues.js';
 import { refresh } from './systems/requests.js';
@@ -85,6 +87,7 @@ function morning(g, r, passedOut) {
   if (r.mail) g.aside('tk_mail', { vars: { n: r.mail } });
   if (g.flags.restored_bell) g.sfx('bell');
   festivalMorning(g);
+  storyMorning(g);
   homeMorning(g, r.home);
 }
 
@@ -161,6 +164,11 @@ export function openMailbox(g) {
   if (!g.mail.inbox.length) { g.say('mail_empty'); return; }
   g.sfx('ui');
   g.modals.push(new MailMenu(g));
+}
+
+export function openArchive(g) {
+  g.sfx('ui');
+  g.modals.push(new ArchiveMenu(g));
 }
 
 export function openAltar(g, altar) {

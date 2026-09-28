@@ -82,7 +82,7 @@ export default {
     { id: 'sento', sprite: 'b_sento', tx: 71, ty: 10, w: 5, h: 2, door: { tx: 73, ty: 11, to: 'sento' } },
     { id: 'daikansho', sprite: 'b_daikansho', tx: 44, ty: 3, w: 11, h: 3, door: { tx: 49, ty: 5, to: 'daikansho' } },
     { id: 'tera', sprite: 'b_tera', tx: 6, ty: 4, w: 5, h: 2, door: { tx: 8, ty: 5, to: 'tera' } },
-    { id: 'archive', sprite: 'kura', tx: 20, ty: 3, w: 3, h: 3, px: -5, py: -32, door: { tx: 21, ty: 5, say: 'archive_ruin' } },
+    { id: 'archive', sprite: 'kura', tx: 20, ty: 3, w: 3, h: 3, px: -5, py: -32, door: { tx: 21, ty: 5, to: 'archive', ifFlag: 'restored_archive', say: 'archive_ruin' } },
     { id: 'dojo', sprite: 'b_dojo', tx: 4, ty: 25, w: 9, h: 2, door: { tx: 8, ty: 26, to: 'dojo', ifFlag: 'rin_arrived', say: 'dojo_closed' } },
     { id: 'toyo', sprite: 'b_toyo', tx: 15, ty: 25, w: 5, h: 2, door: { tx: 17, ty: 26, to: 'toyo' } },
     { id: 'house_l2', sprite: 'b_house2', tx: 23, ty: 25, w: 5, h: 2, door: { tx: 25, ty: 26, say: 'house_private' } },

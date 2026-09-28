@@ -13,7 +13,7 @@ import { digFind } from '../systems/forage.js';
 import { hasPerk } from '../systems/skills.js';
 import { accepts, load, isReady, collect } from '../systems/craft.js';
 import { dayIndex } from '../systems/calendar.js';
-import { openNotice, openMailbox, openAltar, openCooking } from '../flow.js';
+import { openNotice, openMailbox, openAltar, openCooking, openArchive } from '../flow.js';
 import { descend, climbOut, lightLantern, openChest, takeBundle } from '../caves.js';
 
 // Object types that answer Interact directly.
@@ -58,6 +58,7 @@ export function interact(w) {
   const cur = g.inventory.current;
   if (cur && itemDef(cur.id).kind === 'seed' && canPlant(map, x, y, cur.id.slice(5))) { plantSeed(w, g.inventory.selected, x, y); return; }
   if (o && o.action === 'sleep') { g.askSleep(); return; }
+  if (o && o.action === 'archive') { openArchive(g); return; }
   if (o && o.shop) {
     // With the keeper behind the counter you can shop or chat; otherwise it's just the shop.
     const keeper = [0, -1, 1].map((dx) => g.villagers.at(map.id, x + dx, y - 1)).find(Boolean);

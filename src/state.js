@@ -13,6 +13,7 @@ import { newAnimals } from './systems/animals.js';
 import { DISHES } from './data/recipes.js';
 import { newCaves } from './caves.js';
 import { newRomance } from './systems/romance.js';
+import { newArchive } from './systems/archive.js';
 
 const START_RECIPES = () => Object.keys(DISHES).filter((id) => DISHES[id].known);
 
@@ -31,7 +32,7 @@ export function newState(seed) {
     skills: newSkills(), buffs: [], foraged: { day: -1, keys: [] }, animals: newAnimals(),
     recipes: START_RECIPES(),
     hp: START.inochiMax, hpMax: START.inochiMax, difficulty: 'standard', caves: newCaves(),
-    romance: newRomance(), construction: null,
+    romance: newRomance(), construction: null, archive: newArchive(),
   };
 }
 
@@ -57,5 +58,5 @@ MIGRATIONS[3] = (s) => ({ ...s, skills: newSkills(), buffs: [], foraged: { day: 
 // the pack: Genzō sends it by letter (see data/letters.js).
 MIGRATIONS[4] = (s) => ({ ...s, hp: START.inochiMax, hpMax: START.inochiMax, difficulty: 'standard', caves: newCaves(), flags: { ...s.flags, needs_katana: true } });
 
-// v5 (M5) -> v6 (M6): courting and marriage, Tatsu's building work.
-MIGRATIONS[5] = (s) => ({ ...s, romance: newRomance(), construction: null });
+// v5 (M5) -> v6 (M6): courting and marriage, Tatsu's building work, the Village Archive.
+MIGRATIONS[5] = (s) => ({ ...s, romance: newRomance(), construction: null, archive: newArchive() });

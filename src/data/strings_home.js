@@ -53,4 +53,24 @@ export const HOME_STRINGS = {
   hk_kigo_yes: 'A season word of now: the verse is rooted.',
   hk_kigo_no: 'No season word of now: the verse floats.',
   hk_continue: 'Confirm to bow to the judge',
+
+  // Story
+  sum_toll: 'The magistrate\'s toll took {n} 文.',
+  sum_kuroda: 'Kuroda-ya paid {n} 文 over the price.',
+  petition_signed: '{npc} signs the petition ({n}/{of}).',
+  tk_petition_sent: 'Eight names. Heibei will send it to the castle by rider. Now the hard part: waiting. You were never good at that. Neither was I.',
+  tk_kuroda_hand: 'A stranger in Kuroda\'s colours is watering your fields. He does not look up. I do not like being tended by a man who does not look up.',
+
+  // The Village Archive
+  arc_title: 'Village Archive 集蔵館',
+  arc_hello: 'One of everything the valley grows, catches, digs or dreams. Leave it here, and it is remembered.',
+  arc_tab_donate: 'Donate',
+  arc_tab_collection: 'Collection',
+  arc_nothing: 'Nothing in your pack the Archive lacks.',
+  arc_total: '{n}/{of} kept',
+  arc_donated: '{item} joins the Archive ({n}/{of}).',
+  arc_reward: 'Archive reward: {why}',
+  arc_milestone: '{n} things kept',
+  arc_complete: '{name} complete',
+  arc_money: '+{n} 文 from the Archive fund',
 };

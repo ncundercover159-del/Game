@@ -1,5 +1,7 @@
 // Atlas registration for M6: the new homes' furniture, market stalls, and festival decorations.
 import { valleyIcons } from './icons2.js';
+import { SPEAKER_LOOKS } from './looks.js';
+import { portrait, EXPRESSIONS } from './portraits.js';
 import { lanternString, nobori, yagura, usu, sasa, tsukimiStand, yukidoro, kamakura, goza, taiko } from './festivalArt.js';
 import { butsudan, tub, barrels, sawhorse, desk, swordRack, yatai, omamoriStand } from './furniture2.js';
 
@@ -24,5 +26,6 @@ export function addValleyArt(atlas, add) {
   add('decor_kamakura', kamakura());
   add('decor_goza', goza());
   add('decor_taiko', taiko());
+  for (const [id, look] of Object.entries(SPEAKER_LOOKS)) for (const ex of EXPRESSIONS) add(`portrait_${id}_${ex}`, portrait(look, ex), 0, 0);
   for (const [k, g] of Object.entries(valleyIcons())) add(`icon_${k}`, g, 0, 0);
 }

@@ -69,4 +69,36 @@ export const LETTERS = [
     text: 'Winter. Keep your feet dry, your hearth lit and your pride in check. If you feel a fever coming, come to the shop before it arrives, not after. One tonic, enclosed. Do not waste it on a hangover. Ume.',
     items: [['tonic', 1]],
   },
+
+  // Act I-II: the first harvest, the tolls, Kuroda's invitation, the petition.
+  {
+    id: 'chobei_first', from: 'chobei', when: (g) => g.stats.shippedValue > 0,
+    text: 'My man collected your crate last night. Not bad. Not good either, but not bad. Your uncle\'s first crate was three turnips and a frog. The frog was not intentional. Keep shipping and keep the crate dry. Chōbei.',
+    items: [],
+  },
+  {
+    id: 'heibei_tolls', from: 'heibei', when: (g) => g.flags.tolls,
+    text: 'I am ashamed of this morning. A tenth of everything, and the magistrate smiling as he said it. The villages below pay nothing like it. I do not yet know what to do, but I know it is wrong, and I will not pretend otherwise. If the valley stands together, perhaps we can be heard at the castle. Keep your eyes open, and your crate honest.',
+    items: [],
+  },
+  {
+    id: 'kuroda_invite', from: 'Kuroda-ya', when: (g) => g.flags.rin_arrived && dayIndex(g.cal) >= 2 && (g.cal.year > 1 || g.cal.season >= 2) && g.cal.day >= 4,
+    text: 'Kuroda-ya, rice merchants of Yamabuki, request the honour of the farmer of Hinata at their door, at the farmer\'s convenience, regarding an arrangement of mutual profit. The magistrate will attend. Tolls, it is understood, are a burden. Burdens can be lifted. By our clerk.',
+    items: [],
+  },
+  {
+    id: 'heibei_petition', from: 'heibei', when: (g) => g.flags.petition,
+    text: 'You refused Kuroda. The whole street heard. Then let us do this properly: a petition to the castle, against the tolls, with the names of those who will stand behind it. Eight names, and I will send it by rider. Talk to the people who trust you. Not the children, and not, obviously, the magistrate. I have signed first. My hand shook. I signed anyway.',
+    items: [],
+  },
+  {
+    id: 'heibei_sent', from: 'heibei', when: (g) => g.flags.petition_sent !== undefined,
+    text: 'The rider left at dawn with the petition in oilcloth. Eight names, and one of them mine. Now we wait. The castle is slow, but the castle reads. Pray the magistrate\'s friends there are fewer than he thinks.',
+    items: [],
+  },
+  {
+    id: 'kuroda_hand', from: 'Kuroda-ya', when: (g) => g.flags.kuroda_signed,
+    text: 'Our arrangement stands. A hand will water the farmer\'s fields at dawn, and all goods in the crate will be bought at the house price, ten parts in a hundred over the village rate, untaxed. Kuroda-ya thanks the farmer for a sensible decision. The weather, the house notes, is turning cold.',
+    items: [],
+  },
 ];

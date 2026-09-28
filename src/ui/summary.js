@@ -19,6 +19,8 @@ export function summaryLines(r, game) {
   if (r.withered) notes.push(t('sum_withered', { n: r.withered }));
   if (r.typhoonLost) notes.push(t('sum_typhoon', { n: r.typhoonLost }));
   if (r.lost) notes.push(t('sum_lost', { n: r.lost }));
+  if (r.toll) notes.push(t('sum_toll', { n: r.toll }));
+  if (r.bonus) notes.push(t('sum_kuroda', { n: r.bonus }));
   const fest = festivalOn(game.cal);
   if (fest) notes.push(t('sum_festival', { name: fest.name, place: MAPS[fest.map].name, time: formatTime(fest.from) }));
   const verses = HAIKU[r.prev.season];

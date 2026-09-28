@@ -142,7 +142,13 @@ export class Cutscene {
   take(id, n) { if (this.game.inventory.count(id) < n) return false; this.game.inventory.remove(id, n); return true; }
   money(n) { this.game.money += n; }
   pay(n) { if (this.game.money < n) return false; this.game.money -= n; return true; }
-  bond(id, n) { const b = bondOf(this.game, id); addBond(b, n); b.met = true; }
+  /** `bond all n` moves everyone you have met. */
+  bond(id, n) {
+    if (id === 'all') { for (const b of Object.values(this.game.bonds)) if (b.met) addBond(b, n); return; }
+    const b = bondOf(this.game, id);
+    addBond(b, n);
+    b.met = true;
+  }
   virtue(name, n) { this.game.addVirtue(name, n); }
   flag(name) { return this.game.flags[name]; }
   setFlag(name, v) { this.game.flags[name] = v; }
@@ -172,6 +178,8 @@ export class Cutscene {
     this.runner.update(dt);
     if (!this.runner.finished) return true;
     for (const n of this.moved) g.villagers.release(n);
+    // A scene may have changed who is where today (someone arrives, a festival is joined).
+    g.villagers.planDay();
     this.onEnd?.();
     return false;
   }

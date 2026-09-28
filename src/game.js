@@ -42,7 +42,7 @@ const INDOOR_DIM = 0.15;
 // Saved state the game holds as plain fields (copied in on load, out on save).
 const STATE_FIELDS = ['seed', 'money', 'genki', 'genkiMax', 'can', 'cal', 'flags', 'weather', 'tomorrow', 'tiers', 'upgrade',
   'shipped', 'stats', 'bonds', 'virtues', 'requests', 'mail', 'offerings', 'skills', 'buffs', 'foraged', 'animals', 'recipes',
-  'hp', 'hpMax', 'difficulty', 'caves', 'romance', 'construction'];
+  'hp', 'hpMax', 'difficulty', 'caves', 'romance', 'construction', 'archive'];
 const DEFAULT_SETTINGS = { sfx: 0.8, speed: 'normal', shake: true, flashes: true };
 
 export class Game {

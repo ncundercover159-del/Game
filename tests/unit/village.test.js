@@ -87,7 +87,7 @@ test('offerings: partial offers accumulate; the last one completes set and altar
 });
 
 test('mail: letters arrive once when due; birthday gossip for villagers you know', () => {
-  const g = { cal: { day: 1, season: 0, year: 1, minutes: 360 }, flags: {}, bonds: {}, mail: newMail() };
+  const g = { cal: { day: 1, season: 0, year: 1, minutes: 360 }, flags: {}, bonds: {}, stats: { shippedValue: 0 }, mail: newMail() };
   assert.equal(deliverMail(g), 0);
   g.cal.day = 2;
   assert.ok(deliverMail(g) >= 1);

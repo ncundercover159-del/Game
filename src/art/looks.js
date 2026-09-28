@@ -160,3 +160,13 @@ export const NPC_LOOKS = {
     style: 'cropped', age: 0,
   },
 };
+
+// People who only speak in scenes (portraits only): Kuroda never leaves his counting house.
+export const SPEAKER_LOOKS = {
+  kuroda: {
+    hair: ['ink2', 'ink4', 'ink5'], skin: ['skin2', 'skin4', 'skin5', 'skin6'],
+    kosode: ['wood0', 'wood1', 'wood2', 'wood3'], hakama: ['ink0', 'ink1', 'ink2', 'ink3'],
+    obi: ['gold0', 'gold2'], feet: ['wood1', 'ink6'], collar: ['gold1', 'gold2'], cord: 'gold2',
+    style: 'topknot', age: 2, mustache: true, kimono: true,
+  },
+};

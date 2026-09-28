@@ -95,5 +95,12 @@ export function valleyIcons() {
       for (const x of [6, 9]) for (let y = 4; y < 12; y += 2) set(g, x, y, 'ink1');
       set(g, 10, 12, 'red2');
     }),
+    archive_seal: icon((g) => {
+      fillRect(g, 5, 2, 6, 7, 'wood3');
+      fillRect(g, 6, 2, 2, 7, 'wood4');
+      fillRect(g, 3, 9, 10, 5, 'red2');
+      hline(g, 3, 12, 9, 'red3');
+      for (const [x, y] of [[5, 11], [7, 11], [9, 11], [10, 12]]) set(g, x, y, 'ink6');
+    }),
   };
 }
