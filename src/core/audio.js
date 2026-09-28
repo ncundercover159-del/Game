@@ -1,13 +1,17 @@
-// Procedural sound effects (WebAudio). No audio files: short noise/sine/pluck recipes, buffers
-// cached, voices capped. The context starts on the first user gesture (browser autoplay rules).
+// Procedural sound (WebAudio). No audio files: short noise/sine/pluck recipes, buffers cached,
+// voices capped. Three buses into the master (effects, music, ambience), each with its own volume;
+// the music and ambience are driven by core/director.js. The context starts on the first user
+// gesture (browser autoplay rules).
 
 const MAX_VOICES = 14;
+const MAX_MUSIC = 20;
 
 export class Audio {
   constructor() {
     this.ctx = null;
     this.voices = 0;
-    this.volume = { master: 0.8, sfx: 0.8, music: 0.6 };
+    this.mvoices = 0;
+    this.volume = { master: 0.8, sfx: 0.8, music: 0.6, ambience: 0.7 };
     this.buffers = new Map();
     const unlock = () => this.unlock();
     addEventListener('pointerdown', unlock, { once: false });
@@ -22,14 +26,38 @@ export class Audio {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     this.ctx = new AC();
-    this.out = this.ctx.createGain();
-    this.out.connect(this.ctx.destination);
+    this.master = this.ctx.createGain();
+    this.master.connect(this.ctx.destination);
+    const bus = () => { const g = this.ctx.createGain(); g.connect(this.master); return g; };
+    this.out = bus();          // effects
+    this.musicBus = bus();
+    this.ambBus = bus();
     this.setVolume();
+  }
+
+  /** Pause with the game (the music and the rain stop with it). */
+  suspend(on) {
+    if (!this.ctx) return;
+    if (on && this.ctx.state === 'running') this.ctx.suspend();
+    if (!on && this.ctx.state === 'suspended') this.ctx.resume();
   }
 
   setVolume(v = {}) {
     Object.assign(this.volume, v);
-    if (this.out) this.out.gain.value = this.volume.master * this.volume.sfx;
+    if (!this.master) return;
+    this.master.gain.value = this.volume.master;
+    this.out.gain.value = this.volume.sfx;
+    // The music and the ambience are voiced quietly; their sliders scale that.
+    this.musicBus.gain.value = this.volume.music * 0.7;
+    this.ambBus.gain.value = this.volume.ambience;
+  }
+
+  /** A music voice from `t` for `dur` s, if the cap allows (counts toward MAX_MUSIC). */
+  mvoice(t, dur) {
+    if (!this.ctx || this.mvoices >= MAX_MUSIC) return false;
+    this.mvoices++;
+    setTimeout(() => { this.mvoices--; }, (Math.max(0, t - this.ctx.currentTime) + dur) * 1000 + 100);
+    return true;
   }
 
   noise(dur) {
@@ -44,9 +72,9 @@ export class Audio {
     return this.buffers.get(key);
   }
 
-  /** Karplus-Strong plucked string (koto-ish), cached per pitch. */
+  /** Karplus-Strong plucked string (koto-ish), cached per pitch, length and damping. */
   pluckBuffer(freq, dur = 0.9, damp = 0.996) {
-    const key = `pluck${freq}`;
+    const key = `pluck${freq}:${dur}:${damp}`;
     if (!this.buffers.has(key)) {
       const sr = this.ctx.sampleRate;
       const b = this.ctx.createBuffer(1, Math.ceil(sr * dur), sr);
@@ -146,6 +174,13 @@ export class Audio {
       case 'ui_ok': this.pluck(587, 0.35); break;
       case 'ui_back': this.pluck(440, 0.3); break;
       case 'step': this.hiss('lowpass', 900, 1, 0.05, 0.04); break;
+      // Footsteps by ground, each a little different from the last.
+      case 'step_grass': this.hiss('lowpass', 1300 + Math.random() * 300, 0.7, 0.05, 0.05); break;
+      case 'step_dirt': this.tone('sine', 95 + Math.random() * 15, 60, 0.1, 0.04); this.hiss('lowpass', 700, 1, 0.06, 0.04); break;
+      case 'step_stone': this.tone('square', 850 + Math.random() * 120, 700, 0.025, 0.02); this.hiss('bandpass', 2600, 1, 0.05, 0.03); break;
+      case 'step_wood': this.tone('triangle', 210 + Math.random() * 30, 150, 0.1, 0.05); this.hiss('bandpass', 1200, 1, 0.03, 0.03); break;
+      case 'step_mat': this.hiss('lowpass', 900, 1, 0.04, 0.04); break;
+      case 'step_snow': this.hiss('bandpass', 1700 + Math.random() * 300, 0.8, 0.08, 0.07); this.hiss('highpass', 3500, 1, 0.03, 0.04, 0.03); break;
       case 'sleep': [392, 330, 294, 262].forEach((f, i) => this.pluck(f, 0.3, i * 0.22)); break;
       case 'door': this.hiss('bandpass', 700, 1.5, 0.2, 0.18); this.tone('triangle', 160, 120, 0.12, 0.1, 0.12); break;
       case 'eat': [0, 0.12, 0.24].forEach((d) => this.hiss('bandpass', 1200, 2, 0.15, 0.05, d)); this.pluck(880, 0.2, 0.35); break;

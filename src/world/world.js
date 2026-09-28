@@ -1,7 +1,7 @@
 // The playable world for one map: player control, targeting, tool use, interaction, drops and fx.
 // Drawing lives in draw.js.
 import { TILE } from '../config.js';
-import { GameMap } from './gamemap.js';
+import { GameMap, G } from './gamemap.js';
 import { GroundRenderer } from './ground.js';
 import { decorate, populate } from './populate.js';
 import { Fx } from './fx.js';
@@ -26,6 +26,14 @@ import { placeKodama, kodamaLights } from './kodama.js';
 
 const REACH = 1;
 const CHARGEABLE = new Set(['hoe', 'can']);
+
+// What your feet sound like on each ground (grass and earth outdoors crunch in winter).
+const FOOTING = { [G.DIRT]: 'dirt', [G.DOMA]: 'dirt', [G.PATH]: 'stone', [G.STEPS]: 'stone', [G.ROCK]: 'stone', [G.CAVE]: 'stone', [G.WOOD]: 'wood', [G.BRIDGE]: 'wood', [G.TATAMI]: 'mat', [G.TATAMI_R]: 'mat' };
+function footing(map, x, y, season) {
+  const g = map.inside(x, y) ? map.ground[map.i(x, y)] : G.GRASS;
+  const f = FOOTING[g] || 'grass';
+  return season === 'winter' && !map.def.indoor && !map.def.cave && (f === 'grass' || f === 'dirt') ? 'snow' : f;
+}
 
 export class World {
   constructor(game, def, saved) {
@@ -95,7 +103,7 @@ export class World {
       const a = input.axis();
       const moved = p.walk(dt, a.x, a.y, this.map, this.game.genki <= 0, 1 + buffAmount(this.game.buffs, 'speed'));
       this.stepDist += moved;
-      if (this.stepDist > 18) { this.stepDist = 0; this.game.sfx('step'); }
+      if (this.stepDist > 18) { this.stepDist = 0; this.game.sfx(`step_${footing(this.map, p.tx, p.ty, this.game.seasonId)}`); }
       if (input.pressed('use')) this.use();
       else if (input.pressed('interact')) this.interact();
       else if (this.map.def.cave && input.pressed('dodge')) this.combat.fighter.dodge(a.x, a.y);

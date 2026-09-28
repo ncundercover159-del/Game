@@ -22,6 +22,7 @@ import { SKILLS, PERKS } from './data/skills.js';
 import { gainXp, levelOf, buffAmount, expireBuffs, stamp } from './systems/skills.js';
 import { drawWorld } from './world/draw.js';
 import { Lighting } from './world/lighting.js';
+import { Director } from './core/director.js';
 import { Inventory } from './systems/inventory.js';
 import { TICK_SECONDS, TICK_MINUTES, DAY_END, MIDNIGHT, parseTime, SEASONS, dayIndex } from './systems/calendar.js';
 import { weatherFor, WEATHER } from './systems/weather.js';
@@ -43,7 +44,8 @@ const INDOOR_DIM = 0.15;
 const STATE_FIELDS = ['seed', 'money', 'genki', 'genkiMax', 'can', 'cal', 'flags', 'weather', 'tomorrow', 'tiers', 'upgrade',
   'shipped', 'stats', 'bonds', 'virtues', 'requests', 'mail', 'offerings', 'skills', 'buffs', 'foraged', 'animals', 'recipes',
   'hp', 'hpMax', 'difficulty', 'caves', 'romance', 'construction', 'archive'];
-const DEFAULT_SETTINGS = { sfx: 0.8, speed: 'normal', shake: true, flashes: true };
+const DEFAULT_SETTINGS = { sfx: 0.8, music: 0.6, ambience: 0.7, speed: 'normal', shake: true, flashes: true };
+const VOLUMES = ['sfx', 'music', 'ambience'];
 
 export class Game {
   constructor({ screen, input, atlas, cells, audio, params }) {
@@ -57,7 +59,8 @@ export class Game {
     this.clockAcc = 0;
     this.shakeT = 0;
     this.settings = { ...DEFAULT_SETTINGS, ...readSettings() };
-    this.audio.setVolume({ sfx: this.settings.sfx });
+    this.audio.setVolume({ sfx: this.settings.sfx, music: this.settings.music, ambience: this.settings.ambience });
+    this.director = new Director(audio);
     this.slot = 1;
     this.setup(Number(params.get('seed')) || 20260928);
     this.scene = 'title';
@@ -306,7 +309,7 @@ export class Game {
 
   setSetting(k, v) {
     this.settings[k] = v;
-    if (k === 'sfx') this.audio.setVolume({ sfx: v });
+    if (VOLUMES.includes(k)) this.audio.setVolume({ [k]: v });
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings)); } catch { /* private mode */ }
   }
 
@@ -317,6 +320,7 @@ export class Game {
     input.latch();
     this.clockTime += dt;
     this.shakeT = Math.max(0, this.shakeT - dt);
+    this.director.update(dt, this);
     if (this.scene === 'title') {
       this.world.time += dt;
       this.weatherFx.update(dt, this.weather, this.cal.season, this.screen.w, this.screen.h, this.cal.minutes, false);

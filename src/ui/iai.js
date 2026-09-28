@@ -13,6 +13,7 @@ export class IaiDuel {
     this.rival = rival;
     this.onEnd = onEnd;
     this.duel = new Duel(rng || new Rng((game.seed ^ Math.floor(game.clockTime * 1000)) >>> 0), game.difficulty, window);
+    this.hush = true;          // the music falls silent for the stand-off
     this.t = 0;
     this.flash = 0;
     this.after = 0;

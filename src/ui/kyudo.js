@@ -21,6 +21,7 @@ export class KyudoGame {
     this.pops = [];
     this.after = 0;
     this.armed = false;      // the key that opened the range must come up before a draw starts
+    this.hush = true;        // quiet on the range
   }
 
   update(dt, input) {

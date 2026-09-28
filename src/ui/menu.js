@@ -51,7 +51,7 @@ export class Menu {
     const g = this.game;
     const s = g.settings;
     return [
-      { label: t('opt_sfx'), value: `${Math.round(s.sfx * 10)}`, change: (d) => g.setSetting('sfx', Math.max(0, Math.min(1, Math.round((s.sfx + d * 0.1) * 10) / 10))) },
+      ...['music', 'sfx', 'ambience'].map((k) => ({ label: t(`opt_${k}`), value: `${Math.round(s[k] * 10)}`, change: (d) => g.setSetting(k, Math.max(0, Math.min(1, Math.round((s[k] + d * 0.1) * 10) / 10))) })),
       { label: t('opt_speed'), value: t(`opt_speed_${s.speed}`), change: (d) => {
         const order = ['normal', 'slow', 'relaxed'];
         g.setSetting('speed', order[(order.indexOf(s.speed) + d + 3) % 3]);

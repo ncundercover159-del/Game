@@ -27,7 +27,7 @@ async function boot() {
   if (debug) debug.loop = loop;
   exposeTestHooks(game, loop);
   // Pause when the tab is hidden or loses focus (accessibility / battery).
-  const setPaused = (p) => { loop.paused = p; if (p) input.releaseAll(); };
+  const setPaused = (p) => { loop.paused = p; audio.suspend(p); if (p) input.releaseAll(); };
   document.addEventListener('visibilitychange', () => setPaused(document.hidden));
   addEventListener('blur', () => setPaused(true));
   addEventListener('focus', () => setPaused(false));

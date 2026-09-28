@@ -44,6 +44,7 @@ export class RhythmGame {
     this.squash = 0;
     this.after = 0;
     this.beat = -1;
+    this.hush = true;        // the music steps aside for the beat
     this.cued = -1;          // the last partner cue sounded
     this.sparks = [];        // { x, y, vx, vy, t } at the anvil
   }
