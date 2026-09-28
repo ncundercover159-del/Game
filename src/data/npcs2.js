@@ -54,7 +54,7 @@ export const NPCS2 = {
     birthday: { season: 1, day: 12 },
     gifts: {
       loved: ['dango', 'suika', 'yajiri'],
-      liked: ['strawberry', 'onigiri', 'sawagani', 'kuri', 'kabocha'],
+      liked: ['strawberry', 'onigiri', 'sawagani', 'kuri', 'kabocha', 'kingyo'],
       disliked: ['komatsuna', 'shungiku', 'tea'],
       hated: ['gobo'],
     },
@@ -138,7 +138,7 @@ export const NPCS2 = {
     birthday: { season: 2, day: 5 },
     gifts: {
       loved: ['inari', 'tofu', 'yudofu'],
-      liked: ['dango', 'kuri', 'akebi', 'magatama', 'spirit_wisp'],
+      liked: ['dango', 'kuri', 'akebi', 'magatama', 'spirit_wisp', 'kitsune_soba'],
       disliked: ['iron_bar', 'steel_bar'],
       hated: ['kizugusuri'],
     },

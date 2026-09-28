@@ -9,6 +9,7 @@ import { MACHINES } from '../data/recipes.js';
 import { isReady, progressOf } from '../systems/craft.js';
 import { dayIndex } from '../systems/calendar.js';
 import { collectCombat, foeShadow, drawFoe, drawShot, drawOmens, drawPlayerCombat, drawCombatOverlay } from './drawCombat.js';
+import { drawKodamaObject } from './kodama.js';
 
 const SHADOW_ALPHA = 0.36;
 const pool = [];
@@ -177,6 +178,7 @@ function drawObject(w, ctx, cam, o) {
     ctx.globalAlpha = 1;
     return;
   }
+  if (o.type === 'kodama' || o.type === 'hokora') { drawKodamaObject(w, ctx, o, bx, by); return; }
   atlas.draw(ctx, seasonal(atlas, objectSprite(o), w.game.seasonId), bx, by);
   if (o.type === 'trap' && o.catch) atlas.draw(ctx, 'emote_bang', bx, by - 14 + Math.round(Math.sin(w.time * 3)));
   if (o.type === 'machine' && o.input) drawMachineState(w, ctx, o, bx, by);

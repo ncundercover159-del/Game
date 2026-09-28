@@ -167,6 +167,13 @@ export class Audio {
       case 'clap': this.hiss('bandpass', 2200, 1.5, 0.35, 0.05); this.hiss('bandpass', 1800, 1.5, 0.2, 0.04, 0.02); break;
       case 'firework': this.tone('sine', 400, 1600, 0.05, 0.5); this.hiss('lowpass', 1600, 0.6, 0.5, 0.7, 0.5); break;
       case 'chill': this.tone('sine', 1760, 1320, 0.06, 0.6); this.tone('sine', 1320, 990, 0.05, 0.7, 0.15); break;
+      // M7: a kodama's wooden rattle; the forge, the bow, the goldfish tub.
+      case 'rattle': [0, 0.05, 0.11, 0.16, 0.23].forEach((d, i) => this.tone('triangle', 1100 - i * 60, 800, 0.1, 0.03, d)); break;
+      case 'anvil': this.tone('square', 1850, 1800, 0.1, 0.15); this.tone('sine', 2600, 2550, 0.08, 0.5); this.hiss('highpass', 3000, 1, 0.2, 0.04); break;
+      case 'twang': this.tone('triangle', 196, 180, 0.3, 0.25); this.tone('sine', 392, 380, 0.1, 0.2); break;
+      case 'thunk': this.tone('triangle', 300, 120, 0.4, 0.06); this.hiss('lowpass', 800, 1, 0.2, 0.05); break;
+      case 'splash': this.hiss('bandpass', 1000, 1, 0.3, 0.25); this.hiss('bandpass', 2400, 2, 0.15, 0.2, 0.05); break;
+      case 'tear': this.hiss('highpass', 2000, 0.8, 0.3, 0.12); this.hiss('bandpass', 3500, 1.5, 0.2, 0.08, 0.05); break;
       default: break;
     }
   }

@@ -38,6 +38,7 @@ export function caveDef(g, floor) {
   if (beaten) props.push({ type: 'ladder', tx: gen.exit.tx, ty: gen.exit.ty });
   return {
     id: 'cave', name: `${zone.name} B${floor}`, jp: zone.jp, cave: true, floor, zone: gen.zone, boss: beaten ? null : boss, lava: !!zone.lava, mods: modsOf(floor),
+    waterKind: zone.lava ? 'lava' : zone.id === 'yomi' ? 'yomi' : 'cave',
     ground: gen.ground, props, warps: [], exit: gen.exit,
     spawn: { tx: gen.start.tx, ty: gen.start.ty, dir: 'down' },
     spawns: beaten ? [] : gen.spawns,

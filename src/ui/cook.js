@@ -12,8 +12,11 @@ import { levelOf, hasPerk } from '../systems/skills.js';
 const ROW = 22;
 
 /** Draw recipe rows (shared by cooking and the Craft tab). */
+/** The first row shown when `sel` must stay in view. */
+const topRow = (sel, count, visible) => Math.max(0, Math.min(sel - visible + 1, count - visible));
+
 export function drawRecipes(ctx, g, rows, sel, x, y, w, visible) {
-  const top = Math.max(0, Math.min(sel - visible + 1, rows.length - visible));
+  const top = topRow(sel, rows.length, visible);
   rows.slice(top, top + visible).forEach((r, k) => {
     const i = top + k, ry = y + k * ROW, on = i === sel;
     if (on) thin(ctx, g.atlas, x, ry - 1, w, ROW);
@@ -34,13 +37,15 @@ export function drawRecipes(ctx, g, rows, sel, x, y, w, visible) {
 }
 
 /** Move a selection through rows with keys and mouse; returns true when a row was activated. */
-export function pickRow(input, state, count, x, y, w) {
+export function pickRow(input, state, count, x, y, w, visible) {
   if (!count) return false;
+  // Clicks land on the rows as drawn, which scroll with the selection.
+  const top = topRow(state.sel, count, visible);
   if (input.pressed('up')) state.sel = (state.sel + count - 1) % count;
   if (input.pressed('down')) state.sel = (state.sel + 1) % count;
   const m = input.mouse;
   let clicked = false;
-  if (input.pressed('click')) for (let i = 0; i < count; i++) if (hit(m.x, m.y, x, y + i * ROW, w, ROW)) { state.sel = i; clicked = true; }
+  if (input.pressed('click')) for (let k = 0; k < Math.min(visible, count - top); k++) if (hit(m.x, m.y, x, y + k * ROW, w, ROW)) { state.sel = top + k; clicked = true; }
   return input.pressed('confirm') || clicked;
 }
 
@@ -68,7 +73,7 @@ export class CookMenu {
     this.layout();
     if (input.pressed('cancel') || input.pressed('menu') || input.pressed('rclick')) { g.sfx('ui_back'); return false; }
     const rows = this.rows();
-    if (pickRow(input, this, rows.length, this.x + 8, this.y + 28, this.w - 16)) this.cook(rows[this.sel]);
+    if (pickRow(input, this, rows.length, this.x + 8, this.y + 28, this.w - 16, Math.floor((this.h - 44) / ROW))) this.cook(rows[this.sel]);
     return true;
   }
 
@@ -104,16 +109,16 @@ export class CraftPage {
 
   rows() {
     const g = this.game, lv = levelOf(g.skills.craft.xp), thrifty = hasPerk(g.skills, 'thrifty');
-    return Object.entries(CRAFTS).map(([id, c]) => {
+    return Object.entries(CRAFTS).filter(([, c]) => !c.flag || g.flags[c.flag]).map(([id, c]) => {
       if (c.lv > lv) return { id, locked: c.lv, needs: [] };
       const needs = craftNeeds(id, thrifty);
       return { id, needs, ok: hasAll(needs, (i) => g.inventory.count(i)) };
     });
   }
 
-  update(input, x, y, w) {
+  update(input, x, y, w, h) {
     const rows = this.rows();
-    if (pickRow(input, this, rows.length, x + 8, y + 8, w - 16)) this.craft(rows[this.sel]);
+    if (pickRow(input, this, rows.length, x + 8, y + 8, w - 16, Math.floor((h - 26) / ROW))) this.craft(rows[this.sel]);
   }
 
   craft(r) {

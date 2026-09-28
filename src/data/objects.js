@@ -124,4 +124,10 @@ export const OBJECT_TYPES = {
   // An invisible marker that carries a lava pool's light.
   lava_glow: { name: 'Lava', solid: false, static: true, shadow: null, flat: true, hidden: true },
   fixture: { name: 'Festival Stand', solid: true, static: true, shadow: 'shadow_m' },
+  // M7: the dōjō's practice post (kata with Rin) and target (kyūdō); the kodama waiting on the shrine stair (placed each morning), and the hokora on your farm
+  // that one lives in (the axe or pickaxe takes it back up).
+  makiwara: { name: 'Makiwara', solid: true, static: true, shadow: 'shadow_s' },
+  mato: { name: 'Target', solid: true, static: true, shadow: 'shadow_s' },
+  kodama: { name: 'Kodama', solid: false, static: true, shadow: null },
+  hokora: { name: 'Hokora', solid: true, hp: 1, shadow: 'shadow_m', tools: { axe: 1, pickaxe: 1 }, drops: { any: [['hokora', 1, 1]] }, fx: 'fx_chip', sfx: 'chop' },
 };

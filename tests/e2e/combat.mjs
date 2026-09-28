@@ -165,9 +165,13 @@ await withBrowser(async (browser, base) => {
   assert.ok((await state()).virtues.yu >= 5, 'Yū from the fight');
   assert.equal(await run(() => window.__game.tile(15, 6).object), 'ladder', 'the way down opens');
 
-  step('Genzō reforges the rusted katana around iron');
+  step('Genzō reforges the rusted katana around iron (you leave the hammering to him)');
   await run(() => { const g = window.__game.game; g.cal.minutes = 600; g.money = 5000; g.inventory.remove('seed_daikon', g.inventory.count('seed_daikon')); g.inventory.add('iron_bar', 3); g.enter('kajiya', 4, 6, 'up'); g.modals = []; g.openShop('kajiya'); });
   await press('BracketRight', 50);
+  await press('Enter', 50);
+  // "Striking, or watching?" Leave it to him this time (the anvil minigame is in minigames.mjs).
+  await press('Enter', 600);
+  await press('ArrowDown', 50);
   await press('Enter', 50);
   await confirmAll();
   assert.equal(await count('katana_tetsu'), 1, 'Tetsu Katana');

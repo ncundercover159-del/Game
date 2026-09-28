@@ -84,7 +84,7 @@ export function iconOf(g) {
 // ---------------------------------------------------------------- goods and dishes
 
 /** A lacquered bowl with a filling painted by `fill`. */
-function bowl(fill, lacquer = ['red0', 'red1', 'red2']) {
+export function bowl(fill, lacquer = ['red0', 'red1', 'red2']) {
   const g = grid(14, 14);
   ellipse(g, 7, 7, 6.5, 2.5, lacquer[1]);
   fill(g);
@@ -92,7 +92,7 @@ function bowl(fill, lacquer = ['red0', 'red1', 'red2']) {
   hline(g, 5, 9, 13, lacquer[0]);
   return crop(outline(g, { color: 'ink0' }), 0, 0, 16, 16);
 }
-const rice = (g, c = 'ink6') => { ellipse(g, 7, 6, 5.5, 2.5, c); for (const [x, y] of [[4, 5], [8, 4], [10, 6], [6, 7]]) set(g, x, y, 'ink5'); };
+export const rice = (g, c = 'ink6') => { ellipse(g, 7, 6, 5.5, 2.5, c); for (const [x, y] of [[4, 5], [8, 4], [10, 6], [6, 7]]) set(g, x, y, 'ink5'); };
 
 export function goodsIcons() {
   const sprites = machineSprites();

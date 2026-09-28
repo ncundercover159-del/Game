@@ -49,7 +49,7 @@ test('festival places: decor is real, spots and scene staging are open ground, n
       if (o.op === 'placePlayer' || o.op === 'placeNpc') assert.ok(open(o.tx, o.ty), `${f.id}: ${o.op} ${o.tx},${o.ty}`);
       if (o.op === 'placeNpc' || (o.op === 'say' && o.who)) assert.ok(NPCS[o.npc || o.who], `${f.id}: ${o.npc || o.who}`);
       if (o.op === 'give') assert.ok(ITEMS[o.item], `${f.id}: ${o.item}`);
-      if (o.op === 'choice' && o.play) assert.ok(['haiku', 'judge', 'mochi', 'bonodori', 'otaue', 'mamemaki'].includes(o.play), o.play);
+      if (o.op === 'choice' && o.play) assert.ok(['haiku', 'judge', 'kingyo', 'mochi', 'bonodori', 'otaue', 'mamemaki'].includes(o.play), o.play);
     }
   }
 });

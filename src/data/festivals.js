@@ -155,6 +155,21 @@ export const FESTIVALS = [
       say daigo happy "Best seat in the valley: the bridge. I rowed the fireworks man up from Suwa myself. He was sick twice. Worth it."
       say kon happy "Kakigōri? Plum syrup. The ice came down from the mountain this morning, very fast, by... a friend."
       give kakigori 1
+      say kon happy "And the goldfish tub, before the sky starts. One paper scoop each. Paper is cheap; goldfish are clever."
+      choice "Try the goldfish" @kingyo "Save your mon" @sky
+      @kingyo
+      play kingyo @fish_best @fish_good @fish_poor
+      @fish_best
+      say kon surprised "A bowlful! Are you sure you are not part fox?"
+      bond kon 20
+      goto @sky
+      @fish_good
+      say kon happy "Not bad. They will live in a jar on your windowsill and judge you."
+      goto @sky
+      @fish_poor
+      say kon happy "The paper always wins in the end. Here, take one anyway. This one likes you."
+      give kingyo 1
+      @sky
       fade out 0.4
       fade in 0.4
       fireworks 5

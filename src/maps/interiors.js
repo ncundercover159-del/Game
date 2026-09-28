@@ -263,7 +263,8 @@ export const INTERIORS = [
       { type: 'andon', tx: 13, ty: 3, light: [0, 4] },
     ],
   }),
-  // The dōjō: bare boards, racks of practice swords. Rin trains here when she is in the valley.
+  // The dōjō: bare boards, racks of practice swords, a makiwara post for kata with Rin and a kyūdō
+  // target. Rin trains here when she is in the valley.
   room('dojo', 'Dōjō', '道場', [
     'wwwwwwwwwwwww',
     'wwwwwwwwwwwww',
@@ -277,6 +278,8 @@ export const INTERIORS = [
       { type: 'kamidana', tx: 6, ty: WALL },
       { type: 'andon', tx: 1, ty: 7, light: [0, 4] },
       { type: 'andon', tx: 13, ty: 7, light: [0, 4] },
+      { type: 'makiwara', tx: 3, ty: 4 },
+      { type: 'mato', tx: 12, ty: 4 },
     ],
   }),
   // The Village Archive: the old kura, restored, with shelves of the valley's things and the ledger desk.

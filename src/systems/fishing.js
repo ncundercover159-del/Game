@@ -21,6 +21,7 @@ export function fishFor(where, { season, minutes, weather, cal, caught = {} }) {
     const [a, b] = f.hours;
     if (!(minutes >= a && minutes < b) && !(minutes + 1440 >= a && minutes + 1440 < b)) return false;
     if (f.weather === 'rain' && !['rain', 'storm', 'tsuyu', 'typhoon'].includes(weather)) return false;
+    if (f.weather === 'storm' && !['storm', 'typhoon'].includes(weather)) return false;
     if (f.weather === 'clear' && weather !== 'clear') return false;
     if (f.fullMoon && !isFullMoon(cal)) return false;
     if (f.legendary && caught[id]) return false;

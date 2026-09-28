@@ -12,6 +12,8 @@ export const CRAFTS = {
   charcoal_kiln: { lv: 2, needs: [['stone', 30], ['wood', 10]] },
   miso_barrel: { lv: 3, needs: [['wood', 25], ['stone', 10]] },
   sake_barrel: { lv: 4, needs: [['wood', 30], ['iron_bar', 1]] },
+  // Shown once the kodama are back on the shrine hill (`flag`).
+  hokora: { lv: 1, needs: [['wood', 20], ['stone', 20], ['bamboo', 5]], flag: 'restored_kodama' },
 };
 
 // Artisan machines: what goes in (`input`: item ids, or a test), how many, how long, what comes out.
@@ -54,10 +56,28 @@ export const DISHES = {
   unadon: { name: 'Unadon', jp: '鰻丼', genki: 200, needs: [['unagi', 1], ['rice', 1]], buff: ['speed', 0.15, 6], desc: 'Grilled eel on rice. Summer stamina in a bowl.' },
   inari: { name: 'Inari-zushi', jp: '稲荷寿司', genki: 90, needs: [['rice', 1], ['tofu', 1]], buff: ['foraging', 0.06, 3], desc: 'Sweet fried tofu pouches packed with rice. Foxes are said to love them.' },
   oden: { name: 'Oden', jp: 'おでん', genki: 160, needs: [['daikon', 1], ['egg', 1], ['tofu', 1]], buff: ['fishing', 0.12, 6], desc: 'A winter pot of simmered daikon, egg and tofu.' },
+  // M7: more of Okiku's kitchen, Kon's soba, and the dishes a traveller carries into the mountain
+  // (`might`: harder blows, `guard`: blows land softer).
+  zenzai: { name: 'Zenzai', jp: '善哉', genki: 110, needs: [['azuki', 1], ['mochi', 1]], buff: ['speed', 0.08, 3], desc: 'Sweet red-bean soup with a toasted mochi floating in it. Winter\'s reward for going outside.' },
+  chawanmushi: { name: 'Chawanmushi', jp: '茶碗蒸し', genki: 120, needs: [['egg', 2], ['ebi', 1]], buff: ['farming', 0.08, 4], desc: 'Egg custard steamed in a lidded cup, a prawn hiding at the bottom.' },
+  dengaku: { name: 'Tofu Dengaku', jp: '田楽', genki: 110, needs: [['tofu', 1], ['miso', 1]], buff: ['guard', 0.08, 4], desc: 'Tofu on bamboo skewers, grilled under sweet miso. Named for the planting dances; the tofu stands like a dancer on stilts.' },
+  kenchin: { name: 'Kenchin-jiru', jp: 'けんちん汁', genki: 150, needs: [['daikon', 1], ['gobo', 1], ['tofu', 1]], buff: ['foraging', 0.1, 5], desc: 'A temple soup of root vegetables and crumbled tofu. Sōken makes it without looking.' },
+  kabocha_nimono: { name: 'Simmered Kabocha', jp: '南瓜の煮物', genki: 120, needs: [['kabocha', 1]], buff: ['farming', 0.08, 5], desc: 'Pumpkin simmered in soy and dashi until it gives up entirely.' },
+  kappamaki: { name: 'Kappa-maki', jp: 'かっぱ巻き', genki: 70, needs: [['kyuri', 1], ['rice', 1]], buff: ['fishing', 0.06, 3], desc: 'Cucumber rolled in rice and nori. Named for a certain river spirit\'s favourite food.' },
+  yamakake: { name: 'Yamakake', jp: '山かけ', genki: 130, needs: [['yamaimo', 1], ['rice', 1]], buff: ['speed', 0.1, 4], desc: 'Grated mountain yam over hot rice, white and silky. It sticks to your ribs and your chopsticks.' },
+  kitsune_soba: { name: 'Kitsune Soba', jp: 'きつね蕎麦', genki: 150, needs: [['soba', 2], ['tofu', 1]], buff: ['foraging', 0.12, 5], desc: 'Soba under a sheet of sweet fried tofu. Kon claims to have invented it and will not hear otherwise.' },
+  hoba_miso: { name: 'Hoba Miso', jp: '朴葉味噌', genki: 140, needs: [['miso', 1], ['negi', 1], ['shiitake', 1]], buff: ['might', 0.12, 6], desc: 'Miso, onion and mushroom grilled on a magnolia leaf over the coals. Mountain food, for mountain work.' },
+  kasujiru: { name: 'Kasu-jiru', jp: '粕汁', genki: 180, needs: [['sake', 1], ['daikon', 1], ['salmon', 1]], buff: ['guard', 0.15, 6], desc: 'Salmon and daikon in a soup of sake lees. It warms you so thoroughly that blows seem to land on someone else.' },
+  ishikari_nabe: { name: 'Ishikari Nabe', jp: '石狩鍋', genki: 220, needs: [['salmon', 1], ['miso', 1], ['hakusai', 1]], buff: ['fishing', 0.15, 6], desc: 'A northern hotpot of salmon, cabbage and miso. Sakuya learned it from a fisherman who owed her money.' },
+  jinchu_bento: { name: 'Warrior\'s Bentō', jp: '陣中弁当', genki: 220, needs: [['onigiri', 1], ['tsukemono', 1], ['kunsei', 1]], buff: ['might', 0.2, 8], desc: 'Rice balls, pickles and smoked fish wrapped in bamboo bark, as soldiers carried on campaign.' },
 };
 
-/** Recipe scrolls Okiku sells at the teahouse: using one teaches the dish. */
-export const SCROLLS = ['miso_soup', 'shioyaki', 'tempura', 'soba_noodles', 'sekihan', 'yudofu', 'kinpira', 'ochazuke', 'kurigohan', 'matsutake_gohan', 'unadon', 'oden', 'inari'];
+/** Recipe scrolls: using one teaches the dish. Okiku sells a few each day at the teahouse, Kon his
+ * two at the night market, and Sakuya one of the travelling dishes each market day. */
+export const CHAYA_SCROLLS = ['miso_soup', 'shioyaki', 'tempura', 'soba_noodles', 'sekihan', 'yudofu', 'kinpira', 'ochazuke', 'kurigohan', 'matsutake_gohan', 'unadon', 'oden', 'inari', 'zenzai', 'chawanmushi', 'dengaku', 'kenchin', 'kabocha_nimono', 'kappamaki', 'yamakake'];
+export const KON_SCROLLS = ['inari', 'kitsune_soba'];
+export const SAKUYA_SCROLLS = ['hoba_miso', 'kasujiru', 'ishikari_nabe', 'jinchu_bento'];
+export const SCROLLS = [...new Set([...CHAYA_SCROLLS, ...KON_SCROLLS, ...SAKUYA_SCROLLS])];
 export const SCROLL_PRICE = 250;
 
 // Vegetables for the pickling tub: crops that are not grain or fruit.

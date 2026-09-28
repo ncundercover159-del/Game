@@ -18,10 +18,13 @@ export const HURT_IFRAMES = 0.7;
 // Light swing phases (s) before speed scaling: wind-up, active, recovery.
 export const SWING = [0.07, 0.08, 0.15];
 
-/** The weapon in hand, or null when the selected item is not one. */
-export function weaponFor(itemId) {
+/** The weapon in hand, or null when the selected item is not one. A blade struck well at the forge
+ * (quality `q`) hits TEMPER harder for each star. */
+export const TEMPER = 0.06;
+export function weaponFor(itemId, q = 0) {
   if (itemId === 'sickle') return SICKLE;
-  return WEAPONS[itemId] || null;
+  const w = WEAPONS[itemId] || null;
+  return w && q ? { ...w, dmg: w.dmg * (1 + TEMPER * q) } : w;
 }
 
 export const kiMax = (virtues) => KI_MAX + virtueTier(virtues, 'yu') * 5;
@@ -38,9 +41,9 @@ export function critChance(weapon, skills, virtues) {
  * Damage of one hit. `hit`: { combo (0-2), heavy, counter } ; `target`: { weak, guard, facingAway }.
  * Returns { dmg, crit, blocked }.
  */
-export function hitDamage(weapon, hit, target, { skills, virtues, rng }) {
+export function hitDamage(weapon, hit, target, { skills, virtues, rng, might = 0 }) {
   const lv = levelOf(skills.sword.xp);
-  let dmg = weapon.dmg * (1 + (lv - 1) * 0.05);
+  let dmg = weapon.dmg * (1 + (lv - 1) * 0.05) * (1 + might);
   if (hasPerk(skills, 'fighter')) dmg *= 1.15;
   if (hit.combo === COMBO - 1) dmg *= 1.5;
   if (hit.heavy) dmg *= HEAVY.mult;
@@ -53,10 +56,10 @@ export function hitDamage(weapon, hit, target, { skills, virtues, rng }) {
   return { dmg: Math.max(1, Math.round(dmg)), crit, blocked };
 }
 
-/** What an enemy's blow costs the player. */
-export function damageTaken(base, difficulty, skills) {
+/** What an enemy's blow costs the player (`guard`: a food buff's share taken off). */
+export function damageTaken(base, difficulty, skills, guard = 0) {
   const d = DIFFICULTY[difficulty] || DIFFICULTY.standard;
-  return Math.max(1, Math.round(base * d.dmg * (hasPerk(skills, 'mountain') ? 0.75 : 1)));
+  return Math.max(1, Math.round(base * d.dmg * (hasPerk(skills, 'mountain') ? 0.75 : 1) * (1 - guard)));
 }
 
 /** How much tougher foes are on a floor: +4% health and +2% damage per floor down to the foundry's

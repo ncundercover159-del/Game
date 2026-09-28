@@ -51,6 +51,8 @@ export class Lighting {
       lantern: pool(34, [[1, 'red0'], [0.7, 'wood2'], [0.42, 'wood4'], [0.2, 'gold1']]),
       // The lantern at your belt underground: wide, warm, stepped.
       carried: pool(84, [[1, 'ink3'], [0.78, 'wood2'], [0.56, 'wood4'], [0.34, 'straw3'], [0.16, 'ink6']]),
+      // A kodama's own faint, cool light.
+      spirit: pool(14, [[1, 'teal0'], [0.55, 'teal1'], [0.25, 'grass6']]),
     };
   }
 

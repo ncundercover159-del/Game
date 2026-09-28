@@ -49,6 +49,7 @@ export class Fishing {
       case 'cast':
         if (s.t >= FLIGHT) {
           if (!s.kind) { g.aside('tk_snag', { once: 'snag' }); this.reset(); return; }
+          if (s.kind === 'lava') { g.sfx('hit'); this.w.fx.burst('fx_sparkle', s.bx, s.by, 6, { speed: 30, up: 40 }); g.aside('tk_fish_lava'); this.reset(); return; }
           g.sfx('water');
           this.w.fx.burst('fx_drop', s.bx, s.by, 4, { speed: 14, up: 20 });
           Object.assign(s, { phase: 'wait', t: 0, bite: biteDelay(this.w.rng, levelOf(g.skills.fishing.xp)) });

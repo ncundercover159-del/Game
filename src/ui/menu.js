@@ -75,7 +75,7 @@ export class Menu {
       TABS.forEach((_, i) => { if (hit(m.x, m.y, this.x + 6 + i * TAB_W, this.y - 20, TAB_W - 4, 20)) { this.tab = i; g.sfx('ui'); } });
     }
     if (this.tab === 0) this.updateItems(input);
-    else if (this.tab === 1) this.craft.update(input, this.x, this.y, this.w);
+    else if (this.tab === 1) this.craft.update(input, this.x, this.y, this.w, this.h);
     else if (this.tab === 3) this.bonds.update(input, this.x, this.y);
     else if (this.tab === 4) this.updateOptions(input);
     else if (this.tab === 5) {

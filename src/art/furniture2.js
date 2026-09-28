@@ -1,5 +1,6 @@
 // More fittings for the new homes (M6): a temple altar, a wooden bath, pickling barrels, a
-// carpenter's sawhorse, a magistrate's writing desk, a sword rack, and the market stall (yatai).
+// carpenter's sawhorse, a magistrate's writing desk, a sword rack, the market stall (yatai), and
+// (M7) the dōjō's makiwara post and kyūdō target.
 import { grid, set, fillRect, ellipse, outline, polygon } from './raster.js';
 
 const hline = (g, x0, x1, y, c) => { for (let x = x0; x <= x1; x++) set(g, x, y, c); };
@@ -112,5 +113,28 @@ export function omamoriStand() {
   }
   fillRect(g, 5, 20, 6, 3, 'wood1');
   hline(g, 6, 9, 21, 'ink0');
+  return outline(g, { color: 'wood0' });
+}
+
+/** A makiwara: a post bound in straw on a wooden foot, for striking practice. 12x28. */
+export function makiwara() {
+  const g = grid(12, 28);
+  fillRect(g, 1, 24, 10, 4, 'wood2'); hline(g, 1, 10, 24, 'wood4');
+  fillRect(g, 4, 2, 4, 23, 'wood3'); vline(g, 4, 2, 24, 'wood4');
+  fillRect(g, 2, 4, 8, 14, 'straw2');
+  for (let y = 4; y < 18; y++) { set(g, 2, y, 'straw1'); if (y % 2) set(g, 8, y, 'straw3'); }
+  for (const y of [6, 11, 16]) hline(g, 2, 9, y, 'straw0');
+  hline(g, 3, 8, 4, 'straw3');
+  return outline(g, { color: 'wood0' });
+}
+
+/** A kyūdō target (mato) on its stand: rings of black and white on a wooden frame. 16x22. */
+export function mato() {
+  const g = grid(16, 22);
+  for (const x of [3, 12]) { vline(g, x, 10, 21, 'wood2'); set(g, x, 21, 'wood1'); }
+  hline(g, 2, 13, 18, 'wood3');
+  const rings = ['ink0', 'ink6', 'ink0', 'ink6', 'ink0'];
+  rings.forEach((c, i) => { const r = 7 - i * 1.4; for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (Math.hypot(x - 7.5, y - 7.5) <= r) set(g, x, y, c); });
+  set(g, 5, 4, 'ink5'); set(g, 4, 5, 'ink5');
   return outline(g, { color: 'wood0' });
 }

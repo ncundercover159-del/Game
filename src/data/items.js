@@ -3,7 +3,7 @@
 import { CROPS } from './crops.js';
 import { FORAGE, ARTIFACTS } from './forage.js';
 import { FISH, JUNK } from './fish.js';
-import { MACHINES, GOODS, DISHES, SCROLLS, SCROLL_PRICE } from './recipes.js';
+import { MACHINES, GOODS, DISHES, SCROLLS, SAKUYA_SCROLLS, SCROLL_PRICE } from './recipes.js';
 import { WEAPONS } from './weapons.js';
 
 export const QUALITY = [
@@ -72,7 +72,8 @@ for (const [id, d] of Object.entries(DISHES)) {
   if (id === 'onigiri') continue;   // already sold at the teahouse
   define(id, { name: d.name, jp: d.jp, kind: 'food', genki: d.genki, buff: d.buff, sell: Math.round(d.genki * 0.9), desc: d.desc });
 }
-for (const id of SCROLLS) define(`scroll_${id}`, { name: `Recipe: ${ITEMS[id].name}`, jp: `${ITEMS[id].jp}の作り方`, kind: 'recipe', dish: id, price: SCROLL_PRICE, desc: `Okiku's recipe for ${ITEMS[id].name}. Use it to learn the dish.` });
+const scrollBy = (id) => (SAKUYA_SCROLLS.includes(id) ? 'A traveller\'s' : id === 'kitsune_soba' ? 'Kon\'s' : 'Okiku\'s');
+for (const id of SCROLLS) define(`scroll_${id}`, { name: `Recipe: ${ITEMS[id].name}`, jp: `${ITEMS[id].jp}の作り方`, kind: 'recipe', dish: id, price: SCROLL_PRICE, desc: `${scrollBy(id)} recipe for ${ITEMS[id].name}. Use it to learn the dish.` });
 // Mount Kurayama: ores, gems, bars, what spirits leave behind, and weapons.
 define('copper_ore', { name: 'Copper Ore', jp: '銅鉱', kind: 'material', sell: 8, desc: 'Green-streaked rock. Genzō smelts five into a bar.' });
 define('iron_ore', { name: 'Iron Ore', jp: '鉄鉱', kind: 'material', sell: 15, desc: 'Heavy, rust-red rock from the old mine.' });
@@ -111,6 +112,9 @@ define('star_fragment', { name: 'Star Fragment', jp: '星の欠片', kind: 'mate
 define('festival_fan', { name: 'Festival Fan', jp: '祭り扇', kind: 'keepsake', desc: 'A painted uchiwa from the Bon dance, given to the best dancer. Heibei swears the judging was fair.' });
 define('archive_seal', { name: 'Keeper\'s Seal', jp: '館守の印', kind: 'keepsake', desc: 'The Archive\'s seal, carved for whoever filled its shelves. Heibei stamps it on everything now, including, once, his lunch.' });
 define('haiku_scroll', { name: 'Prize Haiku', jp: '入選の句', kind: 'material', sell: 600, desc: 'Your prize-winning verse in Sōken\'s brush hand. Collectors in Edo pay for such things. So does Chōbei, grudgingly.' });
+
+define('kingyo', { name: 'Goldfish', jp: '金魚', kind: 'animal', sell: 30, desc: 'A little red goldfish in a bag of water, from the tub at the fireworks. It regards you with great seriousness.' });
+define('hokora', { name: 'Hokora', jp: '祠', kind: 'place', place: 'hokora', sell: 40, desc: 'A little wayside shrine for a kodama to live in. Place it on your farm: its kodama waters the crops within three steps every night.' });
 
 define('pack24', { name: 'Large Pack', jp: '大きな背負子', kind: 'upgrade', slots: 24, price: 2000, desc: 'A second row of pockets: 24 slots.' });
 define('pack36', { name: 'Traveller\'s Pack', jp: '旅の背負子', kind: 'upgrade', slots: 36, price: 10000, desc: 'Room for everything: 36 slots.' });

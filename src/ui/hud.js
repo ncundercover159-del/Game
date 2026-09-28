@@ -11,7 +11,7 @@ import { canCapacity } from '../systems/tools.js';
 
 const SLOT = 18;
 const TOAST_LIFE = 2.6;
-const BUFF_ICONS = { speed: 'icon_waraji', farming: 'icon_daikon', foraging: 'icon_warabi', fishing: 'icon_rod' };
+const BUFF_ICONS = { speed: 'icon_waraji', farming: 'icon_daikon', foraging: 'icon_warabi', fishing: 'icon_rod', might: 'icon_buff_might', guard: 'icon_buff_guard' };
 const ASIDE_LIFE = 7;
 
 export class Hud {

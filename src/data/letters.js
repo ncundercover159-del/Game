@@ -30,6 +30,11 @@ export const LETTERS = [
     items: [['katana_rusted', 1]],
   },
   {
+    id: 'tomoe_kodama', from: 'tomoe', when: (g) => g.flags.restored_kodama,
+    text: 'The kodama are back! At dusk one waits among the cedars by the stair, a different spot each evening. They are shy. Hold out something from the forest, or a little rice, and it may decide you are worth following. It will want a home: build it a hokora, a little shrine, from wood, stone and bamboo, and set it by your fields. They are very particular about their fields.',
+    items: [],
+  },
+  {
     id: 'tomoe_mountain', from: 'tomoe', when: (g) => g.flags.restored_bridge,
     text: 'The gate behind the hall stands open now. Beyond it the path climbs to the old mine of Kurayama, where the seals are weakest. Things live there that used to be kinder. If you go down, take food, and the salve Ume sells, and do not go deeper than you can climb back from. The lanterns in the tunnels, if you can light them, will remember you. Please come back.',
     items: [['salve', 2]],

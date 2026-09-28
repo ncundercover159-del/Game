@@ -1,5 +1,6 @@
 // Genzō's forge, three tabs ([ and ] switch): Tools (iron bars, two-day tool upgrades), Blades
-// (weapons forged on the spot from bars, ore and your old sword), Smelt (ore and charcoal into bars).
+// (weapons forged on the spot from bars, ore and your old sword: strike with Genzō at the anvil and
+// the better the rhythm, the finer the steel), Smelt (ore and charcoal into bars).
 import { fonts } from '../core/text.js';
 import { thin, hit, iconName } from './widgets.js';
 import { t } from '../data/strings.js';
@@ -10,6 +11,9 @@ import { WEAPONS, SMELT } from '../data/weapons.js';
 import { buyMult } from '../systems/virtues.js';
 import { dayIndex, SEASONS } from '../systems/calendar.js';
 import { RowShop } from './shop.js';
+import { Dialog } from './dialog.js';
+import { RhythmGame } from './rhythm.js';
+import { QUALITY } from '../data/items.js';
 
 const TABS = ['forge_tab_tools', 'forge_tab_blades', 'forge_tab_smelt'];
 
@@ -79,10 +83,22 @@ export class ForgeMenu extends RowShop {
     if (!reforge && g.inventory.room(id) < 1) { g.sfx('deny'); g.aside('tk_full'); return; }
     for (const [i, n] of f.items) g.inventory.remove(i, n);
     g.money -= f.mon;
-    g.inventory.add(id, 1);
-    g.sfx('crit');
-    g.xp('craft', 20);
-    g.say(`forge_made_${id === 'katana_tetsu' ? 'tetsu' : 'blade'}`, { item: WEAPONS[id].name });
+    // Strike with him at the anvil (a splendid rhythm makes Excellent steel, a good one Fine), or
+    // leave it to him.
+    const done = (q) => {
+      g.inventory.add(id, 1, q);
+      g.sfx('crit');
+      g.xp('craft', 20);
+      g.say(`forge_made_${id === 'katana_tetsu' ? 'tetsu' : 'blade'}`, { item: WEAPONS[id].name });
+      if (q) g.toast('forge_tempered', { q: QUALITY[q].name, item: WEAPONS[id].name }, `icon_${id}`);
+    };
+    g.modals.push(new Dialog(g, {
+      text: t('forge_strike_ask'), choices: [t('forge_strike'), t('forge_leave')], noCancel: true,
+      onChoose: (i) => {
+        if (i === 1) { done(0); return; }
+        g.modals.push(new RhythmGame(g, { kind: 'forge', partner: 'genzo', onEnd: (grade) => { g.xp('craft', [30, 15, 5][grade]); done([2, 1, 0][grade]); } }));
+      },
+    }));
   }
 
   smelt(id) {

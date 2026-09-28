@@ -1,6 +1,6 @@
 // Shops: hours, closed weekdays (0 = Getsu ... 6 = Nichi) and stock by season and weekday.
 import { CROPS } from './crops.js';
-import { SCROLLS } from './recipes.js';
+import { CHAYA_SCROLLS, KON_SCROLLS, SAKUYA_SCROLLS } from './recipes.js';
 import { hash } from '../core/rng.js';
 
 export const SHOPS = {
@@ -19,7 +19,7 @@ export const SHOPS = {
     name: 'Chaya', jp: '茶屋', open: 8 * 60, close: 20 * 60, closedDay: 3, hello: 'okiku_hello',
     // Food, and up to three recipe scrolls you don't know yet (a different few each day).
     stock: (seasonId, weekdayIdx, g) => {
-      const unknown = SCROLLS.filter((d) => !g.recipes.includes(d));
+      const unknown = CHAYA_SCROLLS.filter((d) => !g.recipes.includes(d));
       const day = hash(g.seed, g.dayIndex, 0, 91);
       const scrolls = unknown.filter((_, i) => (i + day) % Math.max(1, Math.ceil(unknown.length / 3)) === 0).slice(0, 3);
       return [...['tea', 'dango', 'onigiri'], ...scrolls.map((d) => `scroll_${d}`)].map((id) => ({ id, mult: 1 }));
@@ -34,12 +34,14 @@ export const SHOPS = {
     name: 'Sakuya\'s Stall', jp: '咲耶の店', open: 8 * 60, close: 17 * 60, days: [3, 4], keeper: 'sakuya', at: 'village', hello: 'sakuya_hello',
     stock: (seasonId, weekdayIdx, g) => {
       const rare = ['jade', 'water_crystal', 'magatama', 'steel_bar'][hash(g.seed, g.dayIndex, 0, 93) % 4];
-      return [...['tofu', 'miso', 'sake', 'copper_bar', 'arrow', 'uke'], rare].map((id) => ({ id, mult: 1 }));
+      const unknown = SAKUYA_SCROLLS.filter((d) => !g.recipes.includes(d));
+      const scroll = unknown.length ? [`scroll_${unknown[hash(g.seed, g.dayIndex, 0, 94) % unknown.length]}`] : [];
+      return [...['tofu', 'miso', 'sake', 'copper_bar', 'arrow', 'uke'], rare, ...scroll].map((id) => ({ id, mult: 1 }));
     },
   },
   kon: {
     name: 'Night Market', jp: '夜市', open: 18 * 60, close: 24 * 60, days: [5], keeper: 'kon', at: 'village', hello: 'kon_hello',
-    stock: (seasonId, weekdayIdx, g) => [...['inari', 'spirit_wisp', 'leaf_charm', 'water_crystal'], ...(g.recipes.includes('inari') ? [] : ['scroll_inari'])].map((id) => ({ id, mult: 1 })),
+    stock: (seasonId, weekdayIdx, g) => [...['inari', 'spirit_wisp', 'leaf_charm', 'water_crystal'], ...KON_SCROLLS.filter((d) => !g.recipes.includes(d)).map((d) => `scroll_${d}`)].map((id) => ({ id, mult: 1 })),
   },
   tatsu: {
     name: 'Daiku', jp: '大工', open: 9 * 60, close: 17 * 60, closedDay: 6, hello: 'tatsu_hello',

@@ -5,6 +5,7 @@ import { weatherFor, WEATHER } from './weather.js';
 import { sellValue, hasPerk } from './skills.js';
 import { trapsNight } from './fishing.js';
 import { shippingAdjust } from './story.js';
+import { kodamaNight, friends } from './kodama.js';
 
 export const PASS_OUT = { frac: 0.1, cap: 1000 };
 
@@ -57,9 +58,11 @@ export function endDay(game, passedOut) {
   game.weather = game.tomorrow;
   game.tomorrow = weatherFor(game.seed, nextDay(t).t);
   if (WEATHER[game.weather].rain) rainWater(map);
+  // The kodama water around their hokora (no need on a wet morning).
+  const tended = WEATHER[game.weather].rain ? 0 : kodamaNight(map, friends(game.flags));
 
   let upgraded = null;
   if (game.upgrade && dayIndex(t) >= game.upgrade.ready) upgraded = game.upgrade.tool;
 
-  return { ship, toll, bonus, grew, withered, typhoonLost, lost, prev, newSeason, newYear, upgraded };
+  return { ship, toll, bonus, grew, withered, typhoonLost, lost, prev, newSeason, newYear, upgraded, tended };
 }

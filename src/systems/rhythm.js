@@ -1,20 +1,31 @@
 // Rhythm minigames: a chart of timed notes and a judge. Mochi pounding (strike on the beat, never
 // while your partner's hand is in the mortar), the Bon Odori (dance steps on the arrows), the
-// Otaue planting (set a seedling on each drumbeat) and Setsubun's mamemaki (beans at the oni,
-// never at Kinta when he pops up instead). Pure: the UI (ui/rhythm.js) feeds it presses.
+// Otaue planting (set a seedling on each drumbeat), Setsubun's mamemaki (beans at the oni, never
+// at Kinta when he pops up instead), forging at Genzō's anvil (your sledge after his hammer, never
+// while he turns the blade) and kata at the dōjō (Rin's forms, still when she calls a halt).
+// Pure: the UI (ui/rhythm.js) feeds it presses.
 
 export const WINDOW = { perfect: 0.075, good: 0.15 };
 export const LEAD = 1.6;          // s of count-in before the first note
 export const KEYS = ['use', 'up', 'down', 'left', 'right'];
 
-/** A note: { t (s), key, rest } — a `rest` is a moment you must NOT press `key` (a hand in the mortar). */
-const note = (t, key, rest = false) => ({ t, key, rest });
+/** A note: { t (s), key, rest } — a `rest` is a moment you must NOT press `key` (a hand in the mortar).
+ * `cue` (s) is when a partner leads it (Genzō's hammer), for the scene to show. */
+const note = (t, key, rest = false, cue = null) => ({ t, key, rest, cue });
 
 const STEPS = [
   ['left', 'left', 'right', 'right'],
   ['up', 'use', 'up', 'use'],
   ['left', 'right', 'left', 'right'],
   ['down', 'down', 'up', 'use'],
+];
+
+// Rin's kata: four-move forms of steps (arrows) and cuts (Use).
+const KATA = [
+  ['right', 'use', 'left', 'use'],
+  ['up', 'use', 'use', 'down'],
+  ['left', 'left', 'use', 'right'],
+  ['down', 'use', 'up', 'use'],
 ];
 
 export const CHARTS = {
@@ -47,6 +58,30 @@ export const CHARTS = {
     for (let i = 0; i < 28; i++) {
       out.push(note(t, 'use', i > 3 && rng.next() < 0.25));
       t += 0.5 + rng.next() * 0.5;
+    }
+    return out;
+  },
+  // Genzō taps the spot with his hand hammer and your sledge falls half a beat later; every sixth
+  // beat or so he turns the blade over instead, and you hold. It quickens as the steel thins.
+  forge(rng) {
+    const out = [];
+    let t = 0;
+    for (let i = 0; i < 30; i++) {
+      const beat = 0.8 - Math.min(0.2, i * 0.008);
+      const turn = i % 6 === 5 || (i > 12 && rng.next() < 0.08);
+      out.push(note(t + beat / 2, 'use', turn, t));
+      t += beat;
+    }
+    return out;
+  },
+  // Eight forms; after each, Rin calls "yame" and you stand still for a beat.
+  kata(rng) {
+    const out = [];
+    let t = 0;
+    for (let form = 0; form < 8; form++) {
+      for (const k of KATA[(form + Math.floor(rng.next() * 4)) % 4]) { out.push(note(t, k)); t += 0.62; }
+      out.push(note(t, 'use', true));
+      t += 0.62;
     }
     return out;
   },

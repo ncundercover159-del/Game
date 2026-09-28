@@ -6,6 +6,7 @@ import { Foe } from './foes.js';
 import { Fighter } from './fighter.js';
 import { DIRS } from './player.js';
 import { hitDamage, weaponFor } from '../systems/combat.js';
+import { buffAmount } from '../systems/skills.js';
 import { DIFFICULTY } from '../data/enemies.js';
 import { URN_LOOT } from '../data/caves.js';
 import './boss.js';
@@ -117,7 +118,7 @@ export class Combat {
     }
     const [dx, dy] = DIRS[f.dir];
     const facingAway = (g.player.x - f.x) * dx + (g.player.y - f.y) * dy < 0;
-    const r = hitDamage(weapon, hit, { weak: f.def.weak, guard: f.guard, facingAway }, { skills: g.skills, virtues: g.virtues, rng: this.rng });
+    const r = hitDamage(weapon, hit, { weak: f.def.weak, guard: f.guard, facingAway }, { skills: g.skills, virtues: g.virtues, rng: this.rng, might: buffAmount(g.buffs, 'might') });
     f.hp -= r.dmg;
     f.flash = 0.12;
     if (r.blocked) {

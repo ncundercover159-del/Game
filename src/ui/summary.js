@@ -17,6 +17,7 @@ export function summaryLines(r, game) {
   const notes = [];
   if (r.grew) notes.push(t('sum_grew', { n: r.grew }));
   if (r.withered) notes.push(t('sum_withered', { n: r.withered }));
+  if (r.tended) notes.push(t('sum_kodama', { n: r.tended }));
   if (r.typhoonLost) notes.push(t('sum_typhoon', { n: r.typhoonLost }));
   if (r.lost) notes.push(t('sum_lost', { n: r.lost }));
   if (r.toll) notes.push(t('sum_toll', { n: r.toll }));

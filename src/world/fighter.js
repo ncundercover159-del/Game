@@ -5,6 +5,7 @@ import { moveBox } from './collision.js';
 import { DIRS } from './player.js';
 import { SWING, COMBO, HEAVY, DODGE, PARRY, HURT_IFRAMES, parryWindow, kiMax, regenKi, weaponFor, damageTaken } from '../systems/combat.js';
 import { ARROW_SPEED } from '../data/weapons.js';
+import { buffAmount } from '../systems/skills.js';
 
 const HW = 5, HH = 6;
 const LUNGE = 30;          // px/s during a swing's wind-up
@@ -28,7 +29,7 @@ export class Fighter {
   /** The weapon in hand, or null (the sickle stays a tool; its swings cut enemies too). */
   weapon() {
     const id = this.heldId();
-    return id ? weaponFor(id) : null;
+    return id ? weaponFor(id, this.game.inventory.slots[this.game.inventory.selected].q || 0) : null;
   }
 
   heldId() {
@@ -185,7 +186,7 @@ export class Fighter {
       return 'parried';
     }
     if (this.iframes > 0 || g.hp <= 0) return 'avoided';
-    const dmg = damageTaken(base, g.difficulty, g.skills);
+    const dmg = damageTaken(base, g.difficulty, g.skills, buffAmount(g.buffs, 'guard'));
     g.hp = Math.max(0, g.hp - dmg);
     this.iframes = HURT_IFRAMES;
     this.flash = 0.15;

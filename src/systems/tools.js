@@ -151,7 +151,8 @@ function hitObject(w, o, tool) {
   return 'destroy';
 }
 
-/** Machines stand on any open, dry, unplanted tile of your own maps (farm, farmhouse, coop). */
+/** Machines (and a kodama's hokora) stand on any open, dry, unplanted tile of your own maps (farm,
+ * farmhouse, coop). */
 function placeMachine(w, slot, tx, ty) {
   const { game, map } = w;
   const k = map.inside(tx, ty) ? map.i(tx, ty) : -1;
@@ -160,8 +161,10 @@ function placeMachine(w, slot, tx, ty) {
     game.aside(map.def.persist ? 'tk_machine_where' : 'tk_machine_farm', { once: true });
     return false;
   }
-  map.addObject({ type: 'machine', x: tx, y: ty, v: 0, kind: game.inventory.slots[slot].id });
+  const id = game.inventory.slots[slot].id;
+  map.addObject(id === 'hokora' ? { type: 'hokora', x: tx, y: ty, v: 0 } : { type: 'machine', x: tx, y: ty, v: 0, kind: id });
   game.inventory.takeFrom(slot, 1);
+  if (id === 'hokora') game.aside('tk_hokora', { once: true });
   game.sfx('rock');
   return true;
 }
@@ -237,7 +240,7 @@ export function placeItem(w, slot, tx, ty) {
   const { game, map } = w;
   const s = game.inventory.slots[slot];
   if (s.id === 'uke') return placeTrap(w, slot, tx, ty);
-  if (itemDef(s.id).kind === 'machine') return placeMachine(w, slot, tx, ty);
+  if (itemDef(s.id).kind === 'machine' || s.id === 'hokora') return placeMachine(w, slot, tx, ty);
   if (s.id !== 'sluice') return false;
   if (!map.inside(tx, ty) || map.soil[map.i(tx, ty)] !== SOIL.CHANNEL || map.objectAt(tx, ty)) {
     game.sfx('deny');

@@ -9,6 +9,7 @@ import { Dialog } from './dialog.js';
 import { IaiDuel } from './iai.js';
 import { RhythmGame } from './rhythm.js';
 import { HaikuComposer } from './haiku.js';
+import { KingyoGame } from './kingyo.js';
 import { Rng } from '../core/rng.js';
 import { t } from '../data/strings.js';
 import { bestCrop, judgeGrade } from '../systems/festivals.js';
@@ -121,6 +122,7 @@ export class Cutscene {
     const g = this.game, handle = { done: false, value: 2 };
     const onEnd = (grade) => { handle.value = grade; handle.done = true; };
     if (kind === 'haiku') g.modals.push(new HaikuComposer(g, { onEnd }));
+    else if (kind === 'kingyo') g.modals.push(new KingyoGame(g, { onEnd: (grade, { kinds }) => { for (let i = 0; i < Math.min(5, kinds.length); i++) g.pickUp('kingyo', 1); onEnd(grade); } }));
     else if (kind === 'judge') {
       const entry = bestCrop(g.inventory.slots);
       const text = entry ? t('judge_present', { item: itemDef(entry.id).name }) : t('judge_nothing');

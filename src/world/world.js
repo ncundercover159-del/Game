@@ -22,6 +22,7 @@ import { XP } from '../data/skills.js';
 import { buffAmount, hasPerk } from '../systems/skills.js';
 import { hasDucks } from '../systems/animals.js';
 import { Combat } from './combat.js';
+import { placeKodama, kodamaLights } from './kodama.js';
 
 const REACH = 1;
 const CHARGEABLE = new Set(['hoe', 'can']);
@@ -102,7 +103,10 @@ export class World {
       if (moved) this.warps();
       this.edges(a);
     }
-    for (const o of this.map.objects) if (o.shake > 0) o.shake = Math.max(0, o.shake - dt);
+    for (const o of this.map.objects) {
+      if (o.shake > 0) o.shake = Math.max(0, o.shake - dt);
+      if (o.rattle > 0) o.rattle -= dt;
+    }
     this.fx.update(dt);
     this.drops.update(dt, p, (d) => this.game.pickUp(d.id, d.n, d.q));
   }
@@ -226,6 +230,7 @@ export class World {
   spawnSpots() {
     const g = this.game, day = dayIndex(g.cal);
     if (g.foraged.day !== day) g.foraged = { day, keys: [] };
+    placeKodama(this);
     spawnSpots(this.map, { seed: g.seed, day, seasonId: g.seasonId, taken: g.foraged.keys, digMult: hasPerk(g.skills, 'tracker') ? 2 : 1 });
   }
 
@@ -247,7 +252,8 @@ export class World {
   }
 
   lights() {
-    return this.map.lights;
+    const k = kodamaLights(this);
+    return k.length ? this.map.lights.concat(k) : this.map.lights;
   }
 
   /** Drop the player on a tile, facing `dir`, with any swing cancelled. */

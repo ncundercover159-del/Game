@@ -1,4 +1,4 @@
-// Fish icons painted from a few body plans (slim, deep, small, eel, flat, prawn, crab) in each
+// Fish icons painted from a few body plans (slim, deep, small, eel, flat, prawn, crab, salamander) in each
 // species' colours, lit from the top-left; plus the fishing rod, bobber, fish trap and junk.
 import { grid, set, get, fillRect, ellipse, line, outline, parse, crop, bounds } from './raster.js';
 import { FISH } from '../data/fish.js';
@@ -20,6 +20,16 @@ function body(g, look, [dark, mid, light], pattern) {
       for (let i = 0; i < 9; i++) { const x = 3 + i, y = 9 - Math.round(Math.sin(i * 0.35) * 3); fillRect(g, x, y, 1, 3, i % 2 ? mid : light); set(g, x, y + 2, dark); }
       line(g, 12, 6, 15, 2, dark); line(g, 12, 7, 15, 9, dark); set(g, 11, 6, 'ink0');
       return;
+    case 'salamander': {
+      // A broad flat head, a long body with stubby legs, a paddle of a tail.
+      ellipse(g, 10, 8, 4, 2.6, mid); ellipse(g, 5, 8, 4, 2, mid);
+      fillRect(g, 1, 7, 2, 3, dark);
+      for (let x = 2; x < 14; x++) { set(g, x, 6, dark); if (x > 3 && x < 13) set(g, x, 9, light); }
+      for (const x of [4, 10]) { set(g, x, 11, dark); set(g, x + 1, 11, dark); set(g, x - 1, 5, dark); }
+      set(g, 12, 7, 'ink0'); set(g, 13, 9, dark);
+      for (const [x, y] of [[4, 7], [7, 8], [9, 7], [11, 9]]) set(g, x, y, light);
+      return;
+    }
     default: break;
   }
   const [rx, ry, cx] = { slim: [6, 2.6, 7], deep: [5.5, 4, 7], small: [4, 2.2, 7], flat: [6, 2.2, 7] }[look];
@@ -46,11 +56,14 @@ function fishIcon(def) {
 export function fishIcons() {
   const out = {};
   for (const [id, def] of Object.entries(FISH)) out[id] = fishIcon(def);
-  // The legendary glows: a halo of moonlight around the carp.
-  const moon = out.tsukigoi;
-  for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
-    if (get(moon, x, y)) continue;
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (get(moon, x + dx, y + dy) && ((x + y) & 1)) { set(moon, x, y, 'gold3'); break; }
+  // The legendaries glow: a dotted halo of light around them.
+  for (const [id, def] of Object.entries(FISH)) {
+    if (!def.legendary) continue;
+    const icon = out[id];
+    for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+      if (get(icon, x, y)) continue;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (get(icon, x + dx, y + dy) && ((x + y) & 1)) { set(icon, x, y, 'gold3'); break; }
+    }
   }
   out.waraji = parse(`
     ................

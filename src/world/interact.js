@@ -15,6 +15,8 @@ import { accepts, load, isReady, collect } from '../systems/craft.js';
 import { dayIndex } from '../systems/calendar.js';
 import { openNotice, openMailbox, openAltar, openCooking, openArchive } from '../flow.js';
 import { descend, climbOut, lightLantern, openChest, takeBundle } from '../caves.js';
+import { meetKodama, visitHokora } from './kodama.js';
+import { startKata, startKyudo } from '../dojo.js';
 
 // Object types that answer Interact directly.
 const BY_TYPE = {
@@ -43,6 +45,10 @@ const BY_TYPE = {
   chest: (w, o) => openChest(w.game, w, o),
   bundle: (w, o) => takeBundle(w.game, w, o),
   brazier: (w) => w.game.say('brazier'),
+  kodama: meetKodama,
+  hokora: visitHokora,
+  makiwara: (w) => startKata(w.game),
+  mato: (w) => startKyudo(w.game),
 };
 
 export function interact(w) {

@@ -63,6 +63,10 @@ export const CAVE_STRINGS = {
   forge_tab_smelt: 'Smelt',
   forge_owned: 'You have one',
   forge_made_tetsu: 'Genzō works the old blade for an afternoon: fire, hammer, water, stone. What comes out is dark and straight and very quiet. "Your uncle\'s steel is in there still. Treat it well." Tsukikage says nothing for once.',
+  forge_strike_ask: 'Genzō pulls the bar from the fire and nods at the big sledge. "Well? Are you striking, or watching?"',
+  forge_strike: 'Strike with him',
+  forge_leave: 'Leave it to Genzō',
+  forge_tempered: 'The steel took the hammer well: {item} ({q}).',
   forge_made_blade: 'Genzō hands you the {item} hilt first. "Bring it back when you have chipped it. You will."',
 
   // Virtues
