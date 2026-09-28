@@ -6,6 +6,7 @@ import { itemDef } from '../data/items.js';
 import { EMOTE_ALIAS } from '../art/emotes.js';
 import { rect } from './widgets.js';
 import { Dialog } from './dialog.js';
+import { IaiDuel } from './iai.js';
 import { speak, bondOf } from '../world/talk.js';
 import { addBond } from '../systems/bonds.js';
 
@@ -85,8 +86,31 @@ export class Cutscene {
     if (left > 0) g.world.drops.spawn(g.rng, id, left, 0, g.player.x, g.player.y);
     g.toast('toast_got', { n, item: itemDef(id).name }, `icon_${id}`);
   }
+  placePlayer(tx, ty, dir) {
+    this.game.world.place(tx, ty, dir || this.game.player.dir);
+    const p = this.game.player, m = this.game.world.map;
+    this.game.camera.follow(p.x, p.y - 12, m.pw, m.ph, 1);
+  }
+
+  learn(dish) {
+    const g = this.game;
+    if (g.recipes.includes(dish)) return;
+    g.recipes.push(dish);
+    g.toast('recipe_learned', { dish: itemDef(dish).name }, `icon_${dish}`);
+  }
+
+  sfx(name) { this.game.sfx(name); }
+
+  /** An iai stand-off inside a scene; the handle's value is 0 when you win, 1 when you lose. */
+  duel(rival) {
+    const handle = { done: false, value: 0 };
+    this.game.modals.push(new IaiDuel(this.game, { rival, onEnd: (won) => { handle.value = won ? 0 : 1; handle.done = true; } }));
+    return handle;
+  }
+
   take(id, n) { if (this.game.inventory.count(id) < n) return false; this.game.inventory.remove(id, n); return true; }
   money(n) { this.game.money += n; }
+  pay(n) { if (this.game.money < n) return false; this.game.money -= n; return true; }
   bond(id, n) { const b = bondOf(this.game, id); addBond(b, n); b.met = true; }
   virtue(name, n) { this.game.addVirtue(name, n); }
   flag(name) { return this.game.flags[name]; }

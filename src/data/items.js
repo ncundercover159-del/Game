@@ -90,6 +90,9 @@ for (const [id, w] of Object.entries(WEAPONS)) define(id, { name: w.name, jp: w.
 define('red_thread', { name: 'Red Thread', jp: '赤い糸', kind: 'romance', price: 500, desc: 'A charm of red silk thread. Give it to someone dear (eight hearts) to court them.' });
 define('shrine_vow', { name: 'Shrine Vow', jp: '誓いの札', kind: 'romance', price: 5000, desc: 'A vow tablet from the shrine. Give it to the one you court (ten hearts, and a house with room for two) to propose.' });
 define('house_ext', { name: 'Farmhouse Extension', jp: '母屋の増築', kind: 'building', price: 10000, needs: [['wood', 150], ['stone', 50]], desc: 'Tatsu adds a kitchen and a second room to the farmhouse. Three days of work; 150 wood and 50 stone.' });
+define('toyo_knife', { name: 'Toyo\'s Knife', jp: 'トヨの包丁', kind: 'keepsake', desc: 'An old kitchen knife, sharpened thin as a leaf. It has cut ten thousand daikon and, mostly, no fingers.' });
+define('bokken', { name: 'Kinta\'s Bokken', jp: '金太の木刀', kind: 'keepsake', desc: 'A lopsided wooden sword, carved by a boy who swore to serve your house.' });
+define('fox_whisker', { name: 'Fox Whisker', jp: '狐の髭', kind: 'keepsake', desc: 'One silver whisker folded in paper. Hold it up and it turns, very slightly, toward home.' });
 define('bath_salt', { name: 'Yuzu Bath Salt', jp: '柚子湯の塩', kind: 'food', genki: 30, sell: 20, price: 60, desc: 'Salt and dried yuzu peel. Smells like Yuzu insists it does.' });
 
 define('pack24', { name: 'Large Pack', jp: '大きな背負子', kind: 'upgrade', slots: 24, price: 2000, desc: 'A second row of pockets: 24 slots.' });

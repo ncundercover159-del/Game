@@ -18,9 +18,14 @@ export function tierOf(pts) {
   return Math.min(4, Math.floor(hearts(pts) / 2));
 }
 
+/** Add bond points, up to ten hearts (or `b.cap`: romanceable villagers stop at eight until courted). */
 export function addBond(b, n) {
-  b.pts = Math.max(0, Math.min(BOND.perHeart * BOND.maxHearts, b.pts + n));
+  const top = Math.max(b.cap ?? BOND.perHeart * BOND.maxHearts, b.pts);
+  b.pts = Math.max(0, Math.min(top, b.pts + n));
 }
+
+/** The eight-heart ceiling for someone you could court but are not courting. */
+export const ROMANCE_CAP = BOND.perHeart * 8;
 
 /** Talking once a day earns bond points; returns true the first time today. */
 export function talk(b, day, bonus = 0) {
@@ -34,7 +39,7 @@ export function talk(b, day, bonus = 0) {
 
 export function isGiftable(id) {
   const kind = itemDef(id).kind;
-  return kind !== 'tool' && kind !== 'weapon' && kind !== 'quest';
+  return !['tool', 'weapon', 'quest', 'keepsake', 'building'].includes(kind);
 }
 
 export function taste(npc, id) {

@@ -40,5 +40,18 @@ export function valleyIcons() {
       for (const [x, y] of [[6, 8], [9, 9], [8, 7]]) set(g, x, y, 'gold2');
       ellipse(g, 11, 5, 2.5, 2.5, 'gold2'); set(g, 10, 4, 'gold3'); set(g, 12, 3, 'grass4');
     }),
+    toyo_knife: icon((g) => {
+      polygon(g, [[3, 12], [12, 3], [13, 4], [5, 13]], 'stone4');
+      line(g, 4, 12, 12, 4, 'ink6');
+      fillRect(g, 1, 12, 4, 3, 'wood2'); set(g, 2, 13, 'wood4');
+    }),
+    bokken: icon((g) => {
+      line(g, 3, 13, 13, 2, 'wood4'); line(g, 4, 13, 14, 2, 'wood3');
+      fillRect(g, 3, 11, 3, 2, 'wood1'); line(g, 1, 15, 3, 13, 'wood2');
+    }),
+    fox_whisker: icon((g) => {
+      fillRect(g, 3, 5, 10, 8, 'ink6'); for (let x = 3; x < 13; x += 3) set(g, x, 12, 'ink5');
+      line(g, 2, 3, 14, 11, 'ink4'); set(g, 14, 11, 'gold2');
+    }),
   };
 }

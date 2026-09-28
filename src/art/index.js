@@ -114,7 +114,7 @@ export function buildArt() {
 
   addCharacter(atlas, 'player', LOOKS.player);
   for (const [id, look] of Object.entries(NPC_LOOKS)) {
-    addCharacter(atlas, id, look, ['idle', 'walk']);
+    addCharacter(atlas, id, look, look.sword ? ['idle', 'walk', 'tool'] : ['idle', 'walk']);
     for (const ex of EXPRESSIONS) add(`portrait_${id}_${ex}`, portrait(look, ex), 0, 0);
   }
   addHeldTools(atlas);

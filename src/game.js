@@ -14,6 +14,7 @@ import { askSleep, sleep, openShop, eat, bow } from './flow.js';
 import { askFloor, defeat, bossDown, placeBundle } from './caves.js';
 import { kiMax } from './systems/combat.js';
 import { EVENTS } from './data/events.js';
+import { heartEventFor } from './systems/hearts.js';
 import { VIRTUES } from './data/virtues.js';
 import { SKILLS, PERKS } from './data/skills.js';
 import { gainXp, levelOf, buffAmount, expireBuffs, stamp } from './systems/skills.js';
@@ -116,11 +117,14 @@ export class Game {
   /** Story events that fire on entering a map (once each, when their flag is unset). */
   triggerEvents(mapId) {
     const e = EVENTS.find((ev) => ev.map === mapId && !this.flags[ev.flag] && (!ev.when || ev.when(this)));
-    if (!e) return;
-    this.flags[e.flag] = true;
+    const heart = !e && heartEventFor(this, mapId);
+    if (!e && !heart) return;
+    this.flags[e ? e.flag : heart.flag] = true;
     // Starts once the door wipe (or whatever else is open) has finished.
-    this.pendingScene = e.script;
+    this.pendingScene = e ? e.script : heart.event.script;
   }
+
+  get rain() { return !!WEATHER[this.weather].rain; }
 
   /** Raise (or lower) a virtue, 0-100. */
   addVirtue(id, n) {

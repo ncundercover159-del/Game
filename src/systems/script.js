@@ -3,10 +3,11 @@
 //   # comment                          @label            (a jump target)
 //   say heibei happy "Welcome!"        say "Narration."  (speaker and expression are optional)
 //   choice "Yes" @yes "No" @no         goto @label       end
-//   give item n    take item n @else   money n           bond npc n       virtue name n
+//   give item n    take item n @else   money n   pay n @else (spend mon if you have it)           bond npc n       virtue name n
 //   setFlag name [value]               ifFlag name @label    ifFlag !name @label
 //   wait seconds   moveNpc npc tx ty [dir]    placeNpc npc tx ty [dir]   face npc dir   emote npc kind
 //   cameraPan tx ty seconds | cameraPan player seconds       fade out|in seconds
+//   placePlayer tx ty [dir]   learn dish   sfx name   duel rival @won @lost (an iai stand-off)
 //
 // The runner is host-agnostic: blocking verbs ask the host for a handle whose `done` becomes true
 // (and, for choices, whose `value` is the picked index). See game/cutscene.js for the real host.
@@ -63,6 +64,7 @@ export function parseScript(text) {
       case 'give': ops.push({ op: 'give', item: a[0], n: a[1] ? NUM(a[1], line) : 1 }); break;
       case 'take': ops.push({ op: 'take', item: a[0], n: NUM(a[1], line), else: a[2] ? LABEL(a[2], line) : null }); break;
       case 'money': ops.push({ op: 'money', n: NUM(a[0], line) }); break;
+      case 'pay': ops.push({ op: 'pay', n: NUM(a[0], line), else: a[1] ? LABEL(a[1], line) : null }); break;
       case 'bond': ops.push({ op: 'bond', npc: a[0], n: NUM(a[1], line) }); break;
       case 'virtue': ops.push({ op: 'virtue', name: a[0], n: NUM(a[1], line) }); break;
       case 'setFlag': ops.push({ op: 'setFlag', name: a[0], value: a[1] === undefined ? true : a[1] }); break;
@@ -80,6 +82,10 @@ export function parseScript(text) {
         ops.push(a[0] === 'player' ? { op: 'pan', player: true, t: NUM(a[1], line) } : { op: 'pan', tx: NUM(a[0], line), ty: NUM(a[1], line), t: NUM(a[2], line) });
         break;
       case 'fade': ops.push({ op: 'fade', dir: a[0], t: NUM(a[1], line) }); break;
+      case 'placePlayer': ops.push({ op: 'placePlayer', tx: NUM(a[0], line), ty: NUM(a[1], line), dir: a[2] || null }); break;
+      case 'learn': ops.push({ op: 'learn', dish: a[0] }); break;
+      case 'sfx': ops.push({ op: 'sfx', name: a[0] }); break;
+      case 'duel': ops.push({ op: 'choice', duel: a[0], options: [{ to: LABEL(a[1], line) }, { to: LABEL(a[2], line) }] }); break;
       default: throw new Error(`Script line ${line}: unknown verb "${verb}"`);
     }
   });
@@ -92,8 +98,9 @@ export function parseScript(text) {
 /**
  * Runs a parsed script against a host. Call update(dt) every frame until `finished`.
  * Host: say(who, face, text) / choice(texts) / moveNpc(npc, tx, ty, dir) / pan(target, t) /
- * fade(dir, t) return a handle { done, value }; give, take (returns bool), money, bond, virtue,
- * placeNpc, face, emote, flag(name) and setFlag(name, value) act immediately.
+ * fade(dir, t) and duel(rival) return a handle { done, value }; give, take (returns bool), money,
+ * bond, virtue, placeNpc, placePlayer, learn, sfx, face, emote, flag(name) and setFlag(name, value)
+ * act immediately.
  */
 export class ScriptRunner {
   constructor(host, program) {
@@ -126,12 +133,13 @@ export class ScriptRunner {
     const h = this.host;
     switch (o.op) {
       case 'say': this.wait = h.say(o.who, o.face, o.text); break;
-      case 'choice': this.pick = o; this.wait = h.choice(o.options.map((x) => x.text)); break;
+      case 'choice': this.pick = o; this.wait = o.duel ? h.duel(o.duel) : h.choice(o.options.map((x) => x.text)); break;
       case 'goto': this.pc = this.labels[o.to]; break;
       case 'end': this.finished = true; break;
       case 'give': h.give(o.item, o.n); break;
       case 'take': if (!h.take(o.item, o.n) && o.else) this.pc = this.labels[o.else]; break;
       case 'money': h.money(o.n); break;
+      case 'pay': if (!h.pay(o.n) && o.else) this.pc = this.labels[o.else]; break;
       case 'bond': h.bond(o.npc, o.n); break;
       case 'virtue': h.virtue(o.name, o.n); break;
       case 'setFlag': h.setFlag(o.name, o.value); break;
@@ -143,6 +151,9 @@ export class ScriptRunner {
       case 'emote': h.emote(o.npc, o.kind); break;
       case 'pan': this.wait = h.pan(o.player ? 'player' : { tx: o.tx, ty: o.ty }, o.t); break;
       case 'fade': this.wait = h.fade(o.dir, o.t); break;
+      case 'placePlayer': h.placePlayer(o.tx, o.ty, o.dir); break;
+      case 'learn': h.learn(o.dish); break;
+      case 'sfx': h.sfx(o.name); break;
       default: throw new Error(`bad op ${o.op}`);
     }
   }

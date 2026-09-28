@@ -5,7 +5,7 @@ import { itemDef } from '../data/items.js';
 import { t } from '../data/strings.js';
 import { dayIndex } from '../systems/calendar.js';
 import { WEATHER } from '../systems/weather.js';
-import { newBond, talk, pickLine, giftBlock, giveGift, isGiftable, isBirthday, parseLine, hearts, addBond } from '../systems/bonds.js';
+import { newBond, talk, pickLine, giftBlock, giveGift, isGiftable, isBirthday, parseLine, hearts, addBond, ROMANCE_CAP } from '../systems/bonds.js';
 import { dueWith, complete } from '../systems/requests.js';
 import { talkBonus, rewardMult } from '../systems/virtues.js';
 import { Dialog } from '../ui/dialog.js';
@@ -13,7 +13,9 @@ import DIALOGUE from '../data/dialogue/index.js';
 
 export function bondOf(game, id) {
   if (!game.bonds[id]) game.bonds[id] = newBond();
-  return game.bonds[id];
+  const b = game.bonds[id];
+  if (NPCS[id]?.romance && !b.courting) b.cap = ROMANCE_CAP;
+  return b;
 }
 
 /** A dialogue box spoken by a villager. */
