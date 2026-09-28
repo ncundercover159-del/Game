@@ -2,7 +2,8 @@
 // cave tiles' props. Frame names are the contract with world/draw code.
 import { addCharacter } from './characters.js';
 import { addHeldWeapons, weaponIcons, combatSprites } from './weapons.js';
-import { ENEMY_LOOKS, yokaiFrames, omens } from './enemies.js';
+import { ENEMY_LOOKS, yokaiFrames } from './enemies.js';
+import { omens } from './spirits.js';
 import { oreNode, urn, chest, ladderHole, ropeUp, caveLantern, timbers, crackedWall, bundle, caveMouth, brazier, deepStair } from './cave.js';
 import { ORES } from '../data/caves.js';
 import { portrait, EXPRESSIONS } from './portraits.js';
