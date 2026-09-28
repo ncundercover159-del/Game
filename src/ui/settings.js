@@ -97,8 +97,9 @@ export class SettingsPage {
         if (!hit(m.x, m.y, x, y + k * ROW, w, ROW)) continue;
         const row = rows[top + k];
         this.sel = top + k;
-        // A click on the left half steps a value down, on the right half up.
-        if (row.act) row.act(); else row.change(m.x < x + w / 2 ? -1 : 1);
+        // A click left of the value's middle (its ◀) steps it down, right of it (its ▶) up.
+        const vw = row.change ? fonts.big.measure(`◀ ${row.value} ▶`) : 0;
+        if (row.act) row.act(); else row.change(m.x < x + w - vw / 2 ? -1 : 1);
         g.sfx('ui');
       }
     }

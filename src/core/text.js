@@ -6,8 +6,8 @@ import { makeCanvas } from '../art/compiler.js';
 
 export const FONT_FILES = {
   small: { file: 'fusion-pixel-8px-jp.woff2', size: 8, family: 'RoninPixel8' },
-  body: { file: 'fusion-pixel-10px-jp.woff2', size: 10, family: 'RoninPixel10' },
-  big: { file: 'fusion-pixel-12px-jp.woff2', size: 12, family: 'RoninPixel12' },
+  body: { file: 'fusion-pixel-10px-jp.woff2', size: 10, family: 'RoninPixel10', track: 1 },
+  big: { file: 'fusion-pixel-12px-jp.woff2', size: 12, family: 'RoninPixel12', track: 1 },
 };
 
 export async function loadFonts(base = './') {
@@ -21,8 +21,10 @@ export async function loadFonts(base = './') {
 const ATLAS = 512;
 
 export class PixelFont {
-  constructor({ family, size }) {
+  // `track`: extra pixels between Latin letters, so the one-pixel strokes do not crowd each other.
+  constructor({ family, size, track = 0 }) {
     this.size = size;
+    this.track = track;
     this.font = `${size}px "${family}"`;
     this.atlas = makeCanvas(ATLAS, ATLAS);
     this.actx = this.atlas.getContext('2d', { willReadFrequently: true });
@@ -77,7 +79,7 @@ export class PixelFont {
     const sx = (this.next % cols) * cell * 2, sy = Math.floor(this.next / cols) * cell;
     this.next++;
     this.actx.putImageData(img, sx, sy);
-    g = { sx, sy, w: cell * 2, h: cell, adv: w };
+    g = { sx, sy, w: cell * 2, h: cell, adv: w + (ch.codePointAt(0) < 0x2000 ? this.track : 0) };
     this.glyphs.set(ch, g);
     this.version++;
     return g;

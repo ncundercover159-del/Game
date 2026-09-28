@@ -132,7 +132,12 @@ export class NewFarm {
     };
     const m = input.mouse;
     if (input.pressed('click')) {
-      for (let i = 0; i < n; i++) if (hit(m.x, m.y, this.x + 12, this.y + 40 + i * 16, 150, 16)) { this.sel = i; if (i === PARTS.length) this.next(); else change(m.x < this.x + 90 ? -1 : 1); }
+      for (let i = 0; i < n; i++) {
+        if (!hit(m.x, m.y, this.x + 12, this.y + 40 + i * 16, 180, 16)) continue;
+        this.sel = i;
+        // Left of the value's middle (its ◀) steps back, right of it (its ▶) on.
+        if (i === PARTS.length) this.next(); else change(m.x < this.x + 190 - fonts.big.measure(this.lookValue(PARTS[i])) / 2 ? -1 : 1);
+      }
       return;
     }
     if (this.sel < PARTS.length) {
@@ -202,13 +207,15 @@ export class NewFarm {
     }
   }
 
+  lookValue(p) { return `◀ ${t(`ng_${p}_${this.opts.look[p]}`)} ▶`; }
+
   draw_look(ctx) {
     const g = this.game;
     PARTS.forEach((p, i) => {
       const y = this.y + 40 + i * 16, on = i === this.sel;
       if (on) fonts.big.draw(ctx, '▶', this.x + 12, y, 'red2');
       fonts.big.draw(ctx, t(`ng_look_${p}`), this.x + 24, y, on ? 'red1' : 'wood1');
-      const v = `◀ ${t(`ng_${p}_${this.opts.look[p]}`)} ▶`;
+      const v = this.lookValue(p);
       fonts.big.draw(ctx, v, this.x + 190 - fonts.big.measure(v), y, 'wood1');
     });
     const ny = this.y + 40 + PARTS.length * 16, on = this.sel === PARTS.length;
