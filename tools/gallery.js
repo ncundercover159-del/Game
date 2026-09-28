@@ -1,7 +1,7 @@
 // Art gallery: palette, every atlas frame (1x and 4x) and the 47 autotile cases per terrain.
 import { RAMPS } from '../src/art/palette.js';
 import { buildArt } from '../src/art/index.js';
-import { blobMasks, grassTile, tilledTile, pathTile, landTile, waterTile } from '../src/art/terrain.js';
+import { blobMasks, grassTile, tilledTile, pathTile, landTile, waterTile, channelTile, GRASS_PALS } from '../src/art/terrain.js';
 import { gridToCanvas } from '../src/art/compiler.js';
 
 const root = document.getElementById('root');
@@ -55,7 +55,11 @@ for (const [key, frames] of groups) {
 
 const masks = blobMasks();
 const terrains = {
-  grass: (m) => grassTile(m, 0), tilled: (m) => tilledTile(m, 0, false), wet: (m) => tilledTile(m, 0, true),
+  grass: (m) => grassTile(m, 0), 'grass (summer)': (m) => grassTile(m, 0, GRASS_PALS[1]),
+  'grass (autumn)': (m) => grassTile(m, 0, GRASS_PALS[2]), 'grass (winter)': (m) => grassTile(m, 0, GRASS_PALS[3]),
+  tilled: (m) => tilledTile(m, 0, false), wet: (m) => tilledTile(m, 0, true),
+  paddy: (m) => tilledTile(m, 0, false, 'paddy'), straw: (m) => tilledTile(m, 0, false, 'straw'),
+  channel: (m) => channelTile(m, 0, true), 'channel (dry)': (m) => channelTile(m, 0, false),
   path: (m) => pathTile(m, 0), land: (m) => landTile(m, 0), water: (m) => waterTile(m, 0, 0),
 };
 for (const [name, gen] of Object.entries(terrains)) {

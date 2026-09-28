@@ -1,6 +1,6 @@
 // Pause menu (Esc/Tab): Items (rearrange the backpack, item details), Options, Save.
 import { fonts } from '../core/text.js';
-import { panel, thin, item, hit, rect } from './widgets.js';
+import { panel, thin, item, hit, rect, iconName } from './widgets.js';
 import { List } from './list.js';
 import { t } from '../data/strings.js';
 import { itemDef, sellPrice, QUALITY } from '../data/items.js';
@@ -147,17 +147,17 @@ export class Menu {
     for (let i = 0; i < inv.size; i++) {
       const r = this.slotRect(i);
       atlas.draw(ctx, 'ui_slot', r.x + 1, r.y + 1);
-      if (i !== this.held) item(ctx, atlas, inv.slots[i], r.x + 2, r.y + 2);
+      if (i !== this.held) item(ctx, atlas, inv.slots[i], r.x + 2, r.y + 2, this.game.tiers);
     }
     const c = this.slotRect(this.cursor);
     atlas.draw(ctx, 'ui_slot_sel', c.x, c.y);
-    if (this.held >= 0) item(ctx, atlas, inv.slots[this.held], c.x + 6, c.y - 6);
+    if (this.held >= 0) item(ctx, atlas, inv.slots[this.held], c.x + 6, c.y - 6, this.game.tiers);
     const s = inv.slots[this.held >= 0 ? this.held : this.cursor];
     if (!s) return;
     const d = itemDef(s.id);
     const x = this.x + 12, y = this.y + 46;
     thin(ctx, atlas, x - 4, y - 4, this.w - 16, 86);
-    atlas.draw(ctx, `icon_${s.id}`, x, y);
+    atlas.draw(ctx, iconName(s.id, this.game.tiers), x, y);
     fonts.big.draw(ctx, d.name, x + 22, y, 'wood1');
     fonts.big.draw(ctx, d.jp, x + 26 + fonts.big.measure(d.name), y, 'red1');
     if (s.q) fonts.body.draw(ctx, `${'★'.repeat(QUALITY[s.q].stars)} ${QUALITY[s.q].name}`, x + 22, y + 15, 'gold0');

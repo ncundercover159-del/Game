@@ -7,6 +7,10 @@ const FOREST_KINDS = ['pine', 'pine', 'broadleaf', 'pine', 'broadleaf', 'sakura'
 
 export function decorate(map) {
   const def = map.def;
+  // Terrace retaining walls go in first so nothing grows on them.
+  for (const y of def.terraces?.rows || []) {
+    for (let x = def.terraces.x0; x <= def.terraces.x1; x++) map.addObject({ type: 'ishigaki', x, y, v: 0 });
+  }
   for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) {
     const ch = def.ground[y][x];
     if (ch === 'f') map.addObject({ type: 'fence', x, y, v: x % 3 === 0 ? 1 : 0 });
@@ -20,9 +24,10 @@ export function decorate(map) {
 
 // Overgrowth table: weights for what grows on an overgrown cell.
 const GROWTH = [
-  ['weed', 60], ['stone', 12], ['twig', 10], ['stump', 3], ['tree', 3], ['bamboo', 1.5],
+  ['weed', 60], ['stone', 12], ['twig', 10], ['stump', 3], ['tree', 3], ['bamboo', 1.5], ['log', 0.7], ['boulder', 0.7],
 ];
 const TREE_KINDS = ['broadleaf', 'broadleaf', 'pine', 'sakura'];
+const TALL = new Set(['tree', 'bamboo', 'log', 'boulder']);
 
 export function populate(map, seed) {
   const def = map.def;
@@ -40,7 +45,7 @@ export function populate(map, seed) {
     let r = hashf(x, y, seed, 2) * total;
     let type = 'weed';
     for (const [t, w] of GROWTH) if ((r -= w) < 0) { type = t; break; }
-    if ((type === 'tree' || type === 'bamboo') && crowded(map, x, y)) type = 'weed';
+    if (TALL.has(type) && crowded(map, x, y)) type = 'weed';
     const h = hash(x, y, seed, 3);
     const o = { type, x, y };
     if (type === 'weed') o.v = h % 23 === 0 ? 3 : h % 3;
@@ -56,7 +61,7 @@ export function populate(map, seed) {
 function crowded(map, x, y) {
   for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
     const o = map.objectAt(x + dx, y + dy);
-    if (o && (o.type === 'tree' || o.type === 'bamboo' || o.type === 'forest')) return true;
+    if (o && (TALL.has(o.type) || o.type === 'forest')) return true;
   }
   return false;
 }

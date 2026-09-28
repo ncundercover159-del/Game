@@ -73,9 +73,12 @@ export default {
     { type: 'toro', tx: 27, ty: 12, light: [6, 6] },
     { type: 'toro', tx: 31, ty: 12, light: [6, 6] },
     { type: 'sign', tx: 3, ty: 13, text: 'sign_road' },
+    { type: 'crate', tx: 25, ty: 11 },
     { type: 'sign', tx: 50, ty: 11, text: 'sign_terraces' },
   ],
   // Walking into these tiles triggers a message instead of a map change (other maps arrive in M3).
-  edges: [{ tx: 0, ty: 14, h: 2, text: 'edge_village' }],
+  edges: [{ tx: 0, ty: 14, h: 2, action: 'village', text: 'edge_village' }],
+  // The locked northern terraces: stone retaining walls step the hillside.
+  terraces: { x0: 40, x1: 61, rows: [5, 8] },
   spawn: { tx: 29, ty: 12, dir: 'down' },
 };

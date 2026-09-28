@@ -215,3 +215,57 @@ export function fence(post = true) {
   return outline(g, { color: 'wood0' });
 }
 
+
+/** Shipping crate (shukka-bako): lidded cedar box with a rope and a red paper tag. */
+export function crate() {
+  const g = grid(22, 20);
+  fillRect(g, 1, 6, 20, 13, 'wood3');
+  for (let x = 1; x < 21; x += 5) vline(g, x, 7, 18, 'wood2');
+  fillRect(g, 0, 3, 22, 4, 'wood4');
+  hline(g, 0, 21, 3, 'wood5');
+  hline(g, 0, 21, 6, 'wood1');
+  hline(g, 1, 20, 18, 'wood1');
+  vline(g, 10, 3, 18, 'straw2');
+  vline(g, 11, 3, 18, 'straw1');
+  fillRect(g, 14, 9, 4, 6, 'red2');
+  hline(g, 14, 17, 9, 'red3');
+  set(g, 15, 11, 'ink6'); set(g, 16, 12, 'ink6'); set(g, 15, 13, 'ink6');
+  return outline(g, { color: 'wood0' });
+}
+
+/** Sluice gate on a channel: two posts and a board, raised (open) or lowered (shut). */
+export function sluice(open) {
+  const g = grid(16, 18);
+  fillRect(g, 2, 2, 3, 15, 'wood2');
+  fillRect(g, 11, 2, 3, 15, 'wood1');
+  hline(g, 2, 4, 2, 'wood4');
+  hline(g, 11, 13, 2, 'wood3');
+  hline(g, 2, 13, 4, 'wood3');
+  const top = open ? 5 : 10;
+  fillRect(g, 5, top, 6, 6, 'wood4');
+  for (let y = top + 1; y < top + 6; y += 2) hline(g, 5, 10, y, 'wood2');
+  hline(g, 5, 10, top, 'wood5');
+  return outline(g, { color: 'wood0' });
+}
+
+/** Ishigaki: a dry-stone terrace wall tile with turf lipping over the top (tiles in a row). */
+export function ishigaki() {
+  const g = grid(16, 20);
+  fillRect(g, 0, 6, 16, 14, 'stone2');
+  const rows = [[6, 5], [11, 4], [15, 5]];
+  for (const [y, hgt] of rows) {
+    for (let x = (y * 3) % 5 - 4; x < 16; x += 6) {
+      fillRect(g, x, y, 5, hgt - 1, 'stone2');
+      hline(g, x, x + 4, y, 'stone3');
+      set(g, x, y, 'stone4');
+      vline(g, x + 5, y, y + hgt - 1, 'stone1');
+    }
+    hline(g, 0, 15, y + hgt - 1, 'stone1');
+  }
+  for (let x = 0; x < 16; x++) {
+    set(g, x, 5, x % 3 ? 'grass4' : 'grass5');
+    set(g, x, 4, x % 4 === 1 ? 'grass4' : 0);
+    if (x % 5 === 2) set(g, x, 6, 'grass3');
+  }
+  return g;
+}

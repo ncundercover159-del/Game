@@ -1,5 +1,5 @@
 // Trees, weeds, stones, twigs, stumps, bamboo and ground decals: procedural or hand-drawn grids.
-import { grid, set, parse, line, ellipse, outline, blit } from './raster.js';
+import { grid, set, parse, line, ellipse, outline, fillRect } from './raster.js';
 import { idx } from './palette.js';
 import { Rng, hashf } from '../core/rng.js';
 
@@ -99,6 +99,21 @@ function pineCanopy(seed) {
   return outline(g, { color: 'grass0' });
 }
 
+/** Bare winter branches (same footprint as a canopy), with snow resting on the tops. */
+export function bareCanopy(seed, w = 44, h = 38) {
+  const g = grid(w, h);
+  const rng = new Rng(seed);
+  const branch = (x, y, ang, len, depth) => {
+    const x2 = x + Math.sin(ang) * len, y2 = y - Math.cos(ang) * len;
+    line(g, Math.round(x), Math.round(y), Math.round(x2), Math.round(y2), depth > 1 ? 'wood2' : 'wood1');
+    if (depth > 1) line(g, Math.round(x) + 1, Math.round(y), Math.round(x2) + 1, Math.round(y2), 'wood1');
+    set(g, Math.round(x2), Math.round(y2) - 1, 'ink6');
+    if (depth > 0) for (const d of [-1, 1]) branch(x2, y2, ang + d * rng.float(0.35, 0.7), len * rng.float(0.55, 0.75), depth - 1);
+  };
+  branch(w / 2, h, 0, 13, 3);
+  return outline(g, { color: 'wood0' });
+}
+
 export function treeParts(kind, seed) {
   if (kind === 'pine') return { canopy: pineCanopy(seed), trunk: trunk(6, 14, seed), canopyY: -58, trunkH: 14 };
   return {
@@ -183,7 +198,7 @@ export const STUMP = parse(`
  * Pointed leaves fanning out from a root at (bx, by): each lit on its left half with a bright
  * midrib; leaves drawn first sit behind and take the darker tones.
  */
-function leafFan(g, rng, { bx, by, n, lenMin, lenMax, spread, center = 0, wMin = 3.4, wMax = 4.6, back, front, tipBack = 'grass4', tipFront = 'grass6' }) {
+export function leafFan(g, rng, { bx, by, n, lenMin, lenMax, spread, center = 0, wMin = 3.4, wMax = 4.6, back, front, tipBack = 'grass4', tipFront = 'grass6' }) {
   const leaves = [];
   for (let i = 0; i < n; i++) {
     const a = center + ((i + 0.5) / n - 0.5) * spread + rng.float(-0.2, 0.2);
@@ -252,6 +267,35 @@ export function bamboo(seed) {
   return outline(g, { color: 'grass0' });
 }
 
+/** A fallen trunk too thick for a basic axe. */
+export function bigLog() {
+  const g = grid(30, 15);
+  fillRect(g, 3, 3, 24, 10, 'wood3');
+  for (let x = 4; x < 27; x++) {
+    set(g, x, 4, 'wood4');
+    if ((x * 7) % 5 === 0) set(g, x, 8 + (x % 3), 'wood2');
+    set(g, x, 12, 'wood2');
+  }
+  ellipse(g, 26, 8, 4, 5.5, 'wood4');
+  ellipse(g, 26, 8, 2.5, 3.5, 'wood5');
+  ellipse(g, 26, 8, 1, 1.5, 'wood3');
+  ellipse(g, 3.5, 8, 2.5, 5, 'wood2');
+  for (const [x, y] of [[9, 3], [16, 3], [20, 2]]) { set(g, x, y, 'grass4'); set(g, x + 1, y, 'grass3'); }
+  return outline(g, { color: 'wood0' });
+}
+
+/** A boulder too big for a basic pickaxe. */
+export function boulder() {
+  const g = grid(22, 18);
+  ellipse(g, 11, 10, 10, 7.5, 'stone2');
+  ellipse(g, 9, 8, 7, 5, 'stone3');
+  ellipse(g, 7, 6, 3.5, 2.5, 'stone4');
+  for (const [x, y] of [[14, 11], [16, 8], [6, 13]]) { set(g, x, y, 'stone1'); set(g, x + 1, y, 'stone1'); }
+  line(g, 12, 4, 15, 9, 'stone1');
+  for (const [x, y] of [[4, 14], [5, 15], [17, 15]]) set(g, x, y, 'teal1');
+  return outline(g, { color: 'stone0' });
+}
+
 // ---------------------------------------------------------------- ground decals (drawn into chunks)
 
 export const DECALS = {
@@ -285,6 +329,25 @@ export const DECALS = {
   petal: parse(`
     ab
     .a`, { a: 'sakura3', b: 'sakura4' }),
+  leafR: parse(`
+    .a.a
+    abba
+    .ab.
+    ..c.`, { a: 'red2', b: 'red3', c: 'wood1' }),
+  leafY: parse(`
+    .aa
+    abb
+    .a.`, { a: 'gold1', b: 'gold2' }),
+  flowerR: parse(`
+    a.a.a
+    .aba.
+    a.b.a
+    ..c..
+    ..c..`, { a: 'red2', b: 'red3', c: 'grass2' }),
+  twig: parse(`
+    a...
+    .aa.
+    ...a`, { a: 'wood1' }),
 };
 
 /** Soft oval drop shadows (single colour; drawn with alpha at runtime). */

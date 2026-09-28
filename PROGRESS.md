@@ -18,8 +18,19 @@
   farmhouse door with ink-wipe day card, pass-out at 02:00, 3-slot saves (checksum, backup,
   migrations, export/import), autosave on sleep, Tsukikage tutorial asides, procedural SFX,
   title screen, options (sound, time speed, screen shake), debug keys and URL parameters.
-  **Stopped here for feedback.**
-- [ ] M2 Seasons and economy
+  Feedback after M1: "I really like them. Continue."
+- [x] **M2 Seasons and economy**: four seasons restyle the farm in place (turf palettes, maple and
+  ginkgo, bare winter branches, snow on thatch and weeds, seasonal decals and drifting petals or
+  leaves); deterministic weather forecast the evening before (clear, cloudy, rain, wind, summer
+  storms with lightning, tsuyu rains, two typhoons per autumn, snow, blizzards) with rain watering
+  the fields and dimming the light; irrigation channels dug with the hoe, flood-fill flow from the
+  pond or river, sluice gates, flooded paddies and rice; all 22 starter crops (18 with generated
+  art), season withering, straw-covered winter beds (hay), typhoon damage; shipping crate and an
+  itemised end-of-day screen with forecast and a seasonal verse; Chōbei's Yorozuya (buy by season
+  with a Saturday seed discount, sell) and Genzō's forge (iron bars, two-day tool upgrades) reached
+  by the valley road; tool tiers with charged hoe/can swings (3, 5, 9 tiles), heavier axe and
+  pickaxe hits, large logs and boulders that need an upgrade; HUD weather icon, tier icons, charge
+  pips; save v2 with a v1 migration.
 - [ ] M3 Village and people
 - [ ] M4 Nature and craft
 - [ ] M5 Combat and caves
@@ -27,9 +38,10 @@
 - [ ] M7 Content and polish
 
 ## Next
-Waiting for feedback on M1's look and feel. Then M2: seasons with palette-swapped visuals, weather
-(decided the evening before), irrigation channels and rice paddies with flood-fill, the full starter
-crop list, shipping crate and itemised end-of-day summary, Yorozuya shop, tool upgrades, HUD polish.
+M3 Village and people: the village and shrine maps, interiors and warps (the farmhouse gets a real
+bed), the NPC framework (schedules, A* pathfinding, dialogue script engine), bonds and gifts, the
+notice board and letters, 8 NPCs, Shrine Offerings v1. The valley-road shop menu becomes a walk to
+the real Yorozuya and forge.
 
 ## Verification (M1)
 - `npm test`: 36 unit tests (calendar, farming rules and regrowth, inventory, save checksum and
@@ -42,6 +54,15 @@ crop list, shipping crate and itemised end-of-day summary, Yorozuya shop, tool u
   night, menu, day card, whole-farm overview, 720p window).
 - Performance (headless Chromium, software rendering, night with lighting): simulation step
   0.03 ms, update + render 2.8 ms per frame; JS heap ~10 MB; atlas ~1024x~900; 219 autotile cells.
+
+## Verification (M2)
+- `npm test`: 48 unit tests, adding irrigation flow/sluices/paddies, season withering, rain and
+  typhoons, planting rules (season, paddy, straw), multi-yield harvests, weather determinism
+  (tsuyu, exactly two typhoons), shipping value, charged swing areas, v1 -> v2 save migration.
+- `npm run test:e2e` adds: shipping a stack in the crate and being paid overnight; an Iron hoe
+  charged for a second tilling three tiles in a line.
+- `npm run shots` writes shots/m2 (seasons, rain, storm at night, irrigated paddies, shop, forge,
+  end-of-day screen, every crop ripe).
 
 ## Decisions
 - The repository already contained ORBIT (a small arcade game) at the root; it was moved to
@@ -67,6 +88,21 @@ crop list, shipping crate and itemised end-of-day summary, Yorozuya shop, tool u
 - Harvest quality in M1 uses base odds (Fine 12%, Excellent 3%); farming skill modifies it in M4.
 - No crop withering at season change yet: seasons as a system arrive in M2.
 - Every new game draws its overgrowth from the seed (`?seed=` for reproducible layouts).
+- (M2) The Yorozuya and the forge are reached from the valley road as a trip menu (60 in-game
+  minutes, shop hours and closed days apply) until the village map is walkable in M3.
+- (M2) Irrigation: hoe on empty tilled soil digs a channel; the pickaxe fills it; channels carry
+  water only when connected (4-way) to natural water; a tilled tile beside running water is a
+  paddy and counts as watered. Rice only grows in paddies.
+- (M2) Winter crops need straw-covered soil: use Hay on tilled soil. Straw also protects crops
+  from typhoons (bamboo windbreaks join in M4 with crafting).
+- (M2) Charged swings exist for the hoe and can only (Iron 3-line, Steel 5-line, Tamahagane 3x3);
+  axe and pickaxe tiers add damage per hit. Steel bars and tamahagane come from the caves (M5), so
+  in M2 only Iron upgrades are reachable.
+- (M2) Crop art: the four M1 crops stay hand-drawn; the other 18 are generated from plant forms
+  (rosette, bush, vine, trellis, grass) and shaded produce blobs, so every crop has 5 stages and
+  an icon from the same style rules.
+- (M2) Seasons restyle by recolouring atlas frames (`name@summer|autumn|winter`) and by per-season
+  turf palettes; the ground chunks are redrawn once when the season turns.
 
 ## Reference conflicts (logged)
 - Brief: head about a third of body height. Reference 1: ~45%. Followed the reference.
@@ -81,14 +117,21 @@ crop list, shipping crate and itemised end-of-day summary, Yorozuya shop, tool u
 4. Bare earth flat, no shadow under grass edges -> sparse lit lumps in the dirt, 1 px turf shadow.
 5. Weeds read as repeated "shells" -> redrawn as fans of pointed leaves with midribs.
 
+**M2 pass** (seasonal art; the references only show spring, so the fallback direction in the brief
+leads): maple reds and ginkgo gold follow ref 1's foliage clustering; winter uses `ink4-6` snow
+with violet shadows per the palette rules. Fixes from the pass: day-time light pools showing
+under snow (threshold raised), bare trees too short (longer first branch), thatch too bright
+under snow (snowy thatch variant), clock plate too narrow for two-digit days (widened).
+
 **M0 pass 2**: grass brightness/saturation and silhouettes now match the family; remaining gaps are
 content density (flowers, props), not style. Tool swing windup was hidden behind the head -> tools
 raised higher and drawn behind the body only while raised.
 
 ## Known issues
 - Bamboo clumps and the thatch roof are serviceable but plain; revisit with the bamboo grove (M4).
-- The northern terraces are only fenced off and signposted; their stepped paddy look comes with
-  rice paddies in M2.
-- The farm's west road ends in a message; the village map arrives in M3.
+- The northern terraces are fenced, signposted and stepped with stone walls, but stay locked until
+  the shrine is restored (M3 offerings).
+- Shops open from a valley-road menu until the village map exists (M3).
+- Weather has no audio yet (the procedural soundscape is M7); thunder uses a stand-in rumble.
 - Interiors do not exist yet, so the farmhouse door is where you sleep (bed interaction in M3).
 - Touch controls, rebinding UI and the fuller title/new-game flow are M7 items.

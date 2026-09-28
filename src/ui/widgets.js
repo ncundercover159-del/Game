@@ -33,10 +33,16 @@ export function rect(ctx, color, x, y, w, h) {
   ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
 }
 
+/** Icon frame for an item, using the upgraded art for tools above Basic. */
+export function iconName(id, tiers) {
+  const t = tiers && tiers[id];
+  return t ? `icon_${id}@${t}` : `icon_${id}`;
+}
+
 /** An item in a 16x16 box at (x, y): icon, stack count bottom-right, quality stars top-left. */
-export function item(ctx, atlas, s, x, y, extra = null) {
+export function item(ctx, atlas, s, x, y, tiers = null) {
   if (!s) return;
-  atlas.draw(ctx, `icon_${s.id}`, x, y);
+  atlas.draw(ctx, iconName(s.id, tiers), x, y);
   if (s.n > 1) {
     const f = fonts.small;
     const str = String(s.n);
@@ -48,7 +54,6 @@ export function item(ctx, atlas, s, x, y, extra = null) {
     rect(ctx, 'gold0', x - 1 + i * 4, y - 1, 3, 3);
     rect(ctx, s.q === 3 ? 'sakura2' : 'gold2', x + i * 4, y, 1, 1);
   }
-  if (extra) extra(x, y);
 }
 
 /** Centred text. */

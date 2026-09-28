@@ -15,8 +15,16 @@ function rec(y, kind, ref) {
   list.push(r);
 }
 
+/** The seasonal variant of a frame when the atlas has one (`name@autumn`). */
+function seasonal(atlas, name, season) {
+  if (season === 'spring') return name;
+  const alt = `${name}@${season}`;
+  return atlas.has(alt) ? alt : name;
+}
+
 function objectSprite(o) {
   switch (o.type) {
+    case 'sluice': return o.open ? 'sluice_open' : 'sluice_shut';
     case 'weed': return o.v === 3 ? 'weed_flower' : `weed${o.v}`;
     case 'stone': return `stone${o.v}`;
     case 'twig': return `twig${o.v}`;
@@ -69,10 +77,11 @@ export function drawWorld(w, ctx, cam) {
     if (r.kind === 'obj') drawObject(w, ctx, cam, r.ref);
     else if (r.kind === 'crop') {
       const { crop, tx, ty } = r.ref;
-      atlas.draw(ctx, `crop_${crop.id}_${stageOf(crop.id, crop.growth)}`, tx * TILE + 8 - cam.ix, ty * TILE + 15 - cam.iy);
+      const name = crop.dead ? 'crop_withered' : `crop_${crop.id}_${stageOf(crop.id, crop.growth)}`;
+      atlas.draw(ctx, name, tx * TILE + 8 - cam.ix, ty * TILE + 15 - cam.iy);
     } else if (r.kind === 'bld') {
       const b = r.ref;
-      atlas.draw(ctx, b.sprite, b.tx * TILE + b.px - cam.ix, b.ty * TILE + b.py - cam.iy);
+      atlas.draw(ctx, seasonal(atlas, b.sprite, game.seasonId), b.tx * TILE + b.px - cam.ix, b.ty * TILE + b.py - cam.iy);
     } else if (r.kind === 'drop') {
       const d = r.ref;
       const bob = d.z === 0 ? Math.round(Math.sin(w.time * 4 + d.x) * 1) : 0;
@@ -95,14 +104,15 @@ function drawObject(w, ctx, cam, o) {
     const sway = Math.round(Math.sin(w.time * 1.1 + o.x * 0.9 + o.y * 0.3) * 0.7);
     // Walk-behind: fade the canopy when the player is hidden under it.
     const p = w.player;
-    const f = atlas.frame(`${base}_canopy`);
+    const canopy = seasonal(atlas, `${base}_canopy`, w.game.seasonId);
+    const f = atlas.frame(canopy);
     const behind = p.y < (o.y + 1) * TILE && Math.abs(p.x - (o.x * TILE + 8)) < f.w / 2 && p.y > (o.y + 1) * TILE - f.ay + 8;
     if (behind) ctx.globalAlpha = 0.55;
-    atlas.draw(ctx, `${base}_canopy`, bx + sway, by - 1);
+    atlas.draw(ctx, canopy, bx + sway, by - 1);
     ctx.globalAlpha = 1;
     return;
   }
-  atlas.draw(ctx, objectSprite(o), bx, by);
+  atlas.draw(ctx, seasonal(atlas, objectSprite(o), w.game.seasonId), bx, by);
 }
 
 function drawPlayer(w, ctx, cam) {
@@ -110,12 +120,23 @@ function drawPlayer(w, ctx, cam) {
   const atlas = w.game.atlas;
   const f = p.frame();
   const x = Math.round(p.x) - cam.ix, y = Math.round(p.y) - cam.iy;
-  const held = p.swing ? `held_${p.swing.tool}_${f.dir}_${f.pose}` : null;
+  const tool = p.swing ? p.swing.tool : p.charge ? p.chargeTool : null;
+  const held = tool ? `held_${tool}_${f.dir}_${f.pose}` : null;
   // A raised tool is behind the head; a strike toward the camera or sideways is in front.
   const behind = f.pose === 'raise' || f.dir === 'up';
   if (held && behind) atlas.draw(ctx, held, x, y, f.flip);
   atlas.draw(ctx, f.name, x, y, f.flip);
   if (held && !behind) atlas.draw(ctx, held, x, y, f.flip);
+  if (p.charge) {
+    // Charge pips over the head: one per level reached.
+    const level = w.chargeLevel();
+    for (let i = 0; i < p.charge.max; i++) {
+      ctx.fillStyle = hex('ink0');
+      ctx.fillRect(x - p.charge.max * 3 + i * 6, y - 40, 5, 4);
+      ctx.fillStyle = hex(i < level ? 'gold2' : 'ink3');
+      ctx.fillRect(x - p.charge.max * 3 + i * 6 + 1, y - 39, 3, 2);
+    }
+  }
 }
 
 function drawTarget(w, ctx, cam) {
@@ -123,7 +144,7 @@ function drawTarget(w, ctx, cam) {
   if (!t || !w.map.inside(t.x, t.y)) return;
   const pulse = 0.65 + 0.35 * Math.abs(Math.sin(w.time * 3));
   ctx.globalAlpha = pulse;
-  w.game.atlas.draw(ctx, 'ui_target', t.x * TILE - cam.ix, t.y * TILE - cam.iy);
+  for (const [x, y] of w.targetTiles()) if (w.map.inside(x, y)) w.game.atlas.draw(ctx, 'ui_target', x * TILE - cam.ix, y * TILE - cam.iy);
   ctx.globalAlpha = 1;
   if (!w.game.input.mouseAiming()) return;
   // Reach indicator: corner ticks around the 3x3 the mouse can target.

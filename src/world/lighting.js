@@ -53,8 +53,10 @@ export class Lighting {
   }
 
   /** Multiply the scene in ctx by the ambient colour, with light pools at `lights` (world px). */
-  apply(ctx, w, h, minutes, lights, cam) {
-    const amb = ambientAt(minutes);
+  apply(ctx, w, h, minutes, lights, cam, dim = 0) {
+    // Overcast skies pull the ambient toward a cool grey.
+    const grey = rgb('ink4');
+    const amb = ambientAt(minutes).map((c, i) => Math.round(c * (1 - dim) + (c * grey[i]) / 255 * dim));
     if (amb[0] === 255 && amb[1] === 255 && amb[2] === 255) return amb;
     if (this.map.width !== w || this.map.height !== h) {
       this.map.width = w;
@@ -65,7 +67,7 @@ export class Lighting {
     c.fillStyle = `rgb(${amb[0]},${amb[1]},${amb[2]})`;
     c.fillRect(0, 0, w, h);
     const dark = darkness(amb);
-    if (dark > 0.05) {
+    if (dark > 0.15) {
       c.globalCompositeOperation = 'lighter';
       c.globalAlpha = Math.min(1, dark);
       for (const l of lights) {

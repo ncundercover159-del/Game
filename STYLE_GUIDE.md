@@ -79,6 +79,17 @@ Extracted dominant colours (median-cut) that the ramps were fitted to:
   band below it.
 - Tilled soil: `wood2` loam broken into lit clods; wet soil is one step darker on the same ramp.
 
+## 5b. Seasons
+- Turf palettes (`GRASS_PALS`): spring `grass2-6`; summer one step deeper (`grass1-5`); autumn
+  olive with straw highlights (`grass1-3` + `straw2-3`); winter snow (`ink4-6`, violet shadows).
+- Foliage recolours: summer leaves one step darker; broadleaf autumn alternates maple
+  (`red0-4`, `gold2-3`) and ginkgo (`gold0-3`); sakura is green in summer, orange-red in autumn;
+  broadleaf and sakura go bare in winter (branches in `wood0-2` with snow caps); pines take snow on
+  their lit tiers; weeds dry to straw in autumn and become snowy mounds in winter.
+- Snow settles on thatch (`straw2-4` -> `ink5-6`) and on terrace walls.
+- Seasonal ground decals: spring flowers, summer hydrangea blue, autumn fallen leaves and red
+  higanbana, winter twigs.
+
 ## 6. Characters
 
 - Frame 16x32, anchored at the feet (8, 30). Head ~13 px, torso ~8 px, hakama ~7 px, feet 2 px.

@@ -3,19 +3,26 @@
 import { TILE } from '../config.js';
 import { G } from './gamemap.js';
 import { makeCanvas } from '../art/compiler.js';
-import { canonical9, mask9At, variantAt, landTile, waterTile, grassTile, tilledTile, pathTile } from '../art/terrain.js';
+import { canonical9, mask9At, variantAt, landTile, waterTile, grassTile, tilledTile, pathTile, channelTile, GRASS_PALS } from '../art/terrain.js';
+import { SOIL, isFlooded } from '../systems/irrigation.js';
 import { hash } from '../core/rng.js';
 
 const CHUNK = 32;
 const WATER_FRAME = 0.25;
 
-// Decal choice per grass tile: [threshold, frame] checked against a stable hash.
-const DECALS = [[0.035, 'decal_tuft'], [0.06, 'decal_tuft2'], [0.072, 'decal_flowerW'], [0.08, 'decal_flowerP'], [0.086, 'decal_flowerB']];
+// Decal choice per grass tile and season: [threshold, frame] checked against a stable hash.
+const DECALS = [
+  [[0.035, 'decal_tuft'], [0.06, 'decal_tuft2'], [0.072, 'decal_flowerW'], [0.08, 'decal_flowerP'], [0.086, 'decal_flowerB']],
+  [[0.04, 'decal_tuft'], [0.07, 'decal_tuft2'], [0.082, 'decal_flowerB'], [0.088, 'decal_flowerW']],
+  [[0.03, 'decal_tuft2'], [0.06, 'decal_leafR'], [0.085, 'decal_leafY'], [0.09, 'decal_flowerR']],
+  [[0.02, 'decal_twig'], [0.03, 'decal_pebble']],
+];
 const DIRT_DECALS = [[0.05, 'decal_pebble']];
 
 export class GroundRenderer {
-  constructor(map, cells, atlas) {
+  constructor(map, cells, atlas, season = 0) {
     this.map = map;
+    this.season = season;
     this.cells = cells;
     this.atlas = atlas;
     this.cols = Math.ceil(map.w / CHUNK);
@@ -55,24 +62,40 @@ export class GroundRenderer {
       const c = this.cells.get(key, gen);
       ctx.drawImage(c.canvas, c.sx, c.sy, TILE, TILE, lx, ly, TILE, TILE);
     };
+    const se = this.season, snow = se === 3;
     const land = canonical9(mask9At((a, b) => !m.isWater(a, b), x, y));
-    put(`L${land}.${v}`, () => landTile(land, v));
-    if (m.soil[k]) {
+    put(`L${land}.${v}.${snow ? 1 : 0}`, () => landTile(land, v, snow));
+    const soil = m.soil[k];
+    if (soil === SOIL.CHANNEL) {
+      const cm = canonical9(mask9At((a, b) => m.isWater(a, b) || (m.inside(a, b) && m.soil[a + b * m.w] === SOIL.CHANNEL), x, y));
+      const flowing = m.flow[k] ? 1 : 0;
+      put(`C${cm}.${v}.${flowing}`, () => channelTile(cm, v, !!flowing));
+      return;
+    }
+    if (soil === SOIL.TILLED) {
       const wet = !!m.wet[k];
-      const sm = canonical9(mask9At((a, b) => m.inside(a, b) && m.soil[a + b * m.w] === 1, x, y));
-      put(`S${sm}.${v}.${wet ? 1 : 0}`, () => tilledTile(sm, v, wet));
+      const kind = isFlooded(m, x, y) ? 'paddy' : m.cover[k] ? 'straw' : 'soil';
+      const sm = canonical9(mask9At((a, b) => m.inside(a, b) && m.soil[a + b * m.w] === SOIL.TILLED, x, y));
+      put(`S${sm}.${v}.${wet ? 1 : 0}.${kind}`, () => tilledTile(sm, v, wet, kind));
       return;
     }
     if (g === G.GRASS) {
       const gm = canonical9(mask9At((a, b) => m.groundAt(a, b) === G.GRASS && !(m.inside(a, b) && m.soil[a + b * m.w]), x, y));
-      put(`G${gm}.${v}`, () => grassTile(gm, v));
-      if (gm === 511) this.decal(ctx, x, y, lx, ly, DECALS);
+      put(`G${gm}.${v}.${se}`, () => grassTile(gm, v, GRASS_PALS[se]));
+      if (gm === 511) this.decal(ctx, x, y, lx, ly, DECALS[se]);
     } else if (g === G.PATH) {
       const pm = canonical9(mask9At((a, b) => m.groundAt(a, b) === G.PATH, x, y));
       put(`P${pm}.${v}`, () => pathTile(pm, v));
-    } else if (g === G.DIRT) {
+    } else if (g === G.DIRT && !snow) {
       this.decal(ctx, x, y, lx, ly, DIRT_DECALS);
     }
+  }
+
+  /** Restyle the whole map for a new season. */
+  setSeason(season) {
+    if (season === this.season) return;
+    this.season = season;
+    for (let y = 0; y < this.map.h; y++) for (let x = 0; x < this.map.w; x++) this.drawTile(x, y);
   }
 
   decal(ctx, x, y, lx, ly, table) {

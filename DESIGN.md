@@ -60,6 +60,29 @@ Targeting: the tile in front of the player; with the mouse, any tile within 1 ti
 - Quality on harvest (M1 base chance): Fine 12%, Excellent 3%. Farming skill modifies this in M4.
 - M1 crops: Daikon (4 d), Komatsuna (5 d), Soramame (6 d), Strawberry (8 d, regrows every 4).
 
+## Seasons and weather (M2)
+- Season turn: crops not in the new season wither overnight (any tool clears them). Rice grows in
+  spring and summer. Winter crops need straw-covered beds (Hay on tilled soil).
+- Weather per day from `hash(seed, date)`: spring clear/cloudy/rain/wind; summer days 1-10 are
+  tsuyu (mostly rain), then clear/cloudy/rain/thunderstorm; autumn like spring plus exactly two
+  typhoon days; winter snow/clear/cloudy/blizzard. Forecast = tomorrow's roll, shown at day end.
+- Rain (incl. storm, tsuyu, typhoon) waters every tilled tile in the morning. A typhoon night tears
+  out 20% of unprotected crops (straw protects).
+
+## Irrigation (M2)
+Hoe on empty tilled soil -> channel. Water flood-fills 4-connected channel tiles from any channel
+tile touching natural water; a shut sluice gate blocks its tile. Tilled soil beside running water
+(channel or natural) is a flooded paddy: always watered, required for rice. Pickaxe fills a channel.
+
+## Economy (M2)
+- Shipping crate by the house: stacks put in are paid overnight at full price with quality
+  multipliers, itemised on the end-of-day screen. Selling at the Yorozuya pays the same, now.
+- Yorozuya (09:00-17:00, closed Sui): the season's seeds, sluice gates; Do is 10% off seeds.
+- Kajiya (09:00-16:00, closed Nichi): iron bars (150), tool upgrades (2 days, tool is away):
+  Iron 2000 + 5 iron bars, Steel 5000 + 5 steel bars, Tamahagane 12000 + 5 tamahagane.
+- Tool tiers: can 40/55/70/85; hoe and can charge (hold): 3-line, 5-line, 3x3; axe and pickaxe deal
+  1 + tier per hit; large logs and boulders need tier 1.
+
 ## Farm map (Hinata Farm, 64x48)
 Forest border all round; the farmhouse (minka) top-centre with a kura storehouse to its west and a
 well by the door; a pond to the east; the river along the south edge; the northern terraces are

@@ -1,5 +1,53 @@
 // 16x16 item icons: tools, seeds, crops and materials. Every item in src/data/items.js has one.
-import { grid, set, line, blit, parse, outline, fillRect, ellipse } from './raster.js';
+import { grid, set, line, blit, parse, outline, fillRect, ellipse, crop, recolor } from './raster.js';
+import { produceIcon, GENERATED_CROPS } from './cropgen.js';
+
+// Seed packet [band, sketch] colours for generated crops.
+const SEED_COLORS = {
+  satoimo: ['wood2', 'wood4'], rice: ['gold1', 'straw4'], edamame: ['grass3', 'grass5'], nasu: ['sakura0', 'indigo2'],
+  kyuri: ['grass2', 'grass4'], kabocha: ['gold0', 'grass2'], suika: ['red2', 'grass4'], shoga: ['straw2', 'sakura2'],
+  shiso: ['sakura1', 'grass3'], satsumaimo: ['red1', 'sakura2'], soba: ['ink3', 'ink6'], daizu: ['straw1', 'straw3'],
+  azuki: ['red0', 'red2'], kabu: ['sakura2', 'ink6'], gobo: ['wood1', 'wood3'], hakusai: ['grass4', 'ink6'],
+  negi: ['teal1', 'ink6'], shungiku: ['gold1', 'grass4'],
+};
+
+// Tool-head recolours per tier: basic steel, iron, steel, tamahagane.
+const TIER_STEEL = [null,
+  { stone4: 'ink5', stone3: 'ink4', stone2: 'ink3', stone1: 'ink2' },
+  { stone4: 'water4', stone3: 'ink5', stone2: 'water1', stone1: 'water0' },
+  { stone4: 'gold3', stone3: 'sakura3', stone2: 'sakura1', stone1: 'sakura0' },
+];
+
+/** Tool icons for tiers 1-3 as { 'hoe@1': grid, ... }. */
+export function tierToolIcons() {
+  const base = toolIcons();
+  const out = {};
+  for (let t = 1; t < TIER_STEEL.length; t++) for (const k of ['hoe', 'axe', 'pickaxe']) out[`${k}@${t}`] = recolor(base[k], TIER_STEEL[t]);
+  const canTints = [null, { gold1: 'stone3', gold0: 'stone1' }, { gold1: 'water2', gold0: 'water1' }, { gold1: 'gold2', gold0: 'red2' }];
+  for (let t = 1; t < 4; t++) out[`can@${t}`] = recolor(base.can, canTints[t]);
+  return out;
+}
+
+function bar(ramp) {
+  const g = grid(16, 16);
+  for (const [ox, oy] of [[2, 8], [6, 5]]) {
+    for (let y = 0; y < 5; y++) for (let x = 0; x < 9; x++) {
+      const edge = x < y * 0.4 || x > 8 - y * 0.4;
+      if (!edge) set(g, ox + x, oy + y, y === 0 ? ramp[3] : y < 2 ? ramp[2] : y < 4 ? ramp[1] : ramp[0]);
+    }
+  }
+  return crop(outline(g, { color: null }), 1, 1, 16, 16);
+}
+
+function sluiceIcon() {
+  const g = grid(16, 16);
+  fillRect(g, 3, 3, 3, 11, 'wood2'); fillRect(g, 10, 3, 3, 11, 'wood2');
+  line(g, 3, 3, 5, 3, 'wood4'); line(g, 10, 3, 12, 3, 'wood4');
+  fillRect(g, 6, 6, 4, 7, 'wood3');
+  for (let y = 7; y < 13; y += 2) line(g, 6, y, 9, y, 'wood1');
+  fillRect(g, 2, 13, 12, 2, 'water2');
+  return crop(outline(g, { color: 'wood0' }), 1, 1, 16, 16);
+}
 
 /** A wooden handle from (x0, y0) to (x1, y1): lit stroke with a darker underside. */
 function handle(g, x0, y0, x1, y1) {
@@ -107,6 +155,12 @@ export function itemIcons() {
     seed_komatsuna: packet('grass3', 'grass4'),
     seed_soramame: packet('teal1', 'grass5'),
     seed_strawberry: packet('red1', 'red3'),
+    ...Object.fromEntries(GENERATED_CROPS.map((id) => [`seed_${id}`, packet(...SEED_COLORS[id])])),
+    ...Object.fromEntries(GENERATED_CROPS.map((id) => [id, produceIcon(id)])),
+    iron_bar: bar(['ink1', 'ink2', 'ink4', 'ink5']),
+    steel_bar: bar(['water0', 'ink3', 'ink5', 'water4']),
+    tamahagane: bar(['sakura0', 'sakura1', 'gold2', 'gold3']),
+    sluice: sluiceIcon(),
     daikon: parse(`
       .....o...o......
       ....oho.oLo.....

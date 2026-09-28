@@ -1,9 +1,10 @@
 // Debug tools behind ?debug=1: F1 overlay, F2 skip day, F3 money + seed kit, F4 +1 hour
-// (Shift+F4: next season). Also exposes window.__game for headless tests (always, not only debug).
+// (Shift+F4: next season, Ctrl+F4: next weather). Also exposes window.__game for headless tests (always, not only debug).
 import { fonts } from './text.js';
 import { rect } from '../ui/widgets.js';
 import { TILE } from '../config.js';
 import { formatTime, TICK_MINUTES, DAY_END } from '../systems/calendar.js';
+import { WEATHER } from '../systems/weather.js';
 
 export class Debug {
   constructor(game, loop) {
@@ -11,8 +12,9 @@ export class Debug {
     this.loop = loop;
     this.overlay = false;
     this.shift = false;
-    addEventListener('keydown', (e) => { if (e.key === 'Shift') this.shift = true; });
-    addEventListener('keyup', (e) => { if (e.key === 'Shift') this.shift = false; });
+    this.ctrl = false;
+    addEventListener('keydown', (e) => { if (e.key === 'Shift') this.shift = true; if (e.key === 'Control') this.ctrl = true; });
+    addEventListener('keyup', (e) => { if (e.key === 'Shift') this.shift = false; if (e.key === 'Control') this.ctrl = false; });
   }
 
   update() {
@@ -25,8 +27,13 @@ export class Debug {
       for (const id of ['seed_daikon', 'seed_komatsuna', 'seed_soramame', 'seed_strawberry']) g.pickUp(id, 10);
     }
     if (input.pressed('debug4')) {
-      if (this.shift) g.cal.season = (g.cal.season + 1) % 4;
-      else g.cal.minutes = Math.min(DAY_END - TICK_MINUTES, g.cal.minutes + 60);
+      if (this.shift) {
+        g.cal.season = (g.cal.season + 1) % 4;
+        g.world.ground.setSeason(g.cal.season);
+      } else if (this.ctrl) {
+        const ids = Object.keys(WEATHER);
+        g.weather = ids[(ids.indexOf(g.weather) + 1) % ids.length];
+      } else g.cal.minutes = Math.min(DAY_END - TICK_MINUTES, g.cal.minutes + 60);
     }
   }
 
@@ -73,6 +80,10 @@ export function exposeTestHooks(game, loop) {
       target: { ...game.world.target },
       inventory: game.inventory.serialize(),
       selected: game.inventory.selected,
+      weather: game.weather,
+      tomorrow: game.tomorrow,
+      tiers: { ...game.tiers },
+      shipped: game.shipped.length,
     }),
     tile: (x, y) => {
       const m = game.world.map, k = m.i(x, y);

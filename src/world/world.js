@@ -9,11 +9,13 @@ import { Fx } from './fx.js';
 import { Drops } from './drops.js';
 import { OBJECT_TYPES } from '../data/objects.js';
 import { itemDef } from '../data/items.js';
-import { applyTool, plantSeed, GENKI_COST } from '../systems/tools.js';
+import { applyTool, plantSeed, placeItem, spreadStraw, swingArea, GENKI_COST } from '../systems/tools.js';
+import { computeFlow } from '../systems/irrigation.js';
+import { TIERS, CHARGE_STEP } from '../data/tools.js';
 import { cropAt, isRipe, harvest, plant, canPlant } from '../systems/farming.js';
-import { CROPS } from '../data/crops.js';
 
 const REACH = 1;
+const CHARGEABLE = new Set(['hoe', 'can']);
 
 export class World {
   constructor(game, def, saved) {
@@ -23,7 +25,8 @@ export class World {
     decorate(this.map);
     if (saved) this.map.restore(saved);
     else populate(this.map, game.seed);
-    this.ground = new GroundRenderer(this.map, game.cells, game.atlas);
+    computeFlow(this.map);
+    this.ground = new GroundRenderer(this.map, game.cells, game.atlas, game.cal.season);
     this.player = new Player({ x: 0, y: 0 });
     this.placeAtHome();
     this.fx = new Fx();
@@ -43,9 +46,19 @@ export class World {
     this.time += dt;
     p.tick(dt);
     this.aim();
-    if (p.swing) {
+    if (p.charge) {
+      p.charge.t += dt;
+      const level = this.chargeLevel();
+      if (level !== p.charge.shown) { p.charge.shown = level; if (level) this.game.sfx('ui'); }
+      if (!input.isDown('use')) {
+        const t = p.facingTile();
+        p.charge = null;
+        p.startSwing(p.chargeTool, t.x, t.y, level);
+        this.game.sfx('swing');
+      }
+    } else if (p.swing) {
       const sw = p.swing;
-      if (p.updateSwing(dt)) applyTool(this, sw.tool, sw.tx, sw.ty);
+      if (p.updateSwing(dt)) applyTool(this, sw.tool, swingArea(p.tx, p.ty, sw.tx, sw.ty, sw.level), sw.level);
       // Hold-to-repeat: keep swinging while the button stays down.
       if (!p.swing && input.isDown('use')) this.use();
     } else {
@@ -86,6 +99,8 @@ export class World {
     const def = itemDef(item.id);
     const t = this.target;
     if (def.kind === 'seed') { plantSeed(this, slot, t.x, t.y); return; }
+    if (def.kind === 'place') { placeItem(this, slot, t.x, t.y); return; }
+    if (item.id === 'hay') { spreadStraw(this, slot, t.x, t.y); return; }
     if (def.kind !== 'tool') return;
     const refill = def.tool === 'can' && this.isWaterSource(t.x, t.y);
     if (!refill && g.genki < GENKI_COST) {
@@ -94,8 +109,29 @@ export class World {
       return;
     }
     if (this.mouseTarget) this.player.face(t.x, t.y);
+    const max = TIERS[g.tiers[def.tool] || 0].charge;
+    if (max > 0 && CHARGEABLE.has(def.tool) && !refill && !this.mouseTarget) {
+      this.player.charge = { t: 0, max, shown: 0 };
+      this.player.chargeTool = def.tool;
+      return;
+    }
     this.player.startSwing(def.tool, t.x, t.y);
     g.sfx('swing');
+  }
+
+  /** Charge level 0..max of the swing being held. */
+  chargeLevel() {
+    const c = this.player.charge;
+    if (!c) return 0;
+    const affordable = Math.floor(this.game.genki / GENKI_COST) - 1;
+    return Math.max(0, Math.min(c.max, Math.floor(c.t / CHARGE_STEP), affordable));
+  }
+
+  /** Tiles the current swing or charge would touch (for the target highlight). */
+  targetTiles() {
+    const p = this.player;
+    if (p.charge) { const t = p.facingTile(); return swingArea(p.tx, p.ty, t.x, t.y, this.chargeLevel()); }
+    return [[this.target.x, this.target.y]];
   }
 
   isWaterSource(x, y) {
@@ -109,7 +145,15 @@ export class World {
     const map = this.map;
     if (isRipe(cropAt(map, x, y))) { this.harvestAt(x, y); return; }
     const cur = g.inventory.current;
-    if (cur && itemDef(cur.id).kind === 'seed' && canPlant(map, x, y)) { plantSeed(this, g.inventory.selected, x, y); return; }
+    if (cur && itemDef(cur.id).kind === 'seed' && canPlant(map, x, y, cur.id.slice(5))) { plantSeed(this, g.inventory.selected, x, y); return; }
+    const o0 = map.objectAt(x, y);
+    if (o0 && o0.type === 'sluice') {
+      o0.open = !o0.open;
+      computeFlow(map);
+      g.sfx(o0.open ? 'refill' : 'chop');
+      return;
+    }
+    if (o0 && o0.type === 'crate') { g.openShipping(); return; }
     const b = map.buildingAt(x, y);
     if (b) {
       if (b.door && b.door.tx === x && b.door.ty - 1 === y && b.door.action === 'sleep') { g.askSleep(); return; }
@@ -128,10 +172,10 @@ export class World {
     const g = this.game;
     const crop = cropAt(this.map, x, y);
     if (!crop) return false;
-    if (g.inventory.room(CROPS[crop.id].item) <= 0) { g.aside('tk_full'); return false; }
+    if (g.inventory.room(crop.id) <= 0) { g.aside('tk_full'); return false; }
     const got = harvest(this.map, x, y, this.rng);
     if (!got) return false;
-    g.pickUp(got.item, 1, got.q);
+    g.pickUp(got.item, got.n, got.q);
     this.fx.burst('fx_sparkle', x * TILE + 8, y * TILE + 4, 3, { speed: 20, up: 40 });
     this.fx.burst('fx_leaf', x * TILE + 8, y * TILE + 10, 4);
     g.sfx('harvest');
@@ -139,7 +183,7 @@ export class World {
   }
 
   plant(x, y, crop) {
-    return plant(this.map, x, y, crop);
+    return plant(this.map, x, y, crop, this.game.seasonId);
   }
 
   /** Walking into a map edge that leads elsewhere shows its message (maps arrive in M3). */
@@ -150,7 +194,7 @@ export class World {
     const pushing = (e.tx === 0 && a.x < 0) || (e.tx === this.map.w - 1 && a.x > 0);
     if (pushing && !this.edgeLatch) {
       this.edgeLatch = true;
-      this.game.say(e.text);
+      this.game.edgeAction(e);
     }
   }
 

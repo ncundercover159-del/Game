@@ -57,6 +57,19 @@ export class Inventory {
     return true;
   }
 
+  /** Remove n of an item across stacks (any quality, lowest first). Returns false if short. */
+  remove(id, n) {
+    if (this.count(id) < n) return false;
+    const order = this.slots.map((s, i) => [s, i]).filter(([s]) => s && s.id === id).sort((a, b) => a[0].q - b[0].q);
+    for (const [s, i] of order) {
+      const k = Math.min(n, s.n);
+      this.takeFrom(i, k);
+      n -= k;
+      if (!n) break;
+    }
+    return true;
+  }
+
   swap(a, b) {
     [this.slots[a], this.slots[b]] = [this.slots[b], this.slots[a]];
   }

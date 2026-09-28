@@ -112,6 +112,14 @@ export function blit(dst, src, ox, oy, flip = false) {
   return dst;
 }
 
+/** Palette swap: map is { fromName: toName }. */
+export function recolor(g, map) {
+  const lut = new Map(Object.entries(map).map(([a, b]) => [idx(a), idx(b)]));
+  const out = clone(g);
+  for (let i = 0; i < out.px.length; i++) if (lut.has(out.px[i])) out.px[i] = lut.get(out.px[i]);
+  return out;
+}
+
 /** Darkest tone on the ramp of palette index i (for selective outlines). */
 export function rampDark(i, steps = 0) {
   const r = RAMP_OF[i];

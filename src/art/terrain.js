@@ -115,8 +115,17 @@ export function grassTex(x, y, pal = GRASS_PAL) {
 }
 const GRASS_PAL = { deep: 'grass2', dark: 'grass3', mid: 'grass4', light: 'grass5', hi: 'grass6', edge: 'grass1', lip: 'grass2' };
 
+// Turf per season (index 0-3): fresh spring, deep summer, olive-and-straw autumn, snow.
+export const GRASS_PALS = [
+  GRASS_PAL,
+  { deep: 'grass1', dark: 'grass2', mid: 'grass3', light: 'grass4', hi: 'grass5', edge: 'grass0', lip: 'grass1' },
+  { deep: 'grass1', dark: 'grass2', mid: 'grass3', light: 'straw2', hi: 'straw3', edge: 'grass1', lip: 'straw0' },
+  { deep: 'ink4', dark: 'ink5', mid: 'ink6', light: 'ink6', hi: 'ink6', edge: 'ink4', lip: 'ink5' },
+];
+
 /** Bare earth: warm brown grit in 2x1 flecks with the odd pebble. */
-export function dirtTex(x, y) {
+export function dirtTex(x, y, snow = false) {
+  if (snow && hashf(x >> 1, y, 0, 23) > 0.55) return hashf(x, y, 0, 24) > 0.3 ? 'ink6' : 'ink5';
   const low = valueNoise(x, y, 4, P, 211) * 0.6 + valueNoise(x, y, 16, P, 212) * 0.4;
   const h = hashf((x + (y & 1)) >> 1, y, 0, 17);
   const p = hashf(x, y, 0, 18);
@@ -188,14 +197,14 @@ export function pathTex(x, y) {
  * Land tile: the earth surface, opaque up to the tile edge except rounded corners where it meets
  * water. The bank's vertical face is drawn by the water tile below it (3/4 view).
  */
-export function landTile(m, v) {
+export function landTile(m, v, snow = false) {
   const inside = insideMap(m, LAND_EDGE);
   const g = grid(T, T);
   for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
     if (!inside[(y + T) * S + x + T]) continue;
     const s = run(inside, x, y, 0, 1, 2), n = run(inside, x, y, 0, -1, 2);
     const e = run(inside, x, y, 1, 0, 2), w = run(inside, x, y, -1, 0, 2);
-    let c = dirtTex(wx(x, v), wy(y, v));
+    let c = dirtTex(wx(x, v), wy(y, v), snow);
     if (n === 1 || e === 1 || w === 1) c = 'wood2';
     else if (s === 1) c = 'wood5';
     set(g, x, y, I(c));
@@ -262,8 +271,27 @@ export function grassTile(m, v, pal = GRASS_PAL) {
   return g;
 }
 
-/** Tilled soil overlay with a crisp dark rim; wet soil uses the darker ramp window. */
-export function tilledTile(m, v, wet) {
+/** Paddy: shallow water standing between the clods; a few clods break the surface. */
+function paddyTex(x, y) {
+  const clod = hashf(x >> 1, y & 63, 0, 19) > 0.8 && ((y + (x >> 2)) % 3) !== 0;
+  if (clod) return 'wood2';
+  if ((y & 3) === 1 && hashf(x >> 2, y >> 2, 0, 61) > 0.5) return 'water3';
+  return hashf(x, y, 0, 62) > 0.8 ? 'water1' : 'water2';
+}
+
+/** Straw mulch: short strands of hay laid over the soil. */
+function strawTex(x, y, wet) {
+  const h = hashf(x, y, 0, 71);
+  if (h > 0.55) return hashf(x + y, 0, 0, 72) > 0.4 ? 'straw3' : 'straw2';
+  if (h > 0.42) return 'straw1';
+  return tilledTex(x, y, wet);
+}
+
+/**
+ * Tilled soil overlay with a crisp dark rim; wet soil uses the darker ramp window.
+ * kind: 'soil', 'paddy' (flooded) or 'straw' (covered).
+ */
+export function tilledTile(m, v, wet, kind = 'soil') {
   const inside = insideMap(m, { r: 3, t: 0.56, jitter: 0.04, seed: 31 });
   const g = grid(T, T);
   const d = wet ? 1 : 0;
@@ -275,7 +303,28 @@ export function tilledTile(m, v, wet) {
     if (s === 1 || e === 1 || w === 1 || n === 1) c = wet ? 'wood0' : 'wood1';
     else if (n === 2) c = wet ? 'wood2' : 'wood3';
     else if (s === 2) c = wet ? 'wood0' : 'wood1';
+    else if (kind === 'paddy') c = paddyTex(wx(x, v), wy(y, v));
+    else if (kind === 'straw') c = strawTex(wx(x, v), wy(y, v), wet);
     else c = tilledTex(wx(x, v), wy(y, v), wet);
+    set(g, x, y, I(c));
+  }
+  return g;
+}
+
+/** Irrigation channel: a narrow ditch, water running when it's connected to a source. */
+export function channelTile(m, v, flowing) {
+  const inside = insideMap(m, { r: 4, t: 0.72, jitter: 0.03, seed: 51 });
+  const g = grid(T, T);
+  for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+    if (!inside[(y + T) * S + x + T]) continue;
+    const n = run(inside, x, y, 0, -1, 3), s = run(inside, x, y, 0, 1, 3);
+    const e = run(inside, x, y, 1, 0, 3), w = run(inside, x, y, -1, 0, 3);
+    let c;
+    if (n === 1 || e === 1 || w === 1) c = 'wood1';
+    else if (s === 1) c = 'wood3';
+    else if (n === 2) c = flowing ? 'water1' : 'wood0';
+    else if (flowing) c = ((y + wy(0, v)) & 3) === 1 && hashf(wx(x, v) >> 2, y, 0, 81) > 0.45 ? 'water3' : 'water2';
+    else c = hashf(wx(x, v), wy(y, v), 0, 82) > 0.8 ? 'wood2' : 'wood1';
     set(g, x, y, I(c));
   }
   return g;

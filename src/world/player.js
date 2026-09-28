@@ -19,7 +19,8 @@ export class Player {
     this.dir = dir;
     this.anim = 'idle';
     this.animT = 0;
-    this.swing = null;   // { tool, t, struck, tx, ty }
+    this.swing = null;   // { tool, t, struck, tx, ty, level }
+    this.charge = null;  // { tool, t, max } while an upgraded hoe or can is held down
     this.stepT = 0;
     this.frozen = false;
   }
@@ -39,10 +40,10 @@ export class Player {
     this.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
   }
 
-  get busy() { return !!this.swing; }
+  get busy() { return !!this.swing || !!this.charge; }
 
-  startSwing(tool, tx, ty) {
-    this.swing = { tool, t: 0, struck: false, tx, ty };
+  startSwing(tool, tx, ty, level = 0) {
+    this.swing = { tool, t: 0, struck: false, tx, ty, level };
     this.anim = 'tool';
   }
 
@@ -85,6 +86,7 @@ export class Player {
   frame() {
     const flip = this.dir === 'left';
     const d = flip ? 'right' : this.dir;
+    if (this.charge) return { name: `player_${d}_tool0`, flip, pose: 'raise', dir: d };
     if (this.swing) {
       const t = this.swing.t;
       const i = t < SWING[0] ? 0 : t < SWING[0] + SWING[1] ? 1 : 2;

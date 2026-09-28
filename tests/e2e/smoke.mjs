@@ -22,6 +22,15 @@ async function walkTo(page, tx, ty) {
 const face = (page, key) => page.evaluate((k) => { const G = window.__game; G.hold(k); G.advance(34); G.release(k); G.advance(17); }, key);
 const press = (page, code, after = 0) => page.evaluate(([c, a]) => { window.__game.press(c); window.__game.advance(a); }, [code, after]);
 const state = (page) => page.evaluate(() => window.__game.state());
+/** Dismiss the end-of-day screen: keep confirming until no modal is left. */
+async function wake(page) {
+  for (let i = 0; i < 12; i++) {
+    const s = await state(page);
+    if (!s.modals.length) return;
+    await press(page, 'Enter', 500);
+  }
+  throw new Error('stuck in the night');
+}
 const tile = (page, x, y) => page.evaluate(([a, b]) => window.__game.tile(a, b), [x, y]);
 
 await withBrowser(async (browser, base) => {
@@ -87,9 +96,7 @@ await withBrowser(async (browser, base) => {
   s = await state(page);
   assert.deepEqual(s.modals, ['Dialog'], 'sleep prompt open');
   await press(page, 'Enter', 50);
-  await press(page, 'Enter', 1200);
-  await press(page, 'Enter', 1500);
-  await page.evaluate(() => window.__game.advance(3000));
+  await wake(page);
   s = await state(page);
   assert.deepEqual(s.modals, [], 'transition finished');
   assert.equal(s.cal.day, 2);
@@ -142,18 +149,50 @@ await withBrowser(async (browser, base) => {
   await page.waitForFunction(() => window.__ready === true);
   const after = await state(page);
   assert.equal(after.scene, 'play');
-  assert.deepEqual(after.cal, before.cal);
+  assert.equal(after.cal.day, before.cal.day);
+  assert.ok(Math.abs(after.cal.minutes - before.cal.minutes) <= 10, 'saved within the last clock tick');
   assert.equal(after.money, before.money);
   assert.deepEqual(after.inventory.slots, before.inventory.slots);
   assert.equal((await tile(page, 24, 18)).crop, null);
+
+  step('ships a stack in the crate and is paid overnight');
+  await page.evaluate(() => { const g = window.__game.game; g.inventory.add('komatsuna', 4); });
+  await walkTo(page, 33, 11);
+  await walkTo(page, 26, 11);
+  await walkTo(page, 26, 12);
+  await walkTo(page, 25, 12);
+  await face(page, 'KeyW');
+  await press(page, 'KeyK', 100);
+  assert.deepEqual((await state(page)).modals, ['ShipMenu']);
+  const komSlot = (await state(page)).inventory.slots.findIndex((x) => x && x.id === 'komatsuna');
+  await page.evaluate((i) => { window.__game.game.modals[0].cursor = i; }, komSlot);
+  await press(page, 'Enter', 50);
+  await press(page, 'Escape', 50);
+  s = await state(page);
+  assert.equal(s.shipped, 1);
+  const cash = s.money;
+  await page.evaluate(() => window.__game.game.sleep(false));
+  await wake(page);
+  assert.equal((await state(page)).money, cash + 4 * 50, 'paid for four komatsuna');
+
+  step('an iron hoe charged for a second tills three tiles in a line');
+  await page.evaluate(() => { const g = window.__game.game; g.tiers.hoe = 1; });
+  await walkTo(page, 29, 12);
+  await walkTo(page, 29, 14);
+  await walkTo(page, 24, 15);
+  await walkTo(page, 23, 16);
+  await face(page, 'KeyS');
+  await press(page, 'Digit1');
+  await page.evaluate(() => { const G = window.__game; G.hold('KeyJ'); G.advance(900); G.release('KeyJ'); G.advance(600); });
+  for (const y of [17, 18, 19]) assert.equal((await tile(page, 23, y)).soil, 1, `tilled 23,${y}`);
 
   step('passing out at 02:00 costs money and wakes you at home');
   await page.evaluate(() => { const g = window.__game.game; g.cal.minutes = 25 * 60 + 50; g.world.player.x = 40 * 16; g.world.player.y = 30 * 16; });
   const money = (await state(page)).money;
   await page.evaluate(() => window.__game.advance(9000));
-  await press(page, 'Enter', 3000);
+  await wake(page);
   s = await state(page);
-  assert.equal(s.cal.day, before.cal.day + 1);
+  assert.equal(s.cal.day, before.cal.day + 2);
   assert.equal(s.money, money - Math.floor(money * 0.1));
   assert.equal(s.genki, 100);
   assert.deepEqual([s.player.tx, s.player.ty], [29, 12], 'woke at the farmhouse');

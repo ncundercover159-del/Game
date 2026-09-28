@@ -5,7 +5,7 @@ import { panel, thin, dark, rect, item, hit } from './widgets.js';
 import { t } from '../data/strings.js';
 import { itemDef } from '../data/items.js';
 import { SEASONS, weekday, formatTime, zodiacHour, DAY_START, DAY_END } from '../systems/calendar.js';
-import { CAN_CAPACITY } from '../systems/tools.js';
+import { canCapacity } from '../systems/tools.js';
 
 const SLOT = 18;
 const TOAST_LIFE = 2.6;
@@ -88,8 +88,8 @@ export class Hud {
   drawClock(ctx, atlas, w) {
     const g = this.game;
     const cal = g.cal;
-    const x = w - 92, y = 4;
-    panel(ctx, atlas, x, y, 88, 42);
+    const x = w - 100, y = 4;
+    panel(ctx, atlas, x, y, 96, 42);
     // Dial: sky half-disc with the sun (day) or moon (night) travelling along the arc.
     const night = cal.minutes >= 19 * 60 || cal.minutes < DAY_START;
     const dx = x + 5, dy = y + 5;
@@ -101,20 +101,21 @@ export class Hud {
     atlas.draw(ctx, night ? 'ui_moon' : 'ui_sun', Math.round(dx + 13 + Math.cos(ang) * 10), Math.round(dy + 13 - Math.sin(ang) * 10));
     rect(ctx, 'wood1', dx - 1, dy + 14, 28, 1);
     const s = SEASONS[cal.season];
-    fonts.big.draw(ctx, s.jp, dx + 8, dy + 18, 'red1');
+    fonts.big.draw(ctx, s.jp, dx - 1, dy + 18, 'red1');
+    atlas.draw(ctx, `wx_${g.weather}`, dx + 14, dy + 21);
     // Date and time.
     const tx = x + 36;
     fonts.body.draw(ctx, `${s.name} ${cal.day}`, tx, y + 6, 'wood1');
-    fonts.body.draw(ctx, weekday(cal).jp, x + 74, y + 6, 'wood2');
-    rect(ctx, 'wood3', tx, y + 18, 46, 1);
+    fonts.body.draw(ctx, weekday(cal).jp, x + 82, y + 6, 'wood2');
+    rect(ctx, 'wood3', tx, y + 18, 54, 1);
     fonts.big.draw(ctx, formatTime(cal.minutes), tx, y + 22, 'red1');
-    fonts.body.draw(ctx, zodiacHour(cal.minutes).jp, x + 74, y + 24, 'wood2');
+    fonts.body.draw(ctx, zodiacHour(cal.minutes).jp, x + 82, y + 24, 'wood2');
     // Money.
     const my = y + 44;
-    thin(ctx, atlas, x + 6, my, 82, 16);
+    thin(ctx, atlas, x + 6, my, 90, 16);
     atlas.draw(ctx, 'icon_coin', x + 10, my + 4);
     const str = t('hud_money', { n: g.money.toLocaleString('en-US') });
-    fonts.body.draw(ctx, str, x + 84 - fonts.body.measure(str), my + 3, 'red1');
+    fonts.body.draw(ctx, str, x + 92 - fonts.body.measure(str), my + 3, 'red1');
   }
 
   drawGenki(ctx, atlas, w, h) {
@@ -142,10 +143,10 @@ export class Hud {
       const sx = r.x + 4 + i * SLOT, sy = r.y + 4;
       atlas.draw(ctx, 'ui_slot', sx, sy);
       const s = inv.slots[i];
-      item(ctx, atlas, s, sx + 1, sy + 1);
+      item(ctx, atlas, s, sx + 1, sy + 1, g.tiers);
       if (s && s.id === 'can') {
         rect(ctx, 'ink1', sx + 2, sy + 15, 14, 2);
-        rect(ctx, 'water3', sx + 2, sy + 15, Math.round((14 * g.can) / CAN_CAPACITY), 2);
+        rect(ctx, 'water3', sx + 2, sy + 15, Math.round((14 * g.can) / canCapacity(g.tiers.can)), 2);
       }
     }
     atlas.draw(ctx, 'ui_slot_sel', r.x + 3 + inv.selected * SLOT, r.y + 3);

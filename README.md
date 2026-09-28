@@ -21,8 +21,8 @@ Useful URL parameters:
 | `?play=1` | skip the title and start a new farm in slot 1 |
 | `?slot=2` | load save slot 2 |
 | `?seed=7` | farm seed (overgrowth layout) |
-| `?season=summer&day=5&time=17:30` | set the calendar and clock |
-| `?debug=1` | debug keys: F1 overlay, F2 skip day, F3 +1000 mon and seeds, F4 +1 hour (Shift+F4 next season) |
+| `?season=summer&day=5&time=17:30&weather=rain` | set the calendar, clock and weather |
+| `?debug=1` | debug keys: F1 overlay, F2 skip day, F3 +1000 mon and seeds, F4 +1 hour (Shift+F4 next season, Ctrl+F4 next weather) |
 
 ## Controls
 
@@ -35,6 +35,11 @@ Useful URL parameters:
 | Menu (items, options, save) | Esc, Tab | Start |
 
 With the mouse, any tile next to the player can be targeted directly.
+
+Farming tips: hoe a tilled tile again to dig an irrigation channel (water flows from the pond or
+river; interact with a sluice gate to open or shut it). Soil beside running water floods into a
+paddy for rice. Use Hay on tilled soil to lay straw for winter crops. Upgraded hoes and cans charge
+while the button is held. Walk west along the valley road to shop.
 
 ## Test
 

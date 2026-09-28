@@ -19,6 +19,8 @@ export class GameMap {
     this.ground = new Uint8Array(n);
     this.soil = new Uint8Array(n);
     this.wet = new Uint8Array(n);
+    this.cover = new Uint8Array(n);
+    this.flow = new Uint8Array(n);
     this.blocked = new Uint8Array(n);
     this.objAt = new Int32Array(n).fill(-1);
     this.objects = [];
@@ -110,7 +112,13 @@ export class GameMap {
       ground: Array.from(this.ground).join(''),
       soil: Array.from(this.soil).join(''),
       wet: Array.from(this.wet).join(''),
-      objects: dyn.map(({ type, x, y, hp, v, kind }) => (kind ? { type, x, y, hp, v, kind } : { type, x, y, hp, v })),
+      cover: Array.from(this.cover).join(''),
+      objects: dyn.map(({ type, x, y, hp, v, kind, open }) => {
+        const o = { type, x, y, hp, v };
+        if (kind) o.kind = kind;
+        if (open !== undefined) o.open = open;
+        return o;
+      }),
       crops: [...this.crops.entries()].map(([k, c]) => ({ k, ...c })),
     };
   }
@@ -120,6 +128,7 @@ export class GameMap {
       this.ground[k] = Number(data.ground[k]);
       this.soil[k] = Number(data.soil[k]);
       this.wet[k] = Number(data.wet[k]);
+      this.cover[k] = data.cover ? Number(data.cover[k]) : 0;
     }
     for (const o of this.objects.filter((o) => !OBJECT_TYPES[o.type].static)) this.removeObject(o);
     for (const o of data.objects) this.addObject({ ...o });
