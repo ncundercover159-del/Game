@@ -10,6 +10,8 @@ export interface Settings {
   /** Speak menu items on long-press / hover. */
   speakUi: boolean;
   newPerDay: number;
+  /** Include speak-aloud / shadowing exercises. */
+  speaking: boolean;
   /** Optional: key for AI-generated free conversation (stored only on this device). */
   aiKey: string;
   aiModel: string;
@@ -43,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoplay: true,
   speakUi: true,
   newPerDay: 25,
+  speaking: true,
   aiKey: '',
   aiModel: 'claude-opus-5-5',
 };

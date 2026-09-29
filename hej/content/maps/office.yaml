@@ -1,0 +1,19 @@
+id: office
+name: { da: Nordlys, en: "Nordlys (your workplace)" }
+spawn: { x: 5, y: 7, dir: up }
+legend: { "#": wall_int, ".": carpet, d: desk, B: bookshelf, p: plant, E: door_exit, W: window_int, K: coffee_bar, t: table, D: door_int }
+tiles: |
+  ###W###W#D##
+  #dd..dd....#
+  #.........K#
+  #dd..dd...K#
+  #..........#
+  #p..tt..tt.#
+  #..........#
+  #..........#
+  #####E######
+signs:
+  - { x: 10, y: 2, da: Kaffemaskinen, en: The coffee machine }
+warps:
+  - { x: 5, y: 8, to: centrum, tx: 15, ty: 3, dir: down }
+  - { x: 9, y: 0, to: festsal, tx: 4, ty: 6, dir: up, needFlag: ch10, locked: { da: Festsalen er låst., en: The party room is locked. } }

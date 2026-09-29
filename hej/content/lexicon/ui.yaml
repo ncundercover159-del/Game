@@ -1,0 +1,13 @@
+# Words used in menus and exercise prompts.
+entries:
+  udfylde: { pos: verb, en: fill in, forms: { inf: at udfylde, pres: udfylder, past: udfyldte, perf: udfyldt, imp: udfyld }, rank: 4000, say: "'OOTH-ful-leh'" }
+  hul: { pos: noun, g: et, en: hole; gap, forms: { def: hullet, pl: huller, defpl: hullerne }, rank: 3000, say: "'hol'" }
+  høj: { pos: adj, en: "tall, high; (højt) loud, aloud", forms: { t: højt, e: høje, comp: højere, sup: højest }, rank: 400, say: "'hoy'; 'højt' is 'hoyt'" }
+  hvilken: { pos: pron, en: "which, what", forms: { et: hvilket, pl: hvilke }, rank: 600, say: "'VIL-ken' — silent h" }
+  billede: { pos: noun, g: et, en: picture, forms: { def: billedet, pl: billeder, defpl: billederne }, rank: 500, say: "'BIL-leh-theh'" }
+  passe: { pos: verb, en: "fit, suit; look after", forms: { inf: at passe, pres: passer, past: passede, perf: passet, imp: pas }, rank: 600 }
+  optage: { pos: verb, en: record; take up, forms: { inf: at optage, pres: optager, past: optog, perf: optaget, imp: optag }, rank: 2500 }
+  sammenligne: { pos: verb, en: compare, forms: { inf: at sammenligne, pres: sammenligner, past: sammenlignede, perf: sammenlignet, imp: sammenlign }, rank: 3000, say: "'SAM-men-lee-neh'" }
+  lyde: { pos: verb, en: sound, forms: { inf: at lyde, pres: lyder, past: lød, perf: lydt }, rank: 900, say: "'LUE-theh'; 'lød' is 'lurth'" }
+  tillykke: { pos: interj, en: congratulations, rank: 3000, say: "'te-LUE-keh'" }
+  hen: { pos: adv, en: "to (a place); (hvor … hen?) where to?", rank: 700, say: "'hen'", note: "'Hvor skal du hen?' = where are you going?" }

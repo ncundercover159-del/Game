@@ -75,8 +75,13 @@ export function resolve(
     seen[key] = (seen[key] ?? 0) + 1;
     const override = lx[`${key}@${seen[key]}`] ?? lx[key];
     const cands = ctx.forms[key] ?? [];
+    const prevWord = raw.slice(0, raw.indexOf(r)).reverse().find((x) => x.k !== 'n');
+    const sentenceStart = !prevWord || /[.!?:]/.test(prevWord.t);
     if (override) {
       tok.l = override;
+    } else if (r.t === 'I' && !sentenceStart && cands.includes('i#pron')) {
+      // capital "I" mid-sentence is the pronoun "you (plural)", not the preposition
+      tok.l = 'i#pron';
     } else if (cands.length === 1) {
       tok.l = cands[0];
     } else if (cands.length > 1) {

@@ -1,0 +1,52 @@
+# Chapter 4 (paperwork and pharmacy).
+entries:
+  cpr-nummer: { pos: noun, g: et, en: CPR number (personal ID number), forms: { def: cpr-nummeret, pl: cpr-numre }, rank: 8000, say: "'say-pay-AIR-nom-ma'", note: "Your ten-digit personal number: date of birth + four digits. You need it for almost everything." }
+  datid: { pos: noun, g: en, en: past tense, forms: { def: datiden }, rank: 30000, say: "'DAA-tith'" }
+  helst: { pos: adv, en: "preferably, rather", rank: 1500, note: "Superlative of 'gerne': gerne → hellere → helst." }
+  mitid: { lemma: MitID, pos: name, en: "MitID (Denmark's digital ID, used for banks, tax, health …)", say: "'mit-ee-DAY'" }
+  panodil: { lemma: Panodil, pos: name, en: "Panodil (a common paracetamol brand)" }
+  pia: { lemma: Pia, pos: name, en: Pia (at Citizen Services) }
+  sim-kort: { pos: noun, g: et, en: SIM card, forms: { def: sim-kortet, pl: sim-kort }, rank: 20000 }
+  adresse: { pos: noun, g: en, en: address, forms: { def: adressen, pl: adresser }, rank: 1200, say: "'a-DRES-seh'" }
+  bedring: { pos: noun, g: en, en: "recovery (god bedring = get well soon)", forms: { def: bedringen }, rank: 9000, say: "'BETH-ring'" }
+  billig: { pos: adj, en: cheap, forms: { t: billigt, e: billige, comp: billigere, sup: billigst }, also: [billigste], rank: 1500, say: "'BIL-li'" }
+  cirka: { pos: adv, en: "about, approximately", rank: 700, say: "'SEER-ka'" }
+  end: { pos: conj, en: than, rank: 180, say: "'en'" }
+  feber: { pos: noun, g: en, en: fever, forms: { def: feberen }, rank: 5000, say: "'FAY-ba'" }
+  forældre: { pos: noun, g: en, en: parents, forms: { def: forældrene }, rank: 700, say: "'for-EL-dreh'", note: "Only plural. One parent = en forælder." }
+  gøre: { pos: verb, en: "do, make", forms: { inf: at gøre, pres: gør, past: gjorde, perf: gjort, imp: gør }, rank: 51, say: "'GUR-a'; 'gør' is 'gur'", note: "'gøre ondt' = hurt. Short answers: 'Ja, det gør jeg.'" }
+  herovre: { pos: adv, en: over here, rank: 6000 }
+  hoved: { pos: noun, g: et, en: head, forms: { def: hovedet, pl: hoveder }, rank: 700, say: "'HO-eth'" }
+  hovedpine: { pos: noun, g: en, en: headache, forms: { def: hovedpinen }, rank: 7000, say: "'HO-eth-pee-neh'" }
+  højst: { pos: adv, en: at most, rank: 2000, say: "'hoyst'" }
+  kræve: { pos: verb, en: "require, demand", forms: { inf: at kræve, pres: kræver, past: krævede, perf: krævet }, rank: 900, say: "'KRAIR-veh'" }
+  lejekontrakt: { pos: noun, g: en, en: lease (rental contract), forms: { def: lejekontrakten, pl: lejekontrakter }, rank: 15000 }
+  læge: { pos: noun, g: en, en: doctor, forms: { def: lægen, pl: læger, defpl: lægerne }, rank: 800, say: "'LAY-eh'", note: "Your own GP is 'din læge' — you register with one through Borgerservice." }
+  mod: { pos: prep, en: "against; towards; for (medicine)", rank: 100, say: "'moth'" }
+  morges: { pos: adv, en: "(i morges) this morning", rank: 4000, say: "'MOR-es'", note: "'i morges' = earlier this morning; 'i morgen' = tomorrow." }
+  måske: { pos: adv, en: maybe, rank: 250, say: "'mo-SKAY'" }
+  nem: { pos: adj, en: easy, forms: { t: nemt, e: nemme, comp: nemmere, sup: nemmest }, rank: 1300 }
+  nioghalvfems: { pos: num, en: ninety-nine, value: 99, rank: 20000, say: "'NEE-o-hal-FEMS'" }
+  niogtyve: { pos: num, en: twenty-nine, value: 29, rank: 20000, say: "'NEE-o-TUE-veh'" }
+  ond: { pos: adj, en: "evil; (ondt) pain", forms: { t: ondt, e: onde }, rank: 1500, say: "'ondt' is 'ont'", note: "'Jeg har ondt i …' = my … hurts." }
+  oprette: { pos: verb, en: "create, set up", forms: { inf: at oprette, pres: opretter, past: oprettede, perf: oprettet }, rank: 1500 }
+  otteogfyrre: { pos: num, en: forty-eight, value: 48, rank: 20000, say: "'OH-deh-o-FUR-a'" }
+  papir: { pos: noun, g: et, en: "paper; (papirer) paperwork", forms: { def: papiret, pl: papirer, defpl: papirerne }, rank: 1500, say: "'pa-PEER'" }
+  paracetamol: { pos: noun, g: en, en: paracetamol, rank: 20000 }
+  registrere: { pos: verb, en: register, forms: { inf: at registrere, pres: registrerer, past: registrerede, perf: registreret, passive: registreres }, rank: 2500 }
+  sidst: { pos: adv, en: "last, last time", also: [sidste], rank: 400, say: "'sist' — silent d", note: "'i sidste uge' = last week." }
+  sundhedskort: { pos: noun, g: et, en: health card (the yellow card), forms: { def: sundhedskortet, pl: sundhedskort }, rank: 20000, say: "'SON-heths-kort'" }
+  tablet: { pos: noun, g: en, en: "tablet, pill", forms: { def: tabletten, pl: tabletter }, rank: 6000, pic: "💊" }
+  taletidskort: { pos: noun, g: et, en: pay-as-you-go card, forms: { def: taletidskortet, pl: taletidskort }, rank: 30000 }
+  telefonnummer: { pos: noun, g: et, en: phone number, forms: { def: telefonnummeret, pl: telefonnumre }, rank: 5000 }
+  tro: { pos: verb, en: "think, believe", forms: { inf: at tro, pres: tror, past: troede, perf: troet }, rank: 110, say: "'tro'", note: "'tro' = think something is so (not sure); 'synes' = have an opinion." }
+  uge: { pos: noun, g: en, en: week, forms: { def: ugen, pl: uger, defpl: ugerne }, rank: 300, say: "'OO-eh'" }
+  "god bedring": { pos: phrase, en: get well soon }
+  "selv tak": { pos: phrase, en: "you're welcome; thank you (in return)" }
+  "i morges": { pos: phrase, en: this morning }
+  "i sidste uge": { pos: phrase, en: last week }
+  "om måneden": { pos: phrase, en: "a month, per month" }
+  "om dagen": { pos: phrase, en: "a day, per day" }
+  "gå over": { pos: phrase, en: "pass, go away (pain, illness)", match: ["går over"] }
+  "have ondt i": { pos: phrase, en: "have a pain in, hurt", match: ["har ondt i"] }
+  "gøre ondt": { pos: phrase, en: hurt, match: ["gør ondt"] }

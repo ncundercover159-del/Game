@@ -1,0 +1,279 @@
+# Chapter 4 — Papirer og piller (Paperwork and pills). CEFR A2.
+# Phone shop, Borgerservice (CPR number, health card, MitID), pharmacy.
+# Grammar: the past tense.
+
+id: ch4
+n: 4
+cefr: A2
+title: { da: Papirer og piller, en: Paperwork and pills }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch4: true }
+  - narrator: Du har boet i Aarhus i en uge nu.
+    en: "You've lived in Aarhus for a week now."
+  - narrator: Du skal have et dansk telefonnummer, et CPR-nummer og MitID.
+    en: "You need a Danish phone number, a CPR number and MitID."
+    say: "'CPR' is 'say-pay-AIR' — your personal ID number. 'MitID' is 'mit-ee-DAY' — the digital ID you use for everything."
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Telefonbutikken, en: The phone shop }
+    objective: { da: Find telefonbutikken inde i byen., en: Find the phone shop in town. }
+    npc: ali
+    start: { npc: ali }
+    cast:
+      ali: { map: phoneshop, x: 3, y: 2, dir: down }
+    script:
+      - ali: Hej, velkommen! Hvad kan jeg hjælpe med?
+        en: "Hi, welcome! What can I help with?"
+      - choose:
+          - you: Jeg skal have et dansk telefonnummer.
+            en: I need a Danish phone number.
+            q: natural
+          - you: Jeg vil gerne have et SIM-kort.
+            en: "I'd like a SIM card, please."
+            q: natural
+          - you: Jeg skal telefonnummer.
+            en: I need phone number.
+            q: awkward
+            why: "After 'skal' you need a verb (and 'et'): 'Jeg skal have et telefonnummer'."
+      - ali: Selvfølgelig. Har du et CPR-nummer?
+        en: Of course. Do you have a CPR number?
+      - choose:
+          - you: Nej, ikke endnu.
+            en: No, not yet.
+            q: natural
+          - you: Nej, det har jeg ikke fået endnu.
+            en: "No, I haven't got one yet."
+            q: natural
+      - id: ch4.s1.kom
+        ali: Okay. Hvornår kom du til Danmark?
+        en: Okay. When did you come to Denmark?
+        tags: [past]
+      - choose:
+          - you: Jeg kom i sidste uge.
+            en: I came last week.
+            q: natural
+          - you: Jeg flyttede hertil for en uge siden.
+            en: I moved here a week ago.
+            q: natural
+            lx: { en: "en#num" }
+          - you: Jeg kommer i sidste uge.
+            en: I come last week.
+            q: awkward
+            why: "It happened in the past, so use the past tense: 'Jeg kom i sidste uge'."
+      - ali: Så kan du få et taletidskort. Det kræver ikke et CPR-nummer.
+        en: "Then you can get a pay-as-you-go card. It doesn't require a CPR number."
+        lx: { så: "så#adv" }
+      - id: ch4.s1.price
+        ali: Det koster nioghalvfems kroner om måneden.
+        en: It costs ninety-nine kroner a month.
+        say: "'nioghalvfems' = nine-and-ninety. 'om måneden' = per month."
+        tags: [numbers]
+      - exercise: { type: listen, line: ch4.s1.price, options: ["99", "69", "89", "95"], answer: "99" }
+      - choose:
+          - you: Det lyder fint. Det tager jeg.
+            en: "That sounds fine. I'll take it."
+            q: natural
+          - you: Er der noget billigere?
+            en: Is there anything cheaper?
+            q: natural
+            then:
+              - ali: Nej, det er det billigste, vi har.
+                en: "No, that's the cheapest we've got."
+      - ali: Så skal jeg bare se dit pas.
+        en: Then I just need to see your passport.
+        lx: { så: "så#adv" }
+      - narrator: Du giver ham dit pas.
+        en: You give him your passport.
+      - ali: Værsgo. Nu har du et dansk nummer.
+        en: Here you go. Now you have a Danish number.
+      - ali: Husk at oprette MitID, når du har fået dit CPR-nummer.
+        en: "Remember to set up MitID once you've got your CPR number."
+      - choose:
+          - you: Hvor gør man det?
+            en: Where do you do that?
+            q: natural
+            then:
+              - ali: På Borgerservice i Dokk1. Lige herovre.
+                en: "At Citizen Services in Dokk1. Just over here."
+          - you: Tak for hjælpen!
+            en: Thanks for the help!
+            q: natural
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: Borgerservice, en: Citizen Services }
+    objective: { da: Gå til Borgerservice i Dokk1., en: Go to Citizen Services in Dokk1. }
+    npc: pia
+    start: { npc: pia }
+    cast:
+      pia: { map: dokk1, x: 8, y: 1, dir: left }
+    script:
+      - narrator: Du trækker et nummer. Du har nummer otteogfyrre.
+        en: You take a number. You have number forty-eight.
+        tags: [numbers]
+      - pia: Nummer otteogfyrre!
+        en: Number forty-eight!
+      - pia: Goddag. Hvad kan jeg hjælpe dig med i dag?
+        en: Good afternoon. What can I help you with today?
+      - choose:
+          - you: Jeg skal have et CPR-nummer.
+            en: I need a CPR number.
+            q: natural
+          - you: Jeg er lige flyttet til Danmark, og jeg skal registreres.
+            en: "I've just moved to Denmark, and I need to register."
+            q: natural
+      - pia: Ja. Har du dit pas og din lejekontrakt med?
+        en: Yes. Have you brought your passport and your lease?
+      - choose:
+          - you: Ja, værsgo.
+            en: "Yes, here you go."
+            q: natural
+          - you: Ja, her er de.
+            en: "Yes, here they are."
+            q: natural
+      - id: ch4.s2.flyttede
+        pia: Tak. Hvornår flyttede du ind i lejligheden?
+        en: Thanks. When did you move into the flat?
+        tags: [past]
+      - choose:
+          - you: Jeg flyttede ind den første.
+            en: I moved in on the first.
+            q: natural
+          - you: For en uge siden.
+            en: A week ago.
+            q: natural
+            lx: { en: "en#num" }
+      - id: ch4.s2.boede
+        pia: Og hvor boede du, før du kom til Danmark?
+        en: And where did you live before you came to Denmark?
+        tags: [past]
+      - choose:
+          - you: Jeg boede i London.
+            en: I lived in London.
+            q: natural
+          - you: Jeg boede hos mine forældre.
+            en: I lived with my parents.
+            q: natural
+      - id: ch4.s2.tjek
+        pia: Jeg tjekkede lige din adresse. Det ser fint ud.
+        en: I just checked your address. It looks fine.
+        tags: [past]
+      - spotlight: past
+      - pia: Du får dit sundhedskort med posten om cirka to uger.
+        en: "You'll get your health card in the post in about two weeks."
+        say: "The yellow health card — 'det gule kort' — shows your CPR number. You'll need it at the doctor's."
+      - pia: Og du skal vælge en læge. Vil du have en læge tæt på, hvor du bor?
+        en: And you need to choose a doctor. Would you like a doctor near where you live?
+      - choose:
+          - you: Ja tak, gerne.
+            en: "Yes please."
+            q: natural
+          - you: Helst en læge inde i byen.
+            en: Preferably a doctor in town.
+            q: natural
+      - pia: Fint. Så kan du også oprette MitID nu.
+        en: Good. Then you can set up MitID now too.
+        lx: { så: "så#adv" }
+      - narrator: Pia hjælper dig. Nu har du et CPR-nummer og MitID.
+        en: Pia helps you. Now you have a CPR number and MitID.
+      - set: { cpr: true }
+      - choose:
+          - you: Tusind tak. Det var nemmere, end jeg troede.
+            en: "Thanks a lot. That was easier than I thought."
+            q: natural
+            rel: 2
+          - you: Tak for hjælpen.
+            en: Thanks for the help.
+            q: natural
+      - pia: Selv tak. Og velkommen til Danmark.
+        en: "You're welcome. And welcome to Denmark."
+        say: "'Selv tak' (lit. thanks yourself) = you're welcome / thank YOU."
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: På apoteket, en: At the pharmacy }
+    objective: { da: Du har hovedpine. Gå på apoteket., en: You have a headache. Go to the pharmacy. }
+    npc: birgit
+    start: { npc: birgit }
+    cast:
+      birgit: { map: apotek, x: 3, y: 1, dir: down }
+    script:
+      - narrator: Du har haft hovedpine hele dagen.
+        en: "You've had a headache all day."
+      - birgit: Goddag. Hvad kan jeg gøre for dig?
+        en: Good afternoon. What can I do for you?
+      - choose:
+          - you: Jeg har ondt i hovedet.
+            en: I have a headache.
+            q: natural
+            say: "Lit. 'I have pain in the head'. 'ondt' is 'ont'."
+          - you: Har I noget mod hovedpine?
+            en: Do you have anything for headaches?
+            q: natural
+            lx: { i: "i#pron" }
+          - you: Mit hoved gør ondt.
+            en: My head hurts.
+            q: ok
+      - birgit: Okay. Hvor længe har du haft det?
+        en: Okay. How long have you had it?
+      - choose:
+          - you: Siden i morges.
+            en: Since this morning.
+            q: natural
+            say: "'i morges' = this morning (already past). 'i morgen' = tomorrow."
+          - you: I to dage.
+            en: For two days.
+            q: natural
+      - birgit: Har du feber?
+        en: Do you have a fever?
+      - choose:
+          - you: Nej, det tror jeg ikke.
+            en: "No, I don't think so."
+            q: natural
+          - you: Lidt, måske.
+            en: A little, maybe.
+            q: natural
+      - birgit: Så kan du tage Panodil. Det er paracetamol.
+        en: "Then you can take Panodil. It's paracetamol."
+        lx: { så: "så#adv" }
+      - id: ch4.s3.hoejst
+        birgit: Du må højst tage seks tabletter om dagen.
+        en: You may take at most six tablets a day.
+      - birgit: Og tag dem med et stort glas vand.
+        en: And take them with a big glass of water.
+      - id: ch4.s3.hvis
+        birgit: Hvis det ikke går over på tre dage, skal du ringe til lægen.
+        en: "If it doesn't go away in three days, you should call the doctor."
+        say: "In the 'hvis' part, 'ikke' comes before the verb: 'hvis det ikke går over'."
+      - choose:
+          - you: Okay. Hvad koster det?
+            en: Okay. How much is it?
+            q: natural
+          - you: Tak, det vil jeg gøre.
+            en: "Thanks, I'll do that."
+            q: natural
+      - birgit: Det bliver niogtyve kroner.
+        en: That comes to twenty-nine kroner.
+        tags: [numbers]
+      - exercise: { type: dictation, line: ch4.s3.hoejst }
+      - birgit: God bedring!
+        en: Get well soon!
+        say: "'God bedring' = good recovery — what Danes say to anyone who's ill."
+      - choose:
+          - you: Tak!
+            en: Thanks!
+            q: natural
+          - you: Tak for hjælpen.
+            en: Thanks for the help.
+            q: natural
+
+outro:
+  - narrator: Nu har du styr på papirerne.
+    en: "Now you've got your paperwork sorted."
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

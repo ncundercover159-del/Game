@@ -523,7 +523,7 @@ scenes:
           en: It's twenty, twelve, nineteen, fourteen.
           extra: [ni, fire, ti]
           show: "20 12 19 14"
-          prompt: { da: Sig dit nummer., en: "Say your number. Danish phone numbers are read in pairs." }
+          prompt: { da: Sig dit nummer., en: "Say your number. Danish phone numbers are read in pairs.", lx: { sig: sige } }
           say: "'tyve' is 'TUE-veh', 'tolv' is 'tol', 'nitten' is 'NIT-ten', 'fjorten' is 'FYOR-ten'."
           tags: [numbers]
       - id: ch1.s4.mishear

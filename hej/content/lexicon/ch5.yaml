@@ -1,0 +1,65 @@
+# Chapter 5 (the new job).
+ambiguous:
+  cykler: cykle
+  sig: "sig#pron"
+entries:
+  "sig#pron": { lemma: sig, pos: pron, en: "himself, herself, itself, themselves (reflexive)", rank: 23, say: "'sigh'", note: "Reflexive verbs: 'glæde sig', 'vænne sig til', 'føle sig'. mig/dig/sig/os/jer/sig." }
+  aros: { lemma: ARoS, pos: name, en: "ARoS (Aarhus's art museum, with the rainbow on the roof)", say: "'AA-ros'" }
+  bisætning: { pos: noun, g: en, en: subordinate clause, forms: { def: bisætningen, pl: bisætninger }, rank: 40000 }
+  frokost: { pos: noun, g: en, en: lunch, forms: { def: frokosten, pl: frokoster }, rank: 2500, say: "'FRO-kost'", note: "Lunch is 'frokost' — Danes eat it early, around 11:30–12." }
+  frokostpause: { pos: noun, g: en, en: lunch break, forms: { def: frokostpausen }, rank: 20000 }
+  førnutid: { pos: noun, g: en, en: perfect tense, rank: 50000 }
+  haha: { pos: interj, en: haha, rank: 6000 }
+  jonas: { lemma: Jonas, pos: name, en: Jonas (your colleague) }
+  mette: { lemma: Mette, pos: name, en: Mette (your boss) }
+  sikke: { pos: adv, en: "what a …! (exclamation)", rank: 5000, say: "'SIK-keh'", note: "'Sikke et vejr!' = what weather!" }
+  skål: { pos: interj, en: cheers!, rank: 4000, say: "'skol'", note: "Also a noun: en skål = a bowl." }
+  spise: { pos: verb, en: eat, forms: { inf: at spise, pres: spiser, past: spiste, perf: spist, imp: spis }, rank: 500, say: "'SPEE-seh'" }
+  tidsudtryk: { pos: noun, g: et, en: time expression, rank: 50000 }
+  alligevel: { pos: adv, en: anyway, rank: 600, say: "'a-LEE-eh-vel'" }
+  besøge: { pos: verb, en: visit, forms: { inf: at besøge, pres: besøger, past: besøgte, perf: besøgt }, rank: 900, say: "'beh-SUR-eh'" }
+  chef: { pos: noun, g: en, en: boss, forms: { def: chefen, pl: chefer }, rank: 1200, say: "'shayf'" }
+  derhjemme: { pos: adv, en: at home, rank: 3000, say: "'dair-YEM-meh'" }
+  eftermiddag: { pos: noun, g: en, en: afternoon, forms: { def: eftermiddagen, pl: eftermiddage }, rank: 1500, say: "'EF-ta-mi-day'" }
+  firma: { pos: noun, g: et, en: company, forms: { def: firmaet, pl: firmaer }, rank: 800 }
+  fjernsyn: { pos: noun, g: et, en: TV, forms: { def: fjernsynet }, rank: 2500, pic: "📺", say: "'FYAIRN-sun'", note: "'se fjernsyn' = watch TV." }
+  folk: { pos: noun, g: en, en: people, forms: { def: folkene }, rank: 250, say: "'folk'" }
+  fordi: { pos: conj, en: because, rank: 150, say: "'for-DEE'" }
+  fredag: { pos: noun, g: en, en: Friday, forms: { def: fredagen, pl: fredage }, rank: 900, say: "'FRE-da'" }
+  fredagsbar: { pos: noun, g: en, en: Friday bar (drinks at work), forms: { def: fredagsbaren }, rank: 30000 }
+  fru: { pos: noun, g: en, en: "Mrs (very formal)", rank: 2500 }
+  fødselsdag: { pos: noun, g: en, en: birthday, forms: { def: fødselsdagen, pl: fødselsdage }, rank: 2500, pic: "🎂", say: "'FUR-sels-day'" }
+  galehus: { pos: noun, g: et, en: madhouse, forms: { def: galehuset }, rank: 20000 }
+  gide: { pos: verb, en: "can be bothered to, feel like", forms: { inf: at gide, pres: gider, past: gad, perf: gidet }, rank: 1300, say: "'gider' is 'GEE-a'", note: "Very common: 'Jeg gider ikke' = I can't be bothered." }
+  glæde: { pos: verb, en: "please; (glæde sig til) look forward to", forms: { inf: at glæde, pres: glæder, past: glædede, perf: glædet }, rank: 900, say: "'GLAIR-theh'" }
+  heldig: { pos: adj, en: lucky, forms: { t: heldigt, e: heldige }, rank: 2000, say: "'HEL-di'" }
+  hjem: { pos: adv, en: home (towards), rank: 300, say: "'yem'", note: "'hjem' = going home; 'hjemme' = at home." }
+  job: { pos: noun, g: et, en: job, forms: { def: jobbet, pl: job }, rank: 700, say: "'jop'" }
+  kantine: { pos: noun, g: en, en: canteen, forms: { def: kantinen, pl: kantiner }, rank: 8000 }
+  kollega: { pos: noun, g: en, en: colleague, forms: { def: kollegaen, pl: kolleger, defpl: kollegerne }, rank: 1200 }
+  lokale: { pos: noun, g: et, en: "room; (lokaler) premises", forms: { def: lokalet, pl: lokaler }, rank: 1500 }
+  lys: { pos: adj, en: "light, bright", forms: { t: lyst, e: lyse }, rank: 1000, say: "'lues'" }
+  madpakke: { pos: noun, g: en, en: packed lunch, forms: { def: madpakken, pl: madpakker }, rank: 15000, pic: "🥪", say: "'MATH-pak-keh'" }
+  mangle: { pos: verb, en: "lack, need, be missing", forms: { inf: at mangle, pres: mangler, past: manglede, perf: manglet }, rank: 700, say: "'MANG-leh'" }
+  regne: { pos: verb, en: "rain; calculate", forms: { inf: at regne, pres: regner, past: regnede, perf: regnet }, rank: 1500, say: "'RYE-neh'" }
+  rodet: { pos: adj, en: messy, forms: { e: rodede }, rank: 8000, say: "'RO-theth'" }
+  rugbrød: { pos: noun, g: et, en: rye bread, forms: { def: rugbrødet }, rank: 8000, pic: "🍞", say: "'ROO-brurth'" }
+  skov: { pos: noun, g: en, en: "wood, forest", forms: { def: skoven, pl: skove }, rank: 1300, pic: "🌲", say: "'skow'" }
+  slappe: { pos: verb, en: "(slappe af) relax", forms: { inf: at slappe, pres: slapper, past: slappede, perf: slappet }, rank: 5000 }
+  slem: { pos: adj, en: bad, forms: { t: slemt, e: slemme }, rank: 1800 }
+  småsnakke: { pos: verb, en: make small talk, forms: { inf: at småsnakke, pres: småsnakker, past: småsnakkede, perf: småsnakket }, rank: 20000 }
+  sofakartoffel: { pos: noun, g: en, en: couch potato, forms: { def: sofakartoflen, pl: sofakartofler }, rank: 50000 }
+  sommer: { pos: noun, g: en, en: summer, forms: { def: sommeren, pl: somre }, rank: 900, say: "'SOM-ma'" }
+  typisk: { pos: adj, en: typical, forms: { e: typiske }, rank: 1500 }
+  ude: { pos: adv, en: out, rank: 400 }
+  vejr: { pos: noun, g: et, en: weather, forms: { def: vejret }, rank: 1500, say: "'vair'" }
+  vores: { pos: pron, en: our, rank: 100, say: "'VOR-es'" }
+  vænne: { pos: verb, en: "(vænne sig til) get used to", forms: { inf: at vænne, pres: vænner, past: vænnede, perf: vænnet }, rank: 4000 }
+  "glæde sig til": { pos: phrase, en: look forward to, match: ["glæder mig til", "glæder dig til", "glæder os til"] }
+  "ved siden af": { pos: phrase, en: next to }
+  "hele tiden": { pos: phrase, en: all the time }
+  "vænne sig til": { pos: phrase, en: get used to, match: ["vænner sig til"] }
+  "slappe af": { pos: phrase, en: relax }
+  "kom godt hjem": { pos: phrase, en: get home safely }
+  "se fjernsyn": { pos: phrase, en: watch TV, match: ["så fjernsyn", "ser fjernsyn"] }
+  "det passer ikke": { pos: phrase, en: "that's not true" }

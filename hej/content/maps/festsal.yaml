@@ -1,0 +1,17 @@
+id: festsal
+name: { da: Festsalen, en: The party room }
+spawn: { x: 4, y: 6, dir: up }
+legend: { "#": wall_int, ".": floor_wood, X: xmas_tree, t: dining_table, E: door_exit, W: window_int, b: bottles }
+tiles: |
+  ##W#bb#W##
+  #X.......#
+  #.tttttt.#
+  #........#
+  #.tttttt.#
+  #........#
+  #........#
+  ####E#####
+signs:
+  - { x: 1, y: 1, da: Juletræet, en: The Christmas tree }
+warps:
+  - { x: 4, y: 7, to: office, tx: 9, ty: 1, dir: down }

@@ -1,0 +1,145 @@
+# Chapter 2 (shopping) and the town's signs.
+ambiguous:
+  i: i
+  hjælp: hjælp
+  test: test
+  møde: møde
+  møder: møde
+  hygge: "hygge#noun"
+entries:
+  "i#pron": { lemma: I, pos: pron, en: you (plural), forms: { obj: jer, poss: jeres }, rank: 150, say: "'ee'", note: "Always written with a capital I, to tell it apart from 'i' (in). 'I' = you (more than one person)." }
+  adjektiv: { pos: noun, g: et, en: adjective, forms: { def: adjektivet, pl: adjektiver, defpl: adjektiverne }, rank: 15000 }
+  apotek: { pos: noun, g: et, en: pharmacy, forms: { def: apoteket, pl: apoteker, defpl: apotekerne }, rank: 4000, say: "'a-po-TAYK'" }
+  bar: { pos: noun, g: en, en: bar, forms: { def: baren, pl: barer, defpl: barerne }, rank: 3500 }
+  bibliotek: { pos: noun, g: et, en: library, forms: { def: biblioteket, pl: biblioteker, defpl: bibliotekerne }, rank: 2500, say: "'bib-lee-o-TAYK'" }
+  borgerservice: { pos: noun, g: en, en: Citizen Services (the council office), rank: 9000, say: "'BOR-a-ser-vis'", note: "Where you register your address, get a CPR number, health card and help with MitID. In Aarhus it's in Dokk1." }
+  brød: { pos: noun, g: et, en: bread, forms: { def: brødet, pl: brød, defpl: brødene }, rank: 2200, pic: "🍞", say: "'brurth' — soft d" }
+  café: { pos: noun, g: en, en: café, forms: { def: caféen, pl: caféer, defpl: caféerne }, rank: 3500, say: "'ka-FAY'" }
+  da: { pos: conj, en: "when (one time in the past); since", rank: 60, note: "'Da jeg var ung' = when I was young. For repeated or future 'when', Danish uses 'når'." }
+  danmark: { lemma: Danmark, pos: name, en: Denmark, say: "'DAN-mark'" }
+  derhenne: { pos: adv, en: over there, rank: 4000, say: "'DAIR-hen-neh'" }
+  dokk1: { lemma: Dokk1, pos: name, en: "Dokk1 (Aarhus's main library and Citizen Services, on the harbour)", say: "'dok-ET'" }
+  dygtig: { pos: adj, en: "clever, skilled, good at something", forms: { t: dygtigt, e: dygtige }, rank: 1400, say: "'DUG-ti'" }
+  ej: { pos: interj, en: "oh no; no way (young, casual)", rank: 6000, say: "'eye'" }
+  ellers: { pos: adv, en: "otherwise, else", rank: 300, say: "'EL-las'", note: "'Ellers andet?' = anything else?" }
+  festsal: { pos: noun, g: en, en: party room, forms: { def: festsalen, pl: festsale }, rank: 15000 }
+  frugt: { pos: noun, g: en, en: fruit, forms: { def: frugten, pl: frugter }, rank: 3000, say: "'froogt'" }
+  give: { pos: verb, en: give, forms: { inf: at give, pres: giver, past: gav, perf: givet, imp: giv }, rank: 90, say: "'GEE-veh'; 'giver' is 'GEE-a'", note: "'Jeg giver!' = my treat!" }
+  godmorgen: { pos: interj, en: good morning, rank: 4000, say: "'go-MORN'" }
+  havn: { pos: noun, g: en, en: harbour, forms: { def: havnen, pl: havne }, rank: 2200, say: "'HOW-n'" }
+  hey: { pos: interj, en: hey, rank: 5000 }
+  holm: { lemma: Holm, pos: name, en: Holm (surname) }
+  håndkøbsmedicin: { pos: noun, g: en, en: over-the-counter medicine, rank: 30000 }
+  høflig: { pos: adj, en: polite, forms: { t: høfligt, e: høflige }, rank: 5000, say: "'HURF-li'" }
+  juletræ: { pos: noun, g: et, en: Christmas tree, forms: { def: juletræet, pl: juletræer }, rank: 9000, say: "'YOO-leh-treh'" }
+  jægergårdsgade: { lemma: Jægergårdsgade, pos: name, en: "Jægergårdsgade (your street in Frederiksbjerg)" }
+  kaffemaskine: { pos: noun, g: en, en: coffee machine, forms: { def: kaffemaskinen, pl: kaffemaskiner }, rank: 20000 }
+  kontant: { pos: adv, en: in cash, rank: 5000 }
+  kontanter: { pos: noun, g: en, en: cash, rank: 6000, note: "Always plural: 'Har du kontanter?'" }
+  købe: { pos: verb, en: buy, forms: { inf: at købe, pres: køber, past: købte, perf: købt, imp: køb }, rank: 350, say: "'KUR-beh'", note: "'købe ind' = do the shopping." }
+  lade: { pos: verb, en: "let", forms: { inf: at lade, pres: lader, past: lod, perf: ladet, imp: lad }, rank: 200, say: "'LA-eh'; 'lad' is 'la'" }
+  lægehus: { pos: noun, g: et, en: "doctors' surgery", forms: { def: lægehuset, pl: lægehuse }, rank: 20000, say: "'LAY-eh-hoos'" }
+  mobilepay: { lemma: MobilePay, pos: name, en: "MobilePay (the payment app everyone in Denmark uses)" }
+  måtte: { pos: verb, en: "may, be allowed to; must", forms: { inf: at måtte, pres: må, past: måtte, perf: måttet }, rank: 60, say: "'må' is 'mo'", note: "'Må jeg …?' = may I …? 'Du må ikke …' = you mustn't …" }
+  mælk: { pos: noun, g: en, en: milk, forms: { def: mælken }, rank: 3000, pic: "🥛", say: "'melk'" }
+  nordlys: { lemma: Nordlys, pos: name, en: "Nordlys (the company you'll work for; lit. northern lights)" }
+  ost: { pos: noun, g: en, en: cheese, forms: { def: osten, pl: oste }, rank: 3500, pic: "🧀", say: "'ost'" }
+  overraskelsestest: { pos: noun, g: en, en: surprise test, rank: 50000 }
+  perfekt: { pos: adj, en: perfect, forms: { e: perfekte }, rank: 2500 }
+  risskov: { lemma: Risskov, pos: name, en: "Risskov (a suburb north of Aarhus)", say: "'RIS-skow'" }
+  sara: { lemma: Sara, pos: name, en: Sara (barista at the café) }
+  som: { pos: conj, en: "as, like; who, that", rank: 10 }
+  telefonbutik: { pos: noun, g: en, en: phone shop, forms: { def: telefonbutikken, pl: telefonbutikker }, rank: 20000 }
+  tilbud: { pos: noun, g: et, en: "offer, special offer", forms: { def: tilbuddet, pl: tilbud, defpl: tilbuddene }, rank: 1500, say: "'TEL-booth'", note: "'på tilbud' = on offer." }
+  trække: { pos: verb, en: "pull, draw; take (a number)", forms: { inf: at trække, pres: trækker, past: trak, perf: trukket, imp: træk }, rank: 800, say: "'TREK-keh'" }
+  tæt: { pos: adj, en: "close, dense", forms: { e: tætte }, rank: 1300, note: "'tæt på' = close to." }
+  undskylde: { pos: verb, en: "excuse; (undskyld!) excuse me, sorry", forms: { inf: at undskylde, pres: undskylder, past: undskyldte, perf: undskyldt, imp: undskyld }, rank: 800, say: "'undskyld' is 'ON-skul'" }
+  vild: { pos: adj, en: "wild; (vildt) really, super", forms: { t: vildt, e: vilde }, rank: 1500, say: "'vil'; 'vildt' is 'vilt'", note: "Young people use 'vildt' as 'really': 'vildt godt'." }
+  abonnement: { pos: noun, g: et, en: "subscription, (phone) plan", forms: { def: abonnementet, pl: abonnementer, defpl: abonnementerne }, rank: 6000, say: "'a-bo-neh-MANG'" }
+  allerede: { pos: adv, en: already, rank: 350, say: "'A-leh-reh-theh'" }
+  betale: { pos: verb, en: pay, forms: { inf: at betale, pres: betaler, past: betalte, perf: betalt, imp: betal }, rank: 700, say: "'beh-TAA-leh'" }
+  cykle: { pos: verb, en: cycle, forms: { inf: at cykle, pres: cykler, past: cyklede, perf: cyklet }, rank: 3500, say: "'SUEK-leh'" }
+  de: { pos: pron, en: they, forms: { obj: dem, poss: deres }, rank: 9, say: "'dee'; 'dem' is 'dem'" }
+  denne: { pos: pron, en: this, forms: { et: dette, pl: disse }, rank: 250, say: "'DEN-neh'" }
+  eller: { pos: conj, en: or, rank: 25, say: "'EL-la'" }
+  enogtredive: { pos: num, en: thirty-one, value: 31, rank: 20000, say: "'EYN-o-TRETH-veh'" }
+  familiebillede: { pos: noun, g: et, en: family photo, forms: { def: familiebilledet, pl: familiebilleder }, rank: 20000 }
+  fireoghalvtreds: { pos: num, en: fifty-four, value: 54, rank: 20000, say: "'FEER-o-hal-TRES'" }
+  før: { pos: adv, en: "before", rank: 150, say: "'fur'" }
+  gang: { pos: noun, g: en, en: "time (occasion); walk; corridor", forms: { def: gangen, pl: gange }, rank: 120, note: "'første gang' = the first time; 'to gange' = twice." }
+  glas: { pos: noun, g: et, en: glass, forms: { def: glasset, pl: glas, defpl: glassene }, rank: 2000 }
+  grøn: { pos: adj, en: "green; (grønt) vegetables", forms: { t: grønt, e: grønne }, rank: 900, say: "'grurn'" }
+  gulerodskage: { pos: noun, g: en, en: carrot cake, forms: { def: gulerodskagen, pl: gulerodskager }, rank: 30000, pic: "🥕", say: "'GOO-leh-roths-kaa-eh'" }
+  gæst: { pos: noun, g: en, en: guest, forms: { def: gæsten, pl: gæster, defpl: gæsterne }, rank: 1200 }
+  halvtreds: { pos: num, en: fifty, value: 50, rank: 2500, say: "'hal-TRES'", note: "From the old counting in twenties: 'half-third-times-twenty' = 2½ × 20." }
+  han: { pos: pron, en: he, forms: { obj: ham, poss: hans }, rank: 20, say: "'han'; 'ham' is 'ham'" }
+  handle: { pos: verb, en: "shop; act, deal", forms: { inf: at handle, pres: handler, past: handlede, perf: handlet }, rank: 700, note: "'handle ind' = do the grocery shopping." }
+  hel: { pos: adj, en: "whole; (det hele) everything", forms: { e: hele }, rank: 180, say: "'hayl'; 'hele' is 'HAY-leh'" }
+  hjælpe: { pos: verb, en: help, forms: { inf: at hjælpe, pres: hjælper, past: hjalp, perf: hjulpet, imp: hjælp }, rank: 300, say: "'YEL-peh'" }
+  hundrede: { pos: num, en: hundred, value: 100, rank: 700, say: "'HOON-reh-theh'" }
+  hundredkroneseddel: { pos: noun, g: en, en: hundred-kroner note, forms: { def: hundredkronesedlen, pl: hundredkronesedler }, rank: 50000 }
+  hver: { pos: pron, en: "every, each", forms: { et: hvert }, rank: 230, say: "'vair' — silent h" }
+  indkøbsliste: { pos: noun, g: en, en: shopping list, forms: { def: indkøbslisten, pl: indkøbslister }, rank: 30000, say: "'IN-kurbs-lis-teh'" }
+  indlægsseddel: { pos: noun, g: en, en: package leaflet, forms: { def: indlægssedlen, pl: indlægssedler }, rank: 40000 }
+  jo: { pos: adv, en: "you know, after all; (answer) yes (to a negative question)", rank: 90, say: "'yo'", note: "A tiny word that adds 'as we both know'. As an answer, 'jo' says yes to a negative question." }
+  kage: { pos: noun, g: en, en: cake, forms: { def: kagen, pl: kager, defpl: kagerne }, rank: 2500, pic: "🍰", say: "'KAA-eh'" }
+  kande: { pos: noun, g: en, en: "jug, pot", forms: { def: kanden, pl: kander }, rank: 9000 }
+  kanelsnegl: { pos: noun, g: en, en: cinnamon swirl (pastry), forms: { def: kanelsneglen, pl: kanelsnegle }, rank: 40000, say: "'ka-NAIL-snile'" }
+  klokke: { pos: noun, g: en, en: "bell; (klokken) the time, o'clock", forms: { def: klokken, pl: klokker }, rank: 700, say: "'klokken' is 'KLOK-ken'", note: "'Hvad er klokken?' = what time is it?" }
+  kontor: { pos: noun, g: et, en: office, forms: { def: kontoret, pl: kontorer, defpl: kontorerne }, rank: 1500, say: "'kon-TOR'" }
+  korrekt: { pos: adj, en: correct, forms: { e: korrekte }, rank: 2000 }
+  kort: { pos: noun, g: et, en: "card; map", forms: { def: kortet, pl: kort, defpl: kortene }, rank: 900, pic: "💳" }
+  koste: { pos: verb, en: cost, forms: { inf: at koste, pres: koster, past: kostede, perf: kostet }, rank: 1100, say: "'KOS-teh'" }
+  krone: { pos: noun, g: en, en: "krone (Danish money); crown", forms: { def: kronen, pl: kroner, defpl: kronerne }, rank: 450, say: "'KRO-neh'" }
+  kvittering: { pos: noun, g: en, en: receipt, forms: { def: kvitteringen, pl: kvitteringer }, rank: 12000, say: "'kvi-TAIR-ing'" }
+  lørdag: { pos: noun, g: en, en: Saturday, forms: { def: lørdagen, pl: lørdage }, rank: 900, say: "'LUR-da'", note: "'om lørdagen' = on Saturdays." }
+  man: { pos: pron, en: "one, you (people in general)", rank: 32, note: "'Det ser man ikke tit' = you don't often see that." }
+  masse: { pos: noun, g: en, en: "mass, lot; (masser af) lots of", forms: { def: massen, pl: masser }, rank: 900 }
+  mere: { pos: adv, en: more, rank: 100, say: "'MAIR-a'" }
+  minut: { pos: noun, g: et, en: minute, forms: { def: minuttet, pl: minutter, defpl: minutterne }, rank: 600, say: "'mi-NOOT'" }
+  måned: { pos: noun, g: en, en: month, forms: { def: måneden, pl: måneder, defpl: månederne }, rank: 400, say: "'MO-neth'" }
+  "møde#noun": { lemma: møde, pos: noun, g: et, en: meeting, forms: { def: mødet, pl: møder }, rank: 500 }
+  niogtredive: { pos: num, en: thirty-nine, value: 39, rank: 20000, say: "'NEE-o-TRETH-veh'" }
+  nok: { pos: adv, en: "probably; enough", rank: 110, note: "'Fedt nok' = cool / fair enough. 'Det er nok' = that's enough." }
+  otteogtres: { pos: num, en: sixty-eight, value: 68, rank: 20000, say: "'OH-deh-o-TRES'" }
+  overalt: { pos: adv, en: everywhere, rank: 2000 }
+  ovn: { pos: noun, g: en, en: oven, forms: { def: ovnen, pl: ovne }, rank: 6000, say: "'OW-n'" }
+  pose: { pos: noun, g: en, en: bag, forms: { def: posen, pl: poser }, rank: 4000 }
+  pålæg: { pos: noun, g: et, en: "sandwich toppings (cold cuts, cheese …)", forms: { def: pålægget, pl: pålæg }, rank: 12000, say: "'PO-leg'", note: "Anything you put on your rye bread." }
+  selv: { pos: pron, en: "self, yourself; even", rank: 75, say: "'sel'", note: "'Kan du selv …?' = can you … on your own?" }
+  selvfølgelig: { pos: adv, en: of course, rank: 700, say: "'sel-FUL-yeh-li'" }
+  sidde: { pos: verb, en: sit, forms: { inf: at sidde, pres: sidder, past: sad, perf: siddet, imp: sid }, rank: 250, say: "'SI-theh'; 'sidder' is 'SIDH-a'" }
+  siden: { pos: adv, en: "since; ago", rank: 150, note: "'Det er længe siden' = it's been a long time." }
+  skat: { pos: noun, g: en, en: "treasure; darling, love; tax", forms: { def: skatten, pl: skatte }, rank: 900, note: "Also tax! Context tells you which." }
+  spørge: { pos: verb, en: ask, forms: { inf: at spørge, pres: spørger, past: spurgte, perf: spurgt, imp: spørg }, rank: 300, say: "'SPUR-eh'" }
+  stille: { pos: verb, en: "put, place; ask (a question)", forms: { inf: at stille, pres: stiller, past: stillede, perf: stillet, imp: stil }, rank: 400, note: "'stille et spørgsmål' = ask a question." }
+  stykke: { pos: noun, g: et, en: piece, forms: { def: stykket, pl: stykker, defpl: stykkerne }, rank: 600 }
+  styr: { pos: noun, g: et, en: "control (få styr på = get sorted)", rank: 5000 }
+  sædvanlig: { pos: adj, en: usual, forms: { t: sædvanligt, e: sædvanlige }, rank: 3000, say: "'seth-VAN-li'" }
+  telefon: { pos: noun, g: en, en: phone, forms: { def: telefonen, pl: telefoner, defpl: telefonerne }, rank: 1100, pic: "📱" }
+  teste: { pos: verb, en: test, forms: { inf: at teste, pres: tester, past: testede, perf: testet }, rank: 6000 }
+  tilbage: { pos: adv, en: back, rank: 250, say: "'te-BAA-eh'" }
+  tit: { pos: adv, en: often, rank: 1500 }
+  travl: { pos: adj, en: busy, forms: { t: travlt, e: travle }, rank: 3000, say: "'trowl'", note: "'Har du travlt?' = are you busy?" }
+  tur: { pos: noun, g: en, en: "turn; trip, walk", forms: { def: turen, pl: ture }, rank: 500 }
+  ud: { pos: adv, en: out, rank: 100, say: "'ooth'" }
+  ung: { pos: adj, en: young, forms: { t: ungt, e: unge }, rank: 500, say: "'ong'" }
+  universitet: { pos: noun, g: et, en: university, forms: { def: universitetet, pl: universiteter }, rank: 1500 }
+  vand: { pos: noun, g: et, en: water, forms: { def: vandet }, rank: 500, pic: "💧", say: "'van' — silent d" }
+  vej: { pos: noun, g: en, en: "way, road", forms: { def: vejen, pl: veje, defpl: vejene }, rank: 250, say: "'vai'" }
+  weekend: { pos: noun, g: en, en: weekend, forms: { def: weekenden, pl: weekender }, rank: 1200 }
+  wienerbrød: { pos: noun, g: et, en: Danish pastry, forms: { def: wienerbrødet, pl: wienerbrød }, rank: 30000, pic: "🥐", say: "'VEE-na-brurth'", note: "What the world calls a 'Danish', Danes call 'Viennese bread'." }
+  æble: { pos: noun, g: et, en: apple, forms: { def: æblet, pl: æbler, defpl: æblerne }, rank: 4000, pic: "🍎", say: "'EB-leh'" }
+  ønske: { pos: noun, g: et, en: wish, forms: { def: ønsket, pl: ønsker }, rank: 1200 }
+
+  "ellers andet": { pos: phrase, en: anything else? }
+  "fedt nok": { pos: phrase, en: "cool; fair enough" }
+  "det hele": { pos: phrase, en: everything }
+  "handle ind": { pos: phrase, en: do the grocery shopping }
+  "tæt på": { pos: phrase, en: close to; close }
+  "jeg giver": { pos: phrase, en: "it's on me, my treat" }
+  "på tilbud": { pos: phrase, en: on offer }
+  "til at tage med": { pos: phrase, en: to take away }
+  "det er længe siden": { pos: phrase, en: "it's been a long time" }
+  "få styr på": { pos: phrase, en: get something sorted, match: ["fået styr på"] }
+  "masser af": { pos: phrase, en: lots of }

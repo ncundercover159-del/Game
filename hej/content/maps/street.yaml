@@ -19,36 +19,40 @@ legend:
   k: bike_rack
   s: bus_sign
   L: lamp
+  c: cafe_front
   p: path
 tiles: |
-  RRRRRRRRRRRRRRRRRRRR
-  RRRRRRRRRRRRRRRRRRRR
-  YyYyYYyYyYyYyYYyYyYY
-  YyYyYYyYyYyYyYYyYyYY
-  YGGGGYYyYyYyYYnnnnnY
-  YGDGGYYYYYDYYYnnDnnY
-  ====================
-  =L===k=========k=L==
-  --------------------
-  ::::::::::::::::::::
-  --------------------
-  ====================
-  =s==================
-  hhhhhhhhpphhhhhhhhhh
-  .T....f.pp....T....T
-  ......b.pp.b........
-  .T......pp......T...
-  ....f...pp..f.......
-  .....T..pp.T.....b..
-  ........pp..........
-  .T..............T..T
-  TTTTTTTTTTTTTTTTTTTT
+  RRRRRRRRRRRRRRRRRRRRRRRRRR
+  RRRRRRRRRRRRRRRRRRRRRRRRRR
+  YyYyYYyYyYyYyYYyYyYYyYyYyY
+  YyYyYYyYyYyYyYYyYyYYyYyYyY
+  YGGGGYYyYyYyYYnnnnnYYccccY
+  YGDGGYYYYYDYYYnnDnnYYccDcY
+  ==========================
+  =L===k=========k=L=====L==
+  --------------------------
+  ::::::::::::::::::::::::::
+  --------------------------
+  ==========================
+  =s========================
+  hhhhhhhhpphhhhhhhhhhhhhhhh
+  .T....f.pp....T....T...T..
+  ......b.pp.b..........b...
+  .T......pp......T....f....
+  ....f...pp..f...........T.
+  .....T..pp.T.....b........
+  ........pp............f...
+  .T..............T..TT.....
+  TTTTTTTTTTTTTTTTTTTTTTTTTT
 signs:
   - { x: 3, y: 4, da: Bageri, en: Bakery, say: "'Bageri' is 'bah-eh-REE' — the g is silent." }
-  - { x: 2, y: 5, da: Lukket., en: Closed. }
   - { x: 15, y: 4, da: Netto, en: Netto (a discount supermarket) }
-  - { x: 16, y: 5, da: Vi har lukket for i dag., en: We're closed for today. }
+  - { x: 23, y: 4, da: Caféen, en: The café }
   - { x: 1, y: 12, da: Bussen stopper her., en: The bus stops here. }
   - { x: 9, y: 5, da: Nummer 12, en: Number 12, tts: Nummer tolv }
+stop: { x: 1, y: 12, name: { da: Jægergårdsgade, en: "Jægergårdsgade (home, by bus)" }, arrive: { x: 2, y: 12, dir: right }, needFlag: rejsekort }
 warps:
   - { x: 10, y: 5, to: stairwell, tx: 5, ty: 12, dir: up, needFlag: has_keys, locked: { da: Døren er låst., en: The door is locked. } }
+  - { x: 2, y: 5, to: bakery, tx: 3, ty: 5, dir: up, needFlag: ch2, locked: { da: Lukket., en: Closed. } }
+  - { x: 16, y: 5, to: netto, tx: 4, ty: 7, dir: up, needFlag: ch2, locked: { da: Vi har lukket for i dag., en: We're closed for today. } }
+  - { x: 22, y: 5, to: cafe, tx: 4, ty: 6, dir: up, needFlag: ch2, locked: { da: Lukket., en: Closed. } }

@@ -1,0 +1,55 @@
+# Chapter 3 (getting around).
+ambiguous:
+  ved: ved
+entries:
+  vide: { pos: verb, en: know (a fact), forms: { inf: at vide, pres: ved, past: vidste, perf: vidst }, rank: 80, say: "'VEE-theh'; 'ved' is 'veh'", note: "'vide' = know a fact ('Ved du, hvor …?'); 'kende' = know a person or place." }
+  bydeform: { pos: noun, g: en, en: imperative (grammar), rank: 50000 }
+  dansker: { pos: noun, g: en, en: Dane, forms: { def: danskeren, pl: danskere, defpl: danskerne }, rank: 1800, say: "'DAN-ska'" }
+  dreje: { pos: verb, en: turn, forms: { inf: at dreje, pres: drejer, past: drejede, perf: drejet, imp: drej }, rank: 2000, say: "'DRY-eh'" }
+  frederiksbjerg: { lemma: Frederiksbjerg, pos: name, en: "Frederiksbjerg (your neighbourhood in Aarhus)", say: "'FRETH-reks-byair'" }
+  hvornår: { pos: adv, en: when (question), rank: 400, say: "'vor-NOR'" }
+  isbjerget: { lemma: Isbjerget, pos: name, en: "Isbjerget, 'the Iceberg' (a famous building on the harbour)" }
+  modalverbum: { pos: noun, g: et, en: modal verb, forms: { def: modalverbet, pl: modalverber }, rank: 50000 }
+  omkring: { pos: prep, en: "around, about", rank: 250, say: "'om-KRING'" }
+  yasmin: { lemma: Yasmin, pos: name, en: Yasmin (a student you meet in town) }
+  app: { pos: noun, g: en, en: app, forms: { def: appen, pl: apps }, rank: 3000, pic: "📲" }
+  bruge: { pos: verb, en: use, forms: { inf: at bruge, pres: bruger, past: brugte, perf: brugt, imp: brug }, rank: 150, say: "'BROO-eh'" }
+  derind: { pos: adv, en: in there, rank: 5000 }
+  dyr: { pos: adj, en: expensive, forms: { t: dyrt, e: dyre }, rank: 1500, say: "'dure'; 'dyrt' is 'dyrt'", note: "Also a noun: et dyr = an animal." }
+  fare: { pos: verb, en: "rush; (fare vild) get lost", forms: { inf: at fare, pres: farer, past: fór, perf: faret }, rank: 3000 }
+  fed: { pos: adj, en: "fat; (slang) great, cool", forms: { e: fede }, rank: 2500, say: "'feth'", note: "Its t-form 'fedt' is its own everyday word: 'Fedt!' = cool!" }
+  forkert: { pos: adv, en: "wrong(ly)", rank: 1500, say: "'FOR-kert'" }
+  forsinket: { pos: adj, en: "late, delayed", forms: { e: forsinkede }, rank: 4000, say: "'for-SING-keth'" }
+  glemme: { pos: verb, en: forget, forms: { inf: at glemme, pres: glemmer, past: glemte, perf: glemt, imp: glem }, rank: 600, say: "'GLEM-meh'" }
+  halv: { pos: adj, en: half, forms: { t: halvt, e: halve }, rank: 500, say: "'hal' — the v is silent", note: "'halv tre' = 2:30 (half TO three)." }
+  hertil: { pos: adv, en: (to) here, rank: 3000, say: "'HAIR-til'" }
+  inde: { pos: adv, en: inside, rank: 500, say: "'IN-neh'" }
+  indgang: { pos: noun, g: en, en: entrance, forms: { def: indgangen, pl: indgange }, rank: 3000, say: "'IN-gang'" }
+  kvart: { pos: noun, g: en, en: quarter, rank: 3000, note: "'kvart over to' = 2:15, 'kvart i tre' = 2:45." }
+  langs: { pos: prep, en: along, rank: 1800 }
+  letbane: { pos: noun, g: en, en: "light rail, tram", forms: { def: letbanen, pl: letbaner }, rank: 9000, pic: "🚊", say: "'LET-baa-neh'" }
+  ligeud: { pos: adv, en: straight ahead, rank: 5000, say: "'LEE-eh-ooth'" }
+  ligge: { pos: verb, en: "lie; be (located)", forms: { inf: at ligge, pres: ligger, past: lå, perf: ligget, imp: lig }, rank: 150, say: "'LIG-geh'", note: "Buildings and towns 'lie': 'Hvor ligger Dokk1?'" }
+  mandag: { pos: noun, g: en, en: Monday, forms: { def: mandagen, pl: mandage }, rank: 1000, say: "'MAN-da'" }
+  mødes: { pos: verb, en: meet (each other), forms: { inf: at mødes, pres: mødes, past: mødtes, perf: mødtes }, rank: 1200, say: "'MUR-thes'" }
+  når: { pos: conj, en: "when (whenever / in the future)", rank: 140, say: "'nor'", note: "'når' for present, future and repeated events; 'da' for one time in the past." }
+  plan: { pos: noun, g: en, en: plan, forms: { def: planen, pl: planer }, rank: 900 }
+  præcis: { pos: adj, en: "precise, punctual; exactly", forms: { t: præcist, e: præcise }, rank: 1400, say: "'preh-SEES'" }
+  rejsekort: { pos: noun, g: et, en: "Rejsekort (travel card)", forms: { def: rejsekortet, pl: rejsekort }, rank: 20000, pic: "🎫", say: "'RYE-seh-kort'" }
+  skinne: { pos: noun, g: en, en: "rail, track", forms: { def: skinnen, pl: skinner, defpl: skinnerne }, rank: 6000 }
+  stige: { pos: verb, en: "climb, rise; (stige på) get on", forms: { inf: at stige, pres: stiger, past: steg, perf: steget, imp: stig }, rank: 800, say: "'STEE-eh'" }
+  stoppested: { pos: noun, g: et, en: "stop (bus/tram)", forms: { def: stoppestedet, pl: stoppesteder }, rank: 9000, say: "'STOP-peh-steth'" }
+  træ: { pos: noun, g: et, en: "tree; wood", forms: { def: træet, pl: træer, defpl: træerne }, rank: 900, pic: "🌳", say: "'treh'" }
+  ø: { pos: noun, g: en, en: island, forms: { def: øen, pl: øer }, rank: 1500, say: "'ur'", note: "'Aarhus Ø' is the new harbour district." }
+
+  "ind til byen": { pos: phrase, en: into town }
+  "stå af": { pos: phrase, en: "get off (a bus, train)", match: ["står af"] }
+  "stige på": { pos: phrase, en: "get on (a bus, train)", match: ["stiger på"] }
+  "pas på": { pos: phrase, en: "watch out; take care" }
+  "fare vild": { pos: phrase, en: get lost, match: ["farer vild", "fór vild"] }
+  "gå forkert": { pos: phrase, en: go the wrong way, match: ["gik forkert"] }
+  "det lyder godt": { pos: phrase, en: that sounds good }
+  "gå en tur": { pos: phrase, en: go for a walk, match: ["går en tur"] }
+  "aarhus ø": { pos: phrase, en: "Aarhus Ø (the harbour district)" }
+  "tjekke ind": { pos: phrase, en: check in }
+  "tjekke ud": { pos: phrase, en: check out }

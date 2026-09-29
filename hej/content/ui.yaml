@@ -50,5 +50,20 @@ ui:
   wordBank:     { da: Ordbank, en: Word bank }
   typeHere:     { da: Skriv på dansk., en: Write in Danish. }
   tryAgain:     { da: Prøv igen., en: Try again. }
-  sayIt:        { da: Sig det sådan her., en: Say it like this. }
+  sayIt:        { da: Sig det sådan her., en: Say it like this., lx: { sig: sige } }
   bye:          { da: Farvel, en: Goodbye }
+  dictation:    { da: "Skriv, hvad du hører.", en: Write what you hear. }
+  cloze:        { da: Udfyld hullet., en: Fill the gap. }
+  replyPick:    { da: Hvad svarer du?, en: What do you answer? }
+  speak:        { da: Sig det højt., en: Say it out loud., lx: { sig: sige } }
+  picture:      { da: Hvilket billede passer?, en: Which picture fits? }
+  record:       { da: Optag, en: Record }
+  compare:      { da: Sammenlign, en: Compare }
+  selfRight:    { da: Det lød rigtigt, en: It sounded right }
+  selfAlmost:   { da: Næsten, en: Almost }
+  selfNo:       { da: Ikke endnu, en: Not yet }
+  cantSpeak:    { da: Jeg kan ikke tale nu, en: I can't speak right now }
+  travel:       { da: Hvor skal du hen?, en: Where are you going? }
+  stay:         { da: Bliv her, en: Stay here }
+  theEnd:       { da: Tillykke!, en: Congratulations! }
+  freePlay:     { da: "Øv og snak, så meget du vil.", en: Practise and chat as much as you like. }

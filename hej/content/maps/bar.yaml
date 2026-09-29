@@ -1,0 +1,15 @@
+id: bar
+name: { da: Baren, en: The bar }
+spawn: { x: 4, y: 6, dir: up }
+legend: { "#": wall_int, ".": floor_wood, b: bottles, K: bar_counter, t: table, s: sofa, E: door_exit, r: rug }
+tiles: |
+  #bbbbb####
+  #........#
+  #KKKKK...#
+  #........#
+  #.tt..tt.#
+  #........#
+  #s..rr..s#
+  ####E#####
+warps:
+  - { x: 4, y: 7, to: centrum, tx: 22, ty: 3, dir: down }

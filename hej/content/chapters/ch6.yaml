@@ -1,0 +1,224 @@
+# Chapter 6 — Nye venner (New friends). CEFR B1.
+# Texting, going out, invitations (accepting and declining politely), friendly competition.
+# Grammar: a sub-clause first makes the main clause invert; comparison (bedre end, den bedste).
+
+id: ch6
+n: 6
+cefr: B1
+title: { da: Nye venner, en: New friends }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch6: true }
+  - narrator: Du har boet i Aarhus i to måneder, og du har fået nye venner.
+    en: "You've lived in Aarhus for two months, and you've made new friends."
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: En sms fra Sara, en: A text from Sara }
+    objective: { da: Gå hjem. Din telefon bipper., en: Go home. Your phone is beeping. }
+    npc: sara
+    start: { enterMap: flat }
+    cast: {}
+    script:
+      - narrator: Din telefon bipper. Det er en sms fra Sara.
+        en: "Your phone beeps. It's a text from Sara."
+        say: "'sms' is 'ess-em-ESS' — Danes say 'sms' for any text message."
+      - sara: Hej! Skal vi ses på fredag? 😊
+        en: "Hi! Shall we meet up on Friday? 😊"
+        tts: Hej! Skal vi ses på fredag?
+      - id: ch6.s1.hvis
+        sara: Hvis du har lyst, kan vi tage på bar i byen.
+        en: "If you feel like it, we can go to a bar in town."
+        say: "'have lyst' = feel like it. Notice 'kan vi' — the verb jumps in front of 'vi' after the hvis-part."
+        tags: [inversion]
+      - id: ch6.s1.naar
+        sara: Når jeg har fri klokken otte, skriver jeg til dig.
+        en: "When I finish at eight, I'll text you."
+        say: "'have fri' = be off work."
+        tags: [inversion]
+      - choose:
+          - you: Ja tak, det lyder hyggeligt!
+            en: "Yes please, that sounds nice!"
+            q: natural
+          - you: Gerne! Hvor skal vi mødes?
+            en: "Sure! Where shall we meet?"
+            q: natural
+          - you: Hvis du har lyst, vi kan ses.
+            en: "If you like, we can meet."
+            q: awkward
+            why: "After a 'hvis' part, the verb comes next: 'Hvis du har lyst, kan vi ses'."
+      - id: ch6.s1.hvis2
+        sara: Hvis det regner, bliver vi indenfor.
+        en: "If it rains, we'll stay inside."
+        tags: [inversion]
+      - spotlight: inversion
+      - narrator: Du skriver et svar.
+        en: You write a reply.
+      - build:
+          you: Super! Vi ses på fredag.
+          en: "Great! See you on Friday."
+          extra: [ser]
+          prompt: { da: Skriv til Sara., en: "Text Sara: great, see you on Friday." }
+      - sara: Yes! Glæder mig. Kh Sara
+        en: "Yes! Looking forward to it. Love, Sara"
+        tts: Yes! Glæder mig. Kærlig hilsen, Sara.
+        say: "Texts drop 'jeg': 'Glæder mig'. 'Kh' = kærlig hilsen (love); 'mvh' = med venlig hilsen (kind regards)."
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: I byen, en: A night out }
+    objective: { da: Mød Sara i baren inde i byen., en: Meet Sara at the bar in town. }
+    npc: sara
+    start: { npc: sara }
+    cast:
+      sara: { map: bar, x: 6, y: 3, dir: down }
+      amalie: { map: bar, x: 3, y: 3, dir: down }
+    script:
+      - sara: Der er I! Hvad vil I have at drikke?
+        en: "There you are! What do you want to drink?"
+      - choose:
+          - you: En øl, tak.
+            en: "A beer, please."
+            q: natural
+          - you: Et glas rødvin, tak.
+            en: "A glass of red wine, please."
+            q: natural
+          - you: Kan jeg få en sodavand?
+            en: Can I get a soft drink?
+            q: natural
+      - amalie: Jeg giver den første omgang!
+        en: "I'm getting the first round!"
+        say: "'omgang' = a round (of drinks)."
+      - sara: Skål! Nå, hvordan går det med det nye job?
+        en: "Cheers! So, how's the new job going?"
+      - choose:
+          - you: Det går rigtig godt. Mine kolleger er søde.
+            en: "It's going really well. My colleagues are nice."
+            q: natural
+          - you: Fint, men der er meget at lære.
+            en: "Fine, but there's a lot to learn."
+            q: natural
+      - sara: Og hvad med dansk? Du er blevet meget bedre!
+        en: "And what about your Danish? You've got much better!"
+      - choose:
+          - you: Tak! Jeg øver mig hver dag.
+            en: Thanks! I practise every day.
+            q: natural
+          - you: Synes du? Jeg forstår stadig ikke alt.
+            en: "Do you think so? I still don't understand everything."
+            q: natural
+      - amalie: Det er fordi, vi taler så hurtigt. Og vi sluger halvdelen af ordene.
+        en: "That's because we talk so fast. And we swallow half the words."
+        lx: { så: "så#adv" }
+      - sara: Folk siger, at dansk lyder som en varm kartoffel i munden.
+        en: "People say Danish sounds like a hot potato in your mouth."
+      - choose:
+          - you: Haha, det passer!
+            en: "Haha, that's true!"
+            q: natural
+          - you: Det synes jeg ikke. Det er et smukt sprog.
+            en: "I don't think so. It's a beautiful language."
+            q: natural
+            rel: 2
+      - id: ch6.s2.invite
+        sara: Hey, har du lyst til at komme til min fødselsdag næste lørdag?
+        en: "Hey, would you like to come to my birthday next Saturday?"
+      - choose:
+          - you: Ja, meget gerne! Tak for invitationen.
+            en: "Yes, I'd love to! Thanks for the invitation."
+            q: natural
+            rel: 2
+            set: { sara_party: true }
+          - you: Det lyder hyggeligt, men jeg kan desværre ikke.
+            en: "That sounds nice, but unfortunately I can't."
+            q: natural
+            then:
+              - sara: Øv! Så må vi ses en anden gang.
+                en: "Aw! Then we'll have to meet another time."
+                lx: { så: "så#adv", øv: "øv#interj" }
+          - you: Nej.
+            en: "No."
+            q: awkward
+            why: "A bare 'nej' sounds rude. Soften it: 'Det lyder hyggeligt, men jeg kan desværre ikke.'"
+      - amalie: Og nu vi taler om planer. Mine forældre inviterer dig på søndagsmiddag.
+        en: "And speaking of plans: my parents are inviting you to Sunday dinner."
+      - amalie: Kan du komme på søndag klokken seks?
+        en: Can you come on Sunday at six?
+      - choose:
+          - you: Ja, det vil jeg rigtig gerne.
+            en: "Yes, I'd really like that."
+            q: natural
+          - you: Gerne! Skal jeg tage noget med?
+            en: "Sure! Should I bring anything?"
+            q: natural
+            then:
+              - amalie: Bare dig selv. Men en flaske vin er altid populær.
+                en: "Just yourself. But a bottle of wine always goes down well."
+      - set: { dinner_invite: true }
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: Padel, en: Padel }
+    objective: { da: Snak med Jonas på arbejdet., en: Talk to Jonas at work. }
+    npc: jonas
+    start: { npc: jonas }
+    cast:
+      jonas: { map: office, x: 3, y: 2, dir: down }
+      mette: { map: office, x: 8, y: 2, dir: down }
+    script:
+      - jonas: Hey, spiller du padel?
+        en: "Hey, do you play padel?"
+        say: "Padel — a mix of tennis and squash — is hugely popular in Denmark right now."
+      - choose:
+          - you: Nej, men jeg vil gerne prøve!
+            en: "No, but I'd love to try!"
+            q: natural
+          - you: Lidt. Jeg er ikke særlig god.
+            en: "A bit. I'm not very good."
+            q: natural
+      - jonas: Vi mangler en fjerde spiller på søndag. Har du lyst?
+        en: We need a fourth player on Sunday. Do you fancy it?
+        lx: { spiller: spiller }
+      - choose:
+          - you: Jeg kan desværre ikke på søndag. Jeg skal spise hos Amalies forældre.
+            en: "Unfortunately I can't on Sunday. I'm having dinner at Amalie's parents'."
+            q: natural
+          - you: Søndag passer ikke så godt. Hvad med næste weekend?
+            en: "Sunday doesn't really suit me. What about next weekend?"
+            q: natural
+            lx: { så: "så#adv" }
+      - jonas: Intet problem. Næste weekend er fint.
+        en: "No problem. Next weekend is fine."
+      - id: ch6.s3.bedre
+        jonas: Men pas på. Jeg er meget bedre end Mette.
+        en: "But watch out. I'm much better than Mette."
+        tags: [komparativ]
+      - id: ch6.s3.hurtig
+        mette: Det passer ikke! Jeg er hurtigere end dig.
+        en: "That's not true! I'm faster than you."
+        tags: [komparativ]
+      - id: ch6.s3.bedst
+        jonas: Måske. Men jeg er den bedste i hele firmaet.
+        en: "Maybe. But I'm the best in the whole company."
+        tags: [komparativ]
+      - choose:
+          - you: Haha, det må vi se.
+            en: "Haha, we'll see about that."
+            q: natural
+          - you: Så glæder jeg mig til at vinde.
+            en: "Then I'm looking forward to winning."
+            q: natural
+            rel: 2
+            lx: { så: "så#adv" }
+      - spotlight: komparativ
+      - jonas: Jeg sender dig en sms med tid og sted.
+        en: "I'll send you a text with the time and place."
+
+outro:
+  - narrator: Nu har du venner i Aarhus.
+    en: Now you have friends in Aarhus.
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

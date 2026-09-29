@@ -1,0 +1,16 @@
+id: bakery
+name: { da: Bageriet, en: The bakery }
+spawn: { x: 3, y: 5, dir: up }
+legend: { "#": wall_int, ".": floor_tile, P: pastry_counter, r: register, p: plant, E: door_exit, W: window_int, s: shelf }
+tiles: |
+  ##W##W##
+  #s.....#
+  #PPPPrP#
+  #......#
+  #......#
+  #p....p#
+  ###E####
+signs:
+  - { x: 2, y: 2, da: Rundstykker og wienerbrød, en: Bread rolls and Danish pastries, say: "'wienerbrød' is 'VEE-na-brur'." }
+warps:
+  - { x: 3, y: 6, to: street, tx: 2, ty: 6, dir: down }

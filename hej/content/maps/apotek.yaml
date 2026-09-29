@@ -1,0 +1,16 @@
+id: apotek
+name: { da: Apoteket, en: The pharmacy }
+spawn: { x: 3, y: 5, dir: up }
+legend: { "#": wall_int, ".": floor_tile, S: shelf, r: register, p: plant, E: door_exit, c: counter }
+tiles: |
+  ########
+  #......#
+  #ccrcc.#
+  #......#
+  #.S..S.#
+  #......#
+  ###E####
+signs:
+  - { x: 2, y: 4, da: Håndkøbsmedicin, en: Over-the-counter medicine, say: "'HON-kurbs-me-dee-seen'" }
+warps:
+  - { x: 3, y: 6, to: centrum, tx: 5, ty: 3, dir: down }

@@ -1,0 +1,252 @@
+# Chapter 5 — Det nye job (The new job). CEFR A2.
+# First day at work, lunch small talk (the weather!), Friday bar and the weekend.
+# Grammar: the perfect tense, "fordi" clauses (ikke before the verb), time expressions.
+
+id: ch5
+n: 5
+cefr: A2
+title: { da: Det nye job, en: The new job }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch5: true }
+  - narrator: Du har fået job hos Nordlys, et lille firma inde i byen.
+    en: "You've got a job at Nordlys, a small company in town."
+  - narrator: I dag er din første dag.
+    en: Today is your first day.
+    tags: [v2]
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Første dag, en: First day }
+    objective: { da: Gå på arbejde hos Nordlys., en: Go to work at Nordlys. }
+    npc: mette
+    start: { npc: mette }
+    cast:
+      mette: { map: office, x: 8, y: 2, dir: down }
+      jonas: { map: office, x: 3, y: 2, dir: down }
+    script:
+      - mette: Godmorgen, og velkommen til Nordlys!
+        en: "Good morning, and welcome to Nordlys!"
+      - mette: Jeg hedder Mette. Jeg er din chef, men her siger vi du til alle.
+        en: "I'm Mette. I'm your boss, but here we say 'du' to everyone."
+        say: "Danes almost never use the formal 'De'. Everyone is 'du' — even the boss."
+      - choose:
+          - you: Tak! Jeg glæder mig til at starte.
+            en: "Thanks! I'm looking forward to starting."
+            q: natural
+            rel: 2
+            say: "'glæde sig til' = look forward to."
+          - you: Godmorgen! Tak for det.
+            en: "Good morning! Thank you."
+            q: natural
+          - you: Goddag, fru Mette.
+            en: "Good afternoon, Mrs Mette."
+            q: awkward
+            why: "Far too formal. Danes use first names with everyone, including the boss."
+      - id: ch5.s1.boet
+        mette: Hvor længe har du boet i Danmark?
+        en: How long have you lived in Denmark?
+        tags: [perfect]
+      - choose:
+          - you: Jeg har boet her i en måned.
+            en: "I've lived here for a month."
+            q: natural
+            lx: { en: "en#num" }
+          - you: Jeg bor her i en måned.
+            en: I live here for a month.
+            q: awkward
+            lx: { en: "en#num" }
+            why: "For something that started in the past and is still going on, use the perfect: 'Jeg har boet her i en måned'."
+      - id: ch5.s1.vaeret
+        mette: Og har du været i Aarhus før?
+        en: And have you been to Aarhus before?
+        tags: [perfect]
+      - choose:
+          - you: Nej, det er første gang.
+            en: "No, it's the first time."
+            q: natural
+          - you: Ja, jeg har besøgt Amalie en gang.
+            en: "Yes, I've visited Amalie once."
+            q: natural
+            lx: { en: "en#num" }
+      - id: ch5.s1.flyttet
+        mette: Vi er lige flyttet ind i nye lokaler, så der er lidt rodet.
+        en: "We've just moved into new premises, so it's a bit messy."
+        lx: { så: "så#adv" }
+        say: "Verbs of movement often take 'er' in the perfect: 'vi er flyttet'."
+        tags: [perfect]
+      - spotlight: perfect
+      - mette: Du sidder her ved siden af Jonas.
+        en: You sit here next to Jonas.
+      - jonas: Hej. Velkommen til galehuset.
+        en: Hi. Welcome to the madhouse.
+        say: "Dry humour is very Danish. Don't take it literally."
+      - choose:
+          - you: Hej! Er det så slemt?
+            en: "Hi! Is it that bad?"
+            q: natural
+            rel: 2
+            lx: { så: "så#adv" }
+          - you: Hej, Jonas. Hyggeligt at møde dig.
+            en: "Hi, Jonas. Nice to meet you."
+            q: natural
+      - jonas: Nej nej. Kaffen er dårlig, men folk er søde.
+        en: "No, no. The coffee's bad, but people are nice."
+      - id: ch5.s1.frokost
+        mette: Vi har møde klokken ti og frokost klokken halv tolv.
+        en: "We have a meeting at ten and lunch at half past eleven."
+        lx: { møde: "møde#noun" }
+        tags: [time]
+      - exercise: { type: listen, line: ch5.s1.frokost, options: ["11:30", "12:30", "10:30", "11:15"], answer: "11:30" }
+      - mette: Sig til, hvis du mangler noget.
+        en: Let me know if you need anything.
+        lx: { sig: sige }
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: Frokostpausen, en: The lunch break }
+    objective: { da: Spis frokost med Jonas., en: Have lunch with Jonas. }
+    npc: jonas
+    start: { npc: jonas }
+    cast:
+      jonas: { map: office, x: 6, y: 5, dir: left }
+    script:
+      - jonas: Frokost! Har du madpakke med?
+        en: Lunch! Did you bring a packed lunch?
+        say: "'madpakke' = packed lunch, usually rye bread with toppings."
+      - choose:
+          - you: Ja, rugbrød med ost.
+            en: "Yes, rye bread with cheese."
+            q: natural
+          - you: Nej, jeg glemte den.
+            en: "No, I forgot it."
+            q: natural
+            then:
+              - jonas: Så får du en af mine. Jeg har altid for mange.
+                en: "Then you can have one of mine. I always bring too many."
+                lx: { så: "så#adv", en: "en#num" }
+      - id: ch5.s2.fordi1
+        jonas: Jeg tager altid madpakke med, fordi kantinen er for dyr.
+        en: "I always bring a packed lunch, because the canteen is too expensive."
+        tags: [fordi]
+      - jonas: Sikke et vejr, hva'?
+        en: "What weather, eh?"
+        say: "'Sikke' = what a … ! 'hva'' at the end = 'eh?'"
+      - narrator: Det regner. Igen.
+        en: "It's raining. Again."
+      - choose:
+          - you: Ja, det regner hele tiden!
+            en: "Yes, it rains all the time!"
+            q: natural
+          - you: Er det altid sådan her?
+            en: Is it always like this?
+            q: natural
+      - id: ch5.s2.fordi2
+        jonas: Jeg cykler alligevel, fordi jeg ikke gider tage bussen.
+        en: "I cycle anyway, because I can't be bothered to take the bus."
+        say: "'gider' ('GEE-a') = can be bothered. Danes use it all the time: 'Jeg gider ikke'."
+        tags: [fordi, negation]
+      - jonas: Det er typisk dansk vejr. Man vænner sig til det.
+        en: "It's typical Danish weather. You get used to it."
+      - id: ch5.s2.fordi3
+        jonas: Men jeg elsker sommeren, fordi det er lyst til klokken elleve.
+        en: "But I love the summer, because it's light until eleven."
+        lx: { lyst: lys }
+        tags: [fordi]
+      - choose:
+          - you: Det lyder dejligt.
+            en: That sounds lovely.
+            q: natural
+          - you: Hvornår bliver det sommer?
+            en: When does it become summer?
+            q: natural
+            then:
+              - jonas: Om cirka fire måneder. Hvis vi er heldige.
+                en: "In about four months. If we're lucky."
+      - spotlight: fordi
+      - jonas: Nå, tilbage til arbejdet.
+        en: "Right, back to work."
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: Fredagsbar, en: Friday bar }
+    objective: { da: Det er fredag. Gå til fredagsbar på kontoret., en: "It's Friday. Go to the Friday bar at the office." }
+    npc: mette
+    start: { npc: mette }
+    cast:
+      mette: { map: office, x: 9, y: 6, dir: left }
+      jonas: { map: office, x: 7, y: 6, dir: right }
+    script:
+      - narrator: Det er fredag eftermiddag, og der er fredagsbar på kontoret.
+        en: "It's Friday afternoon, and there's a Friday bar at the office."
+        say: "A 'fredagsbar' is drinks at work on Friday afternoon — a Danish office tradition."
+      - mette: Skål, og god weekend!
+        en: "Cheers, and have a good weekend!"
+        say: "'Skål' is 'skol'. Look people in the eyes when you say it!"
+      - choose:
+          - you: Skål!
+            en: Cheers!
+            q: natural
+          - you: Skål, og tak for en god første uge.
+            en: "Cheers, and thanks for a good first week."
+            q: natural
+            rel: 2
+      - id: ch5.s3.skal
+        mette: Hvad skal du lave i weekenden?
+        en: What are you doing this weekend?
+        tags: [tid]
+      - choose:
+          - you: Jeg skal til fødselsdag hos Amalie.
+            en: "I'm going to Amalie's birthday party."
+            q: natural
+          - you: Ikke så meget. Jeg skal bare slappe af.
+            en: "Not much. I'm just going to relax."
+            q: natural
+            lx: { så: "så#adv" }
+      - id: ch5.s3.lavede
+        jonas: Hvad lavede du i sidste weekend?
+        en: What did you do last weekend?
+        tags: [tid, past]
+      - choose:
+          - you: Jeg var på ARoS.
+            en: I went to ARoS.
+            q: natural
+            say: "ARoS is Aarhus's art museum, with the rainbow walkway on the roof."
+          - you: Jeg gik en tur i skoven.
+            en: I went for a walk in the woods.
+            q: natural
+      - jonas: Fedt. Jeg sad bare derhjemme og så fjernsyn.
+        en: "Nice. I just sat at home and watched TV."
+        lx: { så: se }
+      - mette: Jonas ser altid fjernsyn. Han er vores sofakartoffel.
+        en: "Jonas is always watching TV. He's our couch potato."
+      - jonas: Det passer ikke! Jeg har også været ude at cykle.
+        en: "That's not true! I've also been out cycling."
+      - choose:
+          - you: Haha, selvfølgelig.
+            en: "Haha, of course."
+            q: natural
+          - you: Det lyder hyggeligt.
+            en: That sounds nice.
+            q: natural
+      - id: ch5.s3.mandag
+        mette: Nå, vi ses på mandag. Kom godt hjem!
+        en: "Right, see you on Monday. Get home safely!"
+        tags: [tid]
+      - spotlight: tid
+      - choose:
+          - you: Tak, i lige måde. God weekend!
+            en: "Thanks, you too. Have a good weekend!"
+            q: natural
+          - you: Vi ses på mandag!
+            en: See you on Monday!
+            q: natural
+
+outro:
+  - narrator: Nu kan du småsnakke med dine kolleger.
+    en: Now you can make small talk with your colleagues.
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

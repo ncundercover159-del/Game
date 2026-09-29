@@ -1,0 +1,17 @@
+id: parents
+name: { da: Hos Lise og Bent, en: "At Lise and Bent's" }
+spawn: { x: 4, y: 6, dir: up }
+legend: { "#": wall_int, ".": floor_wood, t: dining_table, s: sofa, E: door_exit, W: window_int, B: bookshelf, p: plant, r: rug, k: counter }
+tiles: |
+  ##W###W###
+  #B......k#
+  #.tttt..k#
+  #.tttt...#
+  #........#
+  #s..rr..p#
+  #........#
+  ####E#####
+signs:
+  - { x: 1, y: 1, da: Gamle familiebilleder, en: Old family photos }
+warps:
+  - { x: 4, y: 7, to: risskov, tx: 7, ty: 4, dir: down }

@@ -154,7 +154,7 @@ function download(name: string, data: unknown) {
 export async function settingsScreen(game: Game) {
   const s = S.settings;
   const save = async () => writeSettings(s);
-  const check = (label: string, key: 'autoplay' | 'speakUi') =>
+  const check = (label: string, key: 'autoplay' | 'speakUi' | 'speaking') =>
     h('label', { class: 'check' }, h('input', {
       type: 'checkbox', checked: s[key], onchange: async (e: Event) => { s[key] = (e.target as HTMLInputElement).checked; await save(); },
     }), label);
@@ -173,6 +173,7 @@ export async function settingsScreen(game: Game) {
     h('p', { class: 'small muted' }, 'English subtitles → Danish only (tap EN to peek) → no hints at all. Switch any time from the top bar.'),
     check('Play each line automatically', 'autoplay'),
     check('Read buttons aloud on long-press / hover', 'speakUi'),
+    check('Speaking exercises (microphone: speech recognition + shadowing)', 'speaking'),
     h('label', { class: 'check' }, 'New cards per day ', newPer),
     h('h3', {}, 'Audio'),
     h('p', { class: 'small' }, au.clips

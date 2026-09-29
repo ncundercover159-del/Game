@@ -1,0 +1,17 @@
+id: cafe
+name: { da: Caféen, en: The café }
+spawn: { x: 4, y: 6, dir: up }
+legend: { "#": wall_int, ".": floor_wood, K: coffee_bar, t: table, p: plant, s: sofa, E: door_exit, W: window_int, r: rug }
+tiles: |
+  ###W##W###
+  #........#
+  #KKKKK...#
+  #........#
+  #.tt..tt.#
+  #........#
+  #s..rr..p#
+  ####E#####
+signs:
+  - { x: 2, y: 2, da: Dagens kage, en: Cake of the day }
+warps:
+  - { x: 4, y: 7, to: street, tx: 22, ty: 6, dir: down }

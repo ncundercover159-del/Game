@@ -331,6 +331,179 @@ const PAINT: Record<string, (x: Ctx, v: number) => void> = {
     px(x, P.cardboard, 4, 0, 9, 5);
     px(x, P.tape, 8, 0, 1, 5);
   },
+  floor_tile: (x, v) => {
+    px(x, '#e9e4d8', 0, 0, T, T);
+    px(x, '#d6cfbf', 0, 0, 8, 8);
+    px(x, '#d6cfbf', 8, 8, 8, 8);
+    if (v === 1) px(x, '#cfc7b6', 3, 3, 1, 1);
+  },
+  carpet: (x, v) => noise(x, 91 + v, '#6d7f99', [['#61728b', 16], ['#7a8ca6', 10]]),
+  cobble: (x, v) => {
+    px(x, '#a9a197', 0, 0, T, T);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      const off = r % 2 ? 2 : 0;
+      px(x, (r + c + v) % 3 ? '#bdb5aa' : '#c7c0b6', c * 4 + off, r * 4, 3, 3);
+    }
+  },
+  rails: (x, v) => {
+    PAINT.cobble(x, v);
+    px(x, '#6b6258', 0, 3, T, 2);
+    px(x, '#6b6258', 0, 11, T, 2);
+    px(x, '#d0d4d8', 0, 3, T, 1);
+    px(x, '#d0d4d8', 0, 11, T, 1);
+    for (let i = 0; i < 4; i++) px(x, '#7a5b3f', i * 4 + 1, 2, 2, 12);
+    px(x, '#d0d4d8', 0, 3, T, 1);
+    px(x, '#d0d4d8', 0, 11, T, 1);
+  },
+  water: (x, v) => {
+    noise(x, 101 + v, '#3f7fb3', [['#3571a3', 14], ['#5b9bd0', 8]]);
+    px(x, '#8cc4ee', (v * 5) % 12, 5, 4, 1);
+    px(x, '#8cc4ee', (v * 3 + 6) % 12, 11, 3, 1);
+  },
+  shelf: (x, v) => {
+    PAINT.floor_tile(x, v);
+    px(x, '#8a6a4a', 0, 0, T, 14);
+    const goods = ['#e74c3c', '#f1c40f', '#27ae60', '#2980b9', '#ecf0f1', '#e67e22'];
+    for (let r = 0; r < 3; r++) {
+      px(x, '#6b4f36', 0, r * 4 + 4, T, 1);
+      for (let c = 0; c < 5; c++) px(x, goods[(r * 5 + c + v) % goods.length], c * 3 + 1, r * 4 + 1, 2, 3);
+    }
+  },
+  cooler: (x, v) => {
+    PAINT.floor_tile(x, v);
+    px(x, '#dfe6ec', 0, 0, T, 14);
+    px(x, '#a9d3f0', 1, 1, 14, 11);
+    for (let c = 0; c < 4; c++) px(x, ['#ffffff', '#f4d03f', '#e74c3c', '#ffffff'][(c + v) % 4], c * 4 + 2, 5, 2, 5);
+  },
+  pastry_counter: (x, v) => {
+    PAINT.floor_tile(x, v);
+    px(x, '#f3efe6', 0, 2, T, 12);
+    px(x, '#bfe0f2', 1, 3, 14, 6);
+    const c = ['#d9a05b', '#c28140', '#e8c07a', '#b5652f'];
+    for (let i = 0; i < 3; i++) px(x, c[(i + v) % 4], 2 + i * 4, 5, 3, 3);
+    px(x, '#8a5733', 0, 10, T, 4);
+  },
+  register: (x, v) => {
+    PAINT.floor_tile(x, v);
+    px(x, '#8a5733', 0, 6, T, 8);
+    px(x, '#2d2d38', 4, 1, 8, 6);
+    px(x, '#7fd67f', 5, 2, 6, 2);
+    px(x, '#c9ced4', 3, 7, 10, 2);
+  },
+  coffee_bar: (x, v) => {
+    PAINT.floor_wood(x, v);
+    px(x, '#5b3a24', 0, 5, T, 9);
+    px(x, '#d9c3a0', 0, 5, T, 2);
+    if (v % 2 === 0) {
+      px(x, '#b8bcc2', 3, 0, 9, 6);
+      px(x, '#2d2d38', 5, 2, 5, 2);
+      px(x, '#ffffff', 6, 5, 3, 1);
+    } else {
+      px(x, '#ffffff', 3, 3, 3, 3);
+      px(x, '#ffffff', 9, 3, 3, 3);
+    }
+  },
+  desk: (x, v) => {
+    PAINT.carpet(x, v);
+    px(x, 'rgba(0,0,0,0.2)', 0, 13, T, 2);
+    px(x, '#d8c3a0', 0, 4, T, 9);
+    px(x, '#2d2d38', 3, 0, 9, 7);
+    px(x, '#6fb7e9', 4, 1, 7, 5);
+    px(x, '#2d2d38', 7, 7, 2, 1);
+    px(x, '#555', 4, 9, 8, 2);
+  },
+  bookshelf: (x, v) => {
+    PAINT.carpet(x, v);
+    px(x, '#6b4a2e', 0, 0, T, 15);
+    const c = ['#c0392b', '#2980b9', '#27ae60', '#8e44ad', '#f39c12', '#ecf0f1'];
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 6; i++) px(x, c[(r * 3 + i + v) % 6], 1 + i * 2 + (i > 2 ? 1 : 0), r * 5 + 1, 2, 4);
+  },
+  bar_counter: (x, v) => {
+    PAINT.floor_wood(x, v);
+    px(x, '#3b2416', 0, 3, T, 11);
+    px(x, '#8a5733', 0, 3, T, 3);
+    if (v % 2) { px(x, '#f4d03f', 4, 0, 3, 4); px(x, '#ffffff', 4, 0, 3, 1); }
+  },
+  bottles: (x) => {
+    intWall(x);
+    px(x, '#3b2416', 0, 9, T, 2);
+    const c = ['#2e8b57', '#8b4513', '#c0c0c0', '#b22222'];
+    for (let i = 0; i < 5; i++) px(x, c[i % 4], 1 + i * 3, 3, 2, 6);
+  },
+  xmas_tree: (x, v) => {
+    PAINT.floor_wood(x, v);
+    px(x, '#6b4a2e', 7, 12, 2, 3);
+    px(x, '#1e6b33', 6, 1, 4, 3);
+    px(x, '#1e6b33', 4, 4, 8, 4);
+    px(x, '#1e6b33', 2, 8, 12, 4);
+    px(x, '#ffd400', 7, 0, 2, 2);
+    px(x, '#c8102e', 5, 6, 1, 1); px(x, '#ffffff', 10, 5, 1, 1); px(x, '#c8102e', 9, 10, 1, 1); px(x, '#ffffff', 4, 10, 1, 1);
+  },
+  cafe_front: (x, v) => {
+    brickWall(x, v);
+    for (let i = 0; i < 8; i++) px(x, i % 2 ? '#f5efe2' : '#2e7d4f', i * 2, 0, 2, 4);
+    window_(x, 1, 5, 14, 10);
+    px(x, '#6b4125', 5, 11, 6, 2);
+  },
+  pharmacy_front: (x, v) => {
+    px(x, '#f2f2ee', 0, 0, T, T);
+    px(x, '#2e8b57', 0, 0, T, 4);
+    if (v % 2 === 0) { px(x, '#ffffff', 7, 0, 2, 4); px(x, '#ffffff', 5, 1, 6, 2); }
+    window_(x, 1, 5, 14, 10);
+  },
+  glass_front: (x, v) => {
+    px(x, '#8c939c', 0, 0, T, T);
+    px(x, '#6fa4cf', 1, 1, 14, 14);
+    px(x, '#a9cbe6', 2 + (v % 3), 2, 3, 1);
+    px(x, '#8c939c', 7, 0, 1, T);
+  },
+  dokk_front: (x, v) => {
+    px(x, '#cfd3d6', 0, 0, T, T);
+    px(x, '#4b5563', 0, 6, T, 10);
+    px(x, '#8fb3cc', 1, 7, 14, 7);
+    px(x, '#b8bcc2', (v * 4) % 16, 0, 4, 6);
+  },
+  bar_front: (x, v) => {
+    px(x, '#2b2230', 0, 0, T, T);
+    window_(x, 2, 4, 12, 9);
+    px(x, '#f4a261', 3, 5, 10, 7);
+    px(x, '#e9c46a', 4 + (v % 3), 6, 3, 2);
+  },
+  white_wall: (x, v) => {
+    px(x, '#f3efe6', 0, 0, T, T);
+    px(x, '#e3dccd', 0, 15, T, 1);
+    if (v === 2) px(x, '#e3dccd', 4, 6, 1, 1);
+  },
+  white_window: (x, v) => {
+    PAINT.white_wall(x, v);
+    window_(x, 3, 2, 10, 11);
+  },
+  fence: (x, v) => {
+    grass(x, v);
+    px(x, '#f3efe6', 0, 6, T, 2);
+    px(x, '#f3efe6', 0, 11, T, 2);
+    for (let i = 0; i < 4; i++) px(x, '#ffffff', i * 4 + 1, 3, 2, 12);
+  },
+  tram_stop: (x, v) => {
+    PAINT.cobble(x, v);
+    px(x, '#6b6258', 7, 5, 2, 10);
+    px(x, '#1f4e8c', 3, 0, 10, 6);
+    px(x, '#ffffff', 5, 2, 6, 2);
+  },
+  exam_bed: (x, v) => {
+    PAINT.floor_tile(x, v);
+    px(x, '#8c939c', 1, 10, 14, 4);
+    px(x, '#cfe8f5', 1, 2, 14, 9);
+    px(x, '#ffffff', 2, 3, 12, 3);
+  },
+  dining_table: (x, v) => {
+    woodFloor(x, v);
+    px(x, 'rgba(0,0,0,0.22)', 0, 13, T, 2);
+    px(x, '#f5f1e6', 0, 3, T, 10);
+    px(x, '#ffffff', 3, 5, 5, 4);
+    px(x, '#c8102e', 10, 6, 2, 2);
+    px(x, ['#b5652f', '#e8c07a', '#6fb34f', '#d9a05b'][v], 4, 6, 3, 2);
+  },
   sofa: (x, v) => {
     woodFloor(x, v);
     shadowBase(x, 1, 14, 14);

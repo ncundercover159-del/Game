@@ -1,0 +1,14 @@
+id: clinic
+name: { da: Lægehuset, en: The doctors' surgery }
+spawn: { x: 3, y: 5, dir: up }
+legend: { "#": wall_int, ".": floor_tile, x: exam_bed, d: desk, p: plant, E: door_exit, W: window_int }
+tiles: |
+  ##W##W##
+  #x...dd#
+  #......#
+  #......#
+  #p.....#
+  #......#
+  ###E####
+warps:
+  - { x: 3, y: 6, to: centrum, tx: 19, ty: 3, dir: down }

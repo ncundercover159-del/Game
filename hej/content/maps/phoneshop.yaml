@@ -1,0 +1,16 @@
+id: phoneshop
+name: { da: Telefonbutikken, en: The phone shop }
+spawn: { x: 3, y: 5, dir: up }
+legend: { "#": wall_int, ".": floor_tile, S: shelf, r: register, p: plant, E: door_exit, c: counter }
+tiles: |
+  ########
+  #SS..SS#
+  #......#
+  #.ccr..#
+  #......#
+  #p.....#
+  #E######
+signs:
+  - { x: 1, y: 1, da: Nye telefoner, en: New phones }
+warps:
+  - { x: 1, y: 6, to: centrum, tx: 1, ty: 3, dir: down }

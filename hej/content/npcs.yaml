@@ -24,6 +24,7 @@ npcs:
         say: "'Husk at' — the 'at' sounds like 'o'."
       - henrik: Sig til, hvis der er noget.
         en: Let me know if there's anything.
+        lx: { sig: sige }
         say: "'Sig til' sounds like 'see til'. 'noget' is 'NO-eth' — the g is silent."
     review:
       - { henrik: Lige et hurtigt spørgsmål., en: Just a quick question. }
@@ -106,3 +107,256 @@ npcs:
       - { amalie: Sådan!, en: That's it!, say: "'Sådan' — 'SO-dan'." }
     retry:
       - { amalie: Næsten., en: Almost. }
+
+  hanne:
+    name: Hanne
+    role: { da: bager, en: baker (owns the bakery) }
+    register: Warm, brisk shopkeeper. Calls regulars "skat". "Hvad skulle det være?"
+    voice: hanne
+    look: { skin: "#f0c09a", hair: "#b0703a", style: bun, shirt: "#ffffff", pants: "#6b4a2e", accent: "#c8102e" }
+    home: { map: bakery, x: 2, y: 1, dir: down }
+    greet:
+      low:  [{ hanne: Godmorgen!, en: Good morning! }]
+      mid:  [{ hanne: "Nå, hej igen!", en: "Oh, hi again!" }]
+      high: [{ hanne: "Hej, skat! Det sædvanlige?", en: "Hi, love! The usual?", say: "'skat' (lit. treasure) is an affectionate 'love' / 'dear'." }]
+    idle:
+      - hanne: Rundstykkerne er lige kommet ud af ovnen.
+        en: The rolls have just come out of the oven.
+    review:
+      - { hanne: "Lige et lille spørgsmål, skat.", en: "Just a little question, love." }
+    praise:
+      - { hanne: Flot!, en: Well done! }
+    retry:
+      - { hanne: "Næsten, skat.", en: "Almost, love." }
+
+  emil:
+    name: Emil
+    role: { da: kassemedarbejder i Netto, en: cashier at Netto }
+    register: 19, bored, fast and mumbly. "Hva' så", "fedt nok", "øh".
+    voice: emil
+    look: { skin: "#e8b48c", hair: "#2b2b2b", style: short, shirt: "#ffd400", pants: "#2d2d38", accent: "#1e1e24" }
+    home: { map: netto, x: 1, y: 7, dir: right }
+    greet:
+      low:  [{ emil: Hej., en: Hi. }]
+      mid:  [{ emil: "Hej, hva' så?", en: "Hi, what's up?" }]
+      high: [{ emil: "Nå, det er dig igen. Hva' så?", en: "Oh, it's you again. What's up?" }]
+    idle:
+      - emil: Skal du have en pose?
+        en: Do you need a bag?
+    review:
+      - { emil: Må jeg lige spørge om noget?, en: Can I just ask you something? }
+    praise:
+      - { emil: Fedt nok., en: Cool. }
+    retry:
+      - { emil: "Nej, ikke helt.", en: "No, not quite." }
+
+  sara:
+    name: Sara
+    role: { da: barista og studerende, en: barista and student }
+    register: 24, bubbly, fast, lots of "vildt", "ej", "totalt", texting slang.
+    voice: sara
+    look: { skin: "#c98f6b", hair: "#2a1a12", style: curly, shirt: "#3aa8a0", pants: "#2d3a5a", accent: "#ffd166" }
+    home: { map: cafe, x: 2, y: 1, dir: down }
+    greet:
+      low:  [{ sara: Hej!, en: Hi! }]
+      mid:  [{ sara: Hej med dig!, en: Hi there! }]
+      high: [{ sara: "Hej, søde! Det er længe siden!", en: "Hi, sweetie! Long time no see!" }]
+    idle:
+      - sara: Skal du have det sædvanlige?
+        en: Are you having the usual?
+    review:
+      - { sara: Må jeg teste dig lidt?, en: Can I test you a bit? }
+    praise:
+      - { sara: Vildt godt!, en: Really good!, say: "'vildt' (lit. wild) is the everyday 'really / super'." }
+    retry:
+      - { sara: "Ej, næsten!", en: "Oh, almost!", say: "'Ej' is a young, surprised 'no way / aw'." }
+
+  yasmin:
+    name: Yasmin
+    role: { da: studerende, en: student }
+    register: 20s, friendly and helpful, clear speech, a bit teasing.
+    voice: yasmin
+    look: { skin: "#b98563", hair: "#1c1410", style: long, shirt: "#8e5bb5", pants: "#34495e", accent: "#f2d24b" }
+    home: { map: centrum, x: 7, y: 6, dir: down }
+    greet:
+      low:  [{ yasmin: Hej., en: Hi. }]
+      mid:  [{ yasmin: Hej igen!, en: Hi again! }]
+      high: [{ yasmin: "Nå, hej! Har du fundet vej i dag?", en: "Oh, hi! Found your way today?" }]
+    idle:
+      - yasmin: "Aarhus er ikke så stor, så man lærer den hurtigt."
+        en: "Aarhus isn't that big, so you learn it quickly."
+        lx: { så: "så#adv", "så@2": "så#adv" }
+    review:
+      - { yasmin: Skal vi lige øve lidt?, en: Shall we practise a bit? }
+    praise:
+      - { yasmin: Godt!, en: Good! }
+    retry:
+      - { yasmin: Næsten., en: Almost. }
+
+  ali:
+    name: Ali
+    role: { da: sælger i telefonbutikken, en: salesman at the phone shop }
+    register: 30s, salesy but warm, calls you "min ven".
+    voice: ali
+    look: { skin: "#b07a52", hair: "#1c1410", style: short, shirt: "#2c3e50", pants: "#1e1e24", accent: "#e74c3c" }
+    home: { map: phoneshop, x: 3, y: 2, dir: down }
+    greet:
+      low:  [{ ali: "Hej, velkommen!", en: "Hi, welcome!" }]
+      mid:  [{ ali: "Hej, min ven!", en: "Hi, my friend!" }]
+      high: [{ ali: "Hey! Hvordan virker telefonen?", en: "Hey! How's the phone working?" }]
+    idle:
+      - ali: Vi har et godt tilbud på abonnementer i denne måned.
+        en: We have a good offer on plans this month.
+    review:
+      - { ali: Lige et hurtigt spørgsmål., en: Just a quick question. }
+    praise:
+      - { ali: Perfekt!, en: Perfect! }
+    retry:
+      - { ali: Ikke helt., en: Not quite. }
+
+  pia:
+    name: Pia
+    role: { da: medarbejder i Borgerservice, en: Citizen Services officer }
+    register: 40s, polite, precise, a little bureaucratic. Full sentences.
+    voice: pia
+    look: { skin: "#f1c9a5", hair: "#8a4b2a", style: bob, shirt: "#5b6f8c", pants: "#2d2d38", accent: "#ffffff" }
+    home: { map: dokk1, x: 8, y: 1, dir: left }
+    greet:
+      low:  [{ pia: Goddag., en: Good afternoon. }]
+      mid:  [{ pia: Hej. Hvad kan jeg hjælpe med?, en: Hi. What can I help with? }]
+      high: [{ pia: "Nå, hej igen! Har du fået styr på det hele?", en: "Oh, hi again! Have you got everything sorted?", say: "'få styr på' = get something under control." }]
+    idle:
+      - pia: Husk at tage et nummer.
+        en: Remember to take a number.
+    review:
+      - { pia: Må jeg stille dig et spørgsmål?, en: May I ask you a question? }
+    praise:
+      - { pia: Det er helt korrekt., en: That's quite correct. }
+    retry:
+      - { pia: Ikke helt., en: Not quite. }
+
+  birgit:
+    name: Birgit
+    role: { da: farmaceut, en: pharmacist }
+    register: 50s, calm and careful, explains clearly.
+    voice: birgit
+    look: { skin: "#f0c8a8", hair: "#c9c9c9", style: bob, shirt: "#ffffff", pants: "#4a5a6a", accent: "#2e8b57" }
+    home: { map: apotek, x: 3, y: 1, dir: down }
+    greet:
+      low:  [{ birgit: Goddag., en: Good afternoon. }]
+      mid:  [{ birgit: Hej. Har du det bedre?, en: Hi. Are you feeling better? }]
+      high: [{ birgit: "Nå, hej! Hvordan går det med dig?", en: "Oh, hi! How are you doing?" }]
+    idle:
+      - birgit: Husk at læse indlægssedlen.
+        en: Remember to read the package leaflet.
+    review:
+      - { birgit: Lige et spørgsmål., en: Just one question. }
+    praise:
+      - { birgit: Rigtigt., en: Correct. }
+    retry:
+      - { birgit: Ikke helt., en: Not quite. }
+
+  jonas:
+    name: Jonas
+    role: { da: kollega, en: colleague }
+    register: 30s, dry, ironic, typically Danish understatement ("ikke dårligt").
+    voice: jonas
+    look: { skin: "#eab892", hair: "#c9a36a", style: short, shirt: "#6b8e23", pants: "#3a3a48", accent: "#ffffff" }
+    home: { map: office, x: 3, y: 2, dir: down }
+    greet:
+      low:  [{ jonas: Hej., en: Hi. }]
+      mid:  [{ jonas: "Nå, godmorgen.", en: "Well, good morning." }]
+      high: [{ jonas: "Nå, der er du!", en: "Ah, there you are!" }]
+    idle:
+      - jonas: Kaffen er dårlig i dag. Som altid.
+        en: The coffee's bad today. As always.
+    review:
+      - { jonas: Overraskelsestest!, en: Surprise test! }
+    praise:
+      - { jonas: Ikke dårligt., en: Not bad., say: "Danish understatement: 'ikke dårligt' is real praise." }
+    retry:
+      - { jonas: Tæt på., en: Close. }
+
+  mette:
+    name: Mette
+    role: { da: chef, en: boss }
+    register: 40s, direct, friendly, efficient. Uses "du" with everyone.
+    voice: mette
+    look: { skin: "#f2c9a8", hair: "#e0c060", style: bob, shirt: "#1f4e8c", pants: "#1e1e24", accent: "#ffffff" }
+    home: { map: office, x: 8, y: 2, dir: down }
+    greet:
+      low:  [{ mette: Godmorgen., en: Good morning. }]
+      mid:  [{ mette: Hej! Har du travlt?, en: Hi! Are you busy? }]
+      high: [{ mette: Hej! Godt at se dig., en: Hi! Good to see you. }]
+    idle:
+      - mette: Husk mødet klokken ti.
+        en: Remember the meeting at ten.
+    review:
+      - { mette: Har du lige to minutter?, en: Have you got two minutes? }
+    praise:
+      - { mette: Super., en: Great. }
+    retry:
+      - { mette: Næsten., en: Almost. }
+
+  karen:
+    name: Karen
+    role: { da: læge, en: doctor (GP) }
+    register: 50s, calm, reassuring, asks short clear questions.
+    voice: karen
+    look: { skin: "#f0c8a8", hair: "#7a5230", style: bun, shirt: "#ffffff", pants: "#3a4d7a", accent: "#8fd3ff" }
+    home: { map: clinic, x: 4, y: 2, dir: down }
+    greet:
+      low:  [{ karen: Goddag., en: Good afternoon. }]
+      mid:  [{ karen: "Hej, kom ind.", en: "Hi, come in." }]
+      high: [{ karen: "Nå, hej. Du ser meget bedre ud.", en: "Oh, hi. You look much better." }]
+    idle:
+      - karen: Husk at drikke masser af vand.
+        en: Remember to drink lots of water.
+    review:
+      - { karen: Må jeg lige spørge om noget?, en: Can I just ask you something? }
+    praise:
+      - { karen: Fint., en: Good. }
+    retry:
+      - { karen: Ikke helt., en: Not quite. }
+
+  lise:
+    name: Lise
+    role: { da: Amalies mor, en: "Amalie's mum" }
+    register: 60s, warm, hospitable, fusses over guests.
+    voice: lise
+    look: { skin: "#f2c9a8", hair: "#d8d0c0", style: bob, shirt: "#b5496b", pants: "#3a3a48", accent: "#ffffff" }
+    home: { map: parents, x: 6, y: 4, dir: down }
+    greet:
+      low:  [{ lise: "Hej, og velkommen!", en: "Hi, and welcome!" }]
+      mid:  [{ lise: "Hej, kom indenfor!", en: "Hi, come in!" }]
+      high: [{ lise: "Hej, skat! Hvor er det dejligt at se dig.", en: "Hi, dear! How lovely to see you." }]
+    idle:
+      - lise: Der er kaffe på kanden.
+        en: "There's coffee in the pot."
+    review:
+      - { lise: Må jeg spørge dig om noget?, en: May I ask you something? }
+    praise:
+      - { lise: Dygtigt!, en: Clever! }
+    retry:
+      - { lise: Næsten., en: Almost. }
+
+  bent:
+    name: Bent
+    role: { da: Amalies far, en: "Amalie's dad" }
+    register: 60s, gravelly, jokey, tells long stories about the old days.
+    voice: bent
+    look: { skin: "#e3a882", hair: "#9a9a9a", style: bald, shirt: "#6b4a2e", pants: "#2d2d38", accent: "#d9d9d9" }
+    home: { map: parents, x: 7, y: 3, dir: left }
+    greet:
+      low:  [{ bent: "Goddag, goddag.", en: "Hello, hello." }]
+      mid:  [{ bent: "Nå, der har vi jo gæsten!", en: "Well, there's our guest!" }]
+      high: [{ bent: "Hej med dig! Godt at se dig igen.", en: "Hi there! Good to see you again." }]
+    idle:
+      - bent: Da jeg var ung, cyklede vi overalt.
+        en: When I was young, we cycled everywhere.
+    review:
+      - { bent: Lad mig lige høre dig lidt., en: Let me just test you a bit. }
+    praise:
+      - { bent: Sådan skal det være!, en: "That's how it should be!" }
+    retry:
+      - { bent: Tæt på., en: Close. }

@@ -8,14 +8,14 @@
 //   npm run content
 
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { resolve as resolveTokens, type ResolveCtx } from '../src/content/tokenize.ts';
 import { TILES } from '../src/engine/tiledefs.ts';
 import type {
-  AudioRef, Chapter, ChoiceOpt, CoachRule, Content, Exercise, GrammarCard, LexEntry, Line, MapDef,
+  AudioRef, Chapter, ChoiceOpt, CoachRule, Content, Exercise, GrammarCard, LexEntry, Line, MapDef, ReplyPair,
   Npc, Scene, ScriptNode, TalkTopic, TalkTurn, UiString, VoiceDef,
 } from '../src/content/types.ts';
 
@@ -62,6 +62,17 @@ function clip(text: string, voiceId: string, slow: boolean): string {
 
 // ─── lexicon ─────────────────────────────────────────────────────────────────
 const lexSrc = load(C('lexicon.yaml'));
+// Additional lexicon files (content/lexicon/*.yaml) are merged in; ids must be unique.
+if (existsSync(C('lexicon'))) {
+  for (const f of readdirSync(C('lexicon')).filter((f) => f.endsWith('.yaml')).sort()) {
+    const extra = load(C(`lexicon/${f}`));
+    for (const [id, e] of Object.entries<any>(extra.entries ?? {})) {
+      if (lexSrc.entries[id]) err(`lexicon/${f}: duplicate entry ${id}`);
+      lexSrc.entries[id] = e;
+    }
+    Object.assign((lexSrc.ambiguous ??= {}), extra.ambiguous ?? {});
+  }
+}
 const lexicon: Record<string, LexEntry> = {};
 const forms: Record<string, string[]> = {};
 const numbers: Record<number, string> = {};
@@ -83,6 +94,7 @@ for (const [id, e] of Object.entries<any>(lexSrc.entries)) {
   if (e.say) entry.say = e.say;
   if (e.note) entry.note = e.note;
   if (e.rank) entry.rank = e.rank;
+  if (e.pic) entry.pic = e.pic;
   if (e.value !== undefined) {
     entry.value = e.value;
     numbers[e.value] ??= id;
@@ -183,28 +195,48 @@ function addLine(src: string, o: any, who?: string, forcedId?: string): string {
 // ─── exercises & script nodes ────────────────────────────────────────────────
 const lineRefs: { from: string; id: string }[] = [];
 function compileExercise(from: string, e: any): Exercise {
-  if (e.type === 'listen') {
-    const ex: Exercise = { type: 'listen' };
-    if (e.line) { ex.line = e.line; lineRefs.push({ from, id: e.line }); }
-    if (e.word) ex.word = e.word;
-    if (e.options) { ex.options = e.options.map(String); ex.answer = String(e.answer); }
-    if (ex.options && !ex.options.includes(ex.answer!)) err(`${from}: listen answer not among options`);
-    return ex;
-  }
-  if (e.type === 'tiles') {
-    lineRefs.push({ from, id: e.line });
-    return {
-      type: 'tiles', line: e.line, extra: (e.extra ?? []).map(String),
-      accept: (e.accept ?? []).map((a: string) => a.toLowerCase().split(/\s+/)),
-      ...(e.prompt ? { prompt: e.prompt } : {}),
-    };
+  const ref = (id: string) => { lineRefs.push({ from, id }); return id; };
+  switch (e.type) {
+    case 'listen': {
+      const ex: Exercise = { type: 'listen' };
+      if (e.line) ex.line = ref(e.line);
+      if (e.word) ex.word = e.word;
+      if (e.options) { ex.options = e.options.map(String); ex.answer = String(e.answer); }
+      if (ex.options && !ex.options.includes(ex.answer!)) err(`${from}: listen answer not among options`);
+      return ex;
+    }
+    case 'tiles':
+      return {
+        type: 'tiles', line: ref(e.line), extra: (e.extra ?? []).map(String),
+        accept: (e.accept ?? []).map((a: string) => a.toLowerCase().split(/\s+/)),
+        ...(e.prompt ? { prompt: e.prompt } : {}),
+      };
+    case 'dictation':
+      return { type: 'dictation', line: ref(e.line) };
+    case 'speak':
+      return { type: 'speak', line: ref(e.line) };
+    case 'cloze': {
+      const ex: Exercise = { type: 'cloze', line: ref(e.line) };
+      if (e.word !== undefined) ex.word = String(e.word);
+      if (e.options) ex.options = e.options.map(String);
+      return ex;
+    }
+    case 'picture':
+      if (!e.word) err(`${from}: picture exercise needs a word`);
+      pictureRefs.push({ from, id: e.word });
+      return { type: 'picture', word: e.word };
+    case 'reply':
+      return { type: 'reply', prompt: ref(e.prompt), good: ref(e.good), bad: (e.bad ?? []).map(ref) };
   }
   err(`${from}: unknown exercise type ${e.type}`);
   return { type: 'listen' };
 }
+const pictureRefs: { from: string; id: string }[] = [];
+const replies: ReplyPair[] = [];
 
 function compileNodes(src: string, list: any[]): ScriptNode[] {
   const out: ScriptNode[] = [];
+  let lastSaid: string | null = null;
   for (const n of list ?? []) {
     if (n.choose) {
       const opts: ChoiceOpt[] = n.choose.map((o: any) => {
@@ -222,6 +254,12 @@ function compileNodes(src: string, list: any[]): ScriptNode[] {
       });
       if (!opts.some((o) => o.q === 'natural' || o.q === 'ok')) err(`${src}: choice with no acceptable option`);
       out.push({ k: 'choice', opts });
+      if (lastSaid) {
+        const good = opts.filter((o) => o.q === 'natural').map((o) => o.line);
+        const bad = opts.filter((o) => o.q === 'awkward' || o.q === 'wrong').map((o) => ({ line: o.line, why: o.why ?? '' }));
+        if (good.length) replies.push({ prompt: lastSaid, good, bad });
+      }
+      lastSaid = null;
     } else if (n.build) {
       const b = n.build;
       const node: ScriptNode = { k: 'build', line: addLine(src, b), extra: (b.extra ?? []).map(String) };
@@ -242,7 +280,9 @@ function compileNodes(src: string, list: any[]): ScriptNode[] {
     } else if (n.if) {
       out.push({ k: 'if', cond: n.if, then: compileNodes(src, n.then ?? []), else: compileNodes(src, n.else ?? []) });
     } else {
-      out.push({ k: 'line', line: addLine(src, n) });
+      const id = addLine(src, n);
+      out.push({ k: 'line', line: id });
+      lastSaid = lines[id] && lines[id].who !== 'you' && lines[id].who !== 'narrator' ? id : null;
     }
   }
   return out;
@@ -268,7 +308,7 @@ for (const n of NAMES) nameAudio[n] = clip(n, 'narrator', false);
 // ─── ui strings ──────────────────────────────────────────────────────────────
 const ui: Record<string, UiString> = {};
 for (const [k, v] of Object.entries<any>(load(C('ui.yaml')).ui)) {
-  const id = addLine('ui', { da: String(v.da), en: v.en }, 'ui', `ui.${k}`);
+  const id = addLine('ui', { da: String(v.da), en: v.en, lx: v.lx }, 'ui', `ui.${k}`);
   ui[k] = { da: String(v.da), en: v.en, audio: lines[id].audio as string };
 }
 
@@ -299,6 +339,13 @@ for (const f of readdirSync(C('maps')).filter((f) => f.endsWith('.yaml')).sort()
     }),
   };
   if (m.mailbox) maps[m.id].mailbox = m.mailbox;
+  if (m.stop) {
+    maps[m.id].stop = {
+      x: m.stop.x, y: m.stop.y, arrive: m.stop.arrive,
+      name: addLine(src, m.stop.name, 'narrator', `stop.${m.id}`),
+      ...(m.stop.needFlag ? { needFlag: m.stop.needFlag } : {}),
+    };
+  }
 }
 const solidAt = (mapId: string, x: number, y: number) => {
   const m = maps[mapId];
@@ -311,6 +358,7 @@ for (const m of Object.values(maps)) {
     else if (solidAt(wp.to, wp.tx, wp.ty)) err(`map ${m.id}: warp target ${wp.to} ${wp.tx},${wp.ty} is solid`);
   }
   if (solidAt(m.id, m.spawn.x, m.spawn.y)) err(`map ${m.id}: spawn is solid`);
+  if (m.stop && solidAt(m.id, m.stop.arrive.x, m.stop.arrive.y)) err(`map ${m.id}: stop arrival tile is solid`);
 }
 for (const n of Object.values(npcs)) {
   if (n.home && solidAt(n.home.map, n.home.x, n.home.y)) err(`npc ${n.id}: home is on a solid tile`);
@@ -392,6 +440,7 @@ for (const [slot, words] of Object.entries(slots)) for (const w of words) {
 
 // ─── reference checks ────────────────────────────────────────────────────────
 for (const r of lineRefs) if (!lines[r.id]) err(`${r.from}: unknown line ${r.id}`);
+for (const r of pictureRefs) if (!lexicon[r.id]?.pic) err(`${r.from}: picture exercise word ${r.id} has no pic`);
 const cardIds = new Set<string>();
 for (const ch of chapters) for (const sc of ch.scenes) {
   const heard: string[] = [];
@@ -514,7 +563,7 @@ ${warnings.length ? '## Warnings\n\n' + warnings.map((w) => `- ${w}`).join('\n')
 // ─── write ───────────────────────────────────────────────────────────────────
 const content: Content = {
   version: createHash('sha1').update(JSON.stringify([lines, lexicon])).digest('hex').slice(0, 10),
-  chapters, lines, lexicon, grammar, npcs, maps, ui, voices, names: NAMES, nameAudio,
+  chapters, lines, lexicon, grammar, npcs, maps, ui, voices, names: NAMES, nameAudio, replies,
   talk: { topics, slots, coach }, forms, ambiguous,
 };
 mkdirSync(join(ROOT, 'src/generated'), { recursive: true });

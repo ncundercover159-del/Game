@@ -1,0 +1,222 @@
+# Chapter 3 — Rundt i byen (Getting around). CEFR A2.
+# Rejsekort and the letbane, asking the way, telling the time.
+# Grammar: modal verbs + infinitive, the imperative, "halv tre" = 2:30.
+
+id: ch3
+n: 3
+cefr: A2
+title: { da: Rundt i byen, en: Getting around }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch3: true }
+  - narrator: Det er mandag. Du skal mødes med Amalie inde i byen.
+    en: "It's Monday. You're meeting Amalie in town."
+    say: "'mandag' is 'MAN-da'. 'inde i byen' = in town (the centre)."
+  - narrator: Mads står ved stoppestedet.
+    en: Mads is standing at the bus stop.
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Rejsekortet, en: The travel card }
+    objective: { da: Gå hen til Mads ved stoppestedet., en: Go to Mads at the bus stop. }
+    npc: mads
+    start: { npc: mads }
+    cast:
+      mads: { map: street, x: 3, y: 11, dir: down }
+    script:
+      - mads: Yo! Skal du ind til byen?
+        en: Yo! Are you going into town?
+        say: "'ind til byen' = into town, to the centre."
+      - choose:
+          - you: Ja, jeg skal mødes med Amalie.
+            en: "Yes, I'm meeting Amalie."
+            q: natural
+            say: "'mødes' = meet (each other)."
+          - you: Ja. Hvordan kommer jeg derind?
+            en: Yes. How do I get in there?
+            q: natural
+      - mads: Har du et rejsekort?
+        en: Do you have a Rejsekort?
+        say: "'rejsekort' is 'RYE-seh-kort' — the travel card for buses, trains and the letbane."
+      - choose:
+          - you: Nej, hvad er det?
+            en: No, what's that?
+            q: natural
+          - you: Nej, det har jeg ikke.
+            en: "No, I don't."
+            q: natural
+      - mads: Det er et kort til bussen og letbanen.
+        en: "It's a card for the bus and the light rail."
+        say: "'letbanen' is 'LET-baa-nen' — Aarhus's tram."
+      - id: ch3.s1.skal
+        mads: Du skal tjekke ind, når du stiger på.
+        en: You have to check in when you get on.
+        tags: [modal]
+      - id: ch3.s1.kan
+        mads: Og du kan også bare bruge appen.
+        en: And you can also just use the app.
+        tags: [modal]
+      - id: ch3.s1.maa
+        mads: Men du må ikke glemme at tjekke ud!
+        en: "But you mustn't forget to check out!"
+        tags: [modal, negation]
+      - mads: Ellers bliver det dyrt.
+        en: "Otherwise it gets expensive."
+      - spotlight: modal
+      - mads: Kom, jeg viser dig det.
+        en: "Come on, I'll show you."
+      - narrator: Mads hjælper dig med appen. Nu har du et rejsekort.
+        en: Mads helps you with the app. Now you have a Rejsekort.
+      - set: { rejsekort: true }
+      - choose:
+          - you: Tak, Mads! Du er den bedste.
+            en: "Thanks, Mads! You're the best."
+            q: natural
+            rel: 2
+          - you: Tusind tak for hjælpen.
+            en: Thanks a lot for the help.
+            q: natural
+      - mads: Chill. Bussen kommer om to minutter.
+        en: No worries. The bus is coming in two minutes.
+        say: "'om to minutter' = in two minutes."
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: Hvor er indgangen?, en: Where is the entrance? }
+    objective: { da: Tag bussen ind til byen., en: Take the bus into town. }
+    npc: yasmin
+    start: { enterMap: centrum }
+    cast:
+      yasmin: { map: centrum, x: 13, y: 11, dir: left }
+    script:
+      - narrator: Du står af ved Dokk1.
+        en: You get off at Dokk1.
+        say: "'stå af' = get off (a bus or train)."
+      - narrator: Du skal finde Amalie, men hvor er indgangen?
+        en: "You need to find Amalie, but where's the entrance?"
+      - choose:
+          - you: Undskyld, ved du, hvor indgangen er?
+            en: "Excuse me, do you know where the entrance is?"
+            q: natural
+            lx: { ved: vide }
+            say: "In 'hvor indgangen er', the verb goes last — it's a question inside a sentence."
+          - you: Undskyld, hvor er indgangen?
+            en: "Excuse me, where's the entrance?"
+            q: natural
+          - you: Hvor indgangen?
+            en: Where entrance?
+            q: awkward
+            why: "Danish needs the verb: 'Hvor er indgangen?'"
+      - yasmin: Til Dokk1? Den er lige her.
+        en: "To Dokk1? It's right here."
+      - id: ch3.s2.go
+        yasmin: Gå ligeud over skinnerne.
+        en: Go straight ahead across the tracks.
+        say: "'ligeud' is 'LEE-eh-ooth'."
+        tags: [imperative]
+      - id: ch3.s2.turn
+        yasmin: Drej så til venstre ved træet.
+        en: Then turn left by the tree.
+        lx: { så: "så#adv" }
+        tags: [imperative]
+      - id: ch3.s2.look
+        yasmin: Og pas på letbanen!
+        en: And watch out for the tram!
+        say: "'pas på' = watch out / take care."
+        tags: [imperative]
+      - choose:
+          - you: Tusind tak for hjælpen!
+            en: Thanks a lot for the help!
+            q: natural
+          - you: Tak! Du er sød.
+            en: "Thanks! That's kind of you."
+            q: natural
+      - yasmin: Det var så lidt. Er du ny i Aarhus?
+        en: "You're welcome. Are you new in Aarhus?"
+        lx: { så: "så#adv" }
+      - choose:
+          - you: Ja, jeg er lige flyttet hertil.
+            en: "Yes, I've just moved here."
+            q: natural
+          - you: Ja, jeg bor i Frederiksbjerg.
+            en: "Yes, I live in Frederiksbjerg."
+            q: natural
+      - yasmin: Velkommen! Jeg hedder Yasmin. Jeg læser på biblioteket hver dag.
+        en: "Welcome! I'm Yasmin. I study at the library every day."
+      - yasmin: Hvis du farer vild igen, så spørg bare.
+        en: "If you get lost again, just ask."
+        lx: { så: "så#adv" }
+        say: "'fare vild' = get lost."
+      - spotlight: imperative
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: Hvad er klokken?, en: What time is it? }
+    objective: { da: Find Amalie ved Dokk1., en: Find Amalie by Dokk1. }
+    npc: amalie
+    start: { npc: amalie }
+    cast:
+      amalie: { map: centrum, x: 11, y: 3, dir: down }
+    script:
+      - amalie: Der er du! Du er lidt forsinket.
+        en: "There you are! You're a bit late."
+      - choose:
+          - you: Undskyld! Hvad er klokken?
+            en: "Sorry! What time is it?"
+            q: natural
+          - you: Undskyld, jeg gik forkert.
+            en: "Sorry, I went the wrong way."
+            q: natural
+      - id: ch3.s3.halv
+        amalie: Klokken er halv tre.
+        en: "It's half past two."
+        say: "'halv tre' = half TO three, so 2:30! Danish counts towards the next hour."
+        tags: [time]
+      - exercise: { type: listen, line: ch3.s3.halv, options: ["14:30", "15:30", "13:30", "14:15"], answer: "14:30" }
+      - id: ch3.s3.kvart
+        amalie: Vi skulle mødes kvart over to.
+        en: We were supposed to meet at a quarter past two.
+        tags: [time]
+      - choose:
+          - you: Åh nej, undskyld!
+            en: Oh no, sorry!
+            q: natural
+          - you: Bussen var forsinket.
+            en: The bus was late.
+            q: natural
+      - amalie: Det er okay. Danskere er meget præcise, ved du.
+        en: "It's okay. Danes are very punctual, you know."
+        lx: { ved: vide }
+      - amalie: Nå, jeg har en plan for i dag.
+        en: "Right, I've got a plan for today."
+      - id: ch3.s3.fem
+        amalie: Klokken fem i halv fire tager vi letbanen til Aarhus Ø.
+        en: At twenty-five past three we'll take the tram to Aarhus Ø.
+        say: "'fem i halv fire' = five before half-to-four = 3:25."
+        tags: [time, v2]
+      - exercise: { type: listen, line: ch3.s3.fem, options: ["15:25", "15:35", "16:25", "14:25"], answer: "15:25" }
+      - amalie: Der ligger Isbjerget, og der er en fed udsigt.
+        en: "That's where the Iceberg is, and there's a great view."
+        say: "Isbjerget (the Iceberg) is a famous white apartment building on the harbour."
+      - choose:
+          - you: Det lyder godt!
+            en: That sounds good!
+            q: natural
+          - you: Fedt. Hvornår er vi tilbage?
+            en: Cool. When will we be back?
+            q: natural
+            then:
+              - amalie: Omkring klokken seks.
+                en: Around six.
+      - spotlight: time
+      - amalie: Kom, vi går en tur langs havnen først.
+        en: "Come on, let's take a walk along the harbour first."
+
+outro:
+  - narrator: Nu kan du finde vej i Aarhus.
+    en: Now you can find your way around Aarhus.
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

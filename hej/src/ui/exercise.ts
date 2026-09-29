@@ -7,6 +7,9 @@ import { who } from '../game/state';
 import { addReport } from '../store/save';
 import { attachSpeak, h, speakUi, toast, ui, uiBtn, waitNext } from './dom';
 import { lineView, playLine, sentence } from './sentence';
+import { runCloze, runDictation, runPicture, runReply, runSpeak } from './exercise2';
+
+const TEST = typeof location !== 'undefined' && /[?&]test\b/.test(location.search);
 
 export interface Result {
   correct: boolean;
@@ -111,7 +114,7 @@ export async function runListen(ex: Extract<Exercise, { type: 'listen' }>, host:
   void doPlay();
 
   return new Promise((resolve) => {
-    const buttons = options.map((o) => h('button', { class: 'btn opt', type: 'button' }, o));
+    const buttons = options.map((o) => h('button', { class: 'btn opt', type: 'button', ...(TEST && o === correct ? { 'data-answer': '1' } : {}) }, o));
     buttons.forEach((b, i) => {
       b.addEventListener('click', async () => {
         const ok = options[i] === correct;
@@ -163,7 +166,7 @@ export async function runTiles(spec: TilesSpec, host: HTMLElement): Promise<Resu
   const words = l.tokens.filter((t) => t.k !== 'p').map((t) => {
     if (t.k === 'n') return name;
     const e = lex(t.l);
-    return e?.pos === 'name' || t.t === 'USA' ? t.t : t.t.toLowerCase();
+    return e?.pos === 'name' || /^[A-ZÆØÅ]/.test(e?.lemma ?? '') ? t.t : t.t.toLowerCase();
   });
   const target = words.map(normWord);
   const accepts = [target, ...(spec.accept ?? [])];
@@ -171,7 +174,7 @@ export async function runTiles(spec: TilesSpec, host: HTMLElement): Promise<Resu
   // never show the tiles already in the right order
   if (pool.length > 2 && pool.every((p, i) => p.i === i)) pool.push(pool.shift()!);
 
-  const answer = h('div', { class: 'tiles-answer', 'aria-label': 'Your answer', role: 'list' });
+  const answer = h('div', { class: 'tiles-answer', 'aria-label': 'Your answer', role: 'list', ...(TEST ? { 'data-answer': words.join('|') } : {}) });
   const bank = h('div', { class: 'tiles-bank', role: 'list' });
   const after = h('div');
   const placed: { w: string; i: number; b: HTMLButtonElement }[] = [];
@@ -274,6 +277,13 @@ export async function runTiles(spec: TilesSpec, host: HTMLElement): Promise<Resu
 }
 
 export function runExercise(ex: Exercise, host: HTMLElement): Promise<Result> {
-  if (ex.type === 'listen') return runListen(ex, host);
-  return runTiles({ line: ex.line, extra: ex.extra, accept: ex.accept, prompt: ex.prompt }, host);
+  switch (ex.type) {
+    case 'listen': return runListen(ex, host);
+    case 'tiles': return runTiles({ line: ex.line, extra: ex.extra, accept: ex.accept, prompt: ex.prompt }, host);
+    case 'dictation': return runDictation(ex, host);
+    case 'cloze': return runCloze(ex, host);
+    case 'reply': return runReply(ex, host);
+    case 'speak': return runSpeak(ex, host);
+    case 'picture': return runPicture(ex, host);
+  }
 }

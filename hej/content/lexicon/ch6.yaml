@@ -1,0 +1,49 @@
+ambiguous:
+  lyst: lyst
+  øv: øve
+  spiller: spille
+# Chapter 6 (new friends).
+entries:
+  "øv#interj": { lemma: øv, pos: interj, en: "aw, bummer", rank: 6000, say: "'uv'" }
+  amalies: { lemma: Amalies, pos: name, en: "Amalie's" }
+  kh: { pos: interj, en: "love (kærlig hilsen, in texts)", rank: 20000, note: "Short for 'kærlig hilsen'. Formal: 'mvh' = med venlig hilsen." }
+  sammenligning: { pos: noun, g: en, en: comparison, forms: { def: sammenligningen, pl: sammenligninger }, rank: 9000 }
+  søndag: { pos: noun, g: en, en: Sunday, forms: { def: søndagen, pl: søndage }, rank: 1100, say: "'SURN-da'" }
+  yes: { pos: interj, en: "yes! (English loan, casual)", rank: 8000 }
+  bippe: { pos: verb, en: beep, forms: { inf: at bippe, pres: bipper, past: bippede, perf: bippet }, rank: 30000 }
+  desværre: { pos: adv, en: unfortunately, rank: 800, say: "'des-VAIR-a'" }
+  flaske: { pos: noun, g: en, en: bottle, forms: { def: flasken, pl: flasker }, rank: 3000, pic: "🍾" }
+  forstå: { pos: verb, en: understand, forms: { inf: at forstå, pres: forstår, past: forstod, perf: forstået }, rank: 250, say: "'for-STO'" }
+  fri: { pos: adj, en: "free; off (work)", forms: { t: frit, e: frie }, rank: 400, note: "'have fri' = be off work / finish work." }
+  halvdel: { pos: noun, g: en, en: half, forms: { def: halvdelen, pl: halvdele }, rank: 1300, say: "'HAL-del'" }
+  invitation: { pos: noun, g: en, en: invitation, forms: { def: invitationen, pl: invitationer }, rank: 6000 }
+  invitere: { pos: verb, en: invite, forms: { inf: at invitere, pres: inviterer, past: inviterede, perf: inviteret }, rank: 2500 }
+  kartoffel: { pos: noun, g: en, en: potato, forms: { def: kartoflen, pl: kartofler, defpl: kartoflerne }, rank: 4000, pic: "🥔" }
+  mund: { pos: noun, g: en, en: mouth, forms: { def: munden, pl: munde }, rank: 1500, say: "'mon' — silent d" }
+  næste: { pos: adj, en: next, rank: 300, say: "'NES-teh'" }
+  omgang: { pos: noun, g: en, en: "round (of drinks)", forms: { def: omgangen, pl: omgange }, rank: 5000 }
+  padel: { pos: noun, g: en, en: padel (racket sport), rank: 30000, pic: "🎾" }
+  populær: { pos: adj, en: popular, forms: { t: populært, e: populære }, rank: 2000 }
+  lyst: { pos: noun, g: en, en: "desire; (have lyst til) feel like", forms: { def: lysten }, rank: 700, say: "'lust'" }
+  problem: { pos: noun, g: et, en: problem, forms: { def: problemet, pl: problemer }, rank: 400 }
+  rødvin: { pos: noun, g: en, en: red wine, forms: { def: rødvinen }, rank: 9000, pic: "🍷", say: "'RURTH-veen'" }
+  sluge: { pos: verb, en: swallow, forms: { inf: at sluge, pres: sluger, past: slugte, perf: slugt }, rank: 5000 }
+  sms: { pos: noun, g: en, en: text message, forms: { def: sms'en, pl: sms'er }, rank: 5000, say: "'ess-em-ESS'" }
+  smuk: { pos: adj, en: beautiful, forms: { t: smukt, e: smukke }, rank: 1300 }
+  sodavand: { pos: noun, g: en, en: soft drink, forms: { def: sodavanden }, rank: 9000, pic: "🥤" }
+  spille: { pos: verb, en: play, forms: { inf: at spille, pres: spiller, past: spillede, perf: spillet }, rank: 250 }
+  spiller: { pos: noun, g: en, en: player, forms: { def: spilleren, pl: spillere } , rank: 1500 }
+  sprog: { pos: noun, g: et, en: language, forms: { def: sproget, pl: sprog }, rank: 700 }
+  stadig: { pos: adv, en: still, rank: 300, say: "'STAA-di'" }
+  sted: { pos: noun, g: et, en: place, forms: { def: stedet, pl: steder }, rank: 250, say: "'steth'" }
+  særlig: { pos: adv, en: "particularly, very (ikke særlig = not very)", rank: 900, say: "'SAIR-li'" }
+  søndagsmiddag: { pos: noun, g: en, en: Sunday dinner, forms: { def: søndagsmiddagen }, rank: 40000 }
+  varm: { pos: adj, en: "warm, hot", forms: { t: varmt, e: varme }, rank: 900, say: "'varm'" }
+  vin: { pos: noun, g: en, en: wine, forms: { def: vinen, pl: vine }, rank: 1800, pic: "🍷", say: "'veen'" }
+  vinde: { pos: verb, en: win, forms: { inf: at vinde, pres: vinder, past: vandt, perf: vundet }, rank: 700, say: "'VIN-neh'" }
+  øl: { pos: noun, g: en, en: beer, forms: { def: øllen, pl: øl }, rank: 2500, pic: "🍺", say: "'url'" }
+  "have lyst": { pos: phrase, en: "feel like (doing something)", match: ["har lyst", "har du lyst"] }
+  "have fri": { pos: phrase, en: be off work, match: ["har fri"] }
+  "en anden gang": { pos: phrase, en: another time }
+  "intet problem": { pos: phrase, en: no problem }
+  "det må vi se": { pos: phrase, en: "we'll see about that" }

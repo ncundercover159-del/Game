@@ -1,0 +1,344 @@
+# Chapter 2 — Indkøb (Shopping). CEFR A1.
+# Bakery, café, supermarket. Polite requests with "gerne", adjective endings,
+# "ikke" placement, and numbers above twenty (prices).
+
+id: ch2
+n: 2
+cefr: A1
+title: { da: Indkøb, en: Shopping }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch2: true }
+  - narrator: Det er lørdag morgen.
+    en: "It's Saturday morning."
+    say: "'lørdag' is 'LUR-da'."
+  - narrator: Amalie venter på dig i bageriet.
+    en: Amalie is waiting for you in the bakery.
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Hos bageren, en: "At the baker's" }
+    objective: { da: Gå ind i bageriet., en: Go into the bakery. }
+    npc: hanne
+    start: { enterMap: bakery }
+    cast:
+      hanne: { map: bakery, x: 2, y: 1, dir: down }
+      amalie: { map: bakery, x: 4, y: 3, dir: left }
+    script:
+      - amalie: Godmorgen! Der er du jo.
+        en: Morning! There you are.
+        say: "'Der er du jo' — the little 'jo' means 'as I expected / there you go'."
+      - hanne: Godmorgen. Hvad skulle det være?
+        en: Good morning. What can I get you?
+        say: "Lit. 'what should it be?' — the standard shop question. 'skulle' is 'SKOO-leh'."
+      - id: ch2.s1.snegl
+        amalie: Jeg vil gerne have en kanelsnegl.
+        en: "I'd like a cinnamon swirl, please."
+        say: "'kanelsnegl' is 'ka-NAIL-snile' (lit. cinnamon snail). 'have' is 'ha'."
+        tags: [gerne]
+      - hanne: En kanelsnegl. Ellers andet?
+        en: One cinnamon swirl. Anything else?
+        lx: { en: "en#num" }
+        say: "'Ellers andet?' = anything else? You'll hear it in every shop."
+      - amalie: Nej tak. Nu er det din tur.
+        en: "No thanks. Now it's your turn."
+      - choose:
+          - you: Jeg vil gerne have fire rundstykker.
+            en: "I'd like four bread rolls, please."
+            q: natural
+          - you: Fire rundstykker, tak.
+            en: Four bread rolls, please.
+            q: natural
+          - you: Giv mig fire rundstykker.
+            en: Give me four bread rolls.
+            q: awkward
+            why: "Too blunt for a shop. Say 'Jeg vil gerne have …' or just '… tak'."
+      - id: ch2.s1.pose
+        hanne: Fire rundstykker. Vil du gerne have en pose?
+        en: Four rolls. Would you like a bag?
+        tags: [gerne]
+      - choose:
+          - you: Ja tak.
+            en: "Yes, please."
+            q: natural
+          - you: Nej tak, det er fint.
+            en: "No thanks, it's fine."
+            q: natural
+      - id: ch2.s1.price
+        hanne: Det bliver fireoghalvtreds kroner.
+        en: That comes to fifty-four kroner.
+        say: "'fireoghalvtreds' = four-and-fifty. Danish puts the ones before the tens."
+        tags: [numbers]
+      - exercise: { type: listen, line: ch2.s1.price, options: ["54", "45", "64", "34"], answer: "54" }
+      - id: ch2.s1.pay
+        hanne: Hvordan vil du gerne betale?
+        en: How would you like to pay?
+        tags: [gerne]
+      - choose:
+          - you: Med MobilePay.
+            en: With MobilePay.
+            q: natural
+            say: "MobilePay is the payment app almost every Dane uses."
+          - you: Med kort, tak.
+            en: "By card, please."
+            q: natural
+          - you: Kontant.
+            en: Cash.
+            q: ok
+            then:
+              - hanne: Kontant? Det ser man ikke så tit mere.
+                en: "Cash? You don't see that very often any more."
+                lx: { så: "så#adv" }
+      - hanne: Værsgo. God weekend!
+        en: Here you go. Have a good weekend!
+      - choose:
+          - you: Tak, i lige måde!
+            en: "Thanks, you too!"
+            q: natural
+          - you: Tak, god weekend!
+            en: "Thanks, have a good weekend!"
+            q: natural
+      - spotlight: gerne
+      - amalie: Kom, vi går over på caféen.
+        en: "Come on, let's go over to the café."
+        say: "Danes are 'på' (on) a café, not 'in' it."
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: På caféen, en: At the café }
+    objective: { da: Gå hen til caféen., en: Go over to the café. }
+    npc: sara
+    start: { enterMap: cafe }
+    cast:
+      sara: { map: cafe, x: 2, y: 1, dir: down }
+      amalie: { map: cafe, x: 5, y: 3, dir: left }
+    script:
+      - sara: Hej! Hvad skal I have?
+        en: Hi! What are you having?
+        lx: { i: "i#pron" }
+        say: "'I' with a capital I means 'you' (plural) — you and Amalie."
+      - if: { flag: origin, eq: usa }
+        then:
+          - amalie: Hej Sara! Det her er min ven fra USA.
+            en: Hi Sara! This is my friend from the US.
+        else:
+          - if: { flag: origin, eq: australia }
+            then:
+              - amalie: Hej Sara! Det her er min ven fra Australien.
+                en: Hi Sara! This is my friend from Australia.
+            else:
+              - amalie: Hej Sara! Det her er min ven fra England.
+                en: Hi Sara! This is my friend from England.
+      - sara: Nå, hej! Velkommen til Aarhus. Jeg hedder Sara.
+        en: Oh, hi! Welcome to Aarhus. My name is Sara.
+      - choose:
+          - you: "Hej! Jeg hedder {name}."
+            en: "Hi! I'm {name}."
+            q: natural
+          - you: Hyggeligt at møde dig.
+            en: Nice to meet you.
+            q: natural
+      - id: ch2.s2.size
+        sara: Vil du have en stor eller en lille kaffe?
+        en: Would you like a large or a small coffee?
+        tags: [adj]
+      - choose:
+          - you: En stor, tak.
+            en: "A large one, please."
+            q: natural
+          - you: En lille, tak.
+            en: "A small one, please."
+            q: natural
+          - you: En stort, tak.
+            en: "A large, please."
+            q: awkward
+            why: "'kaffe' is an en-word, so the adjective is 'stor'. 'stort' is for et-words: 'et stort glas'."
+      - id: ch2.s2.glas
+        sara: Og et stort glas vand?
+        en: And a big glass of water?
+        tags: [adj]
+      - choose:
+          - you: Ja tak.
+            en: "Yes, please."
+            q: natural
+          - you: Nej tak.
+            en: No thanks.
+            q: natural
+      - sara: Til at tage med, eller skal I sidde her?
+        en: To take away, or are you sitting in?
+        lx: { i: "i#pron" }
+      - choose:
+          - you: Vi sidder her.
+            en: "We're sitting in."
+            q: natural
+          - you: Her, tak.
+            en: "Here, please."
+            q: natural
+      - id: ch2.s2.kage
+        amalie: Og to store stykker gulerodskage. Jeg giver!
+        en: And two big pieces of carrot cake. My treat!
+        say: "'Jeg giver' (lit. I give) = it's on me."
+        tags: [adj]
+      - sara: Så bliver det hundrede og tyve kroner.
+        en: Then that comes to a hundred and twenty kroner.
+        lx: { så: "så#adv" }
+        tags: [numbers]
+      - spotlight: adj
+      - amalie: Sara læser dansk på universitetet.
+        en: Sara studies Danish at the university.
+      - sara: Ja, og jeg arbejder her om lørdagen.
+        en: Yes, and I work here on Saturdays.
+        say: "'om lørdagen' = on Saturdays (every Saturday)."
+      - sara: Er det første gang, du er i Danmark?
+        en: Is it your first time in Denmark?
+      - choose:
+          - you: Ja, det er første gang.
+            en: "Yes, it's the first time."
+            q: natural
+          - you: Nej, jeg har været her før.
+            en: "No, I've been here before."
+            q: natural
+      - sara: Fedt! Du taler allerede lidt dansk.
+        en: Cool! You already speak a bit of Danish.
+      - choose:
+          - you: Tak! Jeg øver mig hver dag.
+            en: Thanks! I practise every day.
+            q: natural
+            say: "'øve sig' = practise (lit. practise oneself)."
+          - you: Kun lidt.
+            en: Only a little.
+            q: natural
+          - you: Tak, det er sødt af dig.
+            en: "Thanks, that's sweet of you."
+            q: natural
+      - sara: Kom forbi igen! Jeg er her hver lørdag.
+        en: "Drop by again! I'm here every Saturday."
+      - amalie: Nu skal jeg på arbejde. Kan du selv handle ind i Netto?
+        en: Now I have to go to work. Can you do the shopping at Netto on your own?
+        say: "'handle ind' = do the (grocery) shopping."
+      - choose:
+          - you: Ja, selvfølgelig.
+            en: "Yes, of course."
+            q: natural
+            say: "'selvfølgelig' is 'sel-FUL-yeh-li'."
+          - you: Ja, det kan jeg godt.
+            en: "Yes, I can do that."
+            q: natural
+      - amalie: Super. Vi ses!
+        en: Great. See you!
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: I Netto, en: At Netto }
+    objective: { da: Køb ind i Netto., en: Do the shopping at Netto. }
+    npc: emil
+    start: { enterMap: netto }
+    cast:
+      emil: { map: netto, x: 1, y: 7, dir: right }
+    script:
+      - narrator: "Du har en indkøbsliste: mælk, brød, ost og æbler."
+        en: "You have a shopping list: milk, bread, cheese and apples."
+        say: "'mælk' is 'melk', 'æbler' is 'EB-la'."
+      - exercise: { type: picture, word: mælk }
+      - exercise: { type: picture, word: brød }
+      - exercise: { type: picture, word: æble }
+      - id: ch2.s3.ost
+        narrator: Osten koster niogtredive kroner. Den er på tilbud.
+        en: "The cheese costs thirty-nine kroner. It's on offer."
+        tags: [numbers]
+      - id: ch2.s3.find
+        narrator: Men du kan ikke finde osten.
+        en: "But you can't find the cheese."
+        tags: [negation]
+      - choose:
+          - you: Undskyld, hvor er osten?
+            en: "Excuse me, where's the cheese?"
+            q: natural
+            say: "'Undskyld' is 'ON-skul' — excuse me / sorry."
+          - you: Undskyld, hvor osten er?
+            en: "Excuse me, where the cheese is?"
+            q: awkward
+            why: "Question word first, then the verb: 'Hvor er osten?'"
+      - emil: Osten? Den står ved mælken. Derhenne.
+        en: The cheese? It's by the milk. Over there.
+      - choose:
+          - you: Tak!
+            en: Thanks!
+            q: natural
+          - you: Tusind tak.
+            en: Thanks a lot.
+            q: natural
+      - id: ch2.s3.apples
+        narrator: Der er ikke flere æbler.
+        en: There are no more apples.
+        tags: [negation]
+      - emil: Hej. Er det det hele?
+        en: Hi. Is that everything?
+      - choose:
+          - you: Ja, men I har ikke flere æbler.
+            en: "Yes, but you don't have any more apples."
+            q: natural
+            lx: { i: "i#pron" }
+            then:
+              - emil: Nej, de kommer først i morgen.
+                en: "No, they're not coming until tomorrow."
+                say: "'først' here means 'not until'."
+          - you: Ja, det er det hele.
+            en: "Yes, that's everything."
+            q: natural
+      - emil: Skal du have en pose?
+        en: Do you need a bag?
+      - choose:
+          - you: Nej tak, jeg har en.
+            en: "No thanks, I've got one."
+            q: natural
+          - you: Ja tak.
+            en: "Yes, please."
+            q: natural
+      - id: ch2.s3.total
+        emil: Det bliver otteogtres halvtreds.
+        en: That'll be sixty-eight fifty.
+        say: "68,50 kr. is said 'otteogtres halvtreds' — kroner first, then øre. 'tres' = 60."
+        tags: [numbers]
+      - exercise: { type: listen, line: ch2.s3.total, options: ["68,50", "86,50", "78,50", "68,15"], answer: "68,50" }
+      - id: ch2.s3.card
+        emil: Øh, kortet virker ikke.
+        en: "Uh, the card isn't working."
+        tags: [negation]
+      - emil: Har du kontanter?
+        en: Do you have cash?
+      - narrator: Du giver ham en hundredkroneseddel.
+        en: You give him a hundred-kroner note.
+      - id: ch2.s3.change
+        emil: Du får enogtredive halvtreds tilbage.
+        en: You get thirty-one fifty back.
+        tags: [numbers]
+      - spotlight: tal
+      - spotlight: negation
+      - emil: Vil du have kvitteringen?
+        en: Do you want the receipt?
+      - choose:
+          - you: Nej tak.
+            en: No thanks.
+            q: natural
+          - you: Ja tak.
+            en: "Yes, please."
+            q: natural
+      - emil: Hav en god dag.
+        en: Have a nice day.
+      - choose:
+          - you: Tak, i lige måde.
+            en: "Thanks, you too."
+            q: natural
+          - you: Tak, hej hej!
+            en: Thanks, bye!
+            q: natural
+
+outro:
+  - narrator: Nu kan du handle ind på dansk.
+    en: Now you can go shopping in Danish.
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

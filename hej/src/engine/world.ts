@@ -88,16 +88,28 @@ export class World {
     if (interact) {
       // pick the reachable neighbour with the shortest path
       let best: [number, number][] | null = null;
+      let face: [number, number] = [tx, ty];
       for (const [dx, dy] of Object.values(DIRS)) {
         const nx = tx + dx, ny = ty + dy;
-        if (nx === p.x && ny === p.y) { best = []; break; }
+        if (nx === p.x && ny === p.y) { best = []; face = [tx, ty]; break; }
         if (this.blocked(nx, ny)) continue;
         const path = findPath(this.map.w, this.map.h, (x, y) => this.blocked(x, y), p.x, p.y, nx, ny);
-        if (path && (!best || path.length < best.length)) best = path;
+        if (path && (!best || path.length < best.length)) { best = path; face = [tx, ty]; }
+      }
+      if (!best && this.npcAt(tx, ty)) {
+        // someone behind a counter: stand two tiles away with the counter in between
+        for (const [dx, dy] of Object.values(DIRS)) {
+          const mx = tx + dx, my = ty + dy, nx = tx + 2 * dx, ny = ty + 2 * dy;
+          if (!this.solid(mx, my)) continue;
+          if (nx === p.x && ny === p.y) { best = []; face = [mx, my]; break; }
+          if (this.blocked(nx, ny)) continue;
+          const path = findPath(this.map.w, this.map.h, (x, y) => this.blocked(x, y), p.x, p.y, nx, ny);
+          if (path && (!best || path.length < best.length)) { best = path; face = [mx, my]; }
+        }
       }
       if (!best) return;
       this.path = best;
-      this.afterPath = [tx, ty];
+      this.afterPath = face;
     } else {
       const path = findPath(this.map.w, this.map.h, (x, y) => this.blocked(x, y), p.x, p.y, tx, ty);
       if (!path) return;

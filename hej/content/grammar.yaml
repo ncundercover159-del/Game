@@ -53,3 +53,179 @@ cards:
     practice:
       - { type: tiles, line: ch1.s4.tomorrow, accept: ["jeg viser dig byen i morgen"] }
       - { type: tiles, line: ch1.s4.now, accept: ["du bor nu i aarhus", "du bor i aarhus nu"] }
+
+  # ── Chapter 2 ──
+  gerne:
+    title: { da: Høflige ønsker, en: "Polite requests: vil gerne" }
+    pattern: "Jeg vil gerne have + THING"
+    highlight: "ville,gerne"
+    rule: >-
+      "Jeg vil gerne have …" is the everyday polite "I'd like …". "gerne" (gladly) softens
+      the verb. Danish has no word for "please" — politeness comes from "gerne", "tak" and
+      a friendly tone.
+    examples: [ch2.s1.snegl, ch2.s1.pose, ch2.s1.pay]
+    practice:
+      - { type: tiles, line: ch2.s1.snegl }
+      - { type: tiles, line: ch2.s1.pay, extra: [godt] }
+
+  adj:
+    title: { da: Adjektiver, en: "Adjectives: stor, stort, store" }
+    pattern: "en stor kaffe · et stort glas · to store stykker"
+    highlight: adj
+    rule: >-
+      Adjectives agree with the noun. With en-words they have no ending (en stor kaffe),
+      with et-words they add -t (et stort glas), and in the plural or after "the" they add
+      -e (store stykker, den store nøgle). The adjective always comes before the noun.
+    examples: [ch2.s2.size, ch2.s2.glas, ch2.s2.kage]
+    practice:
+      - { type: tiles, line: ch2.s2.glas, extra: [stor] }
+      - { type: cloze, line: ch2.s2.kage, word: store, options: [stor, stort, store] }
+
+  tal:
+    title: { da: Tal over tyve, en: Numbers above twenty }
+    pattern: "2 + 30 → to-og-tredive · 50 = halvtreds · 60 = tres"
+    highlight: num
+    rule: >-
+      Danish says the ones first: 39 is "niogtredive" (nine-and-thirty). 20 tyve, 30 tredive,
+      40 fyrre, then the old counting-in-twenties names: 50 halvtreds, 60 tres, 70 halvfjerds,
+      80 firs, 90 halvfems. Prices: 68,50 kr. is said "otteogtres halvtreds".
+    examples: [ch2.s3.ost, ch2.s3.total, ch2.s3.change]
+    practice:
+      - { type: listen, line: ch2.s3.change, options: ["31,50", "13,50", "31,15", "41,50"], answer: "31,50" }
+      - { type: listen, line: ch2.s3.ost, options: ["39", "93", "29", "49"], answer: "39" }
+
+  negation:
+    title: { da: Hvor står "ikke"?, en: "Where does 'ikke' go?" }
+    pattern: "SUBJECT + VERB + ikke + …"
+    highlight: ikke
+    rule: >-
+      In a main clause "ikke" (not) comes straight after the verb: "Kortet virker ikke".
+      With a helper verb it comes after the helper: "Du kan ikke finde osten". There's no
+      "do" in Danish negatives — never "Jeg ikke kan".
+    examples: [ch2.s3.find, ch2.s3.apples, ch2.s3.card]
+    practice:
+      - { type: tiles, line: ch2.s3.find, accept: ["men osten kan du ikke finde"] }
+      - { type: tiles, line: ch2.s3.apples }
+
+  # ── Chapter 3 ──
+  modal:
+    title: { da: Modalverber, en: "Modal verbs: skal, kan, må, vil" }
+    pattern: "MODAL + INFINITIVE (no 'at')"
+    highlight: "skulle,kunne,måtte,ville"
+    rule: >-
+      skal (have to / going to), kan (can), må (may; må ikke = mustn't) and vil (want to) are
+      followed by a plain infinitive with no "at": "Du skal tjekke ind", "Du kan bruge appen".
+      Careful: "må ikke" means "must not", not "don't have to" (that's "behøver ikke").
+    examples: [ch3.s1.skal, ch3.s1.kan, ch3.s1.maa]
+    practice:
+      - { type: cloze, line: ch3.s1.maa, word: glemme, options: [glemme, glemmer, glemte, glemt] }
+      - { type: tiles, line: ch3.s1.kan }
+
+  imperative:
+    title: { da: Bydeform, en: "The imperative: gå! drej! pas på!" }
+    pattern: "INFINITIVE minus -e → dreje → drej!"
+    highlight: verb
+    rule: >-
+      To tell someone to do something, use the verb stem: take the infinitive and drop the
+      final -e (dreje → drej, passe → pas, tage → tag). If the infinitive doesn't end in -e,
+      it stays the same (gå → gå, se → se). Add "lige" or "bare" to soften it.
+    examples: [ch3.s2.go, ch3.s2.turn, ch3.s2.look]
+    practice:
+      - { type: cloze, line: ch3.s2.turn, word: Drej, options: [drej, dreje, drejer, drejede] }
+      - { type: tiles, line: ch3.s2.go }
+
+  time:
+    title: { da: Hvad er klokken?, en: Telling the time }
+    pattern: "halv tre = 2:30 · kvart over to = 2:15 · fem i halv fire = 3:25"
+    highlight: "halv,kvart,klokke"
+    rule: >-
+      "halv" points to the NEXT hour: halv tre is half past two. "kvart over" = quarter past,
+      "kvart i" = quarter to. Around the half hour Danes count from it: "fem i halv fire"
+      (3:25), "fem over halv fire" (3:35). In writing and on timetables: 14.30 or kl. 14.30.
+    examples: [ch3.s3.halv, ch3.s3.kvart, ch3.s3.fem]
+    practice:
+      - { type: listen, line: ch3.s3.kvart, options: ["14:15", "13:45", "14:45", "15:15"], answer: "14:15" }
+      - { type: tiles, line: ch3.s3.halv }
+
+  # ── Chapter 4 ──
+  past:
+    title: { da: Datid, en: "The past tense: flyttede, boede, kom" }
+    pattern: "flytte → flyttede · bo → boede · tjekke → tjekkede · komme → kom"
+    highlight: verb
+    rule: >-
+      Most verbs add -ede (flytte → flyttede, bo → boede) or -te (købe → købte). The most
+      common verbs are irregular and just have to be learned: kom (came), gik (went), fik (got),
+      var (was), havde (had), så (saw), tog (took). The past tense never changes with the person:
+      jeg/du/hun flyttede.
+    examples: [ch4.s2.flyttede, ch4.s2.boede, ch4.s2.tjek]
+    practice:
+      - { type: cloze, line: ch4.s2.boede, word: boede, options: [boede, bor, bo, boet] }
+      - { type: tiles, line: ch4.s2.tjek }
+
+  # ── Chapter 5 ──
+  perfect:
+    title: { da: Førnutid, en: "The perfect: har boet, er flyttet" }
+    pattern: "har / er + PAST PARTICIPLE"
+    highlight: "have,være,bo,flytte"
+    rule: >-
+      The perfect is har + past participle: "Jeg har boet her i en måned" (I have lived here
+      for a month). Danish uses it like English for things that are still true or just happened.
+      Verbs of movement and change often take "er" instead of "har": "Vi er flyttet",
+      "Hun er kommet". Participles: boet, været, flyttet, fået, gået, set.
+    examples: [ch5.s1.boet, ch5.s1.vaeret, ch5.s1.flyttet]
+    practice:
+      - { type: tiles, line: ch5.s1.boet }
+      - { type: cloze, line: ch5.s1.flyttet, word: flyttet, options: [flyttet, flytter, flyttede, flytte] }
+
+  fordi:
+    title: { da: Bisætninger med fordi, en: "Sub-clauses: fordi … ikke + verb" }
+    pattern: "… , fordi + SUBJECT + (ikke) + VERB"
+    highlight: "fordi,ikke"
+    rule: >-
+      After fordi (because), at (that), hvis (if) and når (when) comes a sub-clause. In a
+      sub-clause the word order stays subject → verb, and "ikke" (and words like altid, også,
+      bare) moves in FRONT of the verb: "fordi jeg ikke gider", not "fordi jeg gider ikke".
+    examples: [ch5.s2.fordi1, ch5.s2.fordi2, ch5.s2.fordi3]
+    practice:
+      - { type: tiles, line: ch5.s2.fordi1 }
+      - { type: cloze, line: ch5.s2.fordi2, word: gider, options: [gider, gide, gad, gidet] }
+
+  tid:
+    title: { da: Tidsudtryk, en: "When? i weekenden, på mandag, i sidste weekend" }
+    pattern: "i weekenden · på mandag · i sidste weekend · om mandagen"
+    highlight: "weekend,mandag,sidst"
+    rule: >-
+      "i weekenden" = this (coming) weekend. "på mandag" = this coming Monday. "i sidste
+      weekend" = last weekend. "om mandagen" = on Mondays (every Monday). Also: i går
+      (yesterday), i dag (today), i morgen (tomorrow), i aften (tonight).
+    examples: [ch5.s3.skal, ch5.s3.lavede, ch5.s3.mandag]
+    practice:
+      - { type: cloze, line: ch5.s3.mandag, word: på, options: [på, i, om, til] }
+      - { type: tiles, line: ch5.s3.lavede }
+
+  # ── Chapter 6 ──
+  inversion:
+    title: { da: Bisætning først, en: "Sub-clause first: the verb jumps forward" }
+    pattern: "Hvis du har lyst, KAN VI … · Når jeg har fri, SKRIVER JEG …"
+    highlight: inv
+    rule: >-
+      A sub-clause at the start (hvis …, når …, fordi …) counts as the first element of the
+      sentence. So the verb must come next — before the subject: "Hvis det regner, bliver vi
+      indenfor", never "…, vi bliver indenfor". It's the verb-second rule from Chapter 1.
+    examples: [ch6.s1.hvis, ch6.s1.naar, ch6.s1.hvis2]
+    practice:
+      - { type: tiles, line: ch6.s1.hvis2, accept: ["vi bliver indenfor hvis det regner"] }
+      - { type: tiles, line: ch6.s1.naar, accept: ["jeg skriver til dig når jeg har fri klokken otte"] }
+
+  komparativ:
+    title: { da: Sammenligning, en: "Comparing: bedre end, den bedste" }
+    pattern: "hurtig → hurtigere end → den hurtigste · god → bedre → bedst"
+    highlight: adj
+    rule: >-
+      Add -ere for "more …" and -est for "most …": hurtig, hurtigere, hurtigst. "than" is
+      "end". Common irregulars: god – bedre – bedst, mange – flere – flest, lille – mindre –
+      mindst, gammel – ældre – ældst. Before a noun or after "den/det": den bedste, det største.
+    examples: [ch6.s3.bedre, ch6.s3.hurtig, ch6.s3.bedst]
+    practice:
+      - { type: cloze, line: ch6.s3.hurtig, word: hurtigere, options: [hurtigere, hurtig, hurtigst, hurtigt] }
+      - { type: tiles, line: ch6.s3.bedst }

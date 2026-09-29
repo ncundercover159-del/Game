@@ -19,3 +19,10 @@ voices:
   jonas:    { name: da-DK-Chirp3-HD-Iapetus,     gender: m, pitch: 1.0 }               # colleague, 30s
   lise:     { name: da-DK-Chirp3-HD-Vindemiatrix, gender: f, pitch: 0.95 }             # Amalie's mum
   bent:     { name: da-DK-Chirp3-HD-Algenib,     gender: m, pitch: 0.75 }              # Amalie's dad
+  emil:     { name: da-DK-Chirp3-HD-Fenrir,      gender: m, pitch: 1.1, rate: 1.08 }   # Netto cashier, 19
+  yasmin:   { name: da-DK-Chirp3-HD-Laomedeia,   gender: f, pitch: 1.2 }               # student, 20s
+  ali:      { name: da-DK-Chirp3-HD-Alnilam,     gender: m, pitch: 0.95 }              # phone shop, 30s
+  pia:      { name: da-DK-Chirp3-HD-Erinome,     gender: f, pitch: 1.0 }               # Citizen Services, 40s
+  birgit:   { name: da-DK-Chirp3-HD-Despina,     gender: f, pitch: 0.95 }              # pharmacist, 50s
+  mette:    { name: da-DK-Chirp3-HD-Pulcherrima, gender: f, pitch: 1.0 }               # boss, 40s
+  karen:    { name: da-DK-Chirp3-HD-Autonoe,     gender: f, pitch: 0.95 }              # GP, 50s

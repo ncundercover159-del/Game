@@ -131,7 +131,7 @@ entries:
   lejlighed: { pos: noun, g: en, en: "flat, apartment", forms: { def: lejligheden, pl: lejligheder, defpl: lejlighederne }, rank: 1500, say: "'LIE-li-heth'" }
   by: { pos: noun, g: en, en: "town, city", forms: { def: byen, pl: byer, defpl: byerne }, rank: 170, say: "'bue'" }
   rundstykke: { pos: noun, g: et, en: bread roll, forms: { def: rundstykket, pl: rundstykker, defpl: rundstykkerne }, rank: 15000, say: "'RON-stue-keh'", note: "The classic Danish weekend breakfast, from the bakery." }
-  dag: { pos: noun, g: en, en: day, forms: { def: dagen, pl: dage, defpl: dagene }, rank: 85, say: "'day'", note: "'i dag' = today" }
+  dag: { pos: noun, g: en, en: day, forms: { def: dagen, pl: dage, defpl: dagene }, also: [dagens], rank: 85, say: "'day'", note: "'i dag' = today" }
   morgen: { pos: noun, g: en, en: morning, forms: { def: morgenen, pl: morgener }, rank: 400, say: "'MORN'", note: "'i morgen' = tomorrow; 'i morges' = this morning" }
   orden: { pos: noun, g: en, en: order, forms: { def: ordenen }, rank: 1700, say: "'OR-den'" }
   ven: { pos: noun, g: en, en: friend, forms: { def: vennen, pl: venner, defpl: vennerne }, rank: 400, say: "'ven'" }
@@ -173,7 +173,7 @@ entries:
   tak: { pos: noun, g: en, en: "thanks, thank you", forms: { def: takken }, rank: 180, note: "Danes say 'tak' a lot — and 'tak for …' for almost anything." }
 
   # ── adjectives ──────────────────────────────────────────────────────────
-  god: { pos: adj, en: "good; (godt) well", forms: { t: godt, e: gode, comp: bedre, sup: bedst }, rank: 45, say: "'goth'; 'godt' is 'got'" }
+  god: { pos: adj, en: "good; (godt) well", forms: { t: godt, e: gode, comp: bedre, sup: bedst }, also: [bedste], rank: 45, say: "'goth'; 'godt' is 'got'" }
   dårlig: { pos: adj, en: "bad; ill", forms: { t: dårligt, e: dårlige }, rank: 900, say: "'DOR-li'; 'dårligt' is 'DOR-lit'" }
   fin: { pos: adj, en: "fine, nice; posh", forms: { t: fint, e: fine }, rank: 400, note: "'Jeg er fin' means 'I'm dressed up', not 'I'm fine'." }
   dejlig: { pos: adj, en: "lovely, nice", forms: { t: dejligt, e: dejlige }, rank: 700, say: "'DYE-li'; 'dejligt' is 'DYE-lit'" }
@@ -183,7 +183,7 @@ entries:
   ny: { pos: adj, en: new, forms: { t: nyt, e: nye }, rank: 140, say: "'new'" }
   gammel: { pos: adj, en: old, forms: { t: gammelt, e: gamle, comp: ældre, sup: ældst }, rank: 300, say: "'GAM-mel'; 'gamle' is 'GAM-leh'", note: "Teens use 'gamle' as 'mate': 'Hva' så, gamle?'" }
   sød: { pos: adj, en: "sweet, kind", forms: { t: sødt, e: søde }, rank: 1400, say: "'søth'; 'sødt' is 'søt'", note: "'søde' also works as 'sweetie'." }
-  hurtig: { pos: adj, en: "quick, fast", forms: { t: hurtigt, e: hurtige }, rank: 800, say: "'HOOR-ti'; 'hurtigt' is 'HOOR-tit'" }
+  hurtig: { pos: adj, en: "quick, fast", forms: { t: hurtigt, e: hurtige, comp: hurtigere, sup: hurtigst }, rank: 800, say: "'HOOR-ti'; 'hurtigt' is 'HOOR-tit'" }
   spændende: { pos: adj, en: exciting, rank: 1300, say: "'SPEN-neh-neh' — the d's are silent" }
   bestemt: { pos: adj, en: "definite; certain", forms: { e: bestemte }, rank: 700 }
   træt: { pos: adj, en: tired, forms: { e: trætte }, rank: 1900 }
@@ -350,4 +350,3 @@ entries:
   venstre: { pos: adj, en: left, rank: 1200, say: "'VEN-streh'" }
   højre: { pos: adj, en: right, rank: 1200, say: "'HOY-a'" }
   længe: { pos: adv, en: "long (time)", rank: 350, say: "'LENG-eh'" }
-  sidst: { pos: adv, en: "last, last time", rank: 400, say: "'sist' — silent d" }

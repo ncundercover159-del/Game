@@ -1,0 +1,52 @@
+id: centrum
+name: { da: Aarhus C, en: Aarhus city centre (by Dokk1 and the harbour) }
+spawn: { x: 12, y: 11, dir: up }
+legend:
+  R: roof
+  G: glass_front
+  A: pharmacy_front
+  K: dokk_front
+  w: white_window
+  B: bar_front
+  D: door
+  ".": cobble
+  "=": rails
+  S: tram_stop
+  "~": water
+  T: tree
+  b: bench
+  L: lamp
+  f: flowers
+tiles: |
+  RRRRRRRRRRRRRRRRRRRRRRRR
+  GGGGAAAAKKKKKKGGGGwwwBBB
+  GDGGADAAKKDKKKGDGGwDwBDB
+  ........................
+  .L....T.....L....T....L.
+  ..b.............b.......
+  ........................
+  ........................
+  ========================
+  ========================
+  ...........S............
+  ..b...................b.
+  ....T....f....f....T....
+  ........................
+  ........................
+  ~~~~~~~~~~~~~~~~~~~~~~~~
+signs:
+  - { x: 0, y: 1, da: Telefonbutik, en: Phone shop }
+  - { x: 4, y: 1, da: Apotek, en: Pharmacy, say: "'a-po-TAYK'" }
+  - { x: 8, y: 1, da: Dokk1 – Borgerservice og bibliotek, en: "Dokk1 — Citizen Services and library", tts: Dokk et – Borgerservice og bibliotek }
+  - { x: 14, y: 1, da: Nordlys – kontorer, en: "Nordlys — offices" }
+  - { x: 18, y: 1, da: Lægehuset, en: The doctors' surgery }
+  - { x: 21, y: 1, da: Bar, en: Bar }
+  - { x: 0, y: 15, da: Havnen, en: The harbour }
+stop: { x: 11, y: 10, name: { da: Dokk1, en: "Dokk1 (city centre, by letbane)" }, arrive: { x: 12, y: 11, dir: down }, needFlag: rejsekort }
+warps:
+  - { x: 1, y: 2, to: phoneshop, tx: 3, ty: 5, dir: up, needFlag: ch4, locked: { da: Lukket., en: Closed. } }
+  - { x: 5, y: 2, to: apotek, tx: 3, ty: 5, dir: up, needFlag: ch4, locked: { da: Lukket., en: Closed. } }
+  - { x: 10, y: 2, to: dokk1, tx: 5, ty: 7, dir: up, needFlag: ch4, locked: { da: Lukket., en: Closed. } }
+  - { x: 15, y: 2, to: office, tx: 5, ty: 7, dir: up, needFlag: ch5, locked: { da: Døren er låst., en: The door is locked. } }
+  - { x: 19, y: 2, to: clinic, tx: 3, ty: 5, dir: up, needFlag: ch7, locked: { da: Lukket., en: Closed. } }
+  - { x: 22, y: 2, to: bar, tx: 4, ty: 6, dir: up, needFlag: ch6, locked: { da: Lukket., en: Closed. } }

@@ -4,17 +4,40 @@ import type { GrammarCard, Line } from '../content/types';
 import { h, overlay, uiBtn, waitNext } from './dom';
 import { lineTools, playLine, sentence } from './sentence';
 
+/**
+ * Tokens to highlight in an example. Keywords: verb (first finite verb), definite (nouns in
+ * the definite form), adj, num, ikke (the verb + ikke). Anything else is a comma-separated
+ * list of lexicon ids.
+ */
 function marks(card: GrammarCard, l: Line): Set<number> {
   const out = new Set<number>();
-  if (card.highlight === 'verb') {
-    const i = l.tokens.findIndex((t) => t.l && C.lexicon[t.l]?.pos === 'verb');
+  const pos = (i: number) => (l.tokens[i].l ? C.lexicon[l.tokens[i].l!]?.pos : undefined);
+  const hl = card.highlight ?? '';
+  if (hl === 'verb') {
+    const i = l.tokens.findIndex((_, j) => pos(j) === 'verb');
     if (i >= 0) out.add(i);
-  } else if (card.highlight === 'definite') {
+  } else if (hl === 'definite') {
     l.tokens.forEach((t, i) => {
       const e = t.l ? C.lexicon[t.l] : undefined;
       const f = t.t.toLowerCase();
       if (e?.pos === 'noun' && (e.forms.def === f || e.forms.defpl === f)) out.add(i);
     });
+  } else if (hl === 'adj' || hl === 'num') {
+    l.tokens.forEach((t, i) => { if (pos(i) === hl || (hl === 'num' && t.k === 'num')) out.add(i); });
+  } else if (hl === 'inv') {
+    // the verb right after a fronted sub-clause
+    const comma = l.tokens.findIndex((t) => t.t === ',');
+    const j = l.tokens.findIndex((_, i) => i > comma && pos(i) === 'verb');
+    if (comma >= 0 && j >= 0) out.add(j);
+  } else if (hl === 'ikke') {
+    l.tokens.forEach((t, i) => {
+      if (t.l !== 'ikke') return;
+      out.add(i);
+      for (let j = i - 1; j >= 0; j--) if (pos(j) === 'verb') { out.add(j); break; }
+    });
+  } else if (hl) {
+    const ids = hl.split(',').map((x) => x.trim());
+    l.tokens.forEach((t, i) => { if (t.l && ids.includes(t.l)) out.add(i); });
   }
   return out;
 }

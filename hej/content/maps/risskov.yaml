@@ -1,0 +1,22 @@
+id: risskov
+name: { da: Risskov, en: "Risskov (a leafy suburb north of the centre)" }
+spawn: { x: 2, y: 9, dir: up }
+legend: { R: roof, w: white_wall, v: white_window, D: door, ".": grass, "=": sidewalk, "-": road, T: tree, h: hedge, f: flowers, F: fence, s: bus_sign, p: path }
+tiles: |
+  TTTTTTTTTTTTTTTT
+  T..RRRRRRRR....T
+  T..vwvwwvwvw.f.T
+  T..wvwwDwwvw...T
+  T...f..p....f..T
+  FFFFFFFpFFFFFFFF
+  ================
+  ----------------
+  ----------------
+  =s==============
+  hhhhhhhhhhhhhhhh
+  TTTTTTTTTTTTTTTT
+signs:
+  - { x: 3, y: 3, da: Familien Holm, en: The Holm family }
+stop: { x: 1, y: 9, name: { da: Risskov, en: "Risskov (Amalie's parents, by bus)" }, arrive: { x: 2, y: 9, dir: right }, needFlag: ch8 }
+warps:
+  - { x: 7, y: 3, to: parents, tx: 4, ty: 6, dir: up }

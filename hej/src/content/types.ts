@@ -61,7 +61,26 @@ export type Exercise =
       /** Alternative accepted token orders (lower-case words only, no punctuation). */
       accept: string[][];
       prompt?: Lang;
-    };
+    }
+  /** Listen and type what you hear. */
+  | { type: 'dictation'; line: string }
+  /** Fill the gap. `word` = the surface word to blank out (auto-picked if omitted). */
+  | { type: 'cloze'; line: string; word?: string; options?: string[] }
+  /** Pick the natural reply to what someone said. */
+  | { type: 'reply'; prompt: string; good: string; bad: string[] }
+  /** Say it aloud (speech recognition) or shadow it (record and compare). */
+  | { type: 'speak'; line: string }
+  /** Hear a word, pick the picture. */
+  | { type: 'picture'; word: string };
+
+export interface ReplyPair {
+  /** What was said to you (line id). */
+  prompt: string;
+  /** Natural replies (player line ids). */
+  good: string[];
+  /** Unnatural replies with explanations. */
+  bad: { line: string; why: string }[];
+}
 
 export interface Cond {
   flag?: string;
@@ -141,6 +160,8 @@ export interface LexEntry {
   rank?: number;
   /** Numeric value for numbers. */
   value?: number;
+  /** Picture (emoji) for match-audio-to-picture. */
+  pic?: string;
   audio: string;
   /** Lower-case surface form → clip key. */
   formAudio: Record<string, string>;
@@ -152,7 +173,7 @@ export interface GrammarCard {
   pattern: string;
   rule: string;
   /** What to highlight in the examples: the finite verb, or definite noun forms. */
-  highlight?: 'verb' | 'definite';
+  highlight?: string;
   examples: string[]; // line ids
   practice: Exercise[];
 }
@@ -210,6 +231,8 @@ export interface MapDef {
   signs: SignDef[];
   warps: WarpDef[];
   mailbox?: { x: number; y: number };
+  /** Bus / letbane stop: interact to travel to other maps' stops. */
+  stop?: { x: number; y: number; name: string /* line id */; arrive: { x: number; y: number; dir: Dir }; needFlag?: string };
 }
 
 export interface UiString {
@@ -271,6 +294,7 @@ export interface Content {
   voices: Record<string, VoiceDef>;
   names: string[];
   nameAudio: Record<string, string>;
+  replies: ReplyPair[];
   talk: { topics: Record<string, TalkTopic>; slots: Record<string, string[]>; coach: CoachRule[] };
   /** lower-case surface form → lexicon ids (for tokenising runtime text). */
   forms: Record<string, string[]>;

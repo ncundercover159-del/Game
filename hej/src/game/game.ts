@@ -11,6 +11,7 @@ import { type Card, State } from '../srs/fsrs';
 import { today, writeSave } from '../store/save';
 import { buildInPanel, choose, closeDialogue, exerciseSheet, feedback, showLine } from '../ui/dialogue';
 import { h, overlay, panel, toast, ui, uiBtn, waitNext } from '../ui/dom';
+import { playLine, sentence } from '../ui/sentence';
 import type { Result } from '../ui/exercise';
 import { renderHud } from '../ui/hud';
 import { showSpotlight } from '../ui/spotlight';
@@ -77,7 +78,7 @@ export class Game {
     return true;
   }
   met(npc: string) {
-    return this.chapter().scenes.some((s) => s.cast[npc] && this.save.done.includes(s.id));
+    return C.chapters.some((ch) => ch.scenes.some((s) => s.cast[npc] && this.save.done.includes(s.id)));
   }
   newAllowance() {
     const s = this.save;
@@ -185,7 +186,7 @@ export class Game {
       const last = [...ch.outro].reverse().find((n) => n.k === 'line');
       return last && last.k === 'line' ? line(last.line) : line('ui.chapterTest');
     }
-    return line('ui.comingSoon');
+    return line('ui.freePlay');
   }
 
   // ─── map & npcs ───────────────────────────────────────────────────────────
@@ -198,14 +199,17 @@ export class Game {
 
   /** Where each NPC stands right now: home, overridden by the casts of reached scenes. */
   placeNpcs() {
-    const ch = this.chapter();
-    const upTo = Math.min(this.save.scene, ch.scenes.length - 1);
+    const reached: Scene[] = [];
+    C.chapters.forEach((ch, ci) => {
+      if (ci < this.save.chapter) reached.push(...ch.scenes);
+      if (ci === this.save.chapter) reached.push(...ch.scenes.slice(0, Math.min(this.save.scene, ch.scenes.length - 1) + 1));
+    });
     const out: { id: string; look: any; x: number; y: number; dir: any }[] = [];
     for (const npc of Object.values(C.npcs)) {
       let spot = npc.home;
       let appears = false;
-      for (let i = 0; i <= upTo; i++) {
-        const c = ch.scenes[i].cast[npc.id];
+      for (const sc of reached) {
+        const c = sc.cast[npc.id];
         if (c) {
           spot = c;
           appears = true;
@@ -235,7 +239,7 @@ export class Game {
 
   private interesting(x: number, y: number) {
     const m = this.world.map;
-    return !!(this.world.npcAt(x, y) || m.signs.some((s) => s.x === x && s.y === y) ||
+    return !!(this.world.npcAt(x, y) || m.signs.some((s) => s.x === x && s.y === y) || (m.stop && m.stop.x === x && m.stop.y === y) ||
       m.warps.some((w) => w.x === x && w.y === y) || (m.mailbox && m.mailbox.x === x && m.mailbox.y === y));
   }
 
@@ -257,6 +261,10 @@ export class Game {
     }
     if (m.mailbox && m.mailbox.x === x && m.mailbox.y === y) {
       void this.mail();
+      return true;
+    }
+    if (m.stop && m.stop.x === x && m.stop.y === y && (!m.stop.needFlag || this.save.flags[m.stop.needFlag])) {
+      void this.travel();
       return true;
     }
     const sign = m.signs.find((s) => s.x === x && s.y === y);
@@ -281,7 +289,12 @@ export class Game {
       void this.talkTo(n.id);
       return;
     }
-    this.bump(x, y);
+    if (this.bump(x, y)) return;
+    // talk across a counter
+    const p = this.world.player;
+    const dx = Math.sign(x - p.x), dy = Math.sign(y - p.y);
+    const behind = this.world.solid(x, y) ? this.world.npcAt(x + dx, y + dy) : undefined;
+    if (behind) void this.talkTo(behind.id);
   }
 
   // ─── script interpreter ───────────────────────────────────────────────────
@@ -303,7 +316,13 @@ export class Game {
   }
 
   private gradeEx(ex: Exercise, r: Result) {
-    const id = ex.type === 'tiles' || ex.line ? sentenceId(line(ex.type === 'tiles' ? ex.line : ex.line!)) : wordId(ex.word!);
+    let id: string;
+    switch (ex.type) {
+      case 'listen': id = ex.line ? sentenceId(line(ex.line)) : wordId(ex.word!); break;
+      case 'picture': id = wordId(ex.word); break;
+      case 'reply': id = sentenceId(line(ex.good)); break;
+      default: id = sentenceId(line(ex.line));
+    }
     this.gradeCard(id, r);
   }
   private gradeCard(id: string, r: Result) {
@@ -431,13 +450,38 @@ export class Game {
   }
 
   // ─── exercises from cards ─────────────────────────────────────────────────
+  /**
+   * Choose an exercise type for a card. Early on (new/learning) it favours recognition
+   * (listen, picture, pick the reply); once a card is in review it favours production
+   * (tiles, cloze, dictation, speaking).
+   */
   makeExercise(c: Card, allowTiles = true): Exercise {
-    if (c.kind === 'w') return { type: 'listen', word: c.ref };
-    const l = C.lines[c.ref];
-    const n = wordCount(l);
-    const hasName = l.tokens.some((t) => t.k === 'n');
-    if (allowTiles && n >= 3 && n <= 7 && !hasName && Math.random() < 0.5) return { type: 'tiles', line: l.id, extra: [], accept: [] };
-    return { type: 'listen', line: l.id };
+    const early = c.state !== State.Review;
+    const opts: [number, Exercise][] = [];
+    if (c.kind === 'w') {
+      const e = C.lexicon[c.ref];
+      opts.push([early ? 3 : 1, { type: 'listen', word: c.ref }]);
+      if (e?.pic) opts.push([early ? 3 : 1, { type: 'picture', word: c.ref }]);
+      const host = e && e.pos !== 'phrase' ? linesWith(c.ref).find((id) => getCard(sentenceId(C.lines[id]))) : undefined;
+      if (host) {
+        const t = C.lines[host].tokens.find((x) => x.l === c.ref);
+        if (t) opts.push([early ? 1 : 3, { type: 'cloze', line: host, word: t.t }]);
+      }
+    } else {
+      const l = C.lines[c.ref];
+      const n = wordCount(l);
+      const hasName = l.tokens.some((t) => t.k === 'n');
+      opts.push([early ? 3 : 1, { type: 'listen', line: l.id }]);
+      if (allowTiles && n >= 3 && n <= 7 && !hasName) opts.push([2, { type: 'tiles', line: l.id, extra: [], accept: [] }]);
+      if (n >= 2 && n <= 7) opts.push([early ? 0.5 : 2, { type: 'dictation', line: l.id }]);
+      if (l.tokens.some((t) => t.k === 'w' && t.l && C.lexicon[t.l].pos !== 'name')) opts.push([early ? 0.5 : 2, { type: 'cloze', line: l.id }]);
+      const pair = C.replies.find((r) => r.good.includes(l.id) && r.bad.length);
+      if (pair) opts.push([early ? 3 : 1, { type: 'reply', prompt: pair.prompt, good: l.id, bad: pair.bad.map((b) => b.line) }]);
+      if (S.settings.speaking && n <= 9) opts.push([early ? 1 : 2, { type: 'speak', line: l.id }]);
+    }
+    let r = Math.random() * opts.reduce((a, [w]) => a + w, 0);
+    for (const [w, ex] of opts) if ((r -= w) <= 0) return ex;
+    return opts[0][1];
   }
 
   /** A practice session on the review sheet. `standalone` shows a summary at the end. */
@@ -474,14 +518,23 @@ export class Game {
     const ch = this.chapter();
     const lines = ch.scenes.flatMap((s) => collectLines(s.script)).map((id) => C.lines[id])
       .filter((l) => l.who !== 'narrator' && !l.tokens.some((t) => t.k === 'n'));
-    const tiles = shuffle(lines.filter((l) => wordCount(l) >= 3 && wordCount(l) <= 6)).slice(0, 4);
-    const listen = shuffle(lines.filter((l) => !tiles.includes(l))).slice(0, 3);
+    const tiles = shuffle(lines.filter((l) => wordCount(l) >= 3 && wordCount(l) <= 6)).slice(0, 3);
+    const rest = shuffle(lines.filter((l) => !tiles.includes(l)));
+    const listen = rest.slice(0, 2);
+    const cloze = rest.slice(2, 4);
+    const dict = rest.slice(4).filter((l) => wordCount(l) <= 5).slice(0, 1);
+    const ids = new Set(lines.map((l) => l.id));
+    const pair = shuffle(C.replies.filter((r) => ids.has(r.prompt) && r.bad.length))[0];
     const wordIds = [...new Set(lines.flatMap((l) => cardWords(l)))].filter((id) => C.lexicon[id].pos !== 'phrase');
-    const words = shuffle(wordIds).slice(0, ch.testSize - tiles.length - listen.length);
+    const nWords = Math.max(1, ch.testSize - tiles.length - listen.length - cloze.length - dict.length - (pair ? 1 : 0));
+    const words = shuffle(wordIds).slice(0, nWords);
     const items: Exercise[] = shuffle([
       ...tiles.map((l): Exercise => ({ type: 'tiles', line: l.id, extra: [], accept: [] })),
       ...listen.map((l): Exercise => ({ type: 'listen', line: l.id })),
-      ...words.map((w): Exercise => ({ type: 'listen', word: w })),
+      ...cloze.map((l): Exercise => ({ type: 'cloze', line: l.id })),
+      ...dict.map((l): Exercise => ({ type: 'dictation', line: l.id })),
+      ...(pair ? [{ type: 'reply', prompt: pair.prompt, good: pair.good[0], bad: pair.bad.map((b) => b.line) } as Exercise] : []),
+      ...words.map((w): Exercise => (C.lexicon[w].pic && Math.random() < 0.5 ? { type: 'picture', word: w } : { type: 'listen', word: w })),
     ]);
     let right = 0;
     for (let i = 0; i < items.length; i++) {
@@ -497,16 +550,32 @@ export class Game {
       h('div', { class: 'kicker' }, ui('chapterTest').da),
       h('h2', {}, pass ? `🎉 ${ui('passed').da}` : ui('notPassed').da),
       h('p', {}, `${right} / ${items.length} correct (you need ${Math.ceil(ch.passMark * items.length)}).`),
-      pass ? h('p', {}, next ? `Chapter ${next.n} is unlocked.` : `Chapter 2 — ${ui('comingSoon').da} (Coming soon: groceries, the bakery and café ordering.)`) : null,
+      pass ? h('p', {}, next ? `Chapter ${next.n} (${next.cefr}) — ${next.title.da} · ${next.title.en} — is unlocked.` : 'That was the last chapter.') : null,
       h('div', { class: 'row', style: { justifyContent: 'flex-end' } }, done)));
     await waitNext(done);
     overlay.hide();
+    if (pass && !next) await this.finale();
     if (pass && next) {
       this.save.chapter++;
       this.save.scene = 0;
       this.save.introDone = false;
       await this.begin();
     }
+  }
+
+  private async finale() {
+    const st = this.save.stats;
+    const cards = dueCards().length;
+    const done = uiBtn('freePlay', () => {}, 'primary');
+    overlay.show(h('div', { class: 'panel sheet' },
+      h('div', { class: 'kicker' }, 'Slut · The end'),
+      h('h2', {}, `🇩🇰 ${ui('theEnd').da}`),
+      h('p', {}, 'You have worked through all ten chapters, from “Hej!” to arguing about pålæg and telling jokes at a julefrokost.'),
+      h('p', {}, `${st.reviews} reviews answered, ${st.correct} correct. ${cards} cards are due right now.`),
+      h('p', {}, 'Keep your Danish alive: reviews still come from neighbours and the mailbox, Snak works with everyone you met, and every chapter can be replayed through its test.'),
+      h('div', { class: 'row', style: { justifyContent: 'flex-end' } }, done)));
+    await waitNext(done);
+    overlay.hide();
   }
 
   async runChapterTest() {
@@ -558,6 +627,34 @@ export class Game {
     });
   }
 
+  /** Bus / letbane: pick a destination among the stops you have access to. */
+  async travel() {
+    let dest: string | null = null;
+    await this.ui(async () => {
+      const here = this.world.map;
+      const dests = Object.values(C.maps).filter((m) => m.stop && m.id !== here.id && (!m.stop.needFlag || this.save.flags[m.stop.needFlag]));
+      await this.say(line('ui.travel'));
+      dest = await new Promise<string | null>((resolve) => {
+        const rows = dests.map((m) => {
+          const l = line(m.stop!.name);
+          const row = h('div', { class: 'choice', role: 'button', tabindex: '0' },
+            h('button', { class: 'btn tool', type: 'button', 'aria-label': 'Hear', onclick: (e: Event) => { e.stopPropagation(); void playLine(l); } }, '🔊'),
+            h('div', { class: 'body' }, sentence(l), h('div', { class: 'line-en en' }, l.en)), '➜');
+          row.addEventListener('click', (e) => { if (!(e.target as HTMLElement).closest('.w')) resolve(m.id); });
+          return row;
+        });
+        const stay = uiBtn('stay', () => resolve(null));
+        panel.show(h('div', { class: 'panel dlg' }, h('div', { class: 'choices' }, rows), h('div', { class: 'row', style: { justifyContent: 'flex-end', marginTop: '8px' } }, stay)));
+      });
+    });
+    if (!dest) return;
+    const m = C.maps[dest];
+    this.loadMap(m.id, m.stop!.arrive.x, m.stop!.arrive.y, m.stop!.arrive.dir);
+    this.persist();
+    const sc = this.scene();
+    if (sc?.start.enterMap === m.id) void this.runScene(sc);
+  }
+
   async mail() {
     await this.ui(async () => {
       if (this.save.mailDay === today()) {
@@ -574,6 +671,23 @@ export class Game {
       await this.reviewSession({ max: 8, newAllowance: Math.min(3, this.newAllowance()) });
     });
   }
+}
+
+let lemmaIndex: Map<string, string[]> | null = null;
+/** Dialogue lines containing a lexicon entry. */
+function linesWith(lexId: string): string[] {
+  if (!lemmaIndex) {
+    lemmaIndex = new Map();
+    for (const l of Object.values(C.lines)) {
+      if (!/^ch\d/.test(l.src)) continue;
+      for (const t of l.tokens) if (t.l) {
+        const list = lemmaIndex.get(t.l) ?? [];
+        if (!list.includes(l.id)) list.push(l.id);
+        lemmaIndex.set(t.l, list);
+      }
+    }
+  }
+  return lemmaIndex.get(lexId) ?? [];
 }
 
 function collectLines(nodes: ScriptNode[]): string[] {

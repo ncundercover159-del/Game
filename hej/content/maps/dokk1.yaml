@@ -1,0 +1,20 @@
+id: dokk1
+name: { da: Dokk1, en: "Dokk1 (library and Citizen Services)" }
+spawn: { x: 5, y: 7, dir: up }
+legend: { "#": wall_int, ".": carpet, B: bookshelf, d: desk, p: plant, E: door_exit, W: window_int, s: sofa, c: counter }
+tiles: |
+  ###W###W###
+  #BBB...c..#
+  #......c..#
+  #BBB......#
+  #.........#
+  #BBB..s..p#
+  #.........#
+  #.........#
+  #####E#####
+signs:
+  - { x: 7, y: 1, da: Borgerservice, en: Citizen Services }
+  - { x: 1, y: 1, da: Bibliotek, en: Library }
+  - { x: 1, y: 5, da: Træk et nummer, en: Take a number, say: "'Træk' is 'trek'." }
+warps:
+  - { x: 5, y: 8, to: centrum, tx: 10, ty: 3, dir: down }

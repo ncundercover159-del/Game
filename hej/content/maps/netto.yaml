@@ -1,0 +1,22 @@
+id: netto
+name: { da: Netto, en: Netto (supermarket) }
+spawn: { x: 4, y: 7, dir: up }
+legend: { "#": wall_int, ".": floor_tile, S: shelf, C: cooler, R: register, E: door_exit }
+tiles: |
+  ############
+  #SSSSSCCCCC#
+  #..........#
+  #.SS.SS.SS.#
+  #..........#
+  #.SS.SS.SS.#
+  #..........#
+  #.RR.......#
+  ####E#######
+signs:
+  - { x: 3, y: 1, da: Brød og pålæg, en: Bread and sandwich toppings, say: "'pålæg' is 'PO-leg' — anything you put on bread." }
+  - { x: 8, y: 1, da: Mælk og ost, en: Milk and cheese }
+  - { x: 2, y: 3, da: Frugt og grønt, en: Fruit and vegetables }
+  - { x: 5, y: 3, da: Kaffe og te, en: Coffee and tea }
+  - { x: 8, y: 5, da: Tilbud!, en: Special offer! }
+warps:
+  - { x: 4, y: 8, to: street, tx: 16, ty: 6, dir: down }
