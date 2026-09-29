@@ -1,0 +1,55 @@
+# Pattern spotlight cards. Shown the first time a pattern appears in a scene,
+# with examples taken from lines the player has just heard, then practised at once.
+# practice uses the same exercise format as scenes.
+
+cards:
+  yesno:
+    title: { da: Spørgsmål med ja og nej, en: Yes/no questions }
+    pattern: "VERB + SUBJECT + … ?"
+    highlight: verb
+    rule: >-
+      To ask a yes/no question, put the verb first. There's no helper word like "do":
+      "Har du …?" is literally "Have you …?".
+    examples: [ch1.s1.areyou, ch1.s1.stuff, ch1.s1.questions]
+    practice:
+      - { type: tiles, line: ch1.s1.questions }
+      - { type: tiles, line: ch1.s1.stuff, extra: [er] }
+
+  hv:
+    title: { da: Spørgeord, en: Question words }
+    pattern: "HV-WORD + VERB + SUBJECT + … ?"
+    highlight: verb
+    rule: >-
+      Question words (hvad = what, hvor = where, hvordan = how) come first, then the verb,
+      then the subject. Again no "do": "Hvor kommer du fra?" is "Where come you from?".
+      The h in hv- is silent.
+    examples: [ch1.s2.name, ch1.s2.from, ch1.s2.doing]
+    practice:
+      - { type: tiles, line: ch1.s2.from }
+      - { type: tiles, line: ch1.s2.name, extra: [er] }
+
+  definite:
+    title: { da: Bestemt form, en: 'Definite form: "the" goes on the end' }
+    pattern: "en cykel → cyklen · et navn → navnet"
+    highlight: definite
+    rule: >-
+      Danish nouns are en-words or et-words. "A bike" is "en cykel", but "the bike" is
+      "cyklen": the -en goes on the end. For et-words it's -et (et navn → navnet).
+      Plural "the" is -ne (nøgler → nøglerne). Learn every noun with its en or et.
+    examples: [ch1.s3.cellar, ch1.s3.bikeis, ch1.s3.code]
+    practice:
+      - { type: tiles, line: ch1.s3.cellar, extra: [kælder], accept: ["i kælderen står den"] }
+      - { type: tiles, line: ch1.s3.bikeis, extra: [cykel], accept: ["den blå er cyklen"] }
+
+  v2:
+    title: { da: Verbet er nummer to, en: The verb comes second }
+    pattern: "FIRST THING + VERB + SUBJECT + …"
+    highlight: verb
+    rule: >-
+      In a Danish statement the verb is always the second element. If you start with
+      something other than the subject (nu, i morgen, her, først …), the subject moves
+      to after the verb: "I morgen viser jeg …", never "I morgen jeg viser …".
+    examples: [ch1.s4.now, ch1.s4.tomorrow, ch1.s4.first]
+    practice:
+      - { type: tiles, line: ch1.s4.tomorrow, accept: ["jeg viser dig byen i morgen"] }
+      - { type: tiles, line: ch1.s4.now, accept: ["du bor nu i aarhus", "du bor i aarhus nu"] }

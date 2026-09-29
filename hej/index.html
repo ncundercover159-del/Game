@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#c8102e" />
+    <meta name="description" content="Hej! — a pixel-art life sim in Aarhus that takes you from zero to conversational Danish." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="icon" href="icons/favicon-32.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <title>Hej! — learn Danish in Aarhus</title>
+  </head>
+  <body class="mode-en">
+    <canvas id="world" aria-label="Game world. Tap to walk, tap people to talk."></canvas>
+    <div id="hud"></div>
+    <div id="panel" aria-live="polite"></div>
+    <div id="overlay"></div>
+    <div id="popup"></div>
+    <noscript>Hej! needs JavaScript.</noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

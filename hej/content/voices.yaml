@@ -1,0 +1,21 @@
+# Build-time TTS voices (Google Cloud Text-to-Speech, da-DK).
+# Changing a voice name or rate changes the clip hash, so only that character's clips regenerate.
+# Run `npm run audio:voices` (needs GOOGLE_TTS_API_KEY) to list every da-DK voice your key can use.
+# `pitch` only shapes the browser speechSynthesis fallback.
+provider: google
+defaults:
+  rate: 1.0
+  slowRate: 0.72
+voices:
+  narrator: { name: da-DK-Chirp3-HD-Kore,        gender: f, pitch: 1.0 }
+  you_f:    { name: da-DK-Chirp3-HD-Zephyr,      gender: f, pitch: 1.1 }
+  you_m:    { name: da-DK-Chirp3-HD-Orus,        gender: m, pitch: 0.9 }
+  henrik:   { name: da-DK-Chirp3-HD-Charon,      gender: m, pitch: 0.8, rate: 0.97 }   # landlord, 50s
+  grethe:   { name: da-DK-Chirp3-HD-Gacrux,      gender: f, pitch: 0.9, rate: 0.93 }   # neighbour, 70s
+  mads:     { name: da-DK-Chirp3-HD-Puck,        gender: m, pitch: 1.2, rate: 1.05 }   # teen neighbour
+  amalie:   { name: da-DK-Chirp3-HD-Aoede,       gender: f, pitch: 1.15 }              # best friend, 30
+  sara:     { name: da-DK-Chirp3-HD-Leda,        gender: f, pitch: 1.2 }               # café friend, 20s
+  hanne:    { name: da-DK-Chirp3-HD-Sulafat,     gender: f, pitch: 1.0 }               # bakery owner, 50s
+  jonas:    { name: da-DK-Chirp3-HD-Iapetus,     gender: m, pitch: 1.0 }               # colleague, 30s
+  lise:     { name: da-DK-Chirp3-HD-Vindemiatrix, gender: f, pitch: 0.95 }             # Amalie's mum
+  bent:     { name: da-DK-Chirp3-HD-Algenib,     gender: m, pitch: 0.75 }              # Amalie's dad

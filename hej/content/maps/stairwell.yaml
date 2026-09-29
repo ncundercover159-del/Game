@@ -1,0 +1,39 @@
+id: stairwell
+name: { da: Opgangen, en: The stairwell }
+spawn: { x: 5, y: 12, dir: up }
+legend:
+  "#": wall_int
+  ".": floor_stone
+  S: stairs
+  D: door_int
+  E: door_exit
+  p: plant
+  M: mailboxes
+tiles: |
+  ###########
+  D....S....D
+  #p...S....#
+  #####S#####
+  D....S....D
+  #....S...p#
+  #####S#####
+  D....S....D
+  #p...S....#
+  #####S#####
+  #M...S...M#
+  D.........D
+  #.........#
+  #####E#####
+signs:
+  - { x: 10, y: 1, da: Der er ingen hjemme., en: Nobody's home. }
+  - { x: 0, y: 4, da: Der er ingen hjemme., en: Nobody's home. }
+  - { x: 10, y: 4, da: Familien Nielsen, en: The Nielsen family }
+  - { x: 0, y: 7, da: Der er ingen hjemme., en: Nobody's home. }
+  - { x: 10, y: 7, da: Grethe Jensen, en: Grethe Jensen (name plate) }
+  - { x: 0, y: 11, da: Vaskekælder, en: Laundry room, say: "'VAS-keh-kel-la'." }
+  - { x: 10, y: 11, da: Cykelkælder, en: Bike cellar }
+  - { x: 1, y: 10, da: Postkasser, en: Mailboxes }
+mailbox: { x: 9, y: 10 }
+warps:
+  - { x: 5, y: 13, to: street, tx: 10, ty: 6, dir: down }
+  - { x: 0, y: 1, to: flat, tx: 4, ty: 7, dir: up }

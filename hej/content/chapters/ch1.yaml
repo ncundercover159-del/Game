@@ -1,0 +1,577 @@
+# Chapter 1 — Ankomst (Arrival). CEFR A1.
+# Line shorthand: `<speaker>: <Danish>` plus en / say / id / tags / lx / ctx / reviewed.
+#   speaker: an npc id, `you` (the player, voiced in the player's chosen voice) or `narrator`.
+#   id:   give one when an exercise or grammar card needs to point at the line.
+#   say:  "how it's actually said" — only where speech differs from spelling.
+#   lx:   disambiguate a surface form to a lexicon id, e.g. { så: "så#adv" }.
+#   ctx:  meaning of a word in this context, e.g. { går: "goes (here: is going)" }.
+#   reviewed: flip to true once a native speaker has approved the line.
+# Nodes: choose / build / exercise / spotlight / set / objective / if.
+
+id: ch1
+n: 1
+cefr: A1
+title: { da: Ankomst, en: Arrival }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - narrator: Du er lige flyttet til Aarhus.
+    en: You've just moved to Aarhus.
+    say: "'lige' is 'LEE-eh' (silent g). 'Aarhus' is 'OR-hoos'."
+    tags: [perfect]
+  - narrator: Din udlejer venter på dig.
+    en: Your landlord is waiting for you.
+    say: "'udlejer' is 'OOTH-lie-a'; 'dig' rhymes with 'my'."
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Nøglerne, en: The keys }
+    objective: { da: Find din udlejer ved hoveddøren., en: Find your landlord by the front door. }
+    npc: henrik
+    start: { npc: henrik }
+    cast:
+      henrik: { map: street, x: 10, y: 6, dir: down }
+    script:
+      - henrik: Hej! Velkommen til Aarhus.
+        en: Hi! Welcome to Aarhus.
+        say: "'vel-KOM-men'. 'Aarhus' is 'OR-hoos'."
+      - id: ch1.s1.areyou
+        henrik: "Er du {name}?"
+        en: "Are you {name}?"
+        say: "'Er du' runs together: 'a-du'."
+        tags: [yesno]
+      - choose:
+          - you: Ja, det er mig.
+            en: Yes, that's me.
+            q: natural
+            say: "'Det' loses its t: 'de'. 'mig' is 'my'."
+          - you: Ja, hej!
+            en: Yes, hi!
+            q: natural
+          - you: Ja, jeg er.
+            en: Yes, I am.
+            q: awkward
+            why: "That's English word for word. Danes answer with 'det': 'Ja, det er mig' (Yes, that's me)."
+      - henrik: Dejligt. Jeg hedder Henrik.
+        en: Great. My name's Henrik.
+        say: "'Dejligt' is 'DYE-lit' — the g and t are silent. 'hedder' has a soft d, like 'th' in 'the': 'HETH-a'."
+      - henrik: Jeg er din udlejer.
+        en: I'm your landlord.
+        say: "'Jeg er' is often just 'yai-a'."
+      - id: ch1.s1.stuff
+        henrik: Har du mange ting?
+        en: Do you have a lot of stuff?
+        say: "'Har du' blends: 'ha-du'."
+        tags: [yesno]
+      - choose:
+          - you: Nej, ikke så mange.
+            en: No, not that many.
+            q: natural
+            lx: { så: "så#adv" }
+            say: "'ikke' is 'IG-geh'."
+          - you: Ja, alt for mange!
+            en: Yes, way too many!
+            q: natural
+            rel: 2
+            then:
+              - henrik: Ha, det kender jeg.
+                en: Ha, I know that feeling.
+                say: "Lit. 'that know I' — 'det' goes first, then the verb."
+                tags: [v2]
+      - id: ch1.s1.keys
+        henrik: Her er nøglerne.
+        en: Here are the keys.
+        say: "'nøglerne' is 'NOY-la-neh' — 'øg' sounds like 'oy'."
+        tags: [v2, definite]
+      - henrik: Værsgo.
+        en: Here you go.
+        say: "Short for 'vær så god'. Said 'VAIRS-go'."
+      - choose:
+          - you: Tusind tak.
+            en: Thanks a lot.
+            q: natural
+            say: "Lit. 'a thousand thanks'. 'Tusind' is 'TOO-sin' — silent d."
+          - you: Tak skal du have.
+            en: Thank you so much.
+            q: natural
+            rel: 2
+            say: "Lit. 'thanks shall you have'. Said fast: 'tak-sa-du-ha'."
+          - you: Tak meget.
+            en: Thanks much.
+            q: awkward
+            why: "'Tak meget' isn't Danish. Say 'mange tak' or 'tusind tak'."
+      - henrik: Det var så lidt.
+        en: You're welcome.
+        say: "Lit. 'it was so little'. Said 'de va so lit'."
+        lx: { så: "så#adv" }
+      - exercise: { type: listen, line: ch1.s1.keys }
+      - henrik: Den store nøgle er til hoveddøren.
+        en: The big key is for the front door.
+        say: "'store' is 'STOR-a'. 'hoveddøren' is 'HO-eth-dur-en'."
+        tags: [definite]
+      - henrik: Den lille er til postkassen.
+        en: The small one is for the mailbox.
+        say: "'lille' is 'LEE-leh'."
+        tags: [definite]
+      - henrik: Du bor på tredje sal.
+        en: You live on the third floor.
+        say: "'tredje' is 'TRAY-yeh' — the d is silent. Danish floors start above the ground floor (stuen), so 3. sal is four levels up."
+      - henrik: Til venstre.
+        en: On the left.
+        say: "On doors and addresses you'll see '3. tv.' — tredje sal, til venstre."
+      - id: ch1.s1.questions
+        henrik: Har du nogen spørgsmål?
+        en: Do you have any questions?
+        say: "'nogen' is 'NO-en' — silent g. 'spørgsmål' is 'SPURS-mol'."
+        tags: [yesno]
+      - choose:
+          - you: Nej, det er fint.
+            en: No, it's fine.
+            q: natural
+          - you: Hvor er vaskekælderen?
+            en: Where's the laundry room?
+            q: natural
+            rel: 1
+            say: "'Hvor' is 'vor' — the h is silent."
+            set: { asked_laundry: true }
+            then:
+              - henrik: Nede i kælderen.
+                en: Down in the basement.
+                say: "'kælderen' is 'KEL-la-en'."
+              - henrik: Du skal booke en tid.
+                en: You have to book a time.
+                ctx: { tid: "time slot" }
+          - you: Øh... nej.
+            en: Uh... no.
+            q: ok
+            say: "'Øh' is the Danish 'uh' / 'um'."
+      - spotlight: yesno
+      - henrik: Godt. Så er det på plads.
+        en: Good. Then that's all sorted.
+        say: "'Godt' is 'got'. 'på plads' is 'po plas'."
+        lx: { så: "så#adv" }
+        ctx: { plads: "place (på plads = sorted)" }
+        tags: [v2]
+      - id: ch1.s1.number
+        henrik: Du har mit nummer, ikke?
+        en: You've got my number, right?
+        say: "'…, ikke?' at the end is like 'right?' Said 'IG-geh'."
+      - build:
+          you: Ja, det har jeg.
+          en: Yes, I do.
+          extra: [er]
+          prompt: { da: Svar ja., en: "Answer: yes, you do.", lx: { svar: svare } }
+      - henrik: Fint. Hej hej!
+        en: Great. Bye!
+        say: "One 'hej' is hello. 'Hej hej' is goodbye."
+      - set: { has_keys: true }
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: Naboen, en: The neighbour }
+    objective: { da: Gå ind i opgangen., en: Go into the stairwell. }
+    npc: grethe
+    start: { npc: grethe, near: 2 }
+    cast:
+      henrik: { map: street, x: 13, y: 6, dir: down }
+      grethe: { map: stairwell, x: 7, y: 8, dir: left }
+    script:
+      - grethe: Nå, goddag!
+        en: Oh, hello!
+        say: "'Nå' is a tiny word Danes use all the time: 'oh', 'well', 'so'. 'goddag' is 'go-DAY'."
+      - grethe: Er du den nye nabo?
+        en: Are you the new neighbour?
+        say: "'nye' is 'NEW-eh'."
+        tags: [yesno]
+      - choose:
+          - you: Ja, det er mig.
+            en: Yes, that's me.
+            q: natural
+          - you: Ja. Hej!
+            en: Yes. Hi!
+            q: natural
+      - grethe: Velkommen! Jeg hedder Grethe.
+        en: Welcome! My name's Grethe.
+      - grethe: Jeg bor her på første.
+        en: I live here on the first floor.
+        say: "'første' is 'FUR-steh'. 'på første' = on the first (floor)."
+      - id: ch1.s2.name
+        grethe: Hvad hedder du?
+        en: What's your name?
+        say: "'Hvad' is just 'va' — silent h and d. 'hedder' is 'HETH-a'."
+        tags: [hv]
+      - choose:
+          - you: "Jeg hedder {name}."
+            en: "My name's {name}."
+            q: natural
+          - you: "{name}."
+            en: "{name}."
+            q: ok
+          - you: "Min navn er {name}."
+            en: "My name is {name}."
+            q: awkward
+            why: "'Navn' is an et-word, so it's 'mit navn'. But Danes just say 'Jeg hedder …'."
+      - grethe: "{name}? Det er et fint navn."
+        en: "{name}? That's a nice name."
+        say: "'navn' is 'now-n'."
+      - id: ch1.s2.from
+        grethe: Hvor kommer du fra?
+        en: Where are you from?
+        say: "'Hvor' is 'vor'. 'kommer' is 'KOM-a'."
+        tags: [hv]
+      - choose:
+          - you: Jeg kommer fra England.
+            en: I'm from England.
+            q: natural
+            set: { origin: england }
+            then:
+              - grethe: England! Jeg elsker London.
+                en: England! I love London.
+          - you: Jeg kommer fra USA.
+            en: I'm from the US.
+            q: natural
+            say: "USA is 'oo-ess-AH'."
+            set: { origin: usa }
+            then:
+              - grethe: USA! Min søn bor i Chicago.
+                en: The US! My son lives in Chicago.
+          - you: Jeg kommer fra Australien.
+            en: I'm from Australia.
+            q: natural
+            set: { origin: australia }
+            then:
+              - grethe: Australien! Det er langt væk.
+                en: Australia! That's far away.
+                say: "'langt væk' is 'lang vek'."
+      - id: ch1.s2.doing
+        grethe: Og hvad laver du her i Aarhus?
+        en: And what are you doing here in Aarhus?
+        say: "'Og' is just 'o'. 'laver' is 'LAA-va'."
+        tags: [hv]
+      - choose:
+          - you: Jeg skal arbejde her.
+            en: I'm going to work here.
+            q: natural
+            say: "'arbejde' is 'AH-bye-deh'."
+            set: { reason: work }
+          - you: Jeg skal læse her.
+            en: I'm going to study here.
+            q: natural
+            ctx: { læse: "study (at university)" }
+            say: "'læse' means 'read', but also 'study' at university."
+            set: { reason: study }
+      - grethe: Hvor spændende!
+        en: How exciting!
+        say: "'spændende' is 'SPEN-neh-neh' — both d's are silent."
+      - spotlight: hv
+      - grethe: Tal bare dansk med mig.
+        en: Just speak Danish with me.
+        say: "'bare' means 'just' here. Danes often switch to English — ask them not to!"
+        ctx: { bare: "just" }
+      - grethe: Jeg taler ikke så godt engelsk.
+        en: I don't speak English that well.
+        lx: { så: "så#adv" }
+        say: "'ikke' comes right after the verb: 'taler ikke'."
+        tags: [negation]
+      - grethe: Så lærer du det hurtigt.
+        en: Then you'll learn it quickly.
+        lx: { så: "så#adv" }
+        say: "'hurtigt' is 'HOOR-tit'."
+        tags: [v2]
+      - grethe: Du er altid velkommen til en kop kaffe.
+        en: You're always welcome for a cup of coffee.
+      - choose:
+          - you: Tak, det vil jeg gerne.
+            en: Thanks, I'd love that.
+            q: natural
+            rel: 2
+            say: "'gerne' is 'GAIR-neh'."
+            set: { coffee: true }
+          - you: Tak, det er sødt af dig.
+            en: Thanks, that's sweet of you.
+            q: natural
+            rel: 1
+            say: "'sødt' is 'søt'."
+          - you: Jeg drikker ikke kaffe.
+            en: I don't drink coffee.
+            q: ok
+            then:
+              - grethe: Nå, så får du en kop te.
+                en: Well, then you'll get a cup of tea.
+                lx: { så: "så#adv" }
+      - grethe: Hej så længe.
+        en: Bye for now.
+        lx: { så: "så#adv" }
+        say: "'Hej så længe' — a warm 'see you'."
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: Den nye, en: The new one }
+    objective: { da: Gå op til tredje sal., en: Go up to the third floor. }
+    npc: mads
+    start: { npc: mads, near: 2 }
+    cast:
+      mads: { map: stairwell, x: 4, y: 5, dir: right }
+    script:
+      - mads: Yo! Er du den nye?
+        en: Yo! Are you the new one?
+        tags: [yesno]
+      - choose:
+          - you: Ja, det er mig.
+            en: Yes, that's me.
+            q: natural
+          - you: Hej! Ja, jeg er ny.
+            en: Hi! Yes, I'm new.
+            q: natural
+      - mads: Fedt. Jeg hedder Mads.
+        en: Cool. I'm Mads.
+        say: "'Fedt' literally means 'fat' but means 'cool'. 'Mads' is 'mass'."
+      - mads: Jeg bor på anden, til højre.
+        en: I live on the second floor, on the right.
+        say: "'anden' is 'AN-en' — silent d. 'højre' is 'HOY-a'."
+      - id: ch1.s3.bike
+        mads: Har du en cykel?
+        en: Do you have a bike?
+        say: "'cykel' is 'SUE-kel'."
+        tags: [yesno, definite]
+      - choose:
+          - you: Nej, ikke endnu.
+            en: No, not yet.
+            q: natural
+            say: "'endnu' is 'EN-noo'."
+          - you: Nej, det har jeg ikke.
+            en: No, I don't.
+            q: natural
+            tags: [negation, v2]
+          - you: Nej, jeg har ikke.
+            en: No, I don't have.
+            q: awkward
+            why: "Danish needs an object here: 'Nej, det har jeg ikke' (lit. 'no, that have I not')."
+      - mads: Seriøst? Alle i Aarhus har en cykel.
+        en: Seriously? Everyone in Aarhus has a bike.
+      - mads: Du kan låne min gamle.
+        en: You can borrow my old one.
+        say: "'gamle' is 'GAM-leh'."
+      - id: ch1.s3.cellar
+        mads: Den står i kælderen.
+        en: It's in the basement.
+        say: "Bikes 'stand' in Danish: 'den står'."
+        ctx: { står: "is (lit. stands)" }
+        tags: [definite]
+      - id: ch1.s3.bikeis
+        mads: Cyklen er den blå.
+        en: The bike is the blue one.
+        say: "'Cyklen' is 'SUEK-len'. 'blå' is 'blo'."
+        tags: [definite]
+      - id: ch1.s3.code
+        mads: Koden er fire, syv, to, ni.
+        en: The code is four, seven, two, nine.
+        say: "'fire' is 'FEER-a', 'syv' is 'syoo', 'to' is 'toe', 'ni' is 'nee'."
+        tags: [numbers, definite]
+      - exercise: { type: listen, line: ch1.s3.code, options: ["4729", "4792", "7429", "4927"], answer: "4729" }
+      - mads: Nej vent. Fire, syv, to, otte.
+        en: No wait. Four, seven, two, eight.
+        say: "'otte' is 'OH-deh'."
+        tags: [numbers]
+      - mads: Nå ja, og den er lidt gammel.
+        en: Oh yeah, and it's a bit old.
+        say: "'Nå ja' = 'oh right'. 'lidt' is 'lit'."
+      - mads: Men den virker.
+        en: But it works.
+        say: "'virker' is 'VEER-ka'."
+      - choose:
+          - you: Tusind tak, Mads!
+            en: Thanks a lot, Mads!
+            q: natural
+            rel: 2
+          - you: Fedt!
+            en: Cool!
+            q: natural
+            rel: 2
+          - you: Det er sødt af dig.
+            en: That's sweet of you.
+            q: natural
+            rel: 1
+      - mads: Chill. Det var så lidt.
+        en: No worries. You're welcome.
+        lx: { så: "så#adv" }
+      - spotlight: definite
+      - mads: Nå, jeg smutter. Vi ses!
+        en: Right, I'm off. See you!
+        say: "'smutter' = 'pop off / head out'. 'Vi ses' is 'vee says'."
+      - choose:
+          - you: Vi ses!
+            en: See you!
+            q: natural
+          - you: Hej hej!
+            en: Bye!
+            q: natural
+      - set: { bike: true }
+
+  # ───────────────────────────────────────────── Scene 4
+  - id: s4
+    title: { da: Tak for sidst, en: Good to see you again }
+    objective: { da: Gå ind i din lejlighed., en: Go into your flat. }
+    npc: amalie
+    start: { enterMap: flat }
+    cast:
+      amalie: { map: flat, x: 4, y: 5, dir: down, when: amalie_here }
+    script:
+      - narrator: Det ringer på døren.
+        en: The doorbell rings.
+        say: "'ringer' is 'RING-a'."
+      - set: { amalie_here: true }
+      - amalie: Jamen hej! Tak for sidst!
+        en: Well hi! Great to see you again!
+        say: "'Tak for sidst' (lit. thanks for last time) is what Danes say when they meet someone they last saw socially. Said 'tak fo sist'."
+      - choose:
+          - you: Tak for sidst!
+            en: Great to see you too!
+            q: natural
+          - you: I lige måde!
+            en: Likewise!
+            q: natural
+            say: "'lige måde' is 'LEE-eh MO-eh'."
+          - you: Det var så lidt.
+            en: You're welcome.
+            q: awkward
+            lx: { så: "så#adv" }
+            why: "'Det var så lidt' answers a thank-you for a favour. Answer 'tak for sidst' with 'tak for sidst' or 'i lige måde'."
+      - id: ch1.s4.now
+        amalie: Nu bor du i Aarhus!
+        en: Now you live in Aarhus!
+        tags: [v2]
+      - amalie: Hvordan går det?
+        en: How's it going?
+        say: "'Hvordan' is 'vo-DAN'."
+        ctx: { går: "goes (det går = it's going)" }
+        tags: [hv]
+      - choose:
+          - you: Det går godt, tak.
+            en: Good, thanks.
+            q: natural
+          - you: Fint. Hvad med dig?
+            en: Fine. How about you?
+            q: natural
+            rel: 1
+          - you: Jeg er fin.
+            en: I'm fine.
+            q: awkward
+            why: "'Jeg er fin' means 'I'm dressed up / I'm posh'. Say 'Det går godt' or 'Fint, tak'."
+      - amalie: Også godt. Altså, lidt træt.
+        en: Good too. Well, a bit tired.
+        say: "'Også' is 'OS-seh'. 'Altså' is 'AL-so' — a filler like 'well' or 'I mean'."
+      - amalie: Hvad synes du om lejligheden?
+        en: What do you think of the flat?
+        say: "'synes' is 'SUE-nes'. 'lejligheden' is 'LIE-li-HAY-then'."
+        tags: [hv]
+      - choose:
+          - you: Den er lille, men hyggelig.
+            en: It's small but cosy.
+            q: natural
+            rel: 1
+            say: "'hyggelig' is 'HUE-geh-li'."
+          - you: Jeg elsker den!
+            en: I love it!
+            q: natural
+          - you: Den er okay.
+            en: It's okay.
+            q: ok
+      - amalie: Ja, den er super hyggelig.
+        en: Yes, it's really cosy.
+        say: "'super' is a very common intensifier: 'super hyggelig' = really cosy."
+      - amalie: Kender du naboerne?
+        en: Do you know the neighbours?
+        tags: [yesno, definite]
+      - choose:
+          - you: Ja, Grethe er sød.
+            en: Yes, Grethe is sweet.
+            q: natural
+          - you: Ja, Mads er lidt sjov.
+            en: Yes, Mads is a bit funny.
+            q: natural
+            say: "'sjov' is 'show' (rhymes with 'now')."
+          - you: Lidt.
+            en: A bit.
+            q: ok
+      - if: { flag: coffee }
+        then:
+          - amalie: Og du skal drikke kaffe med Grethe? Hvor hyggeligt.
+            en: And you're having coffee with Grethe? How nice.
+        else:
+          - amalie: Hvor hyggeligt.
+            en: How nice.
+      - amalie: Har du et dansk nummer nu?
+        en: Do you have a Danish number now?
+        tags: [yesno]
+      - choose:
+          - you: Ja, det har jeg.
+            en: Yes, I do.
+            q: natural
+            tags: [v2]
+          - you: Ja, jeg har.
+            en: Yes, I have.
+            q: awkward
+            why: "Just like 'Ja, det er mig': Danish needs 'det' — 'Ja, det har jeg'."
+      - amalie: Hvad er det?
+        en: What is it?
+        tags: [hv]
+      - build:
+          you: Det er tyve, tolv, nitten, fjorten.
+          en: It's twenty, twelve, nineteen, fourteen.
+          extra: [ni, fire, ti]
+          show: "20 12 19 14"
+          prompt: { da: Sig dit nummer., en: "Say your number. Danish phone numbers are read in pairs." }
+          say: "'tyve' is 'TUE-veh', 'tolv' is 'tol', 'nitten' is 'NIT-ten', 'fjorten' is 'FYOR-ten'."
+          tags: [numbers]
+      - id: ch1.s4.mishear
+        amalie: Tyve, tolv, ni, fjorten?
+        en: Twenty, twelve, nine, fourteen?
+        tags: [numbers]
+      - choose:
+          - you: Nej, nitten.
+            en: No, nineteen.
+            q: natural
+          - you: Ja.
+            en: Yes.
+            q: wrong
+            why: "Listen again: she said 'ni' (9), not 'nitten' (19)."
+      - amalie: Nitten. Okay, nu har jeg det.
+        en: Nineteen. OK, now I've got it.
+        tags: [v2]
+      - id: ch1.s4.tomorrow
+        amalie: I morgen viser jeg dig byen.
+        en: Tomorrow I'll show you the city.
+        say: "'I morgen' is 'ee MORN'. The verb 'viser' comes second, then 'jeg'."
+        tags: [v2]
+      - id: ch1.s4.first
+        amalie: Først skal vi have rundstykker.
+        en: First we're having bread rolls.
+        say: "'have' is just 'ha'. 'rundstykker' is 'RON-stue-ka' — Danish weekend breakfast rolls."
+        tags: [v2]
+      - spotlight: v2
+      - amalie: Nå, men jeg smutter.
+        en: Anyway, I'm off.
+        say: "'Nå, men' = 'anyway' — it closes a topic."
+      - amalie: Sov godt i din nye lejlighed.
+        en: Sleep well in your new flat.
+        say: "'Sov' is 'sow' (rhymes with 'now')."
+      - amalie: Vi ses i morgen! Hej hej!
+        en: See you tomorrow! Bye!
+      - choose:
+          - you: Hej hej! Vi ses!
+            en: Bye! See you!
+            q: natural
+          - you: Tak for i dag!
+            en: Thanks for today!
+            q: natural
+            rel: 1
+            say: "'Tak for i dag' — thanks for today. Another everyday 'tak for …'."
+
+outro:
+  - narrator: Første kapitel er slut.
+    en: The first chapter is over.
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

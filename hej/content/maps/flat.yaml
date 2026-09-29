@@ -1,0 +1,32 @@
+id: flat
+name: { da: Din lejlighed, en: Your flat }
+spawn: { x: 4, y: 7, dir: up }
+legend:
+  "#": wall_int
+  W: window_int
+  ".": floor_wood
+  k: counter
+  F: fridge
+  B: bed_head
+  b: bed_foot
+  t: table
+  x: boxes
+  s: sofa
+  r: rug
+  D: door_exit
+tiles: |
+  ##W####W##
+  #kkF....B#
+  #.......b#
+  #..tt....#
+  #......xx#
+  #........#
+  #s..rr.x.#
+  #s..rr...#
+  ####D#####
+signs:
+  - { x: 7, y: 4, da: Så mange flyttekasser!, en: So many moving boxes!, lx: { så: "så#adv" } }
+  - { x: 8, y: 1, da: Min nye seng., en: My new bed. }
+  - { x: 2, y: 0, da: Udsigt over Aarhus., en: A view over Aarhus. }
+warps:
+  - { x: 4, y: 8, to: stairwell, tx: 1, ty: 1, dir: right }

@@ -1,0 +1,42 @@
+// Tile catalogue shared by the content compiler (for validation) and the renderer.
+// `solid` blocks movement. Doors are solid; walking into one triggers its warp or sign.
+
+export const TILES: Record<string, { solid: boolean }> = {
+  // outdoor
+  roof: { solid: true },
+  brick: { solid: true },
+  brick_window: { solid: true },
+  door: { solid: true },
+  bakery_window: { solid: true },
+  netto_front: { solid: true },
+  sidewalk: { solid: false },
+  road: { solid: false },
+  road_line: { solid: false },
+  grass: { solid: false },
+  path: { solid: false },
+  flowers: { solid: false },
+  tree: { solid: true },
+  bench: { solid: true },
+  hedge: { solid: true },
+  bike_rack: { solid: true },
+  bus_sign: { solid: true },
+  lamp: { solid: true },
+  // indoor
+  wall_int: { solid: true },
+  window_int: { solid: true },
+  floor_stone: { solid: false },
+  floor_wood: { solid: false },
+  stairs: { solid: false },
+  rug: { solid: false },
+  door_int: { solid: true },
+  door_exit: { solid: true },
+  plant: { solid: true },
+  mailboxes: { solid: true },
+  counter: { solid: true },
+  fridge: { solid: true },
+  bed_head: { solid: true },
+  bed_foot: { solid: true },
+  table: { solid: true },
+  boxes: { solid: true },
+  sofa: { solid: true },
+};

@@ -1,0 +1,54 @@
+id: street
+name: { da: Jægergårdsgade, en: Jægergårdsgade (a street in Frederiksbjerg, Aarhus) }
+spawn: { x: 2, y: 12, dir: up }
+legend:
+  R: roof
+  Y: brick
+  y: brick_window
+  D: door
+  G: bakery_window
+  n: netto_front
+  "=": sidewalk
+  "-": road
+  ":": road_line
+  ".": grass
+  T: tree
+  b: bench
+  f: flowers
+  h: hedge
+  k: bike_rack
+  s: bus_sign
+  L: lamp
+  p: path
+tiles: |
+  RRRRRRRRRRRRRRRRRRRR
+  RRRRRRRRRRRRRRRRRRRR
+  YyYyYYyYyYyYyYYyYyYY
+  YyYyYYyYyYyYyYYyYyYY
+  YGGGGYYyYyYyYYnnnnnY
+  YGDGGYYYYYDYYYnnDnnY
+  ====================
+  =L===k=========k=L==
+  --------------------
+  ::::::::::::::::::::
+  --------------------
+  ====================
+  =s==================
+  hhhhhhhhpphhhhhhhhhh
+  .T....f.pp....T....T
+  ......b.pp.b........
+  .T......pp......T...
+  ....f...pp..f.......
+  .....T..pp.T.....b..
+  ........pp..........
+  .T..............T..T
+  TTTTTTTTTTTTTTTTTTTT
+signs:
+  - { x: 3, y: 4, da: Bageri, en: Bakery, say: "'Bageri' is 'bah-eh-REE' — the g is silent." }
+  - { x: 2, y: 5, da: Lukket., en: Closed. }
+  - { x: 15, y: 4, da: Netto, en: Netto (a discount supermarket) }
+  - { x: 16, y: 5, da: Vi har lukket for i dag., en: We're closed for today. }
+  - { x: 1, y: 12, da: Bussen stopper her., en: The bus stops here. }
+  - { x: 9, y: 5, da: Nummer 12, en: Number 12, tts: Nummer tolv }
+warps:
+  - { x: 10, y: 5, to: stairwell, tx: 5, ty: 12, dir: up, needFlag: has_keys, locked: { da: Døren er låst., en: The door is locked. } }

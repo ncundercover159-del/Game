@@ -1,0 +1,54 @@
+# Menu items, buttons and exercise prompts. Every one is voiced (narrator voice).
+# Keys are referenced from src/ui. Danish is shown; English appears as a subtitle.
+ui:
+  title:        { da: Hej!, en: Hi! }
+  tagline:      { da: Lær dansk i Aarhus., en: Learn Danish in Aarhus. }
+  newGame:      { da: Ny start, en: New game }
+  continue:     { da: Fortsæt, en: Continue }
+  next:         { da: Videre, en: Next }
+  replay:       { da: Hør igen, en: Listen again }
+  slow:         { da: Langsomt, en: Slowly }
+  check:        { da: Tjek, en: Check }
+  done:         { da: Færdig, en: Done }
+  close:        { da: Luk, en: Close }
+  report:       { da: Meld en fejl, en: Report a mistake }
+  settings:     { da: Indstillinger, en: Settings }
+  review:       { da: Øv, en: Practise }
+  talk:         { da: Snak, en: Chat }
+  deck:         { da: Mine ord, en: My words }
+  addToDeck:    { da: Læg i bunken, en: Add to my deck }
+  inDeck:       { da: I bunken, en: In my deck }
+  pickName:     { da: Hvad hedder du?, en: What's your name? }
+  pickVoice:    { da: Vælg din stemme., en: Choose your voice. }
+  voiceF:       { da: Kvinde, en: Woman }
+  voiceM:       { da: Mand, en: Man }
+  start:        { da: Start, en: Start }
+  listenChoose: { da: Lyt og vælg., en: Listen and choose. }
+  whatMeans:    { da: Hvad betyder det?, en: What does it mean? }
+  order:        { da: Sæt ordene i rækkefølge., en: Put the words in order. }
+  buildReply:   { da: Byg dit svar., en: Build your reply. }
+  chooseReply:  { da: Hvad siger du?, en: What do you say? }
+  correct:      { da: Rigtigt!, en: Correct! }
+  wrong:        { da: Ikke helt., en: Not quite. }
+  showText:     { da: Vis teksten, en: Show the text }
+  spotlight:    { da: Mønster, en: Pattern }
+  practiseNow:  { da: Nu prøver du., en: Now you try. }
+  sceneDone:    { da: Godt klaret!, en: Well done! }
+  chapterTest:  { da: Kapiteltest, en: Chapter test }
+  passed:       { da: Bestået!, en: Passed! }
+  notPassed:    { da: Ikke bestået. Prøv igen., en: Not passed. Try again. }
+  comingSoon:   { da: Kommer snart., en: Coming soon. }
+  nothingDue:   { da: Du har ikke noget at øve lige nu., en: You have nothing to practise right now. }
+  mail:         { da: Du har post!, en: You've got mail! }
+  noMail:       { da: Der er ingen post i dag., en: There's no mail today. }
+  subtitles:    { da: Undertekster, en: Subtitles }
+  modeEn:       { da: Engelsk, en: English }
+  modeDa:       { da: Kun dansk, en: Danish only }
+  modeBare:     { da: Ingen hjælp, en: No hints }
+  send:         { da: Send, en: Send }
+  hint:         { da: Hjælp, en: Hint }
+  wordBank:     { da: Ordbank, en: Word bank }
+  typeHere:     { da: Skriv på dansk., en: Write in Danish. }
+  tryAgain:     { da: Prøv igen., en: Try again. }
+  sayIt:        { da: Sig det sådan her., en: Say it like this. }
+  bye:          { da: Farvel, en: Goodbye }

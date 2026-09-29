@@ -1,0 +1,108 @@
+# Recurring characters. Lines here are tokenised and voiced like any dialogue.
+# greet: picked by relationship level (low < 30 <= mid < 60 <= high).
+# idle: small talk when there is no scene or review to run; first matching cond wins.
+# review / praise / retry: framing lines for spaced-repetition reviews woven into the world.
+
+names: [Alex, Sam, Kim, Robin, Charlie]
+
+npcs:
+  henrik:
+    name: Henrik
+    role: { da: udlejer, en: landlord }
+    register: Brisk, friendly-professional. Short sentences. "Så er det på plads."
+    voice: henrik
+    look: { skin: "#e9b98f", hair: "#8a8a8a", style: short, shirt: "#3b5b8c", pants: "#2d2d38", accent: "#d9d9d9" }
+    home: { map: street, x: 10, y: 6, dir: down }
+    greet:
+      low:  [{ henrik: Hej igen., en: Hi again. }]
+      mid:  [{ henrik: "Hej, {name}. Er alt i orden?", en: "Hi, {name}. Is everything OK?", say: "'i orden' is said 'ee OR-den'." }]
+      high: [{ henrik: "Nå, hej med dig!", en: "Oh, hi there!", say: "'hej med dig' — lit. 'hi with you', a warm hello." }]
+    idle:
+      - cond: { flag: asked_laundry }
+        henrik: Husk at booke en tid i vaskekælderen.
+        en: Remember to book a time in the laundry room.
+        say: "'Husk at' — the 'at' sounds like 'o'."
+      - henrik: Sig til, hvis der er noget.
+        en: Let me know if there's anything.
+        say: "'Sig til' sounds like 'see til'. 'noget' is 'NO-eth' — the g is silent."
+    review:
+      - { henrik: Lige et hurtigt spørgsmål., en: Just a quick question. }
+    praise:
+      - { henrik: Fint., en: Good. }
+    retry:
+      - { henrik: Næsten., en: Almost. }
+
+  grethe:
+    name: Grethe
+    role: { da: nabo, en: neighbour }
+    register: Warm, old-fashioned, chatty. "Nå", "goddag", "min ven". Offers coffee.
+    voice: grethe
+    look: { skin: "#f0c7a4", hair: "#e8e8e8", style: bun, shirt: "#8e4f7a", pants: "#4a3a5a", accent: "#f2d24b" }
+    home: { map: stairwell, x: 7, y: 8, dir: left }
+    greet:
+      low:  [{ grethe: Goddag., en: "Good day. / Hello.", say: "'go-DAY' — the second d is soft, almost silent." }]
+      mid:  [{ grethe: "Nå, hej med dig!", en: "Oh, hi there!" }]
+      high: [{ grethe: "Hej, min ven!", en: "Hi, my friend!" }]
+    idle:
+      - cond: { flag: origin, eq: usa }
+        grethe: Min søn i Chicago siger hej!
+        en: My son in Chicago says hi!
+      - cond: { flag: origin, eq: england }
+        grethe: Savner du England?
+        en: Do you miss England?
+        say: "'Savner' — the v is almost silent: 'SOW-na'."
+      - cond: { flag: origin, eq: australia }
+        grethe: Savner du Australien?
+        en: Do you miss Australia?
+      - grethe: Kom forbi til en kop kaffe.
+        en: Come by for a cup of coffee.
+    review:
+      - { grethe: "Nå, kan du huske det her?", en: "Well, can you remember this?" }
+    praise:
+      - { grethe: Flot!, en: Well done! }
+    retry:
+      - { grethe: Næsten., en: Almost. }
+
+  mads:
+    name: Mads
+    role: { da: nabo (15 år), en: neighbour (15) }
+    register: Teen slang. "Yo", "fedt", "nice", "seriøst?", "chill", "hva' så".
+    voice: mads
+    look: { skin: "#d9a57c", hair: "#5a3a22", style: cap, shirt: "#2f9e6a", pants: "#34495e", accent: "#e74c3c" }
+    home: { map: stairwell, x: 4, y: 5, dir: right }
+    greet:
+      low:  [{ mads: Yo., en: Yo. }]
+      mid:  [{ mads: "Yo, hva' så?", en: "Yo, what's up?", say: "'hva' så' — 'hvad' loses its h and d: 'va so'." }]
+      high: [{ mads: "Hva' så, gamle?", en: "What's up, mate?", say: "'gamle' (lit. 'old one') is a friendly 'mate'." }]
+    idle:
+      - cond: { flag: bike }
+        mads: Virker cyklen?
+        en: Does the bike work?
+      - mads: Jeg keder mig.
+        en: I'm bored.
+    review:
+      - { mads: "Yo, en hurtig quiz.", en: "Yo, a quick quiz." }
+    praise:
+      - { mads: Nice., en: Nice. }
+    retry:
+      - { mads: "Næsten, bro.", en: "Almost, bro." }
+
+  amalie:
+    name: Amalie
+    role: { da: bedste veninde, en: best friend }
+    register: Casual, upbeat, lots of fillers. "Jamen", "altså", "ikke?", "super".
+    voice: amalie
+    look: { skin: "#f2c9a8", hair: "#d8a24a", style: long, shirt: "#e0664f", pants: "#3a4d7a", accent: "#ffffff" }
+    greet:
+      low:  [{ amalie: Hej hej!, en: Hi hi! }]
+      mid:  [{ amalie: Jamen hej!, en: Well hi!, say: "'jamen' — 'YA-men'." }]
+      high: [{ amalie: "Hej, søde!", en: "Hi, sweetie!", say: "'søde' — 'SØ-the', soft d." }]
+    idle:
+      - amalie: Vi ses i morgen!
+        en: See you tomorrow!
+    review:
+      - { amalie: Skal vi lige øve lidt?, en: Shall we practise a bit?, say: "'lige' is 'LEE-eh'; the g is silent." }
+    praise:
+      - { amalie: Sådan!, en: That's it!, say: "'Sådan' — 'SO-dan'." }
+    retry:
+      - { amalie: Næsten., en: Almost. }

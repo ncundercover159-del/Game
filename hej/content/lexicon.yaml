@@ -1,0 +1,353 @@
+# Shared lexicon. Every word in every sentence links here (the compiler fails on unknown words).
+#
+# id:     the lemma (dictionary form). Add "#tag" to split homographs, e.g. "så#adv".
+# pos:    noun verb adj adv pron prep conj interj num art name phrase part
+# g:      en / et (nouns)
+# forms:  nouns   def (the …), pl, defpl
+#         verbs   inf, pres, past, perf (participle), imp; `aux: er` if the perfect uses "er"
+#         adj     t (et-form), e (plural/definite), comp, sup
+#         pron    obj, poss, et, pl
+#         Spoken spellings (hva', ik') go in `also`.
+# rank:   approximate frequency rank (1 = most common), from general Danish frequency lists.
+#         Used to check that A1 content introduces common words first.
+# say:    how it's really pronounced, in English-friendly respelling.
+# Phrases (pos: phrase) are matched across tokens and shown alongside the single word.
+
+ambiguous:
+  en: "en#art"
+  et: "en#art"
+  så: "så#adv"
+  svar: svar
+  svaret: svar
+  hygge: "hygge#noun"
+  lidt: lidt
+
+entries:
+  # ── articles, pronouns ──────────────────────────────────────────────────
+  "en#art": { lemma: en, pos: art, en: "a, an", forms: { et: et }, rank: 6, say: "'en' is 'en'; 'et' is 'et' (t is soft, almost 'ed')", note: "en-words take 'en', et-words take 'et'. About 75% of nouns are en-words." }
+  "en#num": { lemma: en, pos: num, en: one, value: 1, forms: { et: et }, rank: 300 }
+  jeg: { pos: pron, en: I, forms: { obj: mig }, rank: 11, say: "'yai'. 'mig' is 'my'." }
+  du: { pos: pron, en: you, forms: { obj: dig }, rank: 27, say: "'doo'. 'dig' is 'die'." }
+  vi: { pos: pron, en: we, forms: { obj: os }, rank: 26 }
+  den: { pos: pron, en: "it; the (en-word + adjective)", rank: 16, say: "'den' — the n is short.", note: "'den' refers to en-words: en cykel → den." }
+  det: { pos: pron, en: "it; that; there", rank: 4, say: "'de' — the t is silent.", note: "'det' refers to et-words and to whole situations: 'Det går godt'." }
+  der: { pos: pron, en: "there; who / that", rank: 18, say: "'da'" }
+  mange: { pos: adj, en: many, forms: { comp: flere, sup: flest }, rank: 76, say: "'MANG-eh'" }
+  alle: { pos: pron, en: "everyone, all", rank: 43, say: "'AL-leh'" }
+  alt: { pos: pron, en: everything, rank: 150 }
+  ingen: { pos: pron, en: "no one, nobody, no", forms: { et: intet }, rank: 190, say: "'ING-en'" }
+  noget: { pos: pron, en: "something, anything", rank: 57, say: "'NO-eth' — silent g" }
+  nogen: { pos: pron, en: "any, anyone, some", rank: 120, say: "'NO-en' — silent g" }
+  min: { pos: pron, en: "my, mine", forms: { et: mit, pl: mine }, rank: 48, say: "'meen'. 'mit' is 'mit'. 'mine' is 'MEE-neh'.", note: "min with en-words, mit with et-words, mine with plurals." }
+  din: { pos: pron, en: "your, yours", forms: { et: dit, pl: dine }, rank: 110, say: "'deen'" }
+
+  # ── verbs ───────────────────────────────────────────────────────────────
+  være: { pos: verb, en: be, forms: { inf: at være, pres: er, past: var, perf: været, imp: vær }, rank: 5, say: "'VAIR-a'. 'er' is often just 'a', 'var' is 'va'." }
+  have: { pos: verb, en: have, forms: { inf: at have, pres: har, past: havde, perf: haft, imp: hav }, rank: 15, say: "'have' is just 'ha'. 'har' is 'hah'.", note: "Also used for eating/drinking: 'Vi skal have rundstykker' = we're having rolls." }
+  hedde: { pos: verb, en: be called, forms: { inf: at hedde, pres: hedder, past: hed, perf: heddet }, rank: 620, say: "'HETH-a' — soft d, like 'th' in 'the'", note: "Danish doesn't say 'my name is'; it says 'I am called': 'Jeg hedder …'." }
+  bo: { pos: verb, en: live (reside), forms: { inf: at bo, pres: bor, past: boede, perf: boet, imp: bo }, rank: 260, say: "'bor' is 'boa'" }
+  komme: { pos: verb, en: come, forms: { inf: at komme, pres: kommer, past: kom, perf: kommet, imp: kom, aux: er }, rank: 34, say: "'KOM-meh'; 'kommer' is 'KOM-a'" }
+  kunne: { pos: verb, en: "can, be able to", forms: { inf: at kunne, pres: kan, past: kunne, perf: kunnet }, rank: 25, say: "'kan' is 'ka' in fast speech" }
+  skulle: { pos: verb, en: "shall, have to, be going to", forms: { inf: at skulle, pres: skal, past: skulle, perf: skullet }, rank: 29, say: "'skal' is 'ska' in fast speech", note: "'Jeg skal …' often means a plan: 'I'm going to …'." }
+  ville: { pos: verb, en: "want to, will", forms: { inf: at ville, pres: vil, past: ville, perf: villet }, rank: 35, say: "'vil' is 'vel'" }
+  gå: { pos: verb, en: "go, walk", forms: { inf: at gå, pres: går, past: gik, perf: gået, imp: gå, aux: er }, rank: 70, say: "'go'", note: "'Hvordan går det?' = how's it going?" }
+  se: { pos: verb, en: see, forms: { inf: at se, pres: ser, past: så, perf: set, imp: se, passive: ses }, rank: 52, say: "'seh'. 'ses' is 'says'.", note: "'Vi ses' = see you (lit. we'll see each other)." }
+  lave: { pos: verb, en: "do, make", forms: { inf: at lave, pres: laver, past: lavede, perf: lavet, imp: lav }, rank: 160, say: "'LAA-veh'; 'laver' is 'LAA-va'", note: "'Hvad laver du?' = what are you doing? / what do you do?" }
+  tale: { pos: verb, en: speak, forms: { inf: at tale, pres: taler, past: talte, perf: talt, imp: tal }, rank: 200, say: "'TAA-leh'" }
+  lære: { pos: verb, en: learn, forms: { inf: at lære, pres: lærer, past: lærte, perf: lært, imp: lær }, rank: 420, say: "'LAIR-a'" }
+  drikke: { pos: verb, en: drink, forms: { inf: at drikke, pres: drikker, past: drak, perf: drukket, imp: drik }, rank: 900, say: "'DREG-geh'" }
+  få: { pos: verb, en: "get, receive", forms: { inf: at få, pres: får, past: fik, perf: fået, imp: få }, rank: 44, say: "'fo'" }
+  kende: { pos: verb, en: know (a person or thing), forms: { inf: at kende, pres: kender, past: kendte, perf: kendt, imp: kend }, rank: 180, say: "'KEN-neh' — silent d", note: "'kende' = know someone/something; 'vide' = know a fact." }
+  låne: { pos: verb, en: borrow, forms: { inf: at låne, pres: låner, past: lånte, perf: lånt, imp: lån }, rank: 1800, say: "'LO-neh'" }
+  stå: { pos: verb, en: stand, forms: { inf: at stå, pres: står, past: stod, perf: stået, imp: stå }, rank: 90, say: "'sto'", note: "Things that stand upright 'stand' in Danish: 'Cyklen står i kælderen'." }
+  virke: { pos: verb, en: "work, function", forms: { inf: at virke, pres: virker, past: virkede, perf: virket }, rank: 700, say: "'VEER-keh'" }
+  smutte: { pos: verb, en: "pop off, head out (informal)", forms: { inf: at smutte, pres: smutter, past: smuttede, perf: smuttet, imp: smut, aux: er }, rank: 4200, say: "'SMOO-deh'", note: "Very common way to say you're leaving: 'Jeg smutter'." }
+  vente: { pos: verb, en: wait, forms: { inf: at vente, pres: venter, past: ventede, perf: ventet, imp: vent }, rank: 380, say: "'VEN-teh'" }
+  ringe: { pos: verb, en: "ring, call", forms: { inf: at ringe, pres: ringer, past: ringede, perf: ringet, imp: ring }, rank: 950, note: "'Det ringer på døren' = the doorbell's ringing." }
+  synes: { pos: verb, en: "think (have an opinion)", forms: { inf: at synes, pres: synes, past: syntes, perf: syntes }, rank: 240, say: "'SUE-nes'", note: "For opinions use 'synes': 'Hvad synes du om …?'." }
+  elske: { pos: verb, en: love, forms: { inf: at elske, pres: elsker, past: elskede, perf: elsket, imp: elsk }, rank: 1300, say: "'EL-skeh'" }
+  vise: { pos: verb, en: show, forms: { inf: at vise, pres: viser, past: viste, perf: vist, imp: vis }, rank: 150, say: "'VEE-seh'" }
+  sove: { pos: verb, en: sleep, forms: { inf: at sove, pres: sover, past: sov, perf: sovet, imp: sov }, rank: 1400, say: "'SOW-eh'; 'sov' rhymes with 'now'" }
+  arbejde: { pos: verb, en: work, forms: { inf: at arbejde, pres: arbejder, past: arbejdede, perf: arbejdet, imp: arbejd }, rank: 330, say: "'AH-bye-deh'" }
+  læse: { pos: verb, en: "read; study (at university)", forms: { inf: at læse, pres: læser, past: læste, perf: læst, imp: læs }, rank: 350, say: "'LAY-seh'" }
+  studere: { pos: verb, en: study, forms: { inf: at studere, pres: studerer, past: studerede, perf: studeret }, rank: 2400, say: "'stoo-DEER-a'" }
+  booke: { pos: verb, en: book, forms: { inf: at booke, pres: booker, past: bookede, perf: booket }, rank: 5000, say: "'BOO-keh'" }
+  flytte: { pos: verb, en: move (house), forms: { inf: at flytte, pres: flytter, past: flyttede, perf: flyttet, imp: flyt, aux: er }, rank: 600, say: "'FLUE-deh'" }
+  huske: { pos: verb, en: remember, forms: { inf: at huske, pres: husker, past: huskede, perf: husket, imp: husk }, rank: 550, say: "'HOOS-keh'" }
+  sige: { pos: verb, en: say, forms: { inf: at sige, pres: siger, past: sagde, perf: sagt, imp: sig }, rank: 58, say: "'SEE-eh'; 'siger' is 'SEE-a'; 'sagde' is 'sa'", note: "'Sig til' = let me know." }
+  savne: { pos: verb, en: miss (someone), forms: { inf: at savne, pres: savner, past: savnede, perf: savnet, imp: savn }, rank: 2200, say: "'SOW-neh'" }
+  kede: { pos: verb, en: bore, forms: { inf: at kede, pres: keder, past: kedede, perf: kedet }, rank: 3500, say: "'KAY-theh'", note: "'Jeg keder mig' = I'm bored (lit. I bore myself)." }
+  høre: { pos: verb, en: hear, forms: { inf: at høre, pres: hører, past: hørte, perf: hørt, imp: hør }, rank: 170, say: "'HUR-a'" }
+  stoppe: { pos: verb, en: stop, forms: { inf: at stoppe, pres: stopper, past: stoppede, perf: stoppet, imp: stop }, rank: 1100 }
+  blive: { pos: verb, en: "become, get; stay", forms: { inf: at blive, pres: bliver, past: blev, perf: blevet, imp: bliv, aux: er }, rank: 30, say: "'BLEE-eh'; 'bliver' is 'BLEER'" }
+  øve: { pos: verb, en: practise, forms: { inf: at øve, pres: øver, past: øvede, perf: øvet, imp: øv }, rank: 2600, say: "'UR-veh'" }
+  prøve: { pos: verb, en: try, forms: { inf: at prøve, pres: prøver, past: prøvede, perf: prøvet, imp: prøv }, rank: 330, say: "'PRUR-veh'" }
+  vælge: { pos: verb, en: choose, forms: { inf: at vælge, pres: vælger, past: valgte, perf: valgt, imp: vælg }, rank: 480, say: "'VEL-yeh'" }
+  lytte: { pos: verb, en: listen, forms: { inf: at lytte, pres: lytter, past: lyttede, perf: lyttet, imp: lyt }, rank: 1500, say: "'LUE-deh'" }
+  lukke: { pos: verb, en: close, forms: { inf: at lukke, pres: lukker, past: lukkede, perf: lukket, imp: luk }, rank: 850, say: "'LOG-geh'", note: "'Lukket' = closed. 'Vi har lukket' = we're closed." }
+  låse: { pos: verb, en: lock, forms: { inf: at låse, pres: låser, past: låste, perf: låst, imp: lås }, rank: 3200, say: "'LO-seh'" }
+  finde: { pos: verb, en: find, forms: { inf: at finde, pres: finder, past: fandt, perf: fundet, imp: find }, rank: 120, say: "'FIN-neh' — silent d" }
+  skrive: { pos: verb, en: write, forms: { inf: at skrive, pres: skriver, past: skrev, perf: skrevet, imp: skriv }, rank: 190, say: "'SKREE-veh'" }
+  sende: { pos: verb, en: send, forms: { inf: at sende, pres: sender, past: sendte, perf: sendt, imp: send }, rank: 560, say: "'SEN-neh'" }
+  tage: { pos: verb, en: take, forms: { inf: at tage, pres: tager, past: tog, perf: taget, imp: tag }, rank: 64, say: "'TAA-eh' or just 'ta'; 'tager' is 'TA-a'" }
+  sætte: { pos: verb, en: "put, set", forms: { inf: at sætte, pres: sætter, past: satte, perf: sat, imp: sæt }, rank: 260, say: "'SEH-deh'" }
+  bygge: { pos: verb, en: build, forms: { inf: at bygge, pres: bygger, past: byggede, perf: bygget, imp: byg }, rank: 800, say: "'BUE-geh'" }
+  melde: { pos: verb, en: report, forms: { inf: at melde, pres: melder, past: meldte, perf: meldt, imp: meld }, rank: 1700, say: "'MEL-leh'" }
+  lægge: { pos: verb, en: "put, lay", forms: { inf: at lægge, pres: lægger, past: lagde, perf: lagt, imp: læg }, rank: 320, say: "'LEG-geh'" }
+  betyde: { pos: verb, en: mean, forms: { inf: at betyde, pres: betyder, past: betød, perf: betydet }, rank: 520, say: "'beh-TUE-theh'" }
+  fortsætte: { pos: verb, en: continue, forms: { inf: at fortsætte, pres: fortsætter, past: fortsatte, perf: fortsat, imp: fortsæt }, rank: 700 }
+  tjekke: { pos: verb, en: check, forms: { inf: at tjekke, pres: tjekker, past: tjekkede, perf: tjekket, imp: tjek }, rank: 2800, say: "'CHEG-geh'" }
+  svare: { pos: verb, en: answer, forms: { inf: at svare, pres: svarer, past: svarede, perf: svaret, imp: svar }, rank: 500, say: "'SVAA-a'" }
+  starte: { pos: verb, en: start, forms: { inf: at starte, pres: starter, past: startede, perf: startet, imp: start }, rank: 900 }
+  klare: { pos: verb, en: "manage, handle", forms: { inf: at klare, pres: klarer, past: klarede, perf: klaret, imp: klar }, rank: 600, note: "'Godt klaret!' = well done!" }
+  bestå: { pos: verb, en: pass (a test), forms: { inf: at bestå, pres: består, past: bestod, perf: bestået }, rank: 1300 }
+  møde: { pos: verb, en: meet, forms: { inf: at møde, pres: møder, past: mødte, perf: mødt, imp: mød }, rank: 420, say: "'MUR-theh'", note: "'Hyggeligt at møde dig' = nice to meet you." }
+  hygge: { pos: verb, en: "have a cosy time", forms: { inf: at hygge, pres: hygger, past: hyggede, perf: hygget }, rank: 3800, say: "'HUE-geh'" }
+  lide: { pos: verb, en: "(kunne lide) like", forms: { inf: at lide, pres: lider, past: led, perf: lidt }, rank: 450, say: "'LEE' — the d is silent", note: "'Jeg kan godt lide kaffe' = I like coffee. 'lide' alone means 'suffer'." }
+
+  # ── nouns ───────────────────────────────────────────────────────────────
+  udlejer: { pos: noun, g: en, en: landlord, forms: { def: udlejeren, pl: udlejere, defpl: udlejerne }, rank: 9000, say: "'OOTH-lie-a'" }
+  nøgle: { pos: noun, g: en, en: key, forms: { def: nøglen, pl: nøgler, defpl: nøglerne }, rank: 2600, say: "'NOY-leh'" }
+  ting: { pos: noun, g: en, en: thing, forms: { def: tingen, pl: ting, defpl: tingene }, rank: 110, note: "'mange ting' = lots of stuff" }
+  hoveddør: { pos: noun, g: en, en: front door, forms: { def: hoveddøren, pl: hoveddøre, defpl: hoveddørene }, rank: 12000, say: "'HO-eth-dur'" }
+  dør: { pos: noun, g: en, en: door, forms: { def: døren, pl: døre, defpl: dørene }, rank: 900, say: "'dur'" }
+  postkasse: { pos: noun, g: en, en: mailbox, forms: { def: postkassen, pl: postkasser, defpl: postkasserne }, rank: 9000 }
+  sal: { pos: noun, g: en, en: "floor (storey); hall", forms: { def: salen, pl: sale, defpl: salene }, rank: 2500, say: "'sal'", note: "Floors: stuen (ground floor), 1. sal, 2. sal … Addresses: 3. tv. = 3rd floor, left." }
+  spørgsmål: { pos: noun, g: et, en: question, forms: { def: spørgsmålet, pl: spørgsmål, defpl: spørgsmålene }, rank: 400, say: "'SPURS-mol' — the g is silent" }
+  vaskekælder: { pos: noun, g: en, en: "laundry room (in the basement)", forms: { def: vaskekælderen, pl: vaskekældre, defpl: vaskekældrene }, rank: 20000, say: "'VAS-keh-kel-la'", note: "Most Danish apartment buildings share a laundry room you book time slots in." }
+  cykelkælder: { pos: noun, g: en, en: bike cellar, forms: { def: cykelkælderen, pl: cykelkældre }, rank: 25000 }
+  kælder: { pos: noun, g: en, en: "basement, cellar", forms: { def: kælderen, pl: kældre, defpl: kældrene }, rank: 3500, say: "'KEL-la'" }
+  tid: { pos: noun, g: en, en: time, forms: { def: tiden, pl: tider, defpl: tiderne }, rank: 88, say: "'tith'" }
+  plads: { pos: noun, g: en, en: "place, room, space", forms: { def: pladsen, pl: pladser, defpl: pladserne }, rank: 380, say: "'plas' — silent d" }
+  nummer: { pos: noun, g: et, en: number, forms: { def: nummeret, pl: numre, defpl: numrene }, rank: 700, say: "'NOM-ma'" }
+  nabo: { pos: noun, g: en, en: neighbour, forms: { def: naboen, pl: naboer, defpl: naboerne }, rank: 2400, say: "'NAA-bo'" }
+  navn: { pos: noun, g: et, en: name, forms: { def: navnet, pl: navne, defpl: navnene }, rank: 380, say: "'now-n'" }
+  søn: { pos: noun, g: en, en: son, forms: { def: sønnen, pl: sønner, defpl: sønnerne }, rank: 900, say: "'sun'" }
+  kop: { pos: noun, g: en, en: cup, forms: { def: koppen, pl: kopper, defpl: kopperne }, rank: 3000 }
+  kaffe: { pos: noun, g: en, en: coffee, forms: { def: kaffen }, rank: 1600, say: "'KAF-feh'" }
+  te: { pos: noun, g: en, en: tea, forms: { def: teen }, rank: 5000, say: "'teh'" }
+  cykel: { pos: noun, g: en, en: bike, forms: { def: cyklen, pl: cykler, defpl: cyklerne }, rank: 2400, say: "'SUE-kel'; 'cyklen' is 'SUEK-len'" }
+  kode: { pos: noun, g: en, en: code, forms: { def: koden, pl: koder, defpl: koderne }, rank: 2800, say: "'KO-theh'" }
+  lejlighed: { pos: noun, g: en, en: "flat, apartment", forms: { def: lejligheden, pl: lejligheder, defpl: lejlighederne }, rank: 1500, say: "'LIE-li-heth'" }
+  by: { pos: noun, g: en, en: "town, city", forms: { def: byen, pl: byer, defpl: byerne }, rank: 170, say: "'bue'" }
+  rundstykke: { pos: noun, g: et, en: bread roll, forms: { def: rundstykket, pl: rundstykker, defpl: rundstykkerne }, rank: 15000, say: "'RON-stue-keh'", note: "The classic Danish weekend breakfast, from the bakery." }
+  dag: { pos: noun, g: en, en: day, forms: { def: dagen, pl: dage, defpl: dagene }, rank: 85, say: "'day'", note: "'i dag' = today" }
+  morgen: { pos: noun, g: en, en: morning, forms: { def: morgenen, pl: morgener }, rank: 400, say: "'MORN'", note: "'i morgen' = tomorrow; 'i morges' = this morning" }
+  orden: { pos: noun, g: en, en: order, forms: { def: ordenen }, rank: 1700, say: "'OR-den'" }
+  ven: { pos: noun, g: en, en: friend, forms: { def: vennen, pl: venner, defpl: vennerne }, rank: 400, say: "'ven'" }
+  seng: { pos: noun, g: en, en: bed, forms: { def: sengen, pl: senge, defpl: sengene }, rank: 1500 }
+  flyttekasse: { pos: noun, g: en, en: moving box, forms: { def: flyttekassen, pl: flyttekasser, defpl: flyttekasserne }, rank: 30000 }
+  udsigt: { pos: noun, g: en, en: view, forms: { def: udsigten, pl: udsigter }, rank: 2500, say: "'OOTH-sigt'" }
+  post: { pos: noun, g: en, en: "mail, post", forms: { def: posten }, rank: 1500 }
+  familie: { pos: noun, g: en, en: family, forms: { def: familien, pl: familier, defpl: familierne }, rank: 350, say: "'fa-MEEL-yeh'" }
+  opgang: { pos: noun, g: en, en: stairwell (of a block of flats), forms: { def: opgangen, pl: opgange, defpl: opgangene }, rank: 14000, say: "'OP-gang'" }
+  trappe: { pos: noun, g: en, en: stairs, forms: { def: trappen, pl: trapper, defpl: trapperne }, rank: 2400 }
+  bageri: { pos: noun, g: et, en: bakery, forms: { def: bageriet, pl: bagerier, defpl: bagerierne }, rank: 9000, say: "'bah-eh-REE' — the g is silent" }
+  måde: { pos: noun, g: en, en: way, forms: { def: måden, pl: måder, defpl: måderne }, rank: 160, say: "'MO-eh'" }
+  quiz: { pos: noun, g: en, en: quiz, forms: { def: quizzen, pl: quizzer }, rank: 12000, say: "'kwiz'" }
+  bro: { pos: noun, g: en, en: "bro (slang)", forms: { def: broen }, rank: 20000, note: "Slang from English, used by teenagers." }
+  kapitel: { pos: noun, g: et, en: chapter, forms: { def: kapitlet, pl: kapitler, defpl: kapitlerne }, rank: 2000 }
+  test: { pos: noun, g: en, en: test, forms: { def: testen, pl: test, defpl: testene }, rank: 1800 }
+  kapiteltest: { pos: noun, g: en, en: chapter test, forms: { def: kapiteltesten }, rank: 50000 }
+  tekst: { pos: noun, g: en, en: text, forms: { def: teksten, pl: tekster, defpl: teksterne }, rank: 1000 }
+  undertekst: { pos: noun, g: en, en: subtitle, forms: { def: underteksten, pl: undertekster, defpl: underteksterne }, rank: 15000 }
+  ord: { pos: noun, g: et, en: word, forms: { def: ordet, pl: ord, defpl: ordene }, rank: 400, say: "'or'" }
+  ordbank: { pos: noun, g: en, en: word bank, forms: { def: ordbanken }, rank: 50000 }
+  rækkefølge: { pos: noun, g: en, en: order (sequence), forms: { def: rækkefølgen }, rank: 4000 }
+  fejl: { pos: noun, g: en, en: mistake, forms: { def: fejlen, pl: fejl, defpl: fejlene }, rank: 800, say: "'fail'" }
+  stemme: { pos: noun, g: en, en: voice, forms: { def: stemmen, pl: stemmer, defpl: stemmerne }, rank: 900 }
+  kvinde: { pos: noun, g: en, en: woman, forms: { def: kvinden, pl: kvinder, defpl: kvinderne }, rank: 450, say: "'KVIN-neh'" }
+  mand: { pos: noun, g: en, en: man, forms: { def: manden, pl: mænd, defpl: mændene }, rank: 200, say: "'man' — silent d" }
+  bunke: { pos: noun, g: en, en: "pile, stack; (here) deck", forms: { def: bunken, pl: bunker }, rank: 6000 }
+  indstilling: { pos: noun, g: en, en: setting, forms: { def: indstillingen, pl: indstillinger, defpl: indstillingerne }, rank: 6000 }
+  hjælp: { pos: noun, g: en, en: help, forms: { def: hjælpen }, rank: 500, say: "'yelp'" }
+  mønster: { pos: noun, g: et, en: pattern, forms: { def: mønstret, pl: mønstre }, rank: 3000 }
+  snak: { pos: noun, g: en, en: "chat, talk", forms: { def: snakken }, rank: 3000, note: "Verb: at snakke (to chat)." }
+  spørgeord: { pos: noun, g: et, en: question word, forms: { def: spørgeordet, pl: spørgeord, defpl: spørgeordene }, rank: 15000, say: "'SPUR-eh-or'" }
+  form: { pos: noun, g: en, en: form, forms: { def: formen, pl: former, defpl: formerne }, rank: 600 }
+  verbum: { pos: noun, g: et, en: verb, forms: { def: verbet, pl: verber, defpl: verberne }, rank: 9000, say: "'VAIR-bom'" }
+  bus: { pos: noun, g: en, en: bus, forms: { def: bussen, pl: busser, defpl: busserne }, rank: 1800 }
+  svar: { pos: noun, g: et, en: answer, forms: { def: svaret, pl: svar, defpl: svarene }, rank: 700 }
+  ankomst: { pos: noun, g: en, en: arrival, forms: { def: ankomsten }, rank: 4500 }
+  "hygge#noun": { lemma: hygge, pos: noun, g: en, en: cosiness, forms: { def: hyggen }, rank: 4000, note: "The famous Danish word: a warm, relaxed, together feeling." }
+  tak: { pos: noun, g: en, en: "thanks, thank you", forms: { def: takken }, rank: 180, note: "Danes say 'tak' a lot — and 'tak for …' for almost anything." }
+
+  # ── adjectives ──────────────────────────────────────────────────────────
+  god: { pos: adj, en: "good; (godt) well", forms: { t: godt, e: gode, comp: bedre, sup: bedst }, rank: 45, say: "'goth'; 'godt' is 'got'" }
+  dårlig: { pos: adj, en: "bad; ill", forms: { t: dårligt, e: dårlige }, rank: 900, say: "'DOR-li'; 'dårligt' is 'DOR-lit'" }
+  fin: { pos: adj, en: "fine, nice; posh", forms: { t: fint, e: fine }, rank: 400, note: "'Jeg er fin' means 'I'm dressed up', not 'I'm fine'." }
+  dejlig: { pos: adj, en: "lovely, nice", forms: { t: dejligt, e: dejlige }, rank: 700, say: "'DYE-li'; 'dejligt' is 'DYE-lit'" }
+  hyggelig: { pos: adj, en: "cosy, nice, pleasant", forms: { t: hyggeligt, e: hyggelige }, rank: 1800, say: "'HUE-geh-li'", note: "Used for places, evenings, people: 'Det var hyggeligt' = that was nice." }
+  stor: { pos: adj, en: "big, large", forms: { t: stort, e: store, comp: større, sup: størst }, rank: 100, say: "'stor'; 'store' is 'STOR-a'" }
+  lille: { pos: adj, en: "small, little", forms: { pl: små, comp: mindre, sup: mindst }, rank: 190, say: "'LEE-leh'" }
+  ny: { pos: adj, en: new, forms: { t: nyt, e: nye }, rank: 140, say: "'new'" }
+  gammel: { pos: adj, en: old, forms: { t: gammelt, e: gamle, comp: ældre, sup: ældst }, rank: 300, say: "'GAM-mel'; 'gamle' is 'GAM-leh'", note: "Teens use 'gamle' as 'mate': 'Hva' så, gamle?'" }
+  sød: { pos: adj, en: "sweet, kind", forms: { t: sødt, e: søde }, rank: 1400, say: "'søth'; 'sødt' is 'søt'", note: "'søde' also works as 'sweetie'." }
+  hurtig: { pos: adj, en: "quick, fast", forms: { t: hurtigt, e: hurtige }, rank: 800, say: "'HOOR-ti'; 'hurtigt' is 'HOOR-tit'" }
+  spændende: { pos: adj, en: exciting, rank: 1300, say: "'SPEN-neh-neh' — the d's are silent" }
+  bestemt: { pos: adj, en: "definite; certain", forms: { e: bestemte }, rank: 700 }
+  træt: { pos: adj, en: tired, forms: { e: trætte }, rank: 1900 }
+  blå: { pos: adj, en: blue, forms: { t: blåt, e: blå }, rank: 1300, say: "'blo'" }
+  dansk: { pos: adj, en: "Danish", forms: { e: danske }, rank: 250, note: "Also the language: 'Jeg taler dansk'." }
+  engelsk: { pos: adj, en: English, forms: { e: engelske }, rank: 1200 }
+  lang: { pos: adj, en: long, forms: { t: langt, e: lange, comp: længere, sup: længst }, rank: 230, note: "'langt væk' = far away" }
+  sjov: { pos: adj, en: "fun, funny", forms: { t: sjovt, e: sjove }, rank: 1400, say: "'show' (rhymes with 'now')" }
+  ked: { pos: adj, en: "(ked af) sorry, sad", forms: { e: kede }, rank: 2400, say: "'keth'", note: "'Det er jeg ked af' = I'm sorry about that." }
+  glad: { pos: adj, en: "happy, glad", forms: { e: glade }, rank: 700, say: "'glath'" }
+  langsom: { pos: adj, en: slow, forms: { t: langsomt, e: langsomme }, rank: 2000, say: "'LANG-som'" }
+  rigtig: { pos: adj, en: "right, correct; really", forms: { t: rigtigt, e: rigtige }, rank: 300, say: "'REG-ti'; 'rigtigt' is 'REG-tit'" }
+  flot: { pos: adj, en: "great, good-looking; well done!", forms: { e: flotte }, rank: 1300 }
+  færdig: { pos: adj, en: "done, finished", forms: { e: færdige }, rank: 1200, say: "'FAIR-di'" }
+  slut: { pos: adj, en: "over, finished", rank: 1200 }
+  velkommen: { pos: adj, en: welcome, forms: { e: velkomne }, rank: 1200, say: "'vel-KOM-men'" }
+  okay: { pos: adj, en: "okay", rank: 900, say: "'o-KAY' — same as English" }
+  super: { pos: adv, en: "super, really", rank: 3000, note: "Very common intensifier: 'super hyggeligt'." }
+
+  # ── numbers ─────────────────────────────────────────────────────────────
+  nul: { pos: num, en: zero, value: 0, rank: 3000, say: "'nool'" }
+  to: { pos: num, en: two, value: 2, rank: 150, say: "'toe'" }
+  tre: { pos: num, en: three, value: 3, rank: 250, say: "'treh'" }
+  fire: { pos: num, en: four, value: 4, rank: 350, say: "'FEER-a'" }
+  fem: { pos: num, en: five, value: 5, rank: 400, say: "'fem'" }
+  seks: { pos: num, en: six, value: 6, rank: 600, say: "'sex'" }
+  syv: { pos: num, en: seven, value: 7, rank: 900, say: "'syoo'" }
+  otte: { pos: num, en: eight, value: 8, rank: 900, say: "'OH-deh'" }
+  ni: { pos: num, en: nine, value: 9, rank: 1100, say: "'nee'" }
+  ti: { pos: num, en: ten, value: 10, rank: 600, say: "'tee'" }
+  elleve: { pos: num, en: eleven, value: 11, rank: 2500, say: "'EL-veh'" }
+  tolv: { pos: num, en: twelve, value: 12, rank: 1800, say: "'tol' — the v is silent" }
+  tretten: { pos: num, en: thirteen, value: 13, rank: 4000, say: "'TRAT-ten'" }
+  fjorten: { pos: num, en: fourteen, value: 14, rank: 2600, say: "'FYOR-ten'" }
+  femten: { pos: num, en: fifteen, value: 15, rank: 2200, say: "'FEM-ten'" }
+  seksten: { pos: num, en: sixteen, value: 16, rank: 4000, say: "'SIGH-sten'" }
+  sytten: { pos: num, en: seventeen, value: 17, rank: 4500, say: "'SUE-ten'" }
+  atten: { pos: num, en: eighteen, value: 18, rank: 3500, say: "'AT-ten'" }
+  nitten: { pos: num, en: nineteen, value: 19, rank: 4000, say: "'NIT-ten'" }
+  tyve: { pos: num, en: twenty, value: 20, rank: 1100, say: "'TUE-veh'" }
+  tusind: { pos: num, en: thousand, value: 1000, rank: 700, say: "'TOO-sin' — silent d" }
+  første: { pos: num, en: first, rank: 130, say: "'FUR-steh'" }
+  anden: { pos: num, en: second, forms: { et: andet }, rank: 70, say: "'AN-en' — silent d" }
+  tredje: { pos: num, en: third, rank: 900, say: "'TRAY-yeh' — silent d" }
+  fjerde: { pos: num, en: fourth, rank: 2000, say: "'FYAIR-eh'" }
+  femte: { pos: num, en: fifth, rank: 2800, say: "'FEM-teh'" }
+
+  # ── adverbs ─────────────────────────────────────────────────────────────
+  "så#adv": { lemma: så, pos: adv, en: "so; then", rank: 24, say: "'so'", note: "Also the past tense of 'se' (saw)." }
+  her: { pos: adv, en: here, rank: 60, say: "'hair'" }
+  nu: { pos: adv, en: now, rank: 33, say: "'noo'" }
+  lige: { pos: adv, en: "just; right (now); equal", rank: 72, say: "'LEE-eh' — silent g", note: "Softens requests: 'Skal vi lige …?' = shall we just …?" }
+  igen: { pos: adv, en: again, rank: 95, say: "'ee-EN' — silent g" }
+  altid: { pos: adv, en: always, rank: 150, say: "'AL-tith'" }
+  også: { pos: adv, en: "also, too", rank: 36, say: "'OS-seh'" }
+  bare: { pos: adv, en: just, rank: 50, say: "'BAA-a'" }
+  ikke: { pos: adv, en: not, rank: 17, say: "'IG-geh'", also: ["ik'", "ikk'"], note: "At the end of a sentence, ', ikke?' = 'right?'." }
+  meget: { pos: adv, en: "very, much", rank: 39, say: "'MY-eth' — the g is silent" }
+  lidt: { pos: adv, en: "a bit, a little", rank: 62, say: "'lit' — silent d" }
+  væk: { pos: adv, en: away, rank: 600, say: "'vek'" }
+  nede: { pos: adv, en: down (there), rank: 900, say: "'NAY-theh'" }
+  henne: { pos: adv, en: "over (there)", rank: 2500, say: "'HEN-neh'", note: "'Hvor bor du henne?' — 'henne' just adds 'where about'." }
+  hjemme: { pos: adv, en: at home, rank: 700, say: "'YEM-meh'" }
+  indenfor: { pos: adv, en: inside, rank: 2000, say: "'IN-nen-for'" }
+  endnu: { pos: adv, en: yet, rank: 450, say: "'EN-noo' — silent d" }
+  snart: { pos: adv, en: soon, rank: 800, say: "'snaat'" }
+  først: { pos: adv, en: first, rank: 130, say: "'furst'" }
+  helt: { pos: adv, en: "quite, completely", rank: 110, say: "'helt'" }
+  kun: { pos: adv, en: only, rank: 80, say: "'kon'" }
+  op: { pos: adv, en: up, rank: 66 }
+  ind: { pos: adv, en: in, rank: 80, say: "'in' — silent d" }
+  forbi: { pos: adv, en: "by, past", rank: 1100, note: "'Kom forbi' = drop by." }
+  videre: { pos: adv, en: "on, further", rank: 500, say: "'VEE-the-a'" }
+  sådan: { pos: adv, en: "like that; that's it!", rank: 140, say: "'SO-dan'" }
+  hvor: { pos: adv, en: "where; how (+ adjective)", rank: 38, say: "'vor' — the h is silent", note: "'Hvor spændende!' = how exciting!" }
+  hvordan: { pos: adv, en: how, rank: 130, say: "'vo-DAN'" }
+  hvad: { pos: pron, en: what, rank: 49, say: "'va' — silent h and d", also: ["hva'"] }
+  seriøst: { pos: adv, en: seriously, rank: 4000, say: "'ser-ee-URST'" }
+
+  # ── prepositions, conjunctions ─────────────────────────────────────────
+  i: { pos: prep, en: in, rank: 2, say: "'ee'" }
+  til: { pos: prep, en: "to, for", rank: 7, say: "'tel'" }
+  på: { pos: prep, en: "on, at", rank: 8, say: "'po'" }
+  fra: { pos: prep, en: from, rank: 28 }
+  med: { pos: prep, en: with, rank: 12, say: "'meh' — silent d" }
+  af: { pos: prep, en: "of, by", rank: 14, say: "'a'" }
+  for: { pos: prep, en: for, rank: 13, say: "'fo'" }
+  ved: { pos: prep, en: "by, at", rank: 67, say: "'veh'" }
+  om: { pos: prep, en: about, rank: 21, say: "'om'" }
+  over: { pos: prep, en: over, rank: 40, say: "'OW-a'" }
+  hos: { pos: prep, en: "at (someone's place)", rank: 250, note: "'hos Grethe' = at Grethe's" }
+  at: { pos: part, en: "to; that", rank: 3, say: "'o' — sounds just like 'og'" }
+  og: { pos: conj, en: and, rank: 1, say: "'o' — the g is silent" }
+  men: { pos: conj, en: but, rank: 22 }
+  hvis: { pos: conj, en: if, rank: 71, say: "'vis' — silent h" }
+
+  # ── interjections & discourse words ─────────────────────────────────────
+  hej: { pos: interj, en: "hi; (hej hej) bye", rank: 400, say: "'hi'", note: "One 'hej' says hello; 'hej hej' says bye." }
+  ja: { pos: interj, en: yes, rank: 55, say: "'ya'" }
+  nej: { pos: interj, en: no, rank: 70, say: "'nigh'" }
+  nå: { pos: interj, en: "oh; well; so", rank: 300, say: "'no'", note: "The Swiss army knife of Danish: surprise, understanding, changing topic. 'Nå, men …' = anyway …" }
+  jamen: { pos: interj, en: "well; oh (friendly surprise)", rank: 1200, say: "'YA-men'" }
+  altså: { pos: adv, en: "well; I mean; so", rank: 140, say: "'AL-so' — the t is silent", note: "Filler word. 'Altså, …' = 'Well, …'" }
+  øh: { pos: interj, en: "uh, um", rank: 500, say: "'ur'" }
+  åh: { pos: interj, en: oh, rank: 2000, say: "'oh'" }
+  "ha#interj": { lemma: ha, pos: interj, en: "ha!", rank: 3000 }
+  yo: { pos: interj, en: "yo (slang)", rank: 20000 }
+  nice: { pos: interj, en: "nice (slang)", rank: 6000, say: "Like English 'nice'." }
+  chill: { pos: interj, en: "no worries, relax (slang)", rank: 9000, say: "Like English 'chill'." }
+  værsgo: { pos: interj, en: "here you go", rank: 3000, say: "'VAIRS-go'", note: "Short for 'vær så god'. Said when handing something over, or 'dinner's ready'." }
+  goddag: { pos: interj, en: "good day, hello", rank: 3000, say: "'go-DAY'", note: "A bit formal or old-fashioned. Everyday Danes just say 'hej'." }
+  farvel: { pos: interj, en: goodbye, rank: 2500, say: "'far-VEL'" }
+  gerne: { pos: adv, en: "gladly, happily; (with verb) like to", rank: 300, say: "'GAIR-neh'", note: "'Det vil jeg gerne' = I'd love to. 'Ja, gerne' = yes please." }
+  fedt: { pos: adj, en: "cool, great (lit. fat)", rank: 2500, say: "'fet' — silent d", note: "'Fedt!' = cool! Literally the neuter of 'fed' (fat)." }
+  næsten: { pos: adv, en: almost, rank: 400, say: "'NES-ten'" }
+
+  # ── names & places ──────────────────────────────────────────────────────
+  aarhus: { lemma: Aarhus, pos: name, en: "Aarhus (Denmark's second city)", say: "'OR-hoos'" }
+  england: { lemma: England, pos: name, en: England, say: "'ENG-lan'" }
+  usa: { lemma: USA, pos: name, en: the USA, say: "'oo-ess-AH'" }
+  australien: { lemma: Australien, pos: name, en: Australia, say: "'ow-STRAAL-yen'" }
+  chicago: { lemma: Chicago, pos: name, en: Chicago }
+  london: { lemma: London, pos: name, en: London }
+  netto: { lemma: Netto, pos: name, en: "Netto (a discount supermarket chain)" }
+  henrik: { lemma: Henrik, pos: name, en: Henrik (your landlord) }
+  grethe: { lemma: Grethe, pos: name, en: Grethe (your neighbour), say: "'GRAY-teh'" }
+  mads: { lemma: Mads, pos: name, en: Mads (the teenager on the 2nd floor), say: "'mass' — silent d" }
+  amalie: { lemma: Amalie, pos: name, en: Amalie (your best friend), say: "'a-MAAL-yeh'" }
+  jensen: { lemma: Jensen, pos: name, en: Jensen (surname) }
+  nielsen: { lemma: Nielsen, pos: name, en: Nielsen (surname), say: "'NEL-sen'" }
+
+  # ── phrases ─────────────────────────────────────────────────────────────
+  "tak for sidst": { pos: phrase, en: "great to see you again (lit. thanks for last time)", note: "Said when you meet someone you last saw socially. Answer with 'tak for sidst' or 'i lige måde'." }
+  "tak for i dag": { pos: phrase, en: "thanks for today", note: "Said when parting after spending time together, or at the end of a class or meeting." }
+  "tak skal du have": { pos: phrase, en: "thank you (warm)", note: "Lit. 'thanks shall you have'." }
+  "tusind tak": { pos: phrase, en: "thanks a lot", note: "Lit. 'a thousand thanks'." }
+  "det var så lidt": { pos: phrase, en: "you're welcome; don't mention it", note: "The standard reply to 'tak' for a favour." }
+  "hej hej": { pos: phrase, en: "bye" }
+  "hej så længe": { pos: phrase, en: "bye for now, see you" }
+  "hej med dig": { pos: phrase, en: "hi there", note: "Friendly greeting, lit. 'hi with you'." }
+  "vi ses": { pos: phrase, en: "see you" }
+  "i lige måde": { pos: phrase, en: "likewise, same to you" }
+  "i morgen": { pos: phrase, en: tomorrow }
+  "i dag": { pos: phrase, en: today }
+  "alt for": { pos: phrase, en: "way too, far too" }
+  "nå ja": { pos: phrase, en: "oh yeah, oh right" }
+  "nå men": { pos: phrase, en: "anyway", note: "Closes a topic or wraps up a conversation." }
+  "på plads": { pos: phrase, en: "sorted, in place" }
+  "i orden": { pos: phrase, en: "OK, in order" }
+  "til venstre": { pos: phrase, en: "on the left, to the left" }
+  "til højre": { pos: phrase, en: "on the right, to the right" }
+  "langt væk": { pos: phrase, en: far away }
+  "hva' så": { pos: phrase, en: "what's up?" }
+  "hvad med dig": { pos: phrase, en: "what about you?" }
+  "kom forbi": { pos: phrase, en: "drop by" }
+  "sig til": { pos: phrase, en: "let me know" }
+  "ikke endnu": { pos: phrase, en: "not yet" }
+  "ked af": { pos: phrase, en: "sorry about, sad about" }
+  "godt klaret": { pos: phrase, en: "well done" }
+  "hyggeligt at møde dig": { pos: phrase, en: "nice to meet you" }
+  "der er ingen hjemme": { pos: phrase, en: "nobody's home" }
+
+  # ── extra words: dir/place ──────────────────────────────────────────────
+  venstre: { pos: adj, en: left, rank: 1200, say: "'VEN-streh'" }
+  højre: { pos: adj, en: right, rank: 1200, say: "'HOY-a'" }
+  længe: { pos: adv, en: "long (time)", rank: 350, say: "'LENG-eh'" }
+  sidst: { pos: adv, en: "last, last time", rank: 400, say: "'sist' — silent d" }

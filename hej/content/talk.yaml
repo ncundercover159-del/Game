@@ -1,0 +1,160 @@
+# "Snak" — free conversation where the player builds replies from scratch
+# (typing, or tapping words from the word bank of everything they've met).
+#
+# Offline engine: each turn has an NPC question and accepted answer patterns.
+# Pattern syntax (matched against the lower-cased answer with punctuation removed):
+#   word          literal word
+#   (a|b)         one of
+#   [a] / [a|b]   optional
+#   {slot}        one word from slots.<slot>; {any} = any single word
+# `react` is what the NPC says after an accepted answer ({1} = first captured slot is NOT
+# substituted — reactions are pre-voiced, so keep them generic).
+# Topic lines are voiced by the topic's NPC; model answers by the player's voice.
+# With an API key set in Settings, the game can instead generate open conversation
+# (see src/talk/ai.ts); this file stays the offline, always-available fallback.
+
+slots:
+  num: [nul, en, et, to, tre, fire, fem, seks, syv, otte, ni, ti, elleve, tolv, tretten, fjorten, femten, seksten, sytten, atten, nitten, tyve]
+  ordinal: [første, anden, tredje, fjerde, femte]
+  feeling: [godt, fint, okay, super, dårligt]
+
+# Mistakes English speakers typically make, checked before matching.
+# `re` is a JavaScript regex tested against the normalised answer.
+coach:
+  - re: "^jeg er fin"
+    why: "'Jeg er fin' means 'I'm posh / dressed up'. Say 'Det går godt' or 'Fint, tak'."
+    fix: Det går godt, tak.
+  - re: "\\btak meget\\b"
+    why: "'Tak meget' isn't Danish. Say 'mange tak' or 'tusind tak'."
+    fix: Tusind tak.
+  - re: "^(ja|nej) (jeg|du|vi) (er|har|kan|gør)( ikke)?$"
+    why: "Short answers need 'det' and the verb before the subject: 'Ja, det er jeg' / 'Nej, det har jeg ikke'."
+  - re: "^min navn\\b"
+    why: "'navn' is an et-word, so it's 'mit navn'. Most Danes just say 'Jeg hedder …'."
+  - re: "^(nu|her|så|først|altid|tit|i dag|i morgen|i aften) (jeg|du|han|hun|vi|de|den|det) [a-zæøå]+"
+    why: "Verb second! When you start with a word like 'nu' or 'i morgen', the verb comes next, then the subject: 'I morgen viser jeg …'."
+  - re: "^(jeg|du|han|hun|vi|de|den|det) ikke [a-zæøå]+"
+    why: "'ikke' goes after the verb: 'Jeg drikker ikke kaffe', not 'Jeg ikke drikker'."
+  - re: "^(hvor|hvad|hvordan|hvem) (jeg|du|han|hun|vi|de) [a-zæøå]+"
+    why: "After a question word the verb comes first, then the subject: 'Hvor bor du?'."
+  - re: "^(jeg|du|vi) (er|bor) fra\\b"
+    why: "It's 'Jeg kommer fra …' or 'Jeg er fra …' — not 'bor fra'."
+
+turns:
+  name:
+    ch: 1
+    hint: "Tell them your name (Jeg hedder …)."
+    ask: { da: "Hvad hedder du?", en: "What's your name?" }
+    accept:
+      - { p: "[jeg hedder] {any}" }
+      - { p: "mit navn er {any}" }
+    react: { da: "Hyggeligt at møde dig.", en: "Nice to meet you." }
+    model: [{ da: "Jeg hedder {name}.", en: "My name's {name}." }]
+  from:
+    ch: 1
+    hint: "Say where you're from (Jeg kommer fra …)."
+    ask: { da: "Hvor kommer du fra?", en: "Where are you from?" }
+    accept:
+      - { p: "[jeg kommer] fra {any}" }
+      - { p: "jeg er fra {any}" }
+    react: { da: "Nå, spændende!", en: "Oh, exciting!" }
+    model: [{ da: "Jeg kommer fra England.", en: "I'm from England." }]
+  how:
+    ch: 1
+    hint: "Say how it's going (Det går …)."
+    ask: { da: "Hvordan går det?", en: "How's it going?" }
+    accept:
+      - { p: "[det går] {feeling} [tak] [og|hvad] [med] [dig]" }
+      - { p: "[det går] {feeling} [tak] [og] [selv]" }
+      - { p: "ikke så godt", react: { da: "Åh nej. Det er jeg ked af at høre.", en: "Oh no. I'm sorry to hear that." } }
+    react: { da: "Hvor dejligt.", en: "How lovely." }
+    model: [{ da: "Det går godt, tak.", en: "Good, thanks." }, { da: "Fint. Hvad med dig?", en: "Fine. How about you?" }]
+  live:
+    ch: 1
+    hint: "Say which floor you live on (Jeg bor på … sal)."
+    ask: { da: "Hvor bor du henne?", en: "Where do you live?", say: "'henne' is often added to 'hvor': 'vor bor du HEN-neh?'" }
+    accept:
+      - { p: "[jeg bor] på {ordinal} [sal] [til] [venstre|højre]" }
+      - { p: "[jeg bor] (her|i aarhus|i opgangen)" }
+    react: { da: "Nå, okay.", en: "Oh, okay." }
+    model: [{ da: "Jeg bor på tredje sal.", en: "I live on the third floor." }]
+  bike:
+    ch: 1
+    hint: "Answer yes or no, in a full Danish short answer."
+    ask: { da: "Har du en cykel?", en: "Do you have a bike?" }
+    accept:
+      - { p: "ja [det har jeg]" }
+      - { p: "nej [det har jeg ikke]" }
+      - { p: "nej ikke endnu" }
+      - { p: "(ja|nej) jeg har [ikke] en cykel" }
+      - { p: "ja jeg låner [en|mads'|mads] [cykel]" }
+    react: { da: "Okay.", en: "Okay." }
+    model: [{ da: "Nej, det har jeg ikke.", en: "No, I don't." }, { da: "Ja, det har jeg.", en: "Yes, I do." }]
+  number:
+    ch: 1
+    hint: "Give a phone number in pairs, e.g. tyve tolv nitten fjorten."
+    ask: { da: "Hvad er dit nummer?", en: "What's your number?" }
+    accept:
+      - { p: "[det er|mit nummer er] {num} {num} {num} {num}" }
+    react: { da: "Tak. Nu har jeg det.", en: "Thanks. Now I've got it." }
+    model: [{ da: "Det er tyve, tolv, nitten, fjorten.", en: "It's 20 12 19 14." }]
+  coffee:
+    ch: 1
+    hint: "Say yes or no, politely."
+    ask: { da: "Vil du have en kop kaffe?", en: "Would you like a cup of coffee?" }
+    accept:
+      - { p: "ja [tak]" }
+      - { p: "ja gerne" }
+      - { p: "ja det vil jeg gerne [have]" }
+      - { p: "ja tak det vil jeg gerne [have]" }
+      - { p: "nej tak", react: { da: "Okay. Så en kop te?", en: "Okay. A cup of tea, then?" } }
+      - { p: "nej [tak] jeg drikker ikke kaffe", react: { da: "Okay. Så en kop te?", en: "Okay. A cup of tea, then?" } }
+    react: { da: "Værsgo.", en: "Here you go." }
+    model: [{ da: "Ja tak, det vil jeg gerne.", en: "Yes please, I'd love one." }]
+  aarhus:
+    ch: 1
+    hint: "Say whether you like Aarhus (Ja, det kan jeg godt lide)."
+    ask: { da: "Kan du lide Aarhus?", en: "Do you like Aarhus?", say: "'lide' is 'LEE' — the d is silent." }
+    accept:
+      - { p: "ja [det kan jeg] [godt] [lide] [meget]" }
+      - { p: "ja jeg elsker (aarhus|det|den)" }
+      - { p: "ja jeg kan [godt] lide aarhus" }
+      - { p: "ja meget" }
+      - { p: "nej ikke så meget", react: { da: "Nå? Det bliver bedre.", en: "Oh? It'll get better." } }
+    react: { da: "Det er jeg glad for at høre.", en: "I'm glad to hear that." }
+    model: [{ da: "Ja, det kan jeg godt lide.", en: "Yes, I like it." }]
+  doing:
+    ch: 1
+    hint: "Say what you're doing in Aarhus (Jeg skal arbejde / læse her)."
+    ask: { da: "Hvad laver du i Aarhus?", en: "What are you doing in Aarhus?" }
+    accept:
+      - { p: "jeg (skal|vil) (arbejde|læse|studere) [her] [i aarhus]" }
+      - { p: "jeg (arbejder|læser|studerer) [her] [i aarhus]" }
+    react: { da: "Hvor spændende!", en: "How exciting!" }
+    model: [{ da: "Jeg skal arbejde her.", en: "I'm going to work here." }]
+
+topics:
+  grethe_coffee:
+    npc: grethe
+    ch: 1
+    after: s2
+    title: { da: "Kaffe hos Grethe", en: "Coffee at Grethe's" }
+    opener: { da: "Nå, velkommen indenfor!", en: "Well, welcome in!" }
+    turns: [how, coffee, from, doing, aarhus]
+    closer: { da: "Det var hyggeligt. Kom snart igen.", en: "That was nice. Come again soon." }
+  mads_stairs:
+    npc: mads
+    ch: 1
+    after: s3
+    title: { da: "På trappen med Mads", en: "On the stairs with Mads" }
+    opener: { da: "Yo, hva' så?", en: "Yo, what's up?" }
+    turns: [how, bike, live, aarhus, number]
+    closer: { da: "Nå, jeg smutter. Vi ses!", en: "Right, I'm off. See you!" }
+  amalie_flat:
+    npc: amalie
+    ch: 1
+    after: s4
+    title: { da: "Hygge med Amalie", en: "Hanging out with Amalie" }
+    opener: { da: "Jamen hej!", en: "Well hi!" }
+    turns: [how, aarhus, doing, live, number, coffee]
+    closer: { da: "Hej hej! Vi ses!", en: "Bye! See you!" }

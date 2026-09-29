@@ -1,3 +1,11 @@
+# Games
+
+- **[Hej!](hej/)**: a pixel-art life sim in Aarhus that teaches Danish from zero to
+  conversational. TypeScript + Vite PWA. See [`hej/README.md`](hej/README.md).
+- **ORBIT** (below): a one-thumb arcade game in a single HTML file.
+
+---
+
 # ORBIT
 
 A one-thumb arcade game for killing five minutes — built for phones, in a single
