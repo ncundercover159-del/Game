@@ -124,7 +124,8 @@ export interface Scene {
   objective: string; // line id
   /** Main NPC (relationship target, dialogue focus). */
   npc?: string;
-  start: { npc?: string; near?: number; enterMap?: string };
+  /** npc: talk to them · near: walk within N tiles · enterMap: enter the map · auto: starts by itself (optionally moving the player to `at`). */
+  start: { npc?: string; near?: number; enterMap?: string; auto?: boolean; at?: { map: string; x: number; y: number; dir: Dir } };
   cast: Record<string, CastSpot>;
   script: ScriptNode[];
 }

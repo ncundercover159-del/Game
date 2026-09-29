@@ -1,0 +1,45 @@
+# Chapter 8 (Sunday dinner).
+entries:
+  bent: { lemma: Bent, pos: name, en: "Bent (Amalie's dad)" }
+  lise: { lemma: Lise, pos: name, en: "Lise (Amalie's mum)" }
+  paris: { lemma: Paris, pos: name, en: Paris }
+  skagen: { lemma: Skagen, pos: name, en: "Skagen (the northern tip of Denmark)", say: "'SKAA-en'" }
+  spanien: { lemma: Spanien, pos: name, en: Spain }
+  hvorfor: { pos: adv, en: why, rank: 350, say: "'VOR-for'" }
+  mor: { pos: noun, g: en, en: "mother, mum", forms: { def: moren, pl: mødre }, rank: 400 }
+  far: { pos: noun, g: en, en: "father, dad", forms: { def: faren, pl: fædre }, rank: 400 }
+  velbekomme: { pos: interj, en: "you're welcome (answer to 'tak for mad')", rank: 20000, say: "'vel-beh-KOM-meh'" }
+  aften: { pos: noun, g: en, en: evening, forms: { def: aftenen, pl: aftener }, rank: 700, say: "'AF-ten'", note: "'i aften' = tonight; 'om aftenen' = in the evenings." }
+  bager: { pos: noun, g: en, en: baker, forms: { def: bageren, pl: bagere }, rank: 5000, say: "'BAA-a'", note: "'til bageren' = to the baker's." }
+  brunet: { pos: adj, en: "browned (brunede kartofler = caramelised potatoes)", forms: { e: brunede }, rank: 30000 }
+  dengang: { pos: adv, en: back then, rank: 1500, say: "'DEN-gang'" }
+  endelig: { pos: adv, en: finally, rank: 500, say: "'EN-neh-li'" }
+  eneste: { pos: adj, en: "only, single (hver eneste = every single)", rank: 800 }
+  eventyr: { pos: noun, g: et, en: "adventure; fairy tale", forms: { def: eventyret, pl: eventyr }, rank: 3000, say: "'AY-ven-tuer'" }
+  faldefærdig: { pos: adj, en: falling apart, forms: { t: faldefærdigt, e: faldefærdige }, rank: 20000 }
+  flæskesteg: { pos: noun, g: en, en: "roast pork (with crackling)", forms: { def: flæskestegen }, rank: 20000, pic: "🍖", say: "'FLES-keh-stai'" }
+  fortælle: { pos: verb, en: tell, forms: { inf: at fortælle, pres: fortæller, past: fortalte, perf: fortalt, imp: fortæl }, rank: 300, say: "'for-TEL-leh'" }
+  frem: { pos: adv, en: "forward; (komme frem) arrive", rank: 300 }
+  føde: { pos: verb, en: "give birth; (blive født) be born", forms: { inf: at føde, pres: føder, past: fødte, perf: født }, rank: 1000, say: "'født' is 'furt'" }
+  historie: { pos: noun, g: en, en: "story; history", forms: { def: historien, pl: historier }, rank: 600, say: "'hi-STOR-yeh'" }
+  hr: { pos: noun, g: en, en: "Mr (very formal)", rank: 5000, say: "'HAIR'" }
+  hus: { pos: noun, g: et, en: house, forms: { def: huset, pl: huse, defpl: husene }, rank: 250, pic: "🏠", say: "'hoos'" }
+  interessant: { pos: adj, en: interesting, forms: { e: interessante }, rank: 1500 }
+  middag: { pos: noun, g: en, en: "dinner; midday", forms: { def: middagen, pl: middage }, rank: 1200, say: "'MI-day'", note: "Dinner (the evening meal) is 'aftensmad' or 'middag'." }
+  måltid: { pos: noun, g: et, en: meal, forms: { def: måltidet, pl: måltider }, rank: 4000, say: "'MOL-tith'" }
+  nogensinde: { pos: adv, en: ever, rank: 1500, say: "'NO-en-sin-neh'" }
+  rødkål: { pos: noun, g: en, en: red cabbage, forms: { def: rødkålen }, rank: 20000 }
+  sovs: { pos: noun, g: en, en: gravy, forms: { def: sovsen }, rank: 12000, say: "'sows'" }
+  stue: { pos: noun, g: en, en: "living room; (stuen) ground floor", forms: { def: stuen, pl: stuer }, rank: 1500, say: "'STOO-eh'" }
+  telt: { pos: noun, g: et, en: tent, forms: { def: teltet, pl: telte }, rank: 5000, pic: "⛺" }
+  tredive: { pos: num, en: thirty, value: 30, rank: 1500, say: "'TRETH-veh'" }
+  udland: { pos: noun, g: et, en: "abroad (i udlandet)", forms: { def: udlandet }, rank: 1500, say: "'OOTH-lan'" }
+  værd: { pos: adj, en: worth, rank: 1800, say: "'vair'" }
+  værelse: { pos: noun, g: et, en: room, forms: { def: værelset, pl: værelser }, rank: 1500, say: "'VAIR-el-seh'" }
+  år: { pos: noun, g: et, en: year, forms: { def: året, pl: år, defpl: årene }, rank: 41, say: "'or'" }
+  "tak for mad": { pos: phrase, en: "thanks for the meal (always say it to the host!)" }
+  "hver eneste": { pos: phrase, en: every single }
+  "komme frem": { pos: phrase, en: arrive, match: ["kom frem"] }
+  "i udlandet": { pos: phrase, en: abroad }
+  "blive født": { pos: phrase, en: be born, match: ["blev født"] }
+  "skal nok": { pos: phrase, en: "will certainly (promise)" }

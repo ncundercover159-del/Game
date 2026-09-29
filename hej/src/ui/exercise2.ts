@@ -131,7 +131,7 @@ export async function runCloze(ex: Extract<Exercise, { type: 'cloze' }>, host: H
   const options = ex.options ? shuffle(ex.options.map((o) => o.toLowerCase())) : clozeOptions(correct, tok.l);
   if (!options.includes(correct)) options.splice(0, 1, correct);
   const shown = h('div', { class: 'sent', lang: 'da' }, l.tokens.map((t, i) =>
-    h('span', {}, t.s ? ' ' : '', i === gi ? h('span', { class: 'gap', style: { borderBottom: '3px solid var(--ink)', padding: '0 18px' } }, ' ') : t.k === 'n' ? name : t.t)));
+    h('span', {}, t.s ? ' ' : '', i === gi ? h('span', { class: 'gap', style: { borderBottom: '3px solid var(--ink)', padding: '0 4px' } }, '\u00a0'.repeat(6)) : t.k === 'n' ? name : t.t)));
   const after = h('div');
   const opts = h('div', { class: 'options' });
   host.replaceChildren(header('cloze'), shown, h('div', { class: 'line-en en hint' }, fill(l.en, name)), playRow(l), opts, after);

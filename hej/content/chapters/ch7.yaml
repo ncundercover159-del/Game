@@ -1,0 +1,228 @@
+# Chapter 7 — Hos lægen (At the doctor's). CEFR B1.
+# Calling in sick, seeing the GP, picking up a prescription.
+# Grammar: reflexive verbs (hvile sig, føle sig); må gerne / må ikke / behøver ikke.
+
+id: ch7
+n: 7
+cefr: B1
+title: { da: Hos lægen, en: "At the doctor's" }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch7: true }
+  - narrator: Du vågner, og du har det skidt.
+    en: "You wake up feeling rotten."
+    say: "'have det skidt' = feel awful (a bit informal)."
+  - narrator: Du har ondt i halsen, og du har feber.
+    en: "You have a sore throat and a fever."
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Syg, en: Off sick }
+    objective: { da: Ring til Mette og meld dig syg., en: Call Mette and call in sick. }
+    npc: mette
+    start: { auto: true, at: { map: flat, x: 4, y: 6, dir: up } }
+    cast: {}
+    script:
+      - narrator: Du ringer til Mette.
+        en: You call Mette.
+      - mette: Det er Mette.
+        en: "Mette speaking."
+        say: "Danes answer the phone with 'Det er …' + their name."
+      - choose:
+          - you: Hej Mette. Jeg er desværre syg i dag.
+            en: "Hi Mette. Unfortunately I'm ill today."
+            q: natural
+          - you: "Hej, det er {name}. Jeg melder mig syg."
+            en: "Hi, it's {name}. I'm calling in sick."
+            q: natural
+            say: "'melde sig syg' = call in sick."
+      - mette: Åh nej. Hvad er der i vejen?
+        en: "Oh no. What's wrong?"
+        say: "'Hvad er der i vejen?' = what's the matter?"
+      - choose:
+          - you: Jeg har ondt i halsen og feber.
+            en: I have a sore throat and a fever.
+            q: natural
+          - you: Jeg har det skidt. Jeg tror, det er influenza.
+            en: "I feel awful. I think it's the flu."
+            q: natural
+      - id: ch7.s1.hvil
+        mette: Så skal du blive hjemme og hvile dig.
+        en: "Then you should stay at home and rest."
+        lx: { så: "så#adv" }
+        tags: [refleksiv]
+      - id: ch7.s1.pas
+        mette: Pas godt på dig selv.
+        en: Take good care of yourself.
+        tags: [refleksiv]
+      - mette: Og ring til lægen, hvis det ikke bliver bedre.
+        en: "And call the doctor if it doesn't get better."
+        tags: [fordi]
+      - choose:
+          - you: Tak, det gør jeg.
+            en: "Thanks, I will."
+            q: natural
+          - you: Tak for forståelsen.
+            en: Thanks for understanding.
+            q: natural
+      - id: ch7.s1.foeler
+        mette: God bedring! Jeg håber, at du snart føler dig bedre.
+        en: "Get well soon! I hope you feel better soon."
+        tags: [refleksiv]
+      - spotlight: refleksiv
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: Hos lægen, en: "At the doctor's" }
+    objective: { da: Gå til lægen inde i byen., en: Go to the doctor in town. }
+    npc: karen
+    start: { npc: karen }
+    cast:
+      karen: { map: clinic, x: 4, y: 2, dir: down }
+    script:
+      - narrator: Næste morgen ringer du til lægen klokken otte og får en tid samme dag.
+        en: "The next morning you call the doctor at eight and get an appointment the same day."
+        say: "Danish GPs have a phone hour, usually eight to nine. Call early!"
+        tags: [v2]
+      - karen: Hej, kom ind og sid ned. Hvad kan jeg gøre for dig?
+        en: "Hi, come in and sit down. What can I do for you?"
+      - choose:
+          - you: Jeg har haft ondt i halsen i tre dage.
+            en: "I've had a sore throat for three days."
+            q: natural
+          - you: Jeg har feber, og jeg hoster meget.
+            en: "I have a fever, and I'm coughing a lot."
+            q: natural
+      - karen: Okay. Har du målt din temperatur?
+        en: Okay. Have you taken your temperature?
+      - choose:
+          - you: Ja, i morges havde jeg niogtredive komma fem.
+            en: "Yes, this morning it was thirty-nine point five."
+            q: natural
+            say: "Danish uses a comma for decimals: 39,5 is 'niogtredive komma fem'."
+          - you: Nej, det har jeg ikke.
+            en: "No, I haven't."
+            q: natural
+      - karen: Gør det ondt andre steder? I ørerne eller i maven?
+        en: "Does it hurt anywhere else? In your ears or your stomach?"
+      - choose:
+          - you: Lidt i ørerne.
+            en: A bit in my ears.
+            q: natural
+          - you: Nej, kun i halsen.
+            en: "No, only my throat."
+            q: natural
+      - exercise: { type: picture, word: øre }
+      - karen: Lad mig lige kigge i halsen. Gab op.
+        en: "Let me just look at your throat. Open wide."
+      - id: ch7.s2.hals
+        karen: Din hals er meget rød. Du har nok halsbetændelse.
+        en: "Your throat is very red. You probably have strep throat."
+        say: "'nok' here means 'probably'."
+      - karen: Jeg tager lige en podning for at være sikker.
+        en: "I'll just take a swab to be sure."
+      - narrator: Testen er positiv.
+        en: The test is positive.
+      - karen: Ja, det er halsbetændelse. Du får penicillin.
+        en: "Yes, it's strep throat. You'll get penicillin."
+      - id: ch7.s2.recept
+        karen: Jeg sender en recept til apoteket, så du kan hente medicinen i dag.
+        en: "I'll send a prescription to the pharmacy, so you can pick up the medicine today."
+        say: "Prescriptions are electronic — the pharmacy finds them via your CPR number."
+      - id: ch7.s2.tag
+        karen: Tag én tablet tre gange om dagen i ti dage.
+        en: Take one tablet three times a day for ten days.
+        lx: { én: "en#num" }
+        say: "'én' with an accent means 'one' (the number), not 'a'."
+      - exercise: { type: listen, line: ch7.s2.tag }
+      - choose:
+          - you: Skal jeg tage dem før eller efter maden?
+            en: Should I take them before or after food?
+            q: natural
+            then:
+              - karen: Gerne sammen med mad.
+                en: Preferably with food.
+          - you: Hvornår må jeg gå på arbejde igen?
+            en: When can I go back to work?
+            q: natural
+            then:
+              - karen: Når du har været uden feber i et døgn.
+                en: "When you've been without a fever for twenty-four hours."
+                say: "'et døgn' = a full day and night, 24 hours."
+      - karen: Drik masser af vand, og hvil dig.
+        en: "Drink lots of water, and rest."
+      - choose:
+          - you: Tusind tak for hjælpen.
+            en: Thanks a lot for the help.
+            q: natural
+          - you: Tak. Skal jeg komme igen?
+            en: Thanks. Should I come back?
+            q: natural
+            then:
+              - karen: Kun hvis det ikke går over.
+                en: "Only if it doesn't go away."
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: Recepten, en: The prescription }
+    objective: { da: Hent din medicin på apoteket., en: Pick up your medicine at the pharmacy. }
+    npc: birgit
+    start: { npc: birgit }
+    cast:
+      birgit: { map: apotek, x: 3, y: 1, dir: down }
+    script:
+      - birgit: Nå, hej igen. Du ser ikke så frisk ud.
+        en: "Oh, hi again. You don't look too well."
+        lx: { så: "så#adv" }
+      - choose:
+          - you: Nej, jeg har halsbetændelse.
+            en: "No, I've got strep throat."
+            q: natural
+          - you: Jeg skal hente noget medicin. Lægen har sendt en recept.
+            en: "I need to pick up some medicine. The doctor has sent a prescription."
+            q: natural
+      - birgit: Må jeg se dit sundhedskort?
+        en: May I see your health card?
+      - narrator: Du giver hende det gule kort.
+        en: You give her the yellow card.
+      - id: ch7.s3.pris
+        birgit: Tak. Her er din penicillin. Det bliver tooghalvfjerds kroner.
+        en: "Thanks. Here's your penicillin. That's seventy-two kroner."
+        say: "'halvfjerds' = 70 (another old 'twenties' number). 72 = to-og-halvfjerds."
+        tags: [numbers]
+      - exercise: { type: listen, line: ch7.s3.pris, options: ["72", "27", "62", "82"], answer: "72" }
+      - birgit: Det offentlige betaler resten.
+        en: The state pays the rest.
+        say: "'det offentlige' = the public sector, the state."
+      - id: ch7.s3.maa
+        birgit: Du må gerne tage Panodil ved siden af.
+        en: "You're allowed to take Panodil as well."
+        tags: [maa]
+      - id: ch7.s3.stop
+        birgit: Men du må ikke stoppe før tid, selv om du får det bedre.
+        en: "But you mustn't stop early, even if you feel better."
+        tags: [maa]
+      - id: ch7.s3.behoever
+        birgit: Og du behøver ikke at komme igen.
+        en: "And you don't need to come back."
+        tags: [maa]
+      - spotlight: maa
+      - choose:
+          - you: Tak for hjælpen.
+            en: Thanks for the help.
+            q: natural
+          - you: Tusind tak. Hav en god dag.
+            en: "Thanks a lot. Have a nice day."
+            q: natural
+      - birgit: God bedring!
+        en: Get well soon!
+
+outro:
+  - narrator: En uge senere er du rask igen.
+    en: A week later you're well again.
+    tags: [v2]
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

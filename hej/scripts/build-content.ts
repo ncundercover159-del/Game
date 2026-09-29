@@ -290,6 +290,17 @@ function compileNodes(src: string, list: any[]): ScriptNode[] {
 
 // ─── npcs ────────────────────────────────────────────────────────────────────
 const npcs: Record<string, Npc> = {};
+// content/idle.yaml: extra small-talk lines per NPC, usually gated by chapter flags,
+// written to recycle words that appear too rarely elsewhere.
+const idleSrc = existsSync(C('idle.yaml')) ? load(C('idle.yaml')) : {};
+const extraIdle: Record<string, any[]> = {};
+for (const part of [idleSrc.idle ?? {}, idleSrc.idle2 ?? {}]) {
+  for (const [id, list] of Object.entries<any[]>(part)) extraIdle[id] = [...(extraIdle[id] ?? []), ...list];
+}
+for (const [id, list] of Object.entries(extraIdle)) {
+  if (!npcSrc.npcs[id]) err(`idle.yaml: unknown npc ${id}`);
+  else npcSrc.npcs[id].idle = [...(list as any[]), ...(npcSrc.npcs[id].idle ?? [])];
+}
 for (const [id, n] of Object.entries<any>(npcSrc.npcs)) {
   const src = `npc.${id}`;
   const L = (arr: any[]) => (arr ?? []).map((o) => addLine(src, o));
@@ -387,6 +398,7 @@ for (const f of readdirSync(C('chapters')).filter((f) => f.endsWith('.yaml')).so
       start: s.start, cast: s.cast ?? {}, script: compileNodes(src, s.script),
     };
     if (s.npc) scene.npc = s.npc;
+    if (s.start?.at && solidAt(s.start.at.map, s.start.at.x, s.start.at.y)) err(`${src}: start.at is on a solid tile`);
     for (const [npc, spot] of Object.entries(scene.cast)) {
       if (!npcs[npc]) err(`${src}: cast has unknown npc ${npc}`);
       if (solidAt(spot.map, spot.x, spot.y)) err(`${src}: ${npc} placed on solid tile ${spot.map} ${spot.x},${spot.y}`);
@@ -406,7 +418,7 @@ const talkSrc = load(C('talk.yaml'));
 const topics: Record<string, TalkTopic> = {};
 for (const [tid, t] of Object.entries<any>(talkSrc.topics)) {
   const src = `talk.${tid}`;
-  const npcLine = (o: any, suffix: string) => addLine(src, { [t.npc]: o.da, en: o.en, say: o.say }, undefined, `${src}.${suffix}`);
+  const npcLine = (o: any, suffix: string) => addLine(src, { [t.npc]: o.da, en: o.en, say: o.say, lx: o.lx }, undefined, `${src}.${suffix}`);
   const turns: TalkTurn[] = t.turns.map((turnId: string) => {
     const tt = talkSrc.turns[turnId];
     if (!tt) {
@@ -467,7 +479,7 @@ function checkTiles(from: string, id: string) {
   const l = lines[id];
   if (!l) return;
   const n = l.tokens.filter((t) => t.k !== 'p').length;
-  if (n < 2 || n > 10) err(`${from}: tiles exercise on ${id} needs 2–10 words (has ${n})`);
+  if (n < 2 || n > 12) err(`${from}: tiles exercise on ${id} needs 2–12 words (has ${n})`);
 }
 
 if (errors.length) {

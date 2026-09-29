@@ -229,3 +229,146 @@ cards:
     practice:
       - { type: cloze, line: ch6.s3.hurtig, word: hurtigere, options: [hurtigere, hurtig, hurtigst, hurtigt] }
       - { type: tiles, line: ch6.s3.bedst }
+
+  # ── Chapter 7 ──
+  refleksiv:
+    title: { da: Refleksive verber, en: "Reflexive verbs: hvile sig, føle sig" }
+    pattern: "jeg hviler mig · du hviler dig · han/hun hviler sig"
+    highlight: "du,sig#pron,jeg"
+    rule: >-
+      Some Danish verbs take a "self" pronoun where English doesn't: hvile sig (rest), føle sig
+      (feel), glæde sig (look forward), skynde sig (hurry), melde sig syg (call in sick). The
+      pronoun matches the subject: mig, dig, sig, os, jer, sig. "Pas på dig selv" = take care
+      of yourself.
+    examples: [ch7.s1.hvil, ch7.s1.pas, ch7.s1.foeler]
+    practice:
+      - { type: cloze, line: ch7.s1.hvil, word: dig, options: [dig, du, sig, mig] }
+      - { type: tiles, line: ch7.s1.pas }
+
+  maa:
+    title: { da: Må gerne, må ikke, behøver ikke, en: "Allowed, forbidden, not necessary" }
+    pattern: "må gerne = may · må ikke = mustn't · behøver ikke = don't need to"
+    highlight: "måtte,behøve,gerne,ikke"
+    rule: >-
+      A classic trap: "Du må ikke" means you MUST NOT — it's forbidden. "Du må gerne" means
+      you're allowed to. If something simply isn't necessary, say "Du behøver ikke (at) …".
+    examples: [ch7.s3.maa, ch7.s3.stop, ch7.s3.behoever]
+    practice:
+      - { type: cloze, line: ch7.s3.behoever, word: behøver, options: [behøver, må, skal, kan] }
+      - { type: tiles, line: ch7.s3.maa }
+
+  # ── Chapter 8 ──
+  da:
+    title: { da: Da eller når?, en: "'da' or 'når'? (when)" }
+    pattern: "da = once, in the past · når = every time, now or future"
+    highlight: "da,når"
+    rule: >-
+      English "when" is two words in Danish. Use "da" for one single event in the past: "Da vi
+      købte huset …". Use "når" for the present, the future and anything that repeats: "Når vi
+      har gæster …", "Når jeg har fri, skriver jeg". And remember: a da/når clause first makes
+      the main clause invert (var det, fortæller Bent).
+    examples: [ch8.s1.da1, ch8.s1.da2, ch8.s1.naar]
+    practice:
+      - { type: cloze, line: ch8.s1.da1, word: Da, options: [da, når, fordi, hvis] }
+      - { type: tiles, line: ch8.s1.da1, accept: ["det var helt faldefærdigt da vi købte huset"] }
+
+  datidfoer:
+    title: { da: Datid eller førnutid?, en: "Past or perfect? boede / har boet" }
+    pattern: "boede i Paris (finished) · har boet i Risskov i 30 år (until now)"
+    highlight: "bo,have"
+    rule: >-
+      Use the past (boede) for finished time — especially with a time word like "da vi var
+      unge", "i 2010", "i går". Use the perfect (har boet) for something that is still true, or
+      with "nogensinde" (ever) and "aldrig" (never). "Jeg boede i Spanien i et år" (it's over);
+      "Vi har boet her i tredive år" (and we still do).
+    examples: [ch8.s2.perf, ch8.s2.past, ch8.s2.perf2]
+    practice:
+      - { type: cloze, line: ch8.s2.past, word: boede, options: [boede, bor, boet, bo] }
+      - { type: cloze, line: ch8.s2.perf2, word: boet, options: [boet, boede, bor, bo] }
+
+  topik:
+    title: { da: Alt kan stå først, en: Anything can go first }
+    pattern: "Om aftenen SOV VI … · Den historie HAR JEG hørt …"
+    highlight: verb
+    rule: >-
+      Danish loves to start with a time, a place or even the object — to link to what was just
+      said, or for emphasis. Whatever comes first, the verb is still the second element and the
+      subject follows it: "Den historie har jeg hørt hundrede gange" (lit. that story have I
+      heard a hundred times).
+    examples: [ch8.s3.aften, ch8.s3.hoert, ch8.s3.idag]
+    practice:
+      - { type: tiles, line: ch8.s3.hoert, accept: ["jeg har hørt den historie hundrede gange"] }
+      - { type: tiles, line: ch8.s3.idag, accept: ["jeg cykler kun til bageren i dag"] }
+
+  # ── Chapter 9 ──
+  meninger:
+    title: { da: Synes, tror eller mener?, en: "synes, tror or mener? (think)" }
+    pattern: "synes = my opinion · tror = I guess / believe · mener = I firmly hold"
+    highlight: "synes,tro,mene"
+    rule: >-
+      English "think" is three words. "synes" is your personal opinion or taste ("Jeg synes,
+      at det er for dårligt"). "tro" is a guess about facts ("Jeg tror, at det er termostaten").
+      "mene" is a firm, considered view ("Min kone mener, at …"). In the at-clause, ikke goes
+      before the verb: "Jeg synes, at det ikke er i orden" — or negate the main verb: "Jeg
+      synes ikke, at det er i orden".
+    examples: [ch9.s1.at, ch9.s1.tror, ch9.s1.mener]
+    practice:
+      - { type: tiles, line: ch9.s1.tror }
+      - { type: tiles, line: ch9.s1.at }
+
+  enig:
+    title: { da: Enig eller uenig?, en: Agreeing and disagreeing }
+    pattern: "Jeg er (helt) enig · Jeg er ikke helt enig · Det kommer an på …"
+    highlight: "enig,komme,kunne"
+    rule: >-
+      "enig" (agreed) is an adjective, so you ARE agreed: "Jeg er enig med Jonas". Soften a
+      disagreement with "ikke helt" (not entirely). Other useful phrases: "Det kommer an på …"
+      (it depends on …), "På den ene side … på den anden side …", and "Vi kunne …" (we could …)
+      to suggest something.
+    examples: [ch9.s2.enig, ch9.s2.uenig, ch9.s2.kompromis]
+    practice:
+      - { type: cloze, line: ch9.s2.uenig, word: enig, options: [enig, enige, enigt, enighed] }
+      - { type: tiles, line: ch9.s2.enig, accept: ["jeg er helt enig vi får så mere tid til familien"] }
+
+  passiv:
+    title: { da: Passiv, en: "The passive: byttes, er købt, bliver sat" }
+    pattern: "VERB + -s · er + participle · bliver + participle"
+    highlight: "bytte,købe,blive,sætte,være"
+    rule: >-
+      When it doesn't matter who does something, Danish uses the passive. Add -s to the verb
+      (especially after modal verbs and on signs): "Varer kan kun byttes", "Rygning forbudt"
+      → "Der må ikke ryges". For a state or result: er + participle ("den er købt"). For
+      something that happens: bliver + participle ("pengene bliver sat ind").
+    examples: [ch9.s3.byttes, ch9.s3.koebt, ch9.s3.sat]
+    practice:
+      - { type: cloze, line: ch9.s3.byttes, word: byttes, options: [byttes, bytter, bytte, byttede] }
+      - { type: tiles, line: ch9.s3.byttes }
+
+  # ── Chapter 10 ──
+  partikel:
+    title: { da: Partikelverber, en: "Particle verbs: se ud, finde ud af, passe på" }
+    pattern: "VERB + little word = new meaning"
+    highlight: "se,finde,passe,ud,af,på"
+    rule: >-
+      Like English "find out" or "give up", many Danish verbs change meaning with a small
+      word after them — and the small word is stressed: se UD (look, appear), finde UD af (find
+      out), passe PÅ (watch out), tage MED (bring), give OP (give up), slappe AF (relax). Learn
+      them as one unit.
+    examples: [ch10.s1.ud, ch10.s1.finde, ch10.s1.pas]
+    practice:
+      - { type: cloze, line: ch10.s1.finde, word: ud, options: [ud, op, ind, af] }
+      - { type: tiles, line: ch10.s1.pas }
+
+  betingelse:
+    title: { da: Betingelse uden hvis, en: "'If' without 'hvis'" }
+    pattern: "Slår man en sekser, må man … = Hvis man slår en sekser, må man …"
+    highlight: verb
+    rule: >-
+      In lively speech and in rules, Danish can drop "hvis" and start with the verb instead:
+      "Vinder jeg, giver jeg en omgang" (if I win, I'll buy a round). The first part is still a
+      condition, so the main clause inverts as usual. You'll hear it in games, instructions and
+      stories.
+    examples: [ch10.s2.slaar, ch10.s2.flere, ch10.s2.vinder]
+    practice:
+      - { type: cloze, line: ch10.s2.slaar, word: Slår, options: [slår, slå, slog, slået] }
+      - { type: tiles, line: ch10.s2.vinder }

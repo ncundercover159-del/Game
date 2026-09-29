@@ -1,0 +1,488 @@
+# Extra small talk, merged into each NPC's idle lines by the compiler.
+# Most lines are gated by a chapter flag (ch2 … ch10), so they only come up once the player
+# is ready. They're written to recycle everyday words that would otherwise appear too
+# rarely (see content/REPORT.md → Recycling). When talking to an NPC with nothing else to do,
+# the game picks a line the player hasn't heard yet.
+
+idle:
+  henrik:
+    - cond: { flag: ch3 }
+      henrik: Husk at låse døren, når du går ud.
+      en: Remember to lock the door when you go out.
+    - cond: { flag: ch5 }
+      henrik: Hvordan går det med det nye job? Jeg håber, det går godt.
+      en: "How's the new job going? I hope it's going well."
+    - cond: { flag: ch6 }
+      henrik: Hvis der er et problem med lejligheden, så sig til.
+      en: "If there's a problem with the flat, let me know."
+      lx: { så: "så#adv", sig: sige }
+    - cond: { flag: ch9 }
+      henrik: Den nye termostat virker. Nu er der varmt i hele opgangen.
+      en: "The new thermostat works. Now it's warm in the whole stairwell."
+    - cond: { flag: ch10 }
+      henrik: Glædelig jul! Husk at slukke lysene, når du går ud.
+      en: "Merry Christmas! Remember to put out the candles when you go out."
+      lx: { lysene: "lys#noun" }
+
+  grethe:
+    - cond: { flag: ch2 }
+      grethe: Jeg har bagt en kage. Vil du have et stykke?
+      en: "I've baked a cake. Would you like a piece?"
+    - cond: { flag: ch3 }
+      grethe: Min mand og jeg boede i den her lejlighed i fyrre år.
+      en: "My husband and I lived in this flat for forty years."
+    - cond: { flag: ch4 }
+      grethe: Jeg forstår ikke alle de nye apps. Jeg har aldrig været god til telefoner.
+      en: "I don't understand all these new apps. I've never been good with phones."
+    - cond: { flag: ch5 }
+      grethe: Det bliver koldt i aften. Husk at tage en varm jakke på.
+      en: "It's going to be cold tonight. Remember to put on a warm jacket."
+    - cond: { flag: ch6 }
+      grethe: Hvem var det, der besøgte dig i går? Hun var så sød.
+      en: "Who was it who visited you yesterday? She was so sweet."
+      lx: { så: "så#adv" }
+      say: "Every stairwell has a neighbour who notices everything."
+    - cond: { flag: ch8 }
+      grethe: Min søn ringer hver søndag. Han savner Danmark.
+      en: "My son rings every Sunday. He misses Denmark."
+    - cond: { flag: ch10 }
+      grethe: Jeg holder jul hos min datter i år.
+      en: "I'm spending Christmas at my daughter's this year."
+
+  mads:
+    - cond: { flag: ch2 }
+      mads: Jeg har fri fra skole i dag. Nice.
+      en: "I've got the day off school today. Nice."
+    - cond: { flag: ch3 }
+      mads: Min mor siger, at jeg skal lave lektier. Men jeg gider ikke.
+      en: "My mum says I have to do my homework. But I can't be bothered."
+    - cond: { flag: ch5 }
+      mads: Hvad laver du egentlig på dit arbejde?
+      en: What do you actually do at work?
+    - cond: { flag: ch6 }
+      mads: Jeg spiller fodbold hver tirsdag. Vil du være med en dag?
+      en: "I play football every Tuesday. Do you want to join in one day?"
+      lx: { en: "en#num" }
+    - cond: { flag: ch8 }
+      mads: Min far har købt en ny bil. Den er rød og vildt grim.
+      en: "My dad has bought a new car. It's red and seriously ugly."
+    - cond: { flag: ch9 }
+      mads: Jeg synes, at skolen starter alt for tidligt.
+      en: "I think school starts way too early."
+    - cond: { flag: ch10 }
+      mads: Jeg har allerede købt julegaver til hele familien. Okay, kun til min mor.
+      en: "I've already bought Christmas presents for the whole family. Okay, only for my mum."
+
+  amalie:
+    - cond: { flag: ch3 }
+      amalie: Har du allerede været på ARoS?
+      en: Have you been to ARoS yet?
+    - cond: { flag: ch4 }
+      amalie: Hvis du har brug for hjælp med papirerne, så sig til.
+      en: "If you need help with the paperwork, let me know."
+      lx: { så: "så#adv", sig: sige }
+    - cond: { flag: ch6 }
+      amalie: Sara er rigtig sød. Jeg tror, at I bliver gode venner.
+      en: "Sara's really nice. I think you'll become good friends."
+    - cond: { flag: ch7 }
+      amalie: Du skal ikke arbejde, når du er syg. Bliv hjemme!
+      en: "You shouldn't work when you're ill. Stay at home!"
+    - cond: { flag: ch8 }
+      amalie: Mine forældre kan godt lide dig. Især min far.
+      en: "My parents like you. Especially my dad."
+    - cond: { flag: ch9 }
+      amalie: Hvad er egentlig din mening om dansk mad?
+      en: "What's your opinion of Danish food, actually?"
+    - cond: { flag: ch10 }
+      amalie: Jeg glæder mig til jul. Hele familien kommer.
+      en: "I'm looking forward to Christmas. The whole family is coming."
+
+  hanne:
+    - cond: { flag: ch3 }
+      hanne: Vi åbner klokken seks om morgenen.
+      en: We open at six in the morning.
+    - cond: { flag: ch4 }
+      hanne: Det er min mand, der bager brødet. Jeg sælger det.
+      en: "It's my husband who bakes the bread. I sell it."
+    - cond: { flag: ch5 }
+      hanne: Om fredagen har vi et særligt tilbud på wienerbrød.
+      en: "On Fridays we have a special offer on Danish pastries."
+    - cond: { flag: ch8 }
+      hanne: Vil du prøve vores nye rugbrød? Det er med masser af kerner.
+      en: "Do you want to try our new rye bread? It's got loads of seeds."
+
+  emil:
+    - cond: { flag: ch3 }
+      emil: Jeg arbejder her om aftenen. Om dagen går jeg i skole.
+      en: "I work here in the evenings. In the daytime I go to school."
+    - cond: { flag: ch5 }
+      emil: Der er tilbud på kaffe i denne uge.
+      en: "There's an offer on coffee this week."
+    - cond: { flag: ch6 }
+      emil: Vi lukker om ti minutter.
+      en: We're closing in ten minutes.
+    - cond: { flag: ch10 }
+      emil: Det er vildt travlt op til jul. Alle køber ind på samme tid.
+      en: "It's crazy busy before Christmas. Everyone shops at the same time."
+
+  sara:
+    - cond: { flag: ch3 }
+      sara: Jeg har eksamen i næste uge. Jeg er lidt nervøs.
+      en: "I've got an exam next week. I'm a bit nervous."
+    - cond: { flag: ch4 }
+      sara: Hvilken kage vil du have i dag?
+      en: Which cake would you like today?
+    - cond: { flag: ch7 }
+      sara: Tak for sidst! Det var en fed aften.
+      en: "Great to see you again! That was a great evening."
+    - cond: { flag: ch9 }
+      sara: Min mening? Kaffe skal være stærk. Punktum.
+      en: "My opinion? Coffee should be strong. Full stop."
+    - cond: { flag: ch10 }
+      sara: Kommer du til min julefest? Der bliver gløgg og æbleskiver!
+      en: "Are you coming to my Christmas party? There'll be mulled wine and æbleskiver!"
+      say: "'æbleskiver' are round Christmas pancake balls with jam and icing sugar."
+
+  yasmin:
+    - cond: { flag: ch4 }
+      yasmin: Jeg bruger biblioteket hver dag. Der er ro, og det er gratis.
+      en: "I use the library every day. It's quiet, and it's free."
+    - cond: { flag: ch5 }
+      yasmin: Når jeg er færdig med at læse, vil jeg gerne arbejde på Aarhus Ø.
+      en: "When I've finished studying, I'd like to work in Aarhus Ø."
+    - cond: { flag: ch8 }
+      yasmin: Jeg har aldrig været i Skagen. Er det smukt?
+      en: "I've never been to Skagen. Is it beautiful?"
+
+  ali:
+    - cond: { flag: ch5 }
+      ali: Hvis telefonen går i stykker, så kom bare ned til mig.
+      en: "If the phone breaks, just come down to me."
+      lx: { så: "så#adv" }
+    - cond: { flag: ch8 }
+      ali: Vi har nye telefoner på tilbud. De er både billige og gode.
+      en: "We've got new phones on offer. They're both cheap and good."
+
+  pia:
+    - cond: { flag: ch5 }
+      pia: Hvis du flytter igen, skal du huske at melde flytning.
+      en: "If you move again, remember to register your change of address."
+    - cond: { flag: ch9 }
+      pia: Mange mennesker glemmer at skifte adresse, når de flytter.
+      en: "Lots of people forget to change their address when they move."
+
+  birgit:
+    - cond: { flag: ch8 }
+      birgit: Mange bliver syge om vinteren. Husk at vaske hænder.
+      en: "Lots of people get ill in the winter. Remember to wash your hands."
+    - cond: { flag: ch9 }
+      birgit: Hvis du er i tvivl om noget, så spørg bare.
+      en: "If you're unsure about anything, just ask."
+      lx: { så: "så#adv" }
+
+  jonas:
+    - cond: { flag: ch6 }
+      jonas: Jeg har tænkt på en ting. Hvem har spist min madpakke?
+      en: "I've been thinking about something. Who ate my packed lunch?"
+      lx: { en: "en#num" }
+    - cond: { flag: ch8 }
+      jonas: Velkommen tilbage. Vi har savnet dig. Især kaffemaskinen.
+      en: "Welcome back. We've missed you. Especially the coffee machine."
+    - cond: { flag: ch9 }
+      jonas: Mette siger, at vi får et nyt projekt. Jeg glæder mig. Næsten.
+      en: "Mette says we're getting a new project. I'm looking forward to it. Almost."
+
+  mette:
+    - cond: { flag: ch6 }
+      mette: Hvis du har en god idé, så sig det bare.
+      en: "If you have a good idea, just say so."
+      lx: { så: "så#adv", sig: sige }
+    - cond: { flag: ch7 }
+      mette: Du har lavet et godt stykke arbejde.
+      en: "You've done a good piece of work."
+    - cond: { flag: ch8 }
+      mette: Vi har brug for en løsning inden fredag.
+      en: We need a solution before Friday.
+
+  karen:
+    - cond: { flag: ch8 }
+      karen: Du ser rask ud. Bliv ved med at træne.
+      en: "You look healthy. Keep on exercising."
+    - cond: { flag: ch9 }
+      karen: Husk at sove nok og spise sundt.
+      en: "Remember to sleep enough and eat healthily."
+
+  lise:
+    - cond: { flag: ch9 }
+      lise: Kom forbi, når du vil. Der er altid plads til én mere.
+      en: "Drop by whenever you like. There's always room for one more."
+      lx: { én: "en#num" }
+    - cond: { flag: ch10 }
+      lise: Du skal holde jul med os i år, hvis du har lyst.
+      en: "You must spend Christmas with us this year, if you'd like to."
+
+  bent:
+    - cond: { flag: ch9 }
+      bent: Jeg mener, at alt var bedre i gamle dage. Men det siger alle gamle mænd.
+      en: "I think everything was better in the old days. But all old men say that."
+    - cond: { flag: ch10 }
+      bent: Har du nogensinde danset om juletræet? Det skal du prøve.
+      en: "Have you ever danced round the Christmas tree? You must try it."
+
+# ── Second pass: everyday words that still needed more contexts ─────────────
+# (Appended; uses only words already in the lexicon.)
+idle2:
+  henrik:
+    - cond: { flag: ch4 }
+      henrik: "Husk at skrive din nye adresse på postkassen."
+      en: "Remember to write your new address on the mailbox."
+    - cond: { flag: ch5 }
+      henrik: "Jeg kommer forbi på mandag og kigger på døren."
+      en: "I'll drop by on Monday and look at the door."
+    - cond: { flag: ch6 }
+      henrik: "Hvis du skal flytte, skal du sige til tre måneder før."
+      en: "If you want to move out, you have to give three months' notice."
+    - cond: { flag: ch7 }
+      henrik: "Min kone spørger altid, hvordan det går med dig."
+      en: "My wife always asks how you're doing."
+    - cond: { flag: ch8 }
+      henrik: "Jeg har tre lejligheder i byen, men den her er den bedste."
+      en: "I have three flats in town, but this one is the best."
+    - cond: { flag: ch9 }
+      henrik: "Undskyld igen for radiatoren. Det skal ikke ske igen."
+      en: "Sorry again about the radiator. It won't happen again."
+    - cond: { flag: ch10 }
+      henrik: "Jeg håber, at du bliver her længe. Du er en god nabo."
+      en: "I hope you'll stay here for a long time. You're a good neighbour."
+  grethe:
+    - cond: { flag: ch3 }
+      grethe: "Jeg går en tur i skoven hver morgen. Det er godt for hovedet."
+      en: "I go for a walk in the woods every morning. It's good for the head."
+    - cond: { flag: ch4 }
+      grethe: "Min søn og hans kone besøger mig til sommer."
+      en: "My son and his wife are visiting me next summer."
+    - cond: { flag: ch5 }
+      grethe: "Da jeg var ung, arbejdede jeg på et kontor inde i byen."
+      en: "When I was young, I worked in an office in town."
+    - cond: { flag: ch6 }
+      grethe: "Mange unge mennesker taler engelsk, men det er godt, at du lærer dansk."
+      en: "Lots of young people speak English, but it's good that you're learning Danish."
+    - cond: { flag: ch7 }
+      grethe: "Jeg sover altid dårligt, når det regner."
+      en: "I always sleep badly when it rains."
+    - cond: { flag: ch8 }
+      grethe: "Træerne er så smukke nu. Jeg elsker den tid."
+      en: "The trees are so beautiful now. I love this time of year."
+      lx: { så: "så#adv" }
+    - cond: { flag: ch9 }
+      grethe: "Jeg har aldrig forstået, hvorfor folk har så travlt."
+      en: "I've never understood why people are in such a hurry."
+      lx: { så: "så#adv" }
+    - cond: { flag: ch10 }
+      grethe: "Kom op og få en kop kaffe og et stykke kage, når du har tid."
+      en: "Come up for a cup of coffee and a piece of cake when you have time."
+  mads:
+    - cond: { flag: ch4 }
+      mads: "Jeg har fået en ny telefon. Den er vildt god."
+      en: "I've got a new phone. It's really good."
+    - cond: { flag: ch5 }
+      mads: "Seriøst, jeg glemmer altid mine nøgler."
+      en: "Seriously, I always forget my keys."
+    - cond: { flag: ch6 }
+      mads: "Jeg skal spille fodbold i aften. Vi skal vinde!"
+      en: "I'm playing football tonight. We're going to win!"
+    - cond: { flag: ch7 }
+      mads: "Øh, ved du, hvornår Netto lukker i dag?"
+      en: "Uh, do you know when Netto closes today?"
+      lx: { ved: "vide" }
+    - cond: { flag: ch8 }
+      mads: "Min mor har lavet alt for meget mad. Vil du have noget?"
+      en: "My mum has made way too much food. Do you want some?"
+    - cond: { flag: ch9 }
+      mads: "Jeg er ikke enig med min mor. Hun siger, at jeg spiller for meget."
+      en: "I don't agree with my mum. She says I play too much."
+    - cond: { flag: ch10 }
+      mads: "Jeg sov til klokken tolv i dag. Sygt."
+      en: "I slept till twelve today. Awesome."
+  amalie:
+    - cond: { flag: ch7 }
+      amalie: "Min mor spørger hele tiden til dig."
+      en: "My mum keeps asking about you."
+    - cond: { flag: ch5 }
+      amalie: "Jeg skal tidligt på arbejde i morgen, så jeg går hjem nu."
+      en: "I've got to go to work early tomorrow, so I'm going home now."
+      lx: { så: "så#adv" }
+    - cond: { flag: ch6 }
+      amalie: "Tak for i går! Det var sjovt at se Sara igen."
+      en: "Thanks for yesterday! It was fun to see Sara again."
+    - cond: { flag: ch8 }
+      amalie: "Min far elsker at fortælle historier. Undskyld."
+      en: "My dad loves telling stories. Sorry."
+    - cond: { flag: ch9 }
+      amalie: "Jeg har tænkt på at skifte job. Hvad mener du?"
+      en: "I've been thinking about changing jobs. What do you think?"
+    - cond: { flag: ch10 }
+      amalie: "Vi ses til nytår! Det bliver en god fest."
+      en: "See you at New Year! It'll be a good party."
+  hanne:
+    - cond: { flag: ch3 }
+      hanne: "Du kommer tidligt i dag! Vi har lige åbnet."
+      en: "You're early today! We've only just opened."
+    - cond: { flag: ch4 }
+      hanne: "Et rundstykke koster seks kroner, og en kanelsnegl koster atten."
+      en: "A roll costs six kroner, and a cinnamon swirl costs eighteen."
+    - cond: { flag: ch6 }
+      hanne: "Vi har desværre ingen kanelsnegle tilbage i dag."
+      en: "Unfortunately we have no cinnamon swirls left today."
+    - cond: { flag: ch7 }
+      hanne: "Jeg står op klokken fire hver dag. Man vænner sig til det."
+      en: "I get up at four every day. You get used to it."
+    - cond: { flag: ch9 }
+      hanne: "Folk siger, at vores rugbrød er det bedste i byen."
+      en: "People say our rye bread is the best in town."
+  emil:
+    - cond: { flag: ch4 }
+      emil: "Øh, vi har ikke flere poser. Undskyld."
+      en: "Uh, we don't have any more bags. Sorry."
+    - cond: { flag: ch6 }
+      emil: "Min chef siger, at jeg skal være mere høflig."
+      en: "My boss says I need to be more polite."
+    - cond: { flag: ch7 }
+      emil: "Jeg har fri på lørdag. Endelig!"
+      en: "I've got Saturday off. Finally!"
+    - cond: { flag: ch8 }
+      emil: "Vi får nye varer ind hver morgen klokken seks."
+      en: "We get new goods in every morning at six."
+    - cond: { flag: ch9 }
+      emil: "Kan du betale med kort? Det virker igen."
+      en: "Can you pay by card? It's working again."
+  sara:
+    - cond: { flag: ch4 }
+      sara: "Jeg læser dansk på universitetet, og i dag har jeg fri."
+      en: "I study Danish at the university, and today I'm off."
+    - cond: { flag: ch5 }
+      sara: "Min chef er sød, men han betaler ikke så godt."
+      en: "My boss is nice, but he doesn't pay very well."
+      lx: { så: "så#adv" }
+    - cond: { flag: ch6 }
+      sara: "Jeg har skrevet til dig. Har du set min sms?"
+      en: "I've written to you. Have you seen my text?"
+    - cond: { flag: ch7 }
+      sara: "Er du syg? Så skal du have en varm te. Den er gratis."
+      en: "Are you ill? Then you need a hot tea. It's free."
+      lx: { så: "så#adv" }
+    - cond: { flag: ch8 }
+      sara: "Jeg skal besøge min familie i weekenden. De bor tæt på Skagen."
+      en: "I'm visiting my family this weekend. They live near Skagen."
+    - cond: { flag: ch10 }
+      sara: "Min mor og far holder jul hjemme hos mig i år."
+      en: "My mum and dad are spending Christmas at my place this year."
+  yasmin:
+    - cond: { flag: ch4 }
+      yasmin: "Hvis du skal til Dokk1, skal du stå af her."
+      en: "If you're going to Dokk1, you get off here."
+    - cond: { flag: ch5 }
+      yasmin: "Jeg er født i Aarhus, og jeg kender byen godt."
+      en: "I was born in Aarhus, and I know the city well."
+    - cond: { flag: ch6 }
+      yasmin: "Jeg læser til læge. Det tager seks år."
+      en: "I'm studying to be a doctor. It takes six years."
+    - cond: { flag: ch7 }
+      yasmin: "Letbanen er næsten altid præcis."
+      en: "The tram is almost always on time."
+    - cond: { flag: ch9 }
+      yasmin: "Jeg synes, at Dokk1 er et smukt sted."
+      en: "I think Dokk1 is a beautiful place."
+  ali:
+    - cond: { flag: ch5 }
+      ali: "Vi sælger også gamle telefoner. De er meget billigere."
+      en: "We also sell old phones. They're much cheaper."
+    - cond: { flag: ch6 }
+      ali: "Det er nemt at skifte til et andet abonnement."
+      en: "It's easy to switch to another plan."
+    - cond: { flag: ch8 }
+      ali: "Min søn er seks år, og han vil allerede have en telefon!"
+      en: "My son is six, and he already wants a phone!"
+  pia:
+    - cond: { flag: ch5 }
+      pia: "Du kan også bruge MitID til at betale skat."
+      en: "You can also use MitID to pay tax."
+    - cond: { flag: ch6 }
+      pia: "Husk at have dit sundhedskort med, når du går til lægen."
+      en: "Remember to bring your health card when you go to the doctor."
+    - cond: { flag: ch8 }
+      pia: "Borgerservice lukker klokken tre om fredagen."
+      en: "Citizen Services closes at three on Fridays."
+  birgit:
+    - cond: { flag: ch8 }
+      birgit: "Hvis du har feber i mere end tre dage, skal du ringe til lægen."
+      en: "If you have a fever for more than three days, you should call the doctor."
+    - cond: { flag: ch9 }
+      birgit: "Du skal tage denne medicin sammen med mad."
+      en: "You should take this medicine with food."
+    - cond: { flag: ch10 }
+      birgit: "Om vinteren er der mange, der er syge."
+      en: "In winter, lots of people are ill."
+  jonas:
+    - cond: { flag: ch6 }
+      jonas: "Mette har en plan. Det har hun altid."
+      en: "Mette has a plan. She always does."
+    - cond: { flag: ch7 }
+      jonas: "Jeg sendte en sms til Mette ved en fejl. Den var til min mor."
+      en: "I sent a text to Mette by mistake. It was meant for my mum."
+    - cond: { flag: ch8 }
+      jonas: "Jeg har aldrig forstået, hvorfor kaffen er så dårlig."
+      en: "I've never understood why the coffee is so bad."
+      lx: { så: "så#adv" }
+    - cond: { flag: ch9 }
+      jonas: "Mødet i dag var interessant. Nej, det var det ikke."
+      en: "Today's meeting was interesting. No, it wasn't."
+    - cond: { flag: ch10 }
+      jonas: "Næste år vinder jeg pakkelegen. Det er bestemt."
+      en: "Next year I'm winning the present game. It's decided."
+  mette:
+    - cond: { flag: ch6 }
+      mette: "Vi skal have et nyt projekt i næste måned."
+      en: "We're getting a new project next month."
+    - cond: { flag: ch7 }
+      mette: "I dag holder vi mødet i kantinen."
+      en: "Today we're holding the meeting in the canteen."
+    - cond: { flag: ch8 }
+      mette: "Du er blevet en rigtig god kollega."
+      en: "You've become a really good colleague."
+    - cond: { flag: ch9 }
+      mette: "Jeg har talt med ledelsen. Vi prøver det i tre måneder."
+      en: "I've talked to management. We'll try it for three months."
+    - cond: { flag: ch10 }
+      mette: "Tak for et godt år. Holder du jul i Danmark?"
+      en: "Thanks for a good year. Are you spending Christmas in Denmark?"
+  karen:
+    - cond: { flag: ch8 }
+      karen: "Du skal ikke tage medicin, hvis du ikke har brug for det."
+      en: "You shouldn't take medicine if you don't need it."
+    - cond: { flag: ch9 }
+      karen: "Mange mennesker sover for lidt. Det er ikke sundt."
+      en: "Lots of people sleep too little. It isn't healthy."
+    - cond: { flag: ch10 }
+      karen: "Pas på dig selv i julen. Og ikke for meget snaps!"
+      en: "Take care of yourself over Christmas. And not too much snaps!"
+  lise:
+    - cond: { flag: ch9 }
+      lise: "Bent og jeg mødtes i Paris, da vi var unge."
+      en: "Bent and I met in Paris when we were young."
+    - cond: { flag: ch9 }
+      lise: "Amalie var altid glad, da hun var lille."
+      en: "Amalie was always happy when she was little."
+    - cond: { flag: ch10 }
+      lise: "Til jul spiser vi flæskesteg og risalamande."
+      en: "At Christmas we eat roast pork and rice pudding."
+  bent:
+    - cond: { flag: ch9 }
+      bent: "Da jeg var ung, kostede en øl tre kroner."
+      en: "When I was young, a beer cost three kroner."
+    - cond: { flag: ch9 }
+      bent: "Jeg fik min første telefon, da jeg var fyrre."
+      en: "I got my first phone when I was forty."
+    - cond: { flag: ch10 }
+      bent: "Lise siger, at jeg fortæller den samme historie hvert år."
+      en: "Lise says I tell the same story every year."

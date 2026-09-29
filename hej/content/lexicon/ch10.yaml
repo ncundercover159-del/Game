@@ -1,0 +1,58 @@
+# Chapter 10 (the Christmas party).
+entries:
+  mæt: { pos: adj, en: full (after eating), forms: { e: mætte }, rank: 5000, say: "'met'" }
+  snakke: { pos: verb, en: "talk, chat", forms: { inf: at snakke, pres: snakker, past: snakkede, perf: snakket }, rank: 1500, note: "'Godt snakket' = good chat." }
+  "vi skrives ved": { pos: phrase, en: "let's keep in touch (by text)" }
+  skrives: { pos: verb, en: "(skrives ved) keep in touch in writing", rank: 9000 }
+  betingelse: { pos: noun, g: en, en: condition, forms: { def: betingelsen, pl: betingelser }, rank: 3000 }
+  bord: { pos: noun, g: et, en: table, forms: { def: bordet, pl: borde, defpl: bordene }, rank: 700, say: "'bor'" }
+  glædelig: { pos: adj, en: "merry, happy", forms: { t: glædeligt, e: glædelige }, rank: 5000, say: "'GLAIR-the-li'", note: "'Glædelig jul' = merry Christmas." }
+  hov: { pos: interj, en: "oops; hey!", rank: 5000, say: "'how'" }
+  især: { pos: adv, en: especially, rank: 600, say: "'ee-SAIR'" }
+  partikelverbum: { pos: noun, g: et, en: particle verb, forms: { def: partikelverbet, pl: partikelverber }, rank: 50000 }
+  slå: { pos: verb, en: "hit; roll (a die)", forms: { inf: at slå, pres: slår, past: slog, perf: slået, imp: slå }, rank: 300, say: "'slo'" }
+  uh: { pos: interj, en: ooh, rank: 8000 }
+  aldrig: { pos: adv, en: never, rank: 150, say: "'AL-dri'" }
+  brændevin: { pos: noun, g: en, en: aquavit (schnapps), forms: { def: brændevinen }, rank: 20000 }
+  december: { pos: noun, g: en, en: December, rank: 1500 }
+  engang: { pos: adv, en: "once; (ikke engang) not even", rank: 1500, say: "'en-GANG'" }
+  fair: { pos: adj, en: fair, rank: 5000 }
+  fantastisk: { pos: adj, en: fantastic, forms: { e: fantastiske }, rank: 1500 }
+  fest: { pos: noun, g: en, en: party, forms: { def: festen, pl: fester }, rank: 1000, pic: "🎉" }
+  fisk: { pos: noun, g: en, en: fish, forms: { def: fisken, pl: fisk }, rank: 1500, pic: "🐟" }
+  frikadelle: { pos: noun, g: en, en: Danish meatball, forms: { def: frikadellen, pl: frikadeller }, rank: 20000, pic: "🧆", say: "'fri-ka-DEL-leh'" }
+  fuld: { pos: adj, en: "full; drunk", forms: { t: fuldt, e: fulde }, rank: 900, say: "'ful'", note: "Careful: 'fuld' also means drunk. Full after eating is 'mæt'." }
+  gave: { pos: noun, g: en, en: present, forms: { def: gaven, pl: gaver, defpl: gaverne }, rank: 1500, pic: "🎁", say: "'GAA-veh'" }
+  gratis: { pos: adj, en: free (of charge), rank: 1800 }
+  grine: { pos: verb, en: laugh, forms: { inf: at grine, pres: griner, past: grinede, perf: grinet }, rank: 1500, say: "'GREE-neh'" }
+  hvem: { pos: pron, en: who, rank: 200, say: "'vem' — silent h" }
+  jul: { pos: noun, g: en, en: Christmas, forms: { def: julen, pl: jule }, rank: 1000, pic: "🎄", say: "'yool'" }
+  julefrokost: { pos: noun, g: en, en: "Christmas party (lit. Christmas lunch)", forms: { def: julefrokosten, pl: julefrokoster }, rank: 12000, say: "'YOO-leh-fro-kost'" }
+  lege: { pos: verb, en: play (a game), forms: { inf: at lege, pres: leger, past: legede, perf: leget }, rank: 2000, say: "'LAI-eh'" }
+  nytår: { pos: noun, g: et, en: New Year, forms: { def: nytåret }, rank: 3000, say: "'NUET-or'", note: "'Godt nytår' = happy New Year." }
+  pakkeleg: { pos: noun, g: en, en: "the present game (dice game at Christmas parties)", forms: { def: pakkelegen }, rank: 40000 }
+  pynte: { pos: verb, en: decorate, forms: { inf: at pynte, pres: pynter, past: pyntede, perf: pyntet }, rank: 5000, note: "'pynte op til jul' = decorate for Christmas." }
+  revanche: { pos: noun, g: en, en: revenge (in a game), rank: 12000, say: "'re-VANG-sheh'" }
+  risalamande: { pos: noun, g: en, en: Christmas rice pudding with cherry sauce, rank: 40000, say: "'ree-sa-la-MAN'" }
+  råd: { pos: noun, g: et, en: advice, forms: { def: rådet, pl: råd }, rank: 900, say: "'roth'" }
+  sekser: { pos: noun, g: en, en: a six (on a die), forms: { def: sekseren }, rank: 20000, pic: "🎲" }
+  sild: { pos: noun, g: en, en: herring, forms: { def: silden, pl: sild }, rank: 9000, pic: "🐟", say: "'sil'" }
+  ske: { pos: verb, en: happen, forms: { inf: at ske, pres: sker, past: skete, perf: sket }, rank: 400, say: "'skeh'" }
+  smage: { pos: verb, en: taste, forms: { inf: at smage, pres: smager, past: smagte, perf: smagt }, rank: 1500, say: "'SMAA-eh'" }
+  snaps: { pos: noun, g: en, en: "snaps (a shot of aquavit)", forms: { def: snapsen, pl: snapse }, rank: 9000, pic: "🥃" }
+  stjæle: { pos: verb, en: steal, forms: { inf: at stjæle, pres: stjæler, past: stjal, perf: stjålet }, rank: 3000, say: "'STYAIR-leh'" }
+  stærk: { pos: adj, en: strong, forms: { t: stærkt, e: stærke }, rank: 800 }
+  takke: { pos: verb, en: thank, forms: { inf: at takke, pres: takker, past: takkede, perf: takket }, rank: 1500, note: "'takket være' = thanks to." }
+  tænke: { pos: verb, en: think (about), forms: { inf: at tænke, pres: tænker, past: tænkte, perf: tænkt }, rank: 350, say: "'TENG-keh'" }
+  tømmermænd: { pos: noun, g: en, en: "hangover (lit. carpenters)", rank: 20000, say: "'TUM-ma-men'" }
+  virkelig: { pos: adv, en: really, rank: 400, say: "'VEER-keh-li'" }
+  "finde ud af": { pos: phrase, en: find out, match: ["finder ud af", "fandt ud af"] }
+  "se ud": { pos: phrase, en: "look, appear", match: ["ser fin ud", "ser ud"] }
+  "pas på med": { pos: phrase, en: watch out with }
+  "glædelig jul": { pos: phrase, en: merry Christmas }
+  "godt nytår": { pos: phrase, en: happy New Year }
+  "i stedet": { pos: phrase, en: instead }
+  "ikke engang": { pos: phrase, en: not even }
+  "alle sammen": { pos: phrase, en: everyone, all of you }
+  "takket være": { pos: phrase, en: thanks to }
+  "høre med til": { pos: phrase, en: be part of, match: ["hører med til"] }

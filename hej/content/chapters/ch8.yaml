@@ -1,0 +1,245 @@
+# Chapter 8 — Søndagsmiddag (Sunday dinner). CEFR B1.
+# Dinner with Amalie's parents: arriving as a guest, table manners ("Tak for mad!"),
+# talking about the past, a long story.
+# Grammar: da vs når; past vs perfect; anything can come first (verb second again).
+
+id: ch8
+n: 8
+cefr: B1
+title: { da: Søndagsmiddag, en: Sunday dinner }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch8: true }
+  - narrator: Det er søndag. Du skal spise middag hos Amalies forældre i Risskov.
+    en: "It's Sunday. You're having dinner at Amalie's parents' in Risskov."
+  - narrator: Tag bussen til Risskov.
+    en: Take the bus to Risskov.
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Velkommen, en: Welcome }
+    objective: { da: Tag bussen til Risskov og gå ind hos Lise og Bent., en: "Take the bus to Risskov and go in to Lise and Bent's." }
+    npc: lise
+    start: { enterMap: parents }
+    cast:
+      lise: { map: parents, x: 5, y: 4, dir: down }
+      bent: { map: parents, x: 7, y: 3, dir: left }
+      amalie: { map: parents, x: 2, y: 4, dir: right }
+    script:
+      - lise: Hej, og velkommen! Kom indenfor.
+        en: "Hi, and welcome! Come in."
+      - choose:
+          - you: Tak for invitationen. Jeg har taget en flaske vin med.
+            en: "Thanks for the invitation. I've brought a bottle of wine."
+            q: natural
+            rel: 2
+          - you: Hej! Hvor har I et dejligt hus.
+            en: "Hi! What a lovely house you have."
+            q: natural
+            rel: 2
+      - lise: Åh, hvor sødt af dig.
+        en: "Oh, how sweet of you."
+      - bent: Goddag, goddag. Jeg er Bent, Amalies far.
+        en: "Hello, hello. I'm Bent, Amalie's dad."
+      - choose:
+          - you: Hyggeligt at møde dig, Bent.
+            en: "Nice to meet you, Bent."
+            q: natural
+          - you: Goddag, hr. Holm.
+            en: "Good afternoon, Mr Holm."
+            q: awkward
+            why: "Too formal for Denmark. Use first names: 'Hej, Bent'."
+      - id: ch8.s1.da1
+        bent: Da vi købte huset, var det helt faldefærdigt.
+        en: "When we bought the house, it was completely falling apart."
+        tags: [da, inversion]
+      - id: ch8.s1.da2
+        lise: Ja, og da Amalie blev født, boede vi i to værelser.
+        en: "Yes, and when Amalie was born, we lived in two rooms."
+        tags: [da]
+      - amalie: Mor, det er vist ikke så interessant.
+        en: "Mum, that's probably not that interesting."
+        lx: { så: "så#adv" }
+        say: "'vist' = probably / I suppose."
+      - id: ch8.s1.naar
+        lise: Jo, det er det! Når vi har gæster, fortæller Bent altid den historie.
+        en: "Yes, it is! Whenever we have guests, Bent always tells that story."
+        say: "'Jo' contradicts a negative: Amalie said 'not interesting' — 'jo' means 'yes it IS'."
+        tags: [da, inversion]
+      - spotlight: da
+      - lise: Nå, maden er klar. Værsgo at sætte jer.
+        en: "Right, dinner's ready. Please sit down."
+        say: "'Værsgo' also means 'dinner is served'. 'sætte jer' = sit down (you, plural)."
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: Ved bordet, en: At the table }
+    objective: { da: Spis middag med familien., en: Have dinner with the family. }
+    npc: bent
+    start: { auto: true }
+    cast:
+      lise: { map: parents, x: 6, y: 4, dir: up }
+      bent: { map: parents, x: 7, y: 3, dir: left }
+      amalie: { map: parents, x: 1, y: 3, dir: right }
+    script:
+      - narrator: Der er flæskesteg med brunede kartofler og rødkål.
+        en: "There's roast pork with caramelised potatoes and red cabbage."
+        say: "'flæskesteg' ('FLES-keh-stai') is the classic Danish Sunday and Christmas dinner."
+      - bent: Skål, og velkommen til Danmark!
+        en: "Cheers, and welcome to Denmark!"
+      - choose:
+          - you: Skål!
+            en: Cheers!
+            q: natural
+          - you: Skål, og tak fordi jeg måtte komme.
+            en: "Cheers, and thank you for having me."
+            q: natural
+            rel: 2
+      - lise: Vil du have mere sovs?
+        en: Would you like more gravy?
+      - choose:
+          - you: Ja tak, gerne.
+            en: "Yes please."
+            q: natural
+          - you: Nej tak, jeg har nok.
+            en: "No thanks, I've got plenty."
+            q: natural
+          - you: Nej.
+            en: "No."
+            q: awkward
+            why: "Always add 'tak': 'Nej tak' / 'Ja tak'."
+      - id: ch8.s2.perf
+        bent: Har du nogensinde boet i udlandet før?
+        en: Have you ever lived abroad before?
+        tags: [datidfoer]
+      - choose:
+          - you: Nej, det er første gang.
+            en: "No, it's the first time."
+            q: natural
+          - you: Ja, jeg boede i Spanien i et år.
+            en: "Yes, I lived in Spain for a year."
+            q: natural
+            lx: { et: "en#num" }
+      - id: ch8.s2.past
+        lise: Bent og jeg boede i Paris i to år, da vi var unge.
+        en: "Bent and I lived in Paris for two years when we were young."
+        tags: [datidfoer]
+      - id: ch8.s2.perf2
+        bent: Det var dengang. Nu har vi boet i Risskov i tredive år.
+        en: "That was then. Now we've lived in Risskov for thirty years."
+        tags: [datidfoer, v2]
+      - spotlight: datidfoer
+      - bent: Men fortæl lidt om dig selv. Hvorfor flyttede du til Danmark?
+        en: "But tell us a bit about yourself. Why did you move to Denmark?"
+      - choose:
+          - you: Jeg fik et job her.
+            en: I got a job here.
+            q: natural
+          - you: Fordi jeg gerne ville lære dansk.
+            en: Because I wanted to learn Danish.
+            q: natural
+          - you: Jeg ville prøve noget nyt.
+            en: I wanted to try something new.
+            q: natural
+      - lise: Og du taler allerede så godt dansk!
+        en: "And you already speak Danish so well!"
+        lx: { så: "så#adv" }
+      - choose:
+          - you: Tak! Amalie har hjulpet mig meget.
+            en: "Thanks! Amalie has helped me a lot."
+            q: natural
+            rel: 1
+          - you: Tak, men jeg laver stadig mange fejl.
+            en: "Thanks, but I still make lots of mistakes."
+            q: natural
+      - narrator: Efter maden siger man altid det samme.
+        en: "After the meal, you always say the same thing."
+      - choose:
+          - you: Tak for mad!
+            en: Thanks for the food!
+            q: natural
+            rel: 3
+            say: "ALWAYS say 'Tak for mad' to the host after a meal. It's one of the most important Danish phrases."
+          - you: Jeg er færdig.
+            en: "I'm done."
+            q: awkward
+            why: "After a meal at someone's home, always say 'Tak for mad!' to the host."
+      - lise: Velbekomme!
+        en: "You're very welcome!"
+        say: "'Velbekomme' ('vel-beh-KOM-meh') is the answer to 'tak for mad'."
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: Kaffe og kage, en: Coffee and cake }
+    objective: { da: Drik kaffe med familien., en: Have coffee with the family. }
+    npc: bent
+    start: { auto: true }
+    cast:
+      lise: { map: parents, x: 4, y: 4, dir: left }
+      bent: { map: parents, x: 2, y: 5, dir: right }
+      amalie: { map: parents, x: 6, y: 5, dir: left }
+    script:
+      - lise: Skal vi have kaffe og kage i stuen?
+        en: Shall we have coffee and cake in the living room?
+      - bent: Da jeg var ung, cyklede jeg til Skagen med to venner.
+        en: "When I was young, I cycled to Skagen with two friends."
+        say: "Skagen is the very northern tip of Denmark — about 250 km from Aarhus."
+        tags: [da]
+      - bent: Det tog fem dage, og det regnede hver eneste dag.
+        en: "It took five days, and it rained every single day."
+      - id: ch8.s3.aften
+        bent: Om aftenen sov vi i telt, og vi spiste rugbrød til alle måltider.
+        en: "In the evenings we slept in a tent, and we ate rye bread at every meal."
+        tags: [topik]
+      - id: ch8.s3.frem
+        bent: Men da vi endelig kom frem, var det hele turen værd.
+        en: "But when we finally got there, the whole trip was worth it."
+        tags: [da, inversion]
+      - exercise: { type: listen, line: ch8.s3.frem }
+      - choose:
+          - you: Det lyder som et eventyr!
+            en: That sounds like an adventure!
+            q: natural
+            rel: 2
+          - you: Fem dage? Det er langt!
+            en: "Five days? That's a long way!"
+            q: natural
+      - id: ch8.s3.hoert
+        amalie: Den historie har jeg hørt hundrede gange.
+        en: "I've heard that story a hundred times."
+        tags: [topik]
+      - bent: Og du skal nok høre den hundrede gange mere.
+        en: "And you'll hear it a hundred more times."
+        say: "'skal nok' = will certainly (a promise)."
+      - id: ch8.s3.idag
+        bent: I dag cykler jeg kun til bageren.
+        en: "These days I only cycle to the baker's."
+        tags: [topik]
+      - spotlight: topik
+      - narrator: Klokken er ti, og det er tid til at gå hjem.
+        en: "It's ten o'clock, and it's time to go home."
+      - choose:
+          - you: Tak for i dag. Det har været rigtig hyggeligt.
+            en: "Thanks for today. It's been really lovely."
+            q: natural
+            rel: 2
+          - you: Tak for mad og tak for i dag!
+            en: "Thanks for the food, and thanks for today!"
+            q: natural
+            rel: 2
+      - lise: Selv tak. Du er altid velkommen her.
+        en: "Thank you for coming. You're always welcome here."
+      - bent: Og næste gang fortæller jeg om Paris!
+        en: "And next time I'll tell you about Paris!"
+        tags: [topik]
+      - amalie: Åh nej.
+        en: Oh no.
+
+outro:
+  - narrator: Nu kan du være gæst i et dansk hjem.
+    en: Now you can be a guest in a Danish home.
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

@@ -1,0 +1,51 @@
+# Chapter 7 (health).
+entries:
+  gabe: { pos: verb, en: "yawn; (gab op) open wide", forms: { inf: at gabe, pres: gaber, past: gabte, perf: gabt, imp: gab }, rank: 9000 }
+  hente: { pos: verb, en: "fetch, pick up", forms: { inf: at hente, pres: henter, past: hentede, perf: hentet, imp: hent }, rank: 700, say: "'HEN-teh'" }
+  refleksiv: { pos: adj, en: reflexive, forms: { e: refleksive }, rank: 40000 }
+  behøve: { pos: verb, en: need (to), forms: { inf: at behøve, pres: behøver, past: behøvede, perf: behøvet }, rank: 1000, say: "'beh-HUR-veh'", note: "'Du behøver ikke' = you don't have to." }
+  døgn: { pos: noun, g: et, en: "24 hours, a day and night", forms: { def: døgnet, pl: døgn }, rank: 2500, say: "'doyn'" }
+  efter: { pos: prep, en: after, rank: 37, say: "'EF-ta'" }
+  forståelse: { pos: noun, g: en, en: understanding, forms: { def: forståelsen }, rank: 3000 }
+  frisk: { pos: adj, en: "fresh; well, fit", forms: { t: friskt, e: friske }, rank: 1800 }
+  føle: { pos: verb, en: "feel", forms: { inf: at føle, pres: føler, past: følte, perf: følt }, rank: 400, say: "'FUR-leh'", note: "'føle sig' = feel (ill, better …)." }
+  gul: { pos: adj, en: yellow, forms: { t: gult, e: gule }, rank: 1800, say: "'gool'", note: "'det gule kort' = the yellow health card." }
+  hals: { pos: noun, g: en, en: "throat; neck", forms: { def: halsen, pl: halse }, rank: 2500 }
+  halsbetændelse: { pos: noun, g: en, en: "strep throat, throat infection", forms: { def: halsbetændelsen }, rank: 30000, say: "'HALS-beh-ten-el-seh'" }
+  hun: { pos: pron, en: she, forms: { obj: hende, poss: hendes }, rank: 31, say: "'hon'" }
+  hoste: { pos: verb, en: cough, forms: { inf: at hoste, pres: hoster, past: hostede, perf: hostet }, rank: 8000 }
+  hvile: { pos: verb, en: rest, forms: { inf: at hvile, pres: hviler, past: hvilede, perf: hvilet, imp: hvil }, rank: 2500, say: "'VEE-leh'", note: "'hvile sig' = rest." }
+  håbe: { pos: verb, en: hope, forms: { inf: at håbe, pres: håber, past: håbede, perf: håbet }, rank: 700, say: "'HO-beh'" }
+  influenza: { pos: noun, g: en, en: flu, forms: { def: influenzaen }, rank: 9000 }
+  kigge: { pos: verb, en: look, forms: { inf: at kigge, pres: kigger, past: kiggede, perf: kigget, imp: kig }, rank: 900, say: "'KIG-geh'" }
+  komma: { pos: noun, g: et, en: "comma; decimal point", forms: { def: kommaet }, rank: 6000 }
+  mad: { pos: noun, g: en, en: food, forms: { def: maden }, rank: 400, pic: "🍽️", say: "'math'" }
+  mave: { pos: noun, g: en, en: "stomach, tummy", forms: { def: maven, pl: maver }, rank: 2500, say: "'MAA-veh'" }
+  medicin: { pos: noun, g: en, en: medicine, forms: { def: medicinen }, rank: 2500, pic: "💊", say: "'meh-dee-SEEN'" }
+  måle: { pos: verb, en: measure, forms: { inf: at måle, pres: måler, past: målte, perf: målt }, rank: 1500 }
+  ned: { pos: adv, en: down, rank: 200, say: "'neth'" }
+  offentlig: { pos: adj, en: "public; (det offentlige) the state", forms: { t: offentligt, e: offentlige }, rank: 700 }
+  penicillin: { pos: noun, g: en, en: penicillin, rank: 30000 }
+  podning: { pos: noun, g: en, en: swab (test), forms: { def: podningen }, rank: 30000 }
+  positiv: { pos: adj, en: positive, forms: { t: positivt, e: positive }, rank: 1500 }
+  rask: { pos: adj, en: "healthy, well again", forms: { t: rask, e: raske }, rank: 4000 }
+  recept: { pos: noun, g: en, en: prescription, forms: { def: recepten, pl: recepter }, rank: 5000, say: "'reh-SEPT'" }
+  rest: { pos: noun, g: en, en: rest (remainder), forms: { def: resten, pl: rester }, rank: 1000 }
+  rød: { pos: adj, en: red, forms: { t: rødt, e: røde }, rank: 700, say: "'rurth'" }
+  samme: { pos: adj, en: same, rank: 200 }
+  sammen: { pos: adv, en: together, rank: 250 }
+  senere: { pos: adv, en: later, rank: 400 }
+  sikker: { pos: adj, en: "sure; safe", forms: { t: sikkert, e: sikre }, rank: 600 }
+  skidt: { pos: adj, en: "bad, rotten (informal)", rank: 3000, note: "'have det skidt' = feel awful." }
+  syg: { pos: adj, en: "ill, sick", forms: { t: sygt, e: syge }, rank: 1000, say: "'sue'", note: "'melde sig syg' = call in sick. Teens use 'sygt' to mean 'awesome'!" }
+  temperatur: { pos: noun, g: en, en: temperature, forms: { def: temperaturen }, rank: 3000 }
+  tooghalvfjerds: { pos: num, en: seventy-two, value: 72, rank: 20000, say: "'TOE-o-hal-FYAIRS'" }
+  uden: { pos: prep, en: without, rank: 180, say: "'OO-then'" }
+  vågne: { pos: verb, en: wake up, forms: { inf: at vågne, pres: vågner, past: vågnede, perf: vågnet }, rank: 2000, say: "'VOW-neh'" }
+  øre: { pos: noun, g: et, en: "ear; øre (1/100 krone)", forms: { def: øret, pl: ører, defpl: ørerne }, rank: 2000, pic: "👂", say: "'UR-a'" }
+  "i vejen": { pos: phrase, en: "wrong (hvad er der i vejen? = what's the matter?)" }
+  "melde sig syg": { pos: phrase, en: call in sick, match: ["melder mig syg"] }
+  "have det skidt": { pos: phrase, en: feel awful, match: ["har det skidt"] }
+  "selv om": { pos: phrase, en: even though }
+  "før tid": { pos: phrase, en: early (ahead of time) }
+  "gab op": { pos: phrase, en: open wide }

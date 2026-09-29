@@ -1,0 +1,236 @@
+# Chapter 10 — Julefrokost (The Christmas party). CEFR B2.
+# Slang from Mads, the office julefrokost (herring, snaps, pakkeleg), humour and irony,
+# the morning after.
+# Grammar: particle verbs (se ud, finde ud af, passe på); conditions without "hvis"
+# (Slår man en sekser, må man …).
+
+id: ch10
+n: 10
+cefr: B2
+title: { da: Julefrokost, en: The Christmas party }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch10: true }
+  - narrator: Det er december, og Aarhus er pyntet op til jul.
+    en: "It's December, and Aarhus is decorated for Christmas."
+  - narrator: I aften er der julefrokost på arbejdet.
+    en: "Tonight there's the Christmas party at work."
+    say: "A 'julefrokost' (lit. Christmas lunch) is usually a long evening party with food, snaps and games."
+    tags: [v2]
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Gode råd fra Mads, en: Good advice from Mads }
+    objective: { da: Mads venter i opgangen., en: Mads is waiting in the stairwell. }
+    npc: mads
+    start: { npc: mads }
+    cast:
+      mads: { map: stairwell, x: 4, y: 5, dir: right }
+    script:
+      - id: ch10.s1.ud
+        mads: Yo! Du ser fin ud. Skal du noget?
+        en: "Yo! You look smart. Got plans?"
+        say: "Remember 'fin'? Here it really does mean dressed up."
+        tags: [partikel]
+      - choose:
+          - you: Ja, jeg skal til julefrokost.
+            en: "Yes, I'm going to a Christmas party."
+            q: natural
+          - you: Tak! Jeg skal til fest på arbejdet.
+            en: "Thanks! I'm going to a party at work."
+            q: natural
+      - mads: Uh, julefrokost. Det bliver vildt.
+        en: "Ooh, a julefrokost. It's going to be wild."
+      - id: ch10.s1.finde
+        mads: Du finder hurtigt ud af, hvem der er sjove.
+        en: "You'll soon find out who the fun ones are."
+        tags: [partikel]
+      - id: ch10.s1.pas
+        mads: Men pas på med snapsen. Den er stærk.
+        en: "But watch out with the snaps. It's strong."
+        say: "'snaps' = Danish aquavit, drunk in small glasses with herring."
+        tags: [partikel]
+      - choose:
+          - you: Tak for rådet, Mads.
+            en: "Thanks for the advice, Mads."
+            q: natural
+            rel: 2
+          - you: Hvad er snaps?
+            en: What's snaps?
+            q: natural
+            then:
+              - mads: Dansk brændevin. Man drikker det til sild.
+                en: "Danish aquavit. You drink it with herring."
+      - mads: Og hvis det bliver for meget, så tag bare hjem.
+        en: "And if it gets too much, just go home."
+        lx: { så: "så#adv" }
+      - spotlight: partikel
+      - mads: Glædelig jul, gamle!
+        en: "Merry Christmas, mate!"
+        say: "'Glædelig jul' is 'GLAIR-the-li yool'."
+      - choose:
+          - you: Glædelig jul, Mads!
+            en: "Merry Christmas, Mads!"
+            q: natural
+          - you: I lige måde!
+            en: Same to you!
+            q: natural
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: Julefrokosten, en: The Christmas party }
+    objective: { da: Gå til julefrokost i festsalen hos Nordlys., en: Go to the Christmas party in the party room at Nordlys. }
+    npc: jonas
+    start: { enterMap: festsal }
+    cast:
+      jonas: { map: festsal, x: 2, y: 3, dir: right }
+      mette: { map: festsal, x: 7, y: 3, dir: left }
+    script:
+      - narrator: Bordene er fulde af sild, rugbrød, frikadeller og risalamande.
+        en: "The tables are full of herring, rye bread, meatballs and rice pudding."
+        say: "'risalamande' ('ree-sa-la-MAN') is the Christmas rice pudding with cherry sauce."
+      - mette: Velkommen til julefrokost! Tak for et fantastisk år, alle sammen.
+        en: "Welcome to the Christmas party! Thanks for a fantastic year, everyone."
+      - mette: Uden jer ville Nordlys ikke være det samme.
+        en: "Without you, Nordlys wouldn't be the same."
+      - jonas: Skål for Mette! Og skål for gratis mad!
+        en: "Cheers to Mette! And cheers to free food!"
+      - choose:
+          - you: Skål!
+            en: Cheers!
+            q: natural
+          - you: Skål for os alle sammen!
+            en: Cheers to all of us!
+            q: natural
+            rel: 2
+      - jonas: Nå, har du prøvet sild før?
+        en: "So, have you tried herring before?"
+      - choose:
+          - you: Nej, aldrig. Hvordan smager det?
+            en: "No, never. What does it taste like?"
+            q: natural
+          - you: Ja, og jeg elsker det!
+            en: "Yes, and I love it!"
+            q: natural
+          - you: Nej tak, jeg spiser ikke fisk.
+            en: "No thanks, I don't eat fish."
+            q: natural
+            then:
+              - jonas: Så tag en frikadelle i stedet.
+                en: Then have a meatball instead.
+                lx: { så: "så#adv" }
+      - jonas: Det smager fantastisk. Især når man har drukket tre snapse.
+        en: "It tastes fantastic. Especially when you've had three snaps."
+        say: "Irony! Danes often say the opposite of what they mean, with a straight face."
+      - mette: Jonas, du har ikke engang drukket én.
+        en: "Jonas, you haven't even had one."
+        lx: { én: "en#num" }
+      - jonas: Nej, men jeg har tænkt meget på det.
+        en: "No, but I've thought about it a lot."
+      - narrator: Alle griner.
+        en: Everyone laughs.
+      - mette: Nu skal vi lege pakkeleg!
+        en: "Now we're going to play the present game!"
+        say: "'pakkeleg': roll a die, and on a six you take — or steal — a present."
+      - id: ch10.s2.slaar
+        mette: Slår man en sekser, må man tage en gave.
+        en: "If you roll a six, you can take a present."
+        tags: [betingelse]
+      - id: ch10.s2.flere
+        mette: Er der ikke flere gaver, må man stjæle fra de andre.
+        en: "If there are no presents left, you can steal from the others."
+        tags: [betingelse]
+      - id: ch10.s2.vinder
+        jonas: Vinder jeg, giver jeg en omgang.
+        en: "If I win, I'll buy a round."
+        tags: [betingelse]
+      - spotlight: betingelse
+      - narrator: Du slår en sekser!
+        en: You roll a six!
+      - choose:
+          - you: Yes! Jeg tager den store gave.
+            en: "Yes! I'll take the big present."
+            q: natural
+          - you: Hvilken gave skal jeg tage?
+            en: Which present should I take?
+            q: natural
+      - jonas: Hov, det var min gave! Det er ikke fair.
+        en: "Hey, that was my present! That's not fair."
+        say: "'Hov!' = oops / hey!"
+      - choose:
+          - you: Sådan er pakkeleg, Jonas.
+            en: "That's pakkeleg for you, Jonas."
+            q: natural
+            rel: 1
+          - you: Undskyld! Vil du have den tilbage?
+            en: "Sorry! Do you want it back?"
+            q: natural
+      - jonas: Nej nej. Jeg tager bare revanche næste år.
+        en: "No, no. I'll just get my revenge next year."
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: Dagen derpå, en: The morning after }
+    objective: { da: Gå hjem og sov., en: Go home and sleep. }
+    npc: amalie
+    start: { auto: true, at: { map: flat, x: 4, y: 6, dir: up } }
+    cast:
+      amalie: { map: flat, x: 4, y: 4, dir: down }
+    script:
+      - narrator: Næste morgen ringer det på døren. Det er Amalie.
+        en: "The next morning the doorbell rings. It's Amalie."
+        tags: [v2]
+      - amalie: Godmorgen! Hvordan var julefrokosten?
+        en: "Good morning! How was the Christmas party?"
+      - choose:
+          - you: Den var rigtig sjov. Men jeg har tømmermænd.
+            en: "It was really fun. But I've got a hangover."
+            q: natural
+            say: "'tømmermænd' (lit. carpenters — hammering in your head) = a hangover."
+          - you: Hyggelig! Jeg vandt pakkelegen.
+            en: "Lovely! I won the present game."
+            q: natural
+      - amalie: Haha! Det hører med til en dansk jul.
+        en: "Haha! That's all part of a Danish Christmas."
+      - amalie: Fortæl! Hvad skete der?
+        en: "Tell me! What happened?"
+      - build:
+          you: Jonas var sur, fordi jeg tog hans gave.
+          en: "Jonas was annoyed because I took his present."
+          extra: [tager]
+          prompt: { da: Fortæl om Jonas., en: "Tell her: Jonas was annoyed because you took his present." }
+      - amalie: Typisk Jonas! Hør, du er virkelig blevet god til dansk.
+        en: "Typical Jonas! Listen, you've really got good at Danish."
+      - amalie: Kan du huske din første dag? Du kunne kun sige hej og tak.
+        en: "Do you remember your first day? You could only say hej and tak."
+      - choose:
+          - you: Ja, og nu kan jeg klage over radiatorer!
+            en: "Yes, and now I can complain about radiators!"
+            q: natural
+            rel: 2
+          - you: Tak. Det er takket være dig.
+            en: "Thanks. It's thanks to you."
+            q: natural
+            rel: 3
+      - amalie: Nå, men glædelig jul! Og godt nytår, hvis vi ikke ses før.
+        en: "Well, merry Christmas! And happy New Year, if we don't see each other before then."
+      - choose:
+          - you: Glædelig jul, Amalie!
+            en: "Merry Christmas, Amalie!"
+            q: natural
+          - you: I lige måde! Og tak for alt.
+            en: "Same to you! And thanks for everything."
+            q: natural
+            rel: 2
+      - amalie: Velkommen til Danmark. Du er en af os nu.
+        en: "Welcome to Denmark. You're one of us now."
+        lx: { en: "en#num" }
+
+outro:
+  - narrator: Du er kommet langt, siden du sagde hej for første gang.
+    en: "You've come a long way since you first said hej."
+  - narrator: Tag den sidste test.
+    en: Take the last test.

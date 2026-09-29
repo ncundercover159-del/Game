@@ -16,6 +16,12 @@ describe('talk matcher', () => {
     expect(matchPattern('[det er|mit nummer er] {num} {num} {num} {num}', 'Mit nummer er tyve tolv nitten fjorten', slots).ok).toBe(true);
     expect(matchPattern('{num} {num}', '20 12', slots).ok).toBe(true);
   });
+  it('supports * for open-ended answers', () => {
+    expect(matchPattern('jeg skal *', 'Jeg skal til fødselsdag hos Amalie.', slots).ok).toBe(true);
+    expect(matchPattern('jeg skal *', 'Jeg skal', slots).ok).toBe(true);
+    expect(matchPattern('jeg skal *', 'Du skal noget', slots).ok).toBe(false);
+    expect(matchPattern('(ja|nej) * tak', 'nej det er fint tak', slots).ok).toBe(true);
+  });
   it('picks the first matching pattern', () => {
     expect(matchAny(['nej tak', 'ja [tak]'], 'Ja tak', slots)?.index).toBe(1);
     expect(matchAny(['nej tak'], 'måske', slots)).toBeNull();

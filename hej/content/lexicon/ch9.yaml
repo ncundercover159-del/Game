@@ -1,0 +1,49 @@
+# Chapter 9 (opinions).
+ambiguous:
+  klage: klage
+  siden: siden
+entries:
+  enig: { pos: adj, en: agreed (be in agreement), forms: { t: enigt, e: enige }, rank: 1200, say: "'EE-ni'", note: "'Jeg er enig' = I agree (lit. I am agreed)." }
+  uenig: { pos: adj, en: in disagreement, forms: { t: uenigt, e: uenige }, rank: 3000, say: "'OO-ee-ni'" }
+  enighed: { pos: noun, g: en, en: agreement, forms: { def: enigheden }, rank: 5000 }
+  klage: { pos: verb, en: complain, forms: { inf: at klage, pres: klager, past: klagede, perf: klaget, imp: klag }, rank: 1300, say: "'KLAA-eh'", note: "Also a noun: en klage = a complaint." }
+  "klage#noun": { lemma: klage, pos: noun, g: en, en: complaint, forms: { def: klagen, pl: klager }, rank: 3000 }
+  ledelse: { pos: noun, g: en, en: management, forms: { def: ledelsen }, rank: 1500, say: "'LAY-thel-seh'" }
+  passiv: { pos: noun, g: et, en: passive (grammar), rank: 20000 }
+  penge: { pos: noun, g: en, en: money, forms: { def: pengene }, rank: 400, pic: "💰", note: "Always plural: 'pengene' = the money." }
+  radiator: { pos: noun, g: en, en: radiator, forms: { def: radiatoren, pl: radiatorer, defpl: radiatorerne }, rank: 15000 }
+  vare: { pos: noun, g: en, en: "item, product; (varer) goods", forms: { def: varen, pl: varer, defpl: varerne }, rank: 1200 }
+  ene: { pos: adj, en: "(den ene) the one", rank: 900 }
+  an: { pos: adv, en: "(komme an på) depend on", rank: 3000 }
+  arbejdsuge: { pos: noun, g: en, en: working week, forms: { def: arbejdsugen }, rank: 12000 }
+  besvær: { pos: noun, g: et, en: trouble, forms: { def: besværet }, rank: 4000 }
+  bytte: { pos: verb, en: exchange, forms: { inf: at bytte, pres: bytter, past: byttede, perf: byttet, passive: byttes }, rank: 2500, say: "'BUE-deh'" }
+  elkedel: { pos: noun, g: en, en: electric kettle, forms: { def: elkedlen, pl: elkedler }, rank: 30000, pic: "🫖" }
+  firedages: { pos: adj, en: four-day, rank: 30000 }
+  idé: { pos: noun, g: en, en: idea, forms: { def: idéen, pl: idéer }, rank: 800, say: "'ee-DAY'" }
+  kold: { pos: adj, en: cold, forms: { t: koldt, e: kolde }, rank: 1000, say: "'kol'" }
+  kompromis: { pos: noun, g: et, en: compromise, forms: { def: kompromiset, pl: kompromiser }, rank: 5000 }
+  kone: { pos: noun, g: en, en: wife, forms: { def: konen, pl: koner }, rank: 900 }
+  lager: { pos: noun, g: et, en: "stock, warehouse", forms: { def: lageret, pl: lagre }, rank: 5000 }
+  løb: { pos: noun, g: et, en: "run, course (i løbet af = within)", forms: { def: løbet }, rank: 1500 }
+  løsning: { pos: noun, g: en, en: solution, forms: { def: løsningen, pl: løsninger }, rank: 900 }
+  mene: { pos: verb, en: "think, believe (firmly); mean", forms: { inf: at mene, pres: mener, past: mente, perf: ment }, rank: 250, say: "'MAY-neh'" }
+  mening: { pos: noun, g: en, en: "opinion; meaning", forms: { def: meningen, pl: meninger }, rank: 700 }
+  ordne: { pos: verb, en: "fix, sort out", forms: { inf: at ordne, pres: ordner, past: ordnede, perf: ordnet }, rank: 3500 }
+  overveje: { pos: verb, en: consider, forms: { inf: at overveje, pres: overvejer, past: overvejede, perf: overvejet }, rank: 1500 }
+  par: { pos: noun, g: et, en: "couple, pair (et par = a couple of)", forms: { def: parret, pl: par }, rank: 400 }
+  ret: { pos: noun, g: en, en: "right; (have ret) be right; dish", forms: { def: retten }, rank: 700, note: "'Du har ret' = you're right." }
+  side: { pos: noun, g: en, en: side; page, forms: { def: siden, pl: sider }, rank: 300 }
+  skifte: { pos: verb, en: "change, replace", forms: { inf: at skifte, pres: skifter, past: skiftede, perf: skiftet }, rank: 1300 }
+  sur: { pos: adj, en: "sour; annoyed, cross", forms: { t: surt, e: sure }, rank: 2500 }
+  taske: { pos: noun, g: en, en: bag, forms: { def: tasken, pl: tasker }, rank: 3000, pic: "👜" }
+  termostat: { pos: noun, g: en, en: thermostat, forms: { def: termostaten }, rank: 20000 }
+  ventetid: { pos: noun, g: en, en: wait (time), forms: { def: ventetiden }, rank: 6000 }
+  øjeblik: { pos: noun, g: et, en: moment, forms: { def: øjeblikket, pl: øjeblikke }, rank: 1000, say: "'OY-eh-blik'", note: "'Øjeblik!' = just a moment!" }
+  "komme an på": { pos: phrase, en: depend on, match: ["kommer an på"] }
+  "på den ene side": { pos: phrase, en: on the one hand }
+  "på den anden side": { pos: phrase, en: on the other hand }
+  "have ret": { pos: phrase, en: be right, match: ["har ret"] }
+  "i løbet af": { pos: phrase, en: within, during }
+  "det gør ikke noget": { pos: phrase, en: "no problem, it doesn't matter" }
+  "for dårligt": { pos: phrase, en: "not good enough, not on" }

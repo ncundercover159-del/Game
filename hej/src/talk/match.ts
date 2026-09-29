@@ -14,6 +14,7 @@ export function normalize(s: string): string {
 }
 
 type Item =
+  | { k: 'star' }
   | { k: 'lit'; alts: string[][]; opt: boolean }
   | { k: 'slot'; name: string; opt: boolean };
 
@@ -45,7 +46,8 @@ export function parsePattern(p: string): Item[] {
     const end = p.indexOf(' ', i);
     const word = p.slice(i, end < 0 ? p.length : end);
     const slot = word.match(/^\{(\w+)\}$/);
-    if (slot) items.push({ k: 'slot', name: slot[1], opt: false });
+    if (word === '*') items.push({ k: 'star' });
+    else if (slot) items.push({ k: 'slot', name: slot[1], opt: false });
     else items.push({ k: 'lit', alts: [[word]], opt: false });
     i = end < 0 ? p.length : end;
   }
@@ -66,6 +68,11 @@ export function matchPattern(pattern: string, answer: string, slots: Record<stri
   const go = (ii: number, wi: number): boolean => {
     if (ii === items.length) return wi === words.length;
     const it = items[ii];
+    if (it.k === 'star') {
+      // any number of words (0+), e.g. the open end of "jeg skal *"
+      for (let k = words.length; k >= wi; k--) if (go(ii + 1, k)) return true;
+      return false;
+    }
     if (it.k === 'slot') {
       const w = words[wi];
       if (w !== undefined && (it.name === 'any' || (slots[it.name] ?? []).includes(w) || (it.name === 'num' && /^\d+$/.test(w)))) {

@@ -100,9 +100,20 @@ export class Game {
         await this.runNodes(this.chapter().intro, {});
         this.save.introDone = true;
       });
-      document.body.append(h('div', { class: 'hint-tap' }, 'Tap to walk · tap people to talk · arrows + Space on a keyboard'));
-      setTimeout(() => document.querySelector('.hint-tap')?.remove(), 12000);
+      if (this.save.chapter === 0) {
+        document.body.append(h('div', { class: 'hint-tap' }, 'Tap to walk · tap people to talk · arrows + Space on a keyboard'));
+        setTimeout(() => document.querySelector('.hint-tap')?.remove(), 12000);
+      }
     }
+    this.autoStart();
+  }
+
+  /** Scenes with `start.auto` run as soon as they become current. */
+  autoStart() {
+    const sc = this.scene();
+    if (!sc?.start.auto || this.busy) return;
+    if (sc.start.at) this.loadMap(sc.start.at.map, sc.start.at.x, sc.start.at.y, sc.start.at.dir);
+    setTimeout(() => void this.runScene(sc), 50);
   }
 
   private resize() {
@@ -429,6 +440,7 @@ export class Game {
     overlay.hide();
     await this.reviewSession({ max: 5, prefer: [...new Set(this.sceneAdded)], newAllowance: Math.max(3, this.newAllowance()) }, false);
     if (this.chapterComplete()) await this.chapterEnd();
+    else setTimeout(() => this.autoStart(), 100);
   }
 
   private async chapterEnd() {
@@ -608,7 +620,12 @@ export class Game {
         await this.say(line(right >= due.length - 1 ? npc.praise[0] : npc.retry[0]));
         this.relUp(id, 1);
       } else {
-        const idle = npc.idle.find((i) => !i.cond || this.cond(i.cond));
+        // chat about something new each time: pick among the lines whose condition holds,
+        // preferring ones the player hasn't heard yet
+        const ok = npc.idle.filter((i) => !i.cond || this.cond(i.cond));
+        const fresh = ok.filter((i) => !getCard(sentenceId(line(i.line))));
+        const pool = fresh.length ? fresh : ok;
+        const idle = pool[Math.floor(Math.random() * pool.length)];
         if (idle) await this.say(line(idle.line));
       }
       const topics = Object.values(C.talk.topics).filter((t) => t.npc === id && this.save.done.includes(t.after));

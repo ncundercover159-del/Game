@@ -1,0 +1,212 @@
+# Chapter 9 — Meninger (Opinions). CEFR B2.
+# A polite but firm complaint to the landlord, a debate at work, returning something at a shop.
+# Grammar: synes / tror / mener + at-clauses; agreeing and disagreeing; the passive.
+
+id: ch9
+n: 9
+cefr: B2
+title: { da: Meninger, en: Opinions }
+passMark: 0.8
+testSize: 10
+
+intro:
+  - set: { ch9: true }
+  - narrator: Det er blevet koldt, og radiatoren i din lejlighed virker ikke.
+    en: "It's turned cold, and the radiator in your flat isn't working."
+
+scenes:
+  # ───────────────────────────────────────────── Scene 1
+  - id: s1
+    title: { da: Klagen, en: The complaint }
+    objective: { da: Find Henrik i opgangen og klag over radiatoren., en: Find Henrik in the stairwell and complain about the radiator. }
+    npc: henrik
+    start: { npc: henrik }
+    cast:
+      henrik: { map: stairwell, x: 3, y: 11, dir: right }
+    script:
+      - henrik: Nå, hej med dig. Er alt i orden?
+        en: "Oh, hi there. Is everything all right?"
+      - choose:
+          - you: Nej, desværre. Radiatoren i min lejlighed virker ikke.
+            en: "No, unfortunately. The radiator in my flat doesn't work."
+            q: natural
+          - you: Nej! Jeg er meget sur.
+            en: "No! I'm very annoyed."
+            q: ok
+            rel: 0
+            say: "'sur' = sour, but also annoyed / cross."
+      - henrik: Nå? Hvor længe har det været sådan?
+        en: "Oh? How long has it been like that?"
+      - choose:
+          - you: I en uge. Jeg har skrevet til dig to gange.
+            en: "For a week. I've written to you twice."
+            q: natural
+            lx: { en: "en#num" }
+          - you: Siden mandag.
+            en: Since Monday.
+            q: natural
+      - henrik: Det har jeg ikke set. Jeg har haft travlt.
+        en: "I haven't seen that. I've been busy."
+        tags: [topik]
+      - build:
+          you: Jeg synes ikke, at det er i orden.
+          en: "I don't think that's okay."
+          extra: [tror]
+          prompt: { da: Klag høfligt, men bestemt., en: "Complain politely but firmly: you don't think that's okay." }
+      - id: ch9.s1.at
+        henrik: Nej, du har ret. Jeg synes også, at det er for dårligt.
+        en: "No, you're right. I also think it's not good enough."
+        tags: [meninger]
+      - id: ch9.s1.tror
+        henrik: Jeg tror, at det er termostaten. Den er gammel.
+        en: "I think it's the thermostat. It's old."
+        tags: [meninger]
+      - id: ch9.s1.mener
+        henrik: Min kone mener, at vi skulle have skiftet alle radiatorerne sidste år.
+        en: "My wife thinks we should have replaced all the radiators last year."
+        tags: [meninger]
+      - spotlight: meninger
+      - choose:
+          - you: Hvornår kan du ordne det?
+            en: When can you fix it?
+            q: natural
+          - you: Kan du komme i dag?
+            en: Can you come today?
+            q: natural
+      - henrik: Jeg kommer i morgen klokken ni. Og undskyld ventetiden.
+        en: "I'll come tomorrow at nine. And sorry for the wait."
+      - choose:
+          - you: Tak, det er jeg glad for.
+            en: "Thanks, I appreciate that."
+            q: natural
+            rel: 2
+          - you: Okay. Så venter jeg.
+            en: "Okay. Then I'll wait."
+            q: ok
+            lx: { så: "så#adv" }
+
+  # ───────────────────────────────────────────── Scene 2
+  - id: s2
+    title: { da: Diskussionen, en: The discussion }
+    objective: { da: Gå på arbejde. Der er møde., en: "Go to work. There's a meeting." }
+    npc: jonas
+    start: { npc: mette }
+    cast:
+      mette: { map: office, x: 8, y: 2, dir: down }
+      jonas: { map: office, x: 3, y: 2, dir: down }
+    script:
+      - mette: Ledelsen overvejer en firedages arbejdsuge. Hvad synes I?
+        en: "Management is considering a four-day working week. What do you all think?"
+      - id: ch9.s2.enig
+        jonas: Jeg er helt enig. Så får vi mere tid til familien.
+        en: "I completely agree. Then we'll get more time for our families."
+        lx: { så: "så#adv" }
+        tags: [enig]
+      - id: ch9.s2.uenig
+        mette: Jeg er ikke helt enig. Det kommer an på, hvordan vi gør det.
+        en: "I don't entirely agree. It depends on how we do it."
+        tags: [enig]
+      - choose:
+          - you: På den ene side lyder det dejligt. På den anden side bliver dagene længere.
+            en: "On the one hand it sounds lovely. On the other hand the days get longer."
+            q: natural
+            rel: 2
+          - you: Jeg synes, det er en god idé.
+            en: "I think it's a good idea."
+            q: natural
+          - you: Jeg er enig med Jonas.
+            en: I agree with Jonas.
+            q: natural
+          - you: Jeg har enig.
+            en: I have agree.
+            q: awkward
+            why: "'enig' is an adjective: 'Jeg er enig' (lit. I am agreed)."
+      - jonas: Længere dage? Jeg arbejder alligevel bedst om morgenen.
+        en: "Longer days? I work best in the mornings anyway."
+      - id: ch9.s2.kompromis
+        mette: Hvad med et kompromis? Vi kunne prøve det i tre måneder.
+        en: "What about a compromise? We could try it for three months."
+        tags: [enig]
+      - spotlight: enig
+      - choose:
+          - you: Det lyder som en god løsning.
+            en: That sounds like a good solution.
+            q: natural
+          - you: Hvorfor ikke? Det er værd at prøve.
+            en: "Why not? It's worth a try."
+            q: natural
+      - jonas: Men kun hvis vi stadig har fredagsbar.
+        en: But only if we still have the Friday bar.
+      - mette: Selvfølgelig, Jonas. Den kan ingen tage fra dig.
+        en: "Of course, Jonas. Nobody can take that away from you."
+        tags: [topik]
+
+  # ───────────────────────────────────────────── Scene 3
+  - id: s3
+    title: { da: Byttet, en: The exchange }
+    objective: { da: Din nye elkedel virker ikke. Tag den med tilbage til Netto., en: "Your new kettle doesn't work. Take it back to Netto." }
+    npc: emil
+    start: { npc: emil }
+    cast:
+      emil: { map: netto, x: 1, y: 7, dir: right }
+    script:
+      - emil: Hej. Hva' så?
+        en: "Hi. What's up?"
+      - choose:
+          - you: Jeg vil gerne bytte den her elkedel. Den virker ikke.
+            en: "I'd like to exchange this kettle. It doesn't work."
+            q: natural
+          - you: Jeg vil gerne klage over den her elkedel.
+            en: "I'd like to complain about this kettle."
+            q: natural
+      - emil: Øh, okay. Har du kvitteringen?
+        en: "Uh, okay. Have you got the receipt?"
+      - choose:
+          - you: Ja, her er den.
+            en: "Yes, here it is."
+            q: natural
+          - you: Øjeblik. Jeg tror, den ligger i min taske.
+            en: "Just a moment. I think it's in my bag."
+            q: natural
+      - id: ch9.s3.byttes
+        emil: Varer kan kun byttes med kvittering.
+        en: Goods can only be exchanged with a receipt.
+        tags: [passiv]
+      - id: ch9.s3.koebt
+        emil: Den er købt for tre uger siden, så det er fint.
+        en: "It was bought three weeks ago, so that's fine."
+        lx: { så: "så#adv" }
+        tags: [passiv]
+      - id: ch9.s3.sat
+        emil: Pengene bliver sat ind på dit kort i løbet af et par dage.
+        en: "The money will be put back on your card within a couple of days."
+        lx: { et: "en#art" }
+        tags: [passiv]
+      - spotlight: passiv
+      - choose:
+          - you: Perfekt. Tak for hjælpen.
+            en: "Perfect. Thanks for the help."
+            q: natural
+          - you: Kan jeg ikke bare få en ny?
+            en: "Can't I just get a new one?"
+            q: natural
+            then:
+              - emil: Jo, det kan du godt. Vi har flere på lageret.
+                en: "Yes, you can. We've got more in stock."
+                say: "'Jo' = yes, answering a negative question ('Kan jeg ikke …?')."
+      - emil: Undskyld besværet.
+        en: Sorry for the trouble.
+      - choose:
+          - you: Det er helt i orden.
+            en: "That's totally fine."
+            q: natural
+          - you: Det gør ikke noget.
+            en: "No problem."
+            q: natural
+            say: "'Det gør ikke noget' = it doesn't matter / no worries."
+
+outro:
+  - narrator: Nu kan du sige din mening på dansk.
+    en: Now you can say what you think in Danish.
+  - narrator: Tag testen for at komme videre.
+    en: Take the test to move on.

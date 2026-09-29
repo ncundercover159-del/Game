@@ -226,7 +226,7 @@ entries:
   tyve: { pos: num, en: twenty, value: 20, rank: 1100, say: "'TUE-veh'" }
   tusind: { pos: num, en: thousand, value: 1000, rank: 700, say: "'TOO-sin' — silent d" }
   første: { pos: num, en: first, rank: 130, say: "'FUR-steh'" }
-  anden: { pos: num, en: second, forms: { et: andet }, rank: 70, say: "'AN-en' — silent d" }
+  anden: { pos: num, en: "second; other", forms: { et: andet, pl: andre }, rank: 70, say: "'AN-en' — silent d" }
   tredje: { pos: num, en: third, rank: 900, say: "'TRAY-yeh' — silent d" }
   fjerde: { pos: num, en: fourth, rank: 2000, say: "'FYAIR-eh'" }
   femte: { pos: num, en: fifth, rank: 2800, say: "'FEM-teh'" }

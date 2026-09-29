@@ -7,6 +7,7 @@
 #   (a|b)         one of
 #   [a] / [a|b]   optional
 #   {slot}        one word from slots.<slot>; {any} = any single word
+#   *             any number of words (for open-ended answers)
 # `react` is what the NPC says after an accepted answer ({1} = first captured slot is NOT
 # substituted — reactions are pre-voiced, so keep them generic).
 # Topic lines are voiced by the topic's NPC; model answers by the player's voice.
@@ -39,6 +40,24 @@ coach:
     why: "After a question word the verb comes first, then the subject: 'Hvor bor du?'."
   - re: "^(jeg|du|vi) (er|bor) fra\\b"
     why: "It's 'Jeg kommer fra …' or 'Jeg er fra …' — not 'bor fra'."
+
+  - re: "^giv mig\\b"
+    why: "Too blunt for a shop or café. Say 'Jeg vil gerne have …' or '… tak'."
+    fix: Jeg vil gerne have et rundstykke.
+  - re: "\\b(en|den) (stort|store) (kaffe|kage|latte)\\b|\\bet stor\\b"
+    why: "Adjectives agree: en stor kaffe, et stort glas, to store kager."
+  - re: "^nej$"
+    why: "A bare 'nej' sounds rude. Add 'tak' (Nej tak) or a reason: 'Jeg kan desværre ikke'."
+    fix: Nej tak.
+  - re: "^jeg (har|er) (u)?enig$|^jeg har (u)?enig\\b"
+    why: "'enig' is an adjective: 'Jeg er enig' / 'Jeg er ikke enig'."
+    fix: Jeg er enig.
+  - re: "\\b(i sidste weekend|i går)\\b.*\\bjeg (skal|går|er|laver)\\b|^jeg (skal|går|laver) .*\\b(i sidste weekend|i går)\\b"
+    why: "Finished time needs the past tense: 'I går var jeg …', 'I sidste weekend gik jeg …'."
+  - re: "^(fordi|hvis|når|at) (jeg|du|han|hun|vi|de|det) [a-zæøå]+ ikke\\b"
+    why: "In a sub-clause, 'ikke' goes BEFORE the verb: 'fordi jeg ikke gider', not 'fordi jeg gider ikke'."
+  - re: "^(hvis|når|da) .+ (jeg|du|vi|de|han|hun|det) (kan|skal|vil|er|har|går|kommer|bliver)\\b"
+    why: "After a hvis/når/da part, the verb comes first: 'Hvis det regner, bliver vi hjemme'."
 
 turns:
   name:
@@ -133,6 +152,181 @@ turns:
     react: { da: "Hvor spændende!", en: "How exciting!" }
     model: [{ da: "Jeg skal arbejde her.", en: "I'm going to work here." }]
 
+  order_bakery:
+    ch: 2
+    hint: "Order something (Jeg vil gerne have …)."
+    ask: { da: "Hvad skulle det være?", en: "What can I get you?" }
+    accept:
+      - { p: "[jeg vil gerne have] {num} {any} [tak]" }
+      - { p: "[jeg vil gerne have] (en|et) {any} [tak]" }
+      - { p: "{any} {any} tak" }
+    react: { da: "Et øjeblik.", en: "One moment." }
+    model: [{ da: "Jeg vil gerne have to rundstykker.", en: "I'd like two bread rolls, please." }]
+  anything_else:
+    ch: 2
+    hint: "Say no thanks, that's all — or order one more thing."
+    ask: { da: "Ellers andet?", en: "Anything else?" }
+    accept:
+      - { p: "nej tak [det var det]" }
+      - { p: "nej det var det [tak]" }
+      - { p: "ja [tak] [gerne] (en|et|to) *" }
+    react: { da: "Så er det klaret.", en: "That's that, then." }
+    model: [{ da: "Nej tak, det var det.", en: "No thanks, that's all." }]
+  pay:
+    ch: 2
+    hint: "Say how you'll pay (med kort / med MobilePay / kontant)."
+    ask: { da: "Hvordan vil du betale?", en: "How would you like to pay?" }
+    accept:
+      - { p: "[med] (mobilepay|kort) [tak]" }
+      - { p: "kontant [tak]" }
+      - { p: "jeg vil [gerne] betale (med mobilepay|med kort|kontant)" }
+    react: { da: "Værsgo.", en: "Here you go." }
+    model: [{ da: "Med MobilePay.", en: "With MobilePay." }]
+  size:
+    ch: 2
+    hint: "Choose a size (en stor / en lille)."
+    ask: { da: "Vil du have en stor eller en lille kaffe?", en: "Would you like a large or a small coffee?" }
+    accept:
+      - { p: "[en] (stor|lille) [kaffe] [tak]" }
+      - { p: "jeg vil gerne have en (stor|lille) [kaffe] [tak]" }
+    react: { da: "Det kommer.", en: "Coming up." }
+    model: [{ da: "En stor, tak.", en: "A large one, please." }]
+  stay:
+    ch: 2
+    hint: "Say whether it's to take away or to have here."
+    ask: { da: "Til at tage med, eller sidder du her?", en: "To take away, or are you sitting in?" }
+    accept:
+      - { p: "(her|til at tage med) [tak]" }
+      - { p: "jeg sidder her [tak]" }
+      - { p: "jeg tager den med [tak]" }
+    react: { da: "Okay.", en: "Okay." }
+    model: [{ da: "Her, tak.", en: "Here, please." }]
+  where_to:
+    ch: 3
+    hint: "Say where you're going (Jeg skal til …)."
+    ask: { da: "Hvor skal du hen?", en: "Where are you going?" }
+    accept:
+      - { p: "[jeg skal] (til|hen til|ind til|hjem) *" }
+      - { p: "[jeg skal] hjem" }
+    react: { da: "Tag letbanen. Det er nemmest.", en: "Take the tram. It's easiest." }
+    model: [{ da: "Jeg skal til Dokk1.", en: "I'm going to Dokk1." }]
+  time:
+    ch: 3
+    hint: "Tell the time (Den er halv tre / kvart over to)."
+    ask: { da: "Ved du, hvad klokken er?", en: "Do you know what time it is?", lx: { ved: vide } }
+    accept:
+      - { p: "[ja] [den er|klokken er] (halv|kvart over|kvart i) {num}" }
+      - { p: "[ja] [den er|klokken er] {num} [minutter] (over|i) [halv] {num}" }
+      - { p: "[ja] [den er|klokken er] {num}" }
+      - { p: "nej desværre" }
+    react: { da: "Tak!", en: "Thanks!" }
+    model: [{ da: "Ja, den er halv tre.", en: "Yes, it's half past two." }]
+  weather:
+    ch: 5
+    hint: "Say something about the weather (Det regner / Det er koldt)."
+    ask: { da: "Sikke et vejr, hva'?", en: "What weather, eh?" }
+    accept:
+      - { p: "[ja] [det] (regner|blæser|sner) *" }
+      - { p: "[ja] det er (koldt|varmt|dejligt|skønt|typisk|grimt) *" }
+      - { p: "ja *" }
+    react: { da: "Typisk dansk vejr.", en: "Typical Danish weather." }
+    model: [{ da: "Ja, det regner hele tiden!", en: "Yes, it rains all the time!" }]
+  weekend:
+    ch: 5
+    hint: "Say what you're doing this weekend (Jeg skal …)."
+    ask: { da: "Hvad skal du lave i weekenden?", en: "What are you doing this weekend?" }
+    accept:
+      - { p: "jeg skal *" }
+      - { p: "ikke (så|noget) *" }
+      - { p: "det ved jeg ikke *" }
+    react: { da: "Det lyder hyggeligt.", en: "That sounds nice." }
+    model: [{ da: "Jeg skal til fødselsdag.", en: "I'm going to a birthday party." }]
+  weekend_past:
+    ch: 5
+    hint: "Say what you did last weekend — past tense! (Jeg var … / Jeg gik …)"
+    ask: { da: "Hvad lavede du i sidste weekend?", en: "What did you do last weekend?" }
+    accept:
+      - { p: "[i sidste weekend] [jeg] (var|gik|så|spiste|besøgte|tog|cyklede|arbejdede|sov|læste|lavede|slappede|drak|mødte) *" }
+      - { p: "ikke (så|noget) *" }
+    react: { da: "Nå, fedt.", en: "Oh, nice." }
+    model: [{ da: "Jeg var på ARoS.", en: "I went to ARoS." }]
+  meet_friday:
+    ch: 6
+    hint: "Accept or politely decline (Ja, gerne / Jeg kan desværre ikke)."
+    ask: { da: "Skal vi ses på fredag?", en: "Shall we meet up on Friday?" }
+    accept:
+      - { p: "ja [tak] [gerne] *" }
+      - { p: "gerne *" }
+      - { p: "(det kan jeg|jeg kan) desværre ikke *", react: { da: "Øv! En anden gang så.", en: "Aw! Another time, then." } }
+    react: { da: "Fedt! Jeg glæder mig.", en: "Great! I'm looking forward to it." }
+    model: [{ da: "Ja, gerne! Hvor skal vi mødes?", en: "Yes, I'd love to! Where shall we meet?" }]
+  symptom:
+    ch: 7
+    hint: "Say what's wrong (Jeg har ondt i … / Jeg har feber)."
+    ask: { da: "Hvad kan jeg gøre for dig?", en: "What can I do for you?" }
+    accept:
+      - { p: "jeg har ondt i *" }
+      - { p: "jeg har (feber|hovedpine|det skidt|influenza) *" }
+      - { p: "jeg (hoster|er syg|føler mig syg) *" }
+    react: { da: "Lad mig lige kigge på det.", en: "Let me just have a look." }
+    model: [{ da: "Jeg har ondt i halsen.", en: "I have a sore throat." }]
+  how_long:
+    ch: 7
+    hint: "Say how long you've had it (I tre dage / Siden i går)."
+    ask: { da: "Hvor længe har du haft det?", en: "How long have you had it?" }
+    accept:
+      - { p: "[jeg har haft det] (i|siden) *" }
+      - { p: "[i] (en|et|to|tre|fire|fem) (dag|dage|uge|uger) *" }
+    react: { da: "Okay. Det er godt, du kom.", en: "Okay. Good that you came." }
+    model: [{ da: "I tre dage.", en: "For three days." }]
+  taste:
+    ch: 8
+    hint: "Say how the food tastes (Det smager …)."
+    ask: { da: "Hvordan smager det?", en: "How does it taste?" }
+    accept:
+      - { p: "[det smager|det er] [rigtig|virkelig|meget|super] (godt|lækkert|dejligt|fantastisk) *" }
+      - { p: "(lækkert|dejligt|fantastisk) *" }
+    react: { da: "Tak, det er jeg glad for.", en: "Thanks, I'm glad." }
+    model: [{ da: "Det smager virkelig godt.", en: "It tastes really good." }]
+  more:
+    ch: 8
+    hint: "Accept or decline more food — always with 'tak'."
+    ask: { da: "Vil du have lidt mere?", en: "Would you like a bit more?" }
+    accept:
+      - { p: "ja tak [gerne] *" }
+      - { p: "nej tak *" }
+    react: { da: "Værsgo.", en: "Here you go." }
+    model: [{ da: "Nej tak, jeg er mæt.", en: "No thanks, I'm full." }]
+  after_meal:
+    ch: 8
+    hint: "The meal is over. What do you always say to the host?"
+    ask: { da: "Nå, er alle færdige?", en: "So, is everyone finished?" }
+    accept:
+      - { p: "[ja] tak for mad *" }
+    react: { da: "Velbekomme!", en: "You're very welcome!" }
+    model: [{ da: "Ja, tak for mad!", en: "Yes, thanks for the meal!" }]
+  opinion:
+    ch: 9
+    hint: "Give your opinion (Jeg synes, at … / Jeg er enig / Det kommer an på …)."
+    ask: { da: "Hvad synes du om en firedages arbejdsuge?", en: "What do you think about a four-day working week?" }
+    accept:
+      - { p: "jeg synes [ikke] [at] *" }
+      - { p: "jeg er [ikke] [helt] (enig|uenig) *" }
+      - { p: "det kommer an på *" }
+      - { p: "på den ene side *" }
+      - { p: "jeg tror [ikke] [at] *" }
+    react: { da: "Interessant. Det har du nok ret i.", en: "Interesting. You're probably right." }
+    model: [{ da: "Jeg synes, det er en god idé.", en: "I think it's a good idea." }]
+  herring:
+    ch: 10
+    hint: "Say whether you've tried herring (Ja, … / Nej, aldrig …)."
+    ask: { da: "Har du prøvet sild før?", en: "Have you tried herring before?" }
+    accept:
+      - { p: "(ja|nej) *" }
+      - { p: "aldrig *" }
+    react: { da: "Skål på det!", en: "Cheers to that!" }
+    model: [{ da: "Nej, aldrig. Hvordan smager det?", en: "No, never. What does it taste like?" }]
+
 topics:
   grethe_coffee:
     npc: grethe
@@ -158,3 +352,75 @@ topics:
     opener: { da: "Jamen hej!", en: "Well hi!" }
     turns: [how, aarhus, doing, live, number, coffee]
     closer: { da: "Hej hej! Vi ses!", en: "Bye! See you!" }
+  hanne_bakery:
+    npc: hanne
+    ch: 2
+    after: s1
+    title: { da: Hos bageren, en: "At the baker's" }
+    opener: { da: Godmorgen!, en: Good morning! }
+    turns: [order_bakery, anything_else, pay]
+    closer: { da: "Tak, og hav en god dag!", en: "Thanks, and have a nice day!" }
+  sara_cafe:
+    npc: sara
+    ch: 2
+    after: s2
+    title: { da: En kop kaffe, en: A cup of coffee }
+    opener: { da: Hej med dig!, en: Hi there! }
+    turns: [size, stay, how, doing]
+    closer: { da: "Hyggeligt! Kom snart igen.", en: "Lovely! Come again soon." }
+  yasmin_town:
+    npc: yasmin
+    ch: 3
+    after: s2
+    title: { da: Rundt i byen, en: Around town }
+    opener: { da: Hej igen!, en: Hi again! }
+    turns: [where_to, time, how, aarhus]
+    closer: { da: "God tur!", en: "Have a good trip!" }
+  jonas_smalltalk:
+    npc: jonas
+    ch: 5
+    after: s2
+    title: { da: Småsnak ved kaffemaskinen, en: Small talk by the coffee machine }
+    opener: { da: "Nå, godmorgen.", en: "Well, good morning." }
+    turns: [weather, weekend, weekend_past, how]
+    closer: { da: "Nå, tilbage til arbejdet.", en: "Right, back to work." }
+  sara_plans:
+    npc: sara
+    ch: 6
+    after: s2
+    title: { da: Planer med Sara, en: Plans with Sara }
+    opener: { da: "Hej, søde!", en: "Hi, sweetie!" }
+    turns: [meet_friday, weekend, how]
+    closer: { da: "Vi skrives ved!", en: "Let's text!" }
+  karen_doctor:
+    npc: karen
+    ch: 7
+    after: s2
+    title: { da: Hos lægen, en: "At the doctor's" }
+    opener: { da: "Hej, kom ind.", en: "Hi, come in." }
+    turns: [symptom, how_long]
+    closer: { da: "God bedring!", en: "Get well soon!" }
+  lise_dinner:
+    npc: lise
+    ch: 8
+    after: s2
+    title: { da: Ved middagsbordet, en: At the dinner table }
+    opener: { da: "Værsgo at sætte dig.", en: "Please, sit down." }
+    turns: [taste, more, doing, after_meal]
+    closer: { da: "Du er altid velkommen her.", en: "You're always welcome here." }
+  jonas_debate:
+    npc: jonas
+    ch: 9
+    after: s2
+    title: { da: Diskussion med Jonas, en: A debate with Jonas }
+    opener: { da: "Nå, der er du!", en: "Ah, there you are!" }
+    turns: [opinion, weather, weekend]
+    closer: { da: "Godt snakket.", en: "Good chat." }
+  jonas_julefrokost:
+    npc: jonas
+    ch: 10
+    after: s2
+    title: { da: Snak til julefrokosten, en: Chatting at the Christmas party }
+    opener: { da: "Skål!", en: "Cheers!" }
+    turns: [herring, how, weekend]
+    closer: { da: "Glædelig jul!", en: "Merry Christmas!" }

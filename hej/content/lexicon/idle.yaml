@@ -1,0 +1,53 @@
+# Words introduced by the NPCs' extra small talk (content/idle.yaml).
+ambiguous:
+  brug: brug
+  bager: bage
+  særlig: særlig
+entries:
+  "lys#noun": { lemma: lys, pos: noun, g: et, en: "light; candle", forms: { def: lyset, pl: lys, defpl: lysene }, rank: 600, pic: "🕯️" }
+  punktum: { pos: noun, g: et, en: full stop, rank: 9000, note: "'Punktum.' = end of discussion." }
+  bage: { pos: verb, en: bake, forms: { inf: at bage, pres: bager, past: bagte, perf: bagt }, rank: 5000, say: "'BAA-eh'" }
+  bil: { pos: noun, g: en, en: car, forms: { def: bilen, pl: biler, defpl: bilerne }, rank: 500, pic: "🚗", say: "'beel'" }
+  både: { pos: conj, en: "both (både … og … = both … and …)", rank: 400, say: "'BO-theh'" }
+  danse: { pos: verb, en: dance, forms: { inf: at danse, pres: danser, past: dansede, perf: danset }, rank: 3000, note: "At Christmas, Danes hold hands and dance round the tree singing." }
+  datter: { pos: noun, g: en, en: daughter, forms: { def: datteren, pl: døtre }, rank: 1500 }
+  egentlig: { pos: adv, en: "actually, really", rank: 500, say: "'EH-gent-li'" }
+  eksamen: { pos: noun, g: en, en: exam, forms: { def: eksamen, pl: eksamener }, rank: 2500 }
+  flytning: { pos: noun, g: en, en: "move (house); change of address", forms: { def: flytningen }, rank: 6000 }
+  fodbold: { pos: noun, g: en, en: football, forms: { def: fodbolden }, rank: 2000, pic: "⚽", say: "'FOTH-bolt'" }
+  fyrre: { pos: num, en: forty, value: 40, rank: 1500, say: "'FUR-a'" }
+  gløgg: { pos: noun, g: en, en: mulled wine, forms: { def: gløggen }, rank: 30000, say: "'glurg'" }
+  grim: { pos: adj, en: ugly, forms: { t: grimt, e: grimme }, rank: 3000 }
+  holde: { pos: verb, en: "hold; keep; (holde jul) celebrate Christmas", forms: { inf: at holde, pres: holder, past: holdt, perf: holdt, imp: hold }, rank: 150, say: "'HOL-leh'" }
+  hånd: { pos: noun, g: en, en: hand, forms: { def: hånden, pl: hænder, defpl: hænderne }, rank: 500, pic: "✋", say: "'hon'" }
+  inden: { pos: prep, en: "before, within", rank: 400 }
+  jakke: { pos: noun, g: en, en: jacket, forms: { def: jakken, pl: jakker }, rank: 3000, pic: "🧥" }
+  julefest: { pos: noun, g: en, en: Christmas party, forms: { def: julefesten }, rank: 20000 }
+  julegave: { pos: noun, g: en, en: Christmas present, forms: { def: julegaven, pl: julegaver }, rank: 15000 }
+  kerne: { pos: noun, g: en, en: "seed, grain", forms: { def: kernen, pl: kerner }, rank: 5000 }
+  lektie: { pos: noun, g: en, en: "homework (usually lektier)", forms: { def: lektien, pl: lektier }, rank: 6000 }
+  menneske: { pos: noun, g: et, en: "person, human", forms: { def: mennesket, pl: mennesker, defpl: menneskene }, rank: 150 }
+  nervøs: { pos: adj, en: nervous, forms: { t: nervøst, e: nervøse }, rank: 4000 }
+  projekt: { pos: noun, g: et, en: project, forms: { def: projektet, pl: projekter }, rank: 1000 }
+  ro: { pos: noun, g: en, en: "peace, quiet", forms: { def: roen }, rank: 1500 }
+  skole: { pos: noun, g: en, en: school, forms: { def: skolen, pl: skoler }, rank: 400, pic: "🏫" }
+  slukke: { pos: verb, en: "turn off, put out", forms: { inf: at slukke, pres: slukker, past: slukkede, perf: slukket }, rank: 3000 }
+  sund: { pos: adj, en: healthy, forms: { t: sundt, e: sunde }, rank: 2000, say: "'son'" }
+  sælge: { pos: verb, en: sell, forms: { inf: at sælge, pres: sælger, past: solgte, perf: solgt }, rank: 600, say: "'SEL-yeh'" }
+  "særlig#adj": { lemma: særlig, pos: adj, en: special, forms: { t: særligt, e: særlige }, rank: 900 }
+  tidlig: { pos: adj, en: early, forms: { t: tidligt, e: tidlige }, rank: 1500, say: "'TITH-li'" }
+  tirsdag: { pos: noun, g: en, en: Tuesday, forms: { def: tirsdagen }, rank: 1200, say: "'TEERS-da'" }
+  træne: { pos: verb, en: "train, exercise", forms: { inf: at træne, pres: træner, past: trænede, perf: trænet }, rank: 2000 }
+  tvivl: { pos: noun, g: en, en: doubt, forms: { def: tvivlen }, rank: 1500, note: "'være i tvivl' = be unsure." }
+  vaske: { pos: verb, en: wash, forms: { inf: at vaske, pres: vasker, past: vaskede, perf: vasket }, rank: 2000 }
+  vinter: { pos: noun, g: en, en: winter, forms: { def: vinteren, pl: vintre }, rank: 1300, say: "'VIN-ta'" }
+  åbne: { pos: verb, en: open, forms: { inf: at åbne, pres: åbner, past: åbnede, perf: åbnet }, rank: 700, say: "'OB-neh'" }
+  æbleskive: { pos: noun, g: en, en: "æbleskive (round Christmas pancake)", forms: { def: æbleskiven, pl: æbleskiver }, rank: 30000 }
+  "have brug for": { pos: phrase, en: need, match: ["har brug for"] }
+  brug: { pos: noun, g: en, en: "use; (have brug for) need", forms: { def: brugen }, rank: 700 }
+  "gå i stykker": { pos: phrase, en: break, match: ["går i stykker"] }
+  "være med": { pos: phrase, en: join in, be part of it }
+  "holde jul": { pos: phrase, en: celebrate Christmas }
+  "i gamle dage": { pos: phrase, en: in the old days }
+  "blive ved med": { pos: phrase, en: keep on (doing) }
+  "i tvivl": { pos: phrase, en: unsure }
