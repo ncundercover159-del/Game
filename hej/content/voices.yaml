@@ -1,11 +1,19 @@
-# Build-time TTS voices (Google Cloud Text-to-Speech, da-DK).
+# Build-time TTS voices.
+# provider: elevenlabs (ELEVENLABS_API_KEY) or google (GOOGLE_TTS_API_KEY).
+# ElevenLabs: each voice needs an `elevenlabs:` voice id. `npm run audio -- --pick-voices`
+# finds native Danish voices in the ElevenLabs library and fills these in; edit any by hand.
+# The Google `name` is kept so you can switch back.
 # Changing a voice name or rate changes the clip hash, so only that character's clips regenerate.
 # Run `npm run audio:voices` (needs GOOGLE_TTS_API_KEY) to list every da-DK voice your key can use.
 # `pitch` only shapes the browser speechSynthesis fallback.
-provider: google
+provider: elevenlabs
+elevenlabs:
+  model: eleven_multilingual_v2   # best quality for Danish; eleven_flash_v2_5 is cheaper/faster
+  stability: 0.5
+  similarity: 0.75
 defaults:
   rate: 1.0
-  slowRate: 0.72
+  slowRate: 0.75
 voices:
   narrator: { name: da-DK-Chirp3-HD-Kore,        gender: f, pitch: 1.0 }
   you_f:    { name: da-DK-Chirp3-HD-Zephyr,      gender: f, pitch: 1.1 }

@@ -30,10 +30,12 @@ const err = (m: string) => errors.push(m);
 // ─── voices & clip keys ──────────────────────────────────────────────────────
 const voiceSrc = load(C('voices.yaml'));
 const PROVIDER: string = voiceSrc.provider;
+// ElevenLabs settings are part of the hash, so changing model or style regenerates clips.
+const EL = voiceSrc.elevenlabs ?? {};
 const voices: Record<string, VoiceDef> = {};
 for (const [id, v] of Object.entries<any>(voiceSrc.voices)) {
   voices[id] = {
-    name: v.name,
+    name: PROVIDER === 'elevenlabs' ? `${v.elevenlabs ?? `unset:${id}`}|${EL.model}|${EL.stability}|${EL.similarity}` : v.name,
     gender: v.gender,
     rate: v.rate ?? voiceSrc.defaults.rate,
     slowRate: v.slowRate ?? voiceSrc.defaults.slowRate,

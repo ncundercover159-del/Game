@@ -9,6 +9,7 @@
     "audio": "tsx scripts/tts.ts",
     "audio:dry": "tsx scripts/tts.ts --dry-run",
     "audio:voices": "tsx scripts/tts.ts --list-voices",
+    "audio:pick": "tsx scripts/tts.ts --pick-voices",
     "icons": "tsx scripts/make-icons.ts",
     "dev": "npm run content && vite",
     "build": "npm run content && tsc --noEmit && vite build",
