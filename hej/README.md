@@ -5,10 +5,23 @@ take an English speaker from zero to conversational Danish (CEFR A1 → B2). It 
 language-learning tool first and a game second: every mechanic either exposes you to
 real Danish, makes you produce it, or makes you review it.
 
-**Status: vertical slice.** Chapter 1 (*Ankomst*, A1) is playable end to end: walking,
-dialogue with replies you choose or build, tap-to-look-up on every word, the audio
-pipeline, pattern spotlights, listen-and-choose and word-order exercises, spaced
-repetition woven into the world, the chapter pass gate, and free conversation (*Snak*).
+**Status: all ten chapters are playable (A1 → B2).** 31 scenes, about 1,200 voiced lines,
+a 900-word lexicon, 27 grammar spotlights, 7 exercise types, 16 characters, 16 maps
+connected by bus and letbane, and free conversation with every main character. An
+automated playthrough completes every scene and passes every chapter test on a new game.
+
+| # | CEFR | Chapter | Scenes |
+|---|---|---|---|
+| 1 | A1 | Ankomst · Arrival | Nøglerne · Naboen · Den nye · Tak for sidst |
+| 2 | A1 | Indkøb · Shopping | Hos bageren · På caféen · I Netto |
+| 3 | A2 | Rundt i byen · Getting around | Rejsekortet · Hvor er indgangen? · Hvad er klokken? |
+| 4 | A2 | Papirer og piller · Paperwork and pills | Telefonbutikken · Borgerservice · På apoteket |
+| 5 | A2 | Det nye job · The new job | Første dag · Frokostpausen · Fredagsbar |
+| 6 | B1 | Nye venner · New friends | En sms fra Sara · I byen · Padel |
+| 7 | B1 | Hos lægen · At the doctor's | Syg · Hos lægen · Recepten |
+| 8 | B1 | Søndagsmiddag · Sunday dinner | Velkommen · Ved bordet · Kaffe og kage |
+| 9 | B2 | Meninger · Opinions | Klagen · Diskussionen · Byttet |
+| 10 | B2 | Julefrokost · The Christmas party | Gode råd fra Mads · Julefrokosten · Dagen derpå |
 
 ```bash
 cd hej
@@ -29,6 +42,8 @@ npm run build        # typecheck + production PWA in dist/
 - **EN / DA / —** (top bar) switches scaffolding: English subtitles → Danish only (tap EN
   to peek) → no hints.
 - **Long-press** (or hover) any button to hear its Danish label.
+- **Bus and letbane:** once you have a Rejsekort (Chapter 3), walk to a stop sign to travel
+  between Jægergårdsgade (home), Dokk1 in the city centre, and Risskov.
 - **💬 Snak:** free conversation, where you build your own sentences from scratch. See below.
 - **📚 Øv:** your deck, a practice session, and the chapter test.
 
@@ -44,12 +59,35 @@ npm run build        # typecheck + production PWA in dist/
 | Structure through play | Pattern spotlight cards (`content/grammar.yaml`) show 3 examples *from lines you just heard*, with the key form highlighted, then drill them straight away with word tiles. |
 | Spaced repetition | FSRS-4.5 (`src/srs/fsrs.ts`). Every word and sentence you meet becomes a card. Reviews happen when neighbours quiz you (💬 marker over their head), in the daily post in the mailbox, after each scene, and on the Øv screen. |
 
-**Chapter 1 contents:** 4 scenes (keys from the landlord, meeting the older neighbour,
-the teenager with slang, a visit from your best friend), 4 pattern spotlights (yes/no
-questions, question words, definite endings, verb-second), numbers (door codes, phone
-numbers read in pairs), 4 NPCs with their own speech registers, relationship meters and
-memory. For example, Grethe asks after "Chicago" if you told her you're from the US.
-There are also 3 free-conversation topics.
+**Exercise types**, mixed by the scheduler (recognition while a card is new, production
+once it's known):
+
+| Type | What you do |
+|---|---|
+| Listen and choose | Hear a sentence or word, pick the meaning (or the number or time you heard) |
+| Word-order tiles | Put the words in order. Also used to build your own replies in conversations |
+| Dictation | Type what you hear, with æ/ø/å keys and word-by-word feedback |
+| Cloze | Fill the gap. Great for inflections: *boede / bor / boet* |
+| Pick the natural reply | Choose what a Dane would say back, with an explanation for the unnatural options |
+| Speak aloud / shadowing | Record yourself. Speech recognition checks your words (Chrome, Edge, Safari), then you compare with the native clip. Self-rating is available without a mic |
+| Match audio to picture | Hear a word, pick the picture (50 picturable words) |
+
+**Grammar spotlights (27):** yes/no questions, question words, definite endings, verb
+second, *vil gerne*, adjective endings, numbers above 20, *ikke* placement, modal verbs,
+imperative, telling the time, past tense, perfect, *fordi* sub-clauses, time
+expressions, inversion after a sub-clause, comparison, reflexive verbs,
+*må / behøver*, *da / når*, past vs perfect, topicalisation, *synes / tror / mener*,
+agreeing and disagreeing, the passive, particle verbs, and conditions without *hvis*.
+
+**Characters (16)**, each with their own register and voice: Henrik (landlord), Grethe
+(older neighbour), Mads (teenager, slang), Amalie (best friend), Hanne (baker), Emil
+(Netto cashier), Sara (barista and friend), Yasmin (student), Ali (phone shop), Pia
+(Borgerservice), Birgit (pharmacist), Jonas and Mette (colleague and boss), Karen (GP),
+and Lise and Bent (Amalie's parents). They remember your choices. For example, Grethe
+asks after Chicago if you told her you're from the US, and Amalie mentions Grethe's
+coffee if you accepted the invitation. Their greetings change with your relationship.
+When nothing is scheduled, they make chapter-appropriate small talk that recycles
+everyday words (`content/idle.yaml`).
 
 ## Audio (Google Cloud Text-to-Speech)
 
@@ -63,7 +101,7 @@ browser's Danish `speechSynthesis`.
 3. `npm run audio:voices` lists the da-DK voices your key can use. Adjust
    `content/voices.yaml` if any are missing.
 4. `npm run audio:dry` shows how many clips and characters would be generated
-   (Chapter 1 is about 1,400 files and 16k characters).
+   (the full game is about 5,000 files and 94k characters).
 5. `npm run audio` generates `public/audio/<hash>.mp3`, `<hash>.slow.mp3` and `manifest.json`.
 
 Each file name is a hash of provider + voice + rate + text. Editing one line regenerates
@@ -132,16 +170,30 @@ Art is palette-based and drawn in code (`src/engine/sprites.ts`), so there are n
 licences to track. To swap in a CC0 tileset such as Kenney's, replace `tileCanvas()` and
 `characterFrames()` with atlas lookups. Progress lives in IndexedDB. There is no backend.
 
-## Known gaps in the slice
+## Testing
+
+```bash
+npm test          # content integrity, FSRS, answer matcher, Snak model answers,
+                  # TTS cache, and a reachability check that every scene can be walked to
+```
+
+For end-to-end runs, `?test` in the URL marks correct answers in the DOM, and
+`?test&ch=N` starts a new game at chapter N with earlier chapters completed. The
+Playwright driver used during development plays every scene of every chapter, including
+real bus travel, and passes each chapter test. It isn't included in the repo.
+
+## Known gaps
 
 - **Audio clips are not generated yet.** The pipeline is tested with a mock synthesizer,
   but it needs your Google key for the real voices. Until then, audio uses the browser's
   Danish voice.
-- **Recycling:** 150 words introduced in Chapter 1 appear in fewer than 5 contexts so far.
-  `content/REPORT.md` lists them. Chapters 2–3 are meant to recycle them.
+- **Recycling isn't complete.** Among the ~1,000 most common words, 141 still appear in
+  fewer than 5 different sentences. `content/REPORT.md` lists every word below target.
+  The fix is more small talk in `content/idle.yaml` using only words already in the lexicon.
 - **Generated conversation** has only been built and type-checked. It hasn't been run
   against the live API (no key in the build environment).
-- Frequency ranks are approximate, and no Danish has been native-reviewed yet
-  (`reviewed: false` everywhere).
-- Still to come in step 2: dictation, cloze, speak-aloud with shadowing, audio-to-picture,
-  and Chapters 2–3.
+- **No native review yet.** Frequency ranks are approximate, and no Danish has been
+  reviewed by a native speaker (`reviewed: false` everywhere). The Danish was written
+  carefully, but a native pass is the next step.
+- **Speech recognition** depends on the browser. Firefox has none, so the speak exercise
+  falls back to record, compare and self-rate.

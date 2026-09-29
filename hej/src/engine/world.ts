@@ -37,6 +37,8 @@ export class World {
   npcs: Entity[] = [];
   private path: [number, number][] = [];
   private afterPath: [number, number] | null = null;
+  /** When talking across a counter: the person to talk to once we're in place. */
+  private afterNpc: [number, number] | null = null;
   private camX = 0;
   private camY = 0;
   private time = 0;
@@ -110,6 +112,7 @@ export class World {
       if (!best) return;
       this.path = best;
       this.afterPath = face;
+      this.afterNpc = face[0] !== tx || face[1] !== ty ? [tx, ty] : null;
     } else {
       const path = findPath(this.map.w, this.map.h, (x, y) => this.blocked(x, y), p.x, p.y, tx, ty);
       if (!path) return;
@@ -124,6 +127,7 @@ export class World {
   stop() {
     this.path = [];
     this.afterPath = null;
+    this.afterNpc = null;
   }
 
   update(dt: number, inputDir: Dir | null) {
@@ -161,11 +165,14 @@ export class World {
     }
     if (this.afterPath) {
       const [tx, ty] = this.afterPath;
+      const npc = this.afterNpc;
       this.afterPath = null;
+      this.afterNpc = null;
       const dir = dirTo(p.x, p.y, tx, ty);
       if (dir) {
         p.dir = dir;
-        if (!this.hooks.bump(tx, ty)) this.hooks.interact(tx, ty);
+        if (npc) this.hooks.interact(tx, ty);
+        else if (!this.hooks.bump(tx, ty)) this.hooks.interact(tx, ty);
       }
     }
   }

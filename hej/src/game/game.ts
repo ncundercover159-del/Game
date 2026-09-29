@@ -300,12 +300,17 @@ export class Game {
       void this.talkTo(n.id);
       return;
     }
-    if (this.bump(x, y)) return;
-    // talk across a counter
+    // someone behind a counter takes priority over a sign on the counter
     const p = this.world.player;
     const dx = Math.sign(x - p.x), dy = Math.sign(y - p.y);
-    const behind = this.world.solid(x, y) ? this.world.npcAt(x + dx, y + dy) : undefined;
-    if (behind) void this.talkTo(behind.id);
+    const m = this.world.map;
+    const special = m.warps.some((w) => w.x === x && w.y === y) || (m.mailbox?.x === x && m.mailbox?.y === y) || (m.stop?.x === x && m.stop?.y === y);
+    const behind = this.world.solid(x, y) && !special ? this.world.npcAt(x + dx, y + dy) : undefined;
+    if (behind) {
+      void this.talkTo(behind.id);
+      return;
+    }
+    this.bump(x, y);
   }
 
   // ─── script interpreter ───────────────────────────────────────────────────
