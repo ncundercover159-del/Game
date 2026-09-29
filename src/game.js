@@ -2,6 +2,7 @@
 // map (created on first visit and kept), the clock, modal UI and scene flow (title <-> play).
 // Systems talk back to it through the small service methods below.
 import { Camera } from './core/camera.js';
+import { START } from './data/start.js';
 import { Rng } from './core/rng.js';
 import { writeSlot, readSlot, exportDoc, importDoc } from './core/save.js';
 import { snapshot, saveNow, docOf } from './saving.js';
@@ -245,6 +246,8 @@ export class Game {
     if (!r.doc) { this.sfx('deny'); return false; }
     this.slot = n;
     this.setup(r.doc.state.seed, r.doc.state);
+    // A purse spoiled by a priceless shop item (saved as null) starts again from the first day's.
+    if (!Number.isFinite(this.money)) this.money = START.money;
     this.play();
     if (r.backup) this.toast('menu_corrupt', { n });
     return true;

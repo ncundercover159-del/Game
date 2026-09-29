@@ -66,6 +66,25 @@ await withBrowser(async (browser, base) => {
   await settle();
   assert.equal((await now()).playing, null);
 
+  step('a night of frogs and crickets: no calls queue while the browser holds the sound, and never a pile of them after');
+  const calls = await run(async () => {
+    const G = window.__game, g = G.game, ctx = g.audio.ctx, { CALLS } = await import('./src/core/ambience.js');
+    g.cal.season = 0; g.cal.minutes = 21 * 60; g.modals = [];
+    const count = { n: 0 }, orig = { ...CALLS };
+    for (const k of Object.keys(CALLS)) CALLS[k] = (...a) => { count.n++; return orig[k](...a); };
+    await ctx.suspend();
+    G.advance(20000);                 // twenty seconds of game with the sound held
+    const held = count.n;
+    await ctx.resume();
+    count.n = 0;
+    for (let i = 0; i < 20; i++) G.advance(17);    // the first frames after it comes back
+    const burst = count.n;
+    Object.assign(CALLS, orig);
+    return { held, burst };
+  });
+  assert.equal(calls.held, 0, 'nothing queued against a frozen clock');
+  assert.ok(calls.burst <= 4, `at most four calls at once, not ${calls.burst}`);
+
   step('the sliders reach the buses; footsteps know the ground');
   const vol = await run(() => {
     const g = window.__game.game, a = g.audio;

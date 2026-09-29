@@ -130,6 +130,9 @@ for (const [id, d] of Object.entries(DISHES)) {
   ITEMS[id].sell = Math.max(ITEMS[id].sell, Math.round(cost * 1.15));
 }
 
+// Anything a shop stocks without a price of its own (goods, gems, arrows) costs twice what it sells for.
+for (const d of Object.values(ITEMS)) if (d.price === undefined) d.price = Math.max(2, (d.sell || 1) * 2);
+
 export const STACK = 99;
 
 export function itemDef(id) {

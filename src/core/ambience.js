@@ -47,11 +47,16 @@ export function callRates(s) {
   return r;
 }
 
+// At most this many creature calls start in any second of audio time, so they can never pile up
+// (a context the browser suspends freezes its clock while the game runs on).
+const MAX_CALLS = 4;
+
 export class Ambience {
   constructor(audio) {
     this.a = audio;
     this.beds = null;
     this.gust = 0;
+    this.recent = [];      // audio times of the calls started in the last second
   }
 
   /** Make the beds once the context exists: looping noise through a filter, silent to begin with. */
@@ -84,8 +89,13 @@ export class Ambience {
       bed.level = v;
       bed.g.gain.setTargetAtTime(v, c.currentTime, 0.8);
     }
+    if (c.state !== 'running') return;
+    const now = c.currentTime;
+    this.recent = this.recent.filter((t) => t > now - 1);
     for (const [kind, rate] of Object.entries(callRates(s))) {
-      if (rate > 0 && Math.random() < rate * dt) CALLS[kind](a, a.ambBus, c.currentTime + Math.random() * 0.2);
+      if (rate <= 0 || this.recent.length >= MAX_CALLS || Math.random() >= rate * dt) continue;
+      this.recent.push(now);
+      CALLS[kind](a, a.ambBus, now + Math.random() * 0.2);
     }
   }
 }
@@ -119,13 +129,13 @@ function pulsed(a, bus, t, f, dur, rate, peak, type = 'sine') {
   for (const x of [o, am]) { x.start(t); x.stop(t + dur + 0.05); }
 }
 
-const CALLS = {
+export const CALLS = {
   bird: (a, bus, t) => {
     const f = 2600 + Math.random() * 1600, n = 2 + Math.floor(Math.random() * 3);
     for (let i = 0; i < n; i++) chirp(a, bus, t + i * 0.11, f * (1 + (i % 2) * 0.15), f * 1.3, 0.07, 0.025);
   },
   cricket: (a, bus, t) => pulsed(a, bus, t, 4300 + Math.random() * 300, 0.35 + Math.random() * 0.3, 38, 0.012),
-  frog: (a, bus, t) => { for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) pulsed(a, bus, t + i * 0.28, 170 + Math.random() * 40, 0.18, 30, 0.03, 'square'); },
+  frog: (a, bus, t) => { for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) pulsed(a, bus, t + i * 0.28, 170 + Math.random() * 40, 0.18, 30, 0.018, 'triangle'); },
   cicada: (a, bus, t) => pulsed(a, bus, t, 2500 + Math.random() * 500, 1.8 + Math.random(), 22, 0.01, 'sawtooth'),
   crow: (a, bus, t) => { for (let i = 0; i < 2; i++) chirp(a, bus, t + i * 0.4, 720, 520, 0.28, 0.02, 'sawtooth'); },
   owl: (a, bus, t) => { chirp(a, bus, t, 420, 380, 0.35, 0.03); chirp(a, bus, t + 0.55, 420, 360, 0.6, 0.03); },
