@@ -2,7 +2,7 @@
   "name": "hej",
   "private": true,
   "version": "0.1.0",
-  "description": "Hej! — a pixel-art game that takes English speakers from zero to conversational Danish.",
+  "description": "Hej! \u2014 a pixel-art game that takes English speakers from zero to conversational Danish.",
   "type": "module",
   "scripts": {
     "content": "tsx scripts/build-content.ts",
@@ -14,7 +14,8 @@
     "build": "npm run content && tsc --noEmit && vite build",
     "preview": "vite preview",
     "check": "npm run content && tsc --noEmit",
-    "test": "npm run content && vitest run"
+    "test": "npm run content && vitest run",
+    "artifact": "npm run content && tsx scripts/artifact.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

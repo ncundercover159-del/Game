@@ -112,3 +112,29 @@ export function waitNext(btn: HTMLButtonElement): Promise<void> {
     window.addEventListener('keydown', onKey, true);
   });
 }
+
+/**
+ * Two-tap confirmation built into the button itself (window.confirm() is unavailable in
+ * some embeds). The first tap arms it for a few seconds; the second tap runs the action.
+ */
+export function armConfirm(btn: HTMLElement, question: string, action: () => void) {
+  let armed = false;
+  let timer: number | undefined;
+  const label = btn.innerHTML;
+  btn.addEventListener('click', (e) => {
+    e.stopImmediatePropagation();
+    if (armed) {
+      clearTimeout(timer);
+      action();
+      return;
+    }
+    armed = true;
+    btn.textContent = question;
+    btn.classList.add('primary');
+    timer = window.setTimeout(() => {
+      armed = false;
+      btn.innerHTML = label;
+      btn.classList.remove('primary');
+    }, 4000);
+  }, true);
+}

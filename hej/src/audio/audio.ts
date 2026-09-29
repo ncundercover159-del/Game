@@ -2,6 +2,7 @@
 // browser's speechSynthesis (da-DK) only when a clip hasn't been generated yet.
 
 import { C } from '../content';
+import { IS_ARTIFACT } from '../env';
 
 type Manifest = Record<string, number>; // 1 = normal, 2 = normal + slow
 
@@ -12,6 +13,8 @@ let fallbackUsed = false;
 
 export async function initAudio(): Promise<void> {
   try {
+    // the artifact build ships without generated clips; use the browser's Danish voice
+    if (IS_ARTIFACT) throw new Error('no clips');
     const res = await fetch('audio/manifest.json', { cache: 'no-cache' });
     if (res.ok) manifest = ((await res.json()) as { clips: Manifest }).clips ?? {};
   } catch {

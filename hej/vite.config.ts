@@ -1,10 +1,18 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// `ARTIFACT=1 vite build` makes one self-contained page for claude.ai artifacts:
+// no service worker, everything inlined by scripts/artifact.ts afterwards.
+const ARTIFACT = process.env.ARTIFACT === '1';
+
 export default defineConfig({
   base: './',
-  build: { target: 'es2022', chunkSizeWarningLimit: 2000 },
-  plugins: [
+  define: ARTIFACT ? { 'import.meta.env.VITE_ARTIFACT': JSON.stringify('1') } : {},
+  resolve: ARTIFACT ? { alias: { 'virtual:pwa-register': new URL('./src/pwa-stub.ts', import.meta.url).pathname } } : {},
+  build: ARTIFACT
+    ? { target: 'es2022', outDir: 'dist-artifact', assetsInlineLimit: 100_000_000, cssCodeSplit: false, rollupOptions: { output: { inlineDynamicImports: true } } }
+    : { target: 'es2022', chunkSizeWarningLimit: 2000 },
+  plugins: ARTIFACT ? [] : [
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: null,

@@ -6,7 +6,8 @@ import { allCards, deckStats } from '../srs/deck';
 import { State } from '../srs/fsrs';
 import { db } from '../store/db';
 import { allReports, writeSettings } from '../store/save';
-import { attachSpeak, h, overlay, speakUi, toast, ui, uiBtn, waitNext } from './dom';
+import { armConfirm, attachSpeak, h, overlay, speakUi, toast, ui, uiBtn, waitNext } from './dom';
+import { IS_ARTIFACT } from '../env';
 import { applyMode } from './hud';
 import { sentence } from './sentence';
 
@@ -21,10 +22,8 @@ function closeRow(onClose: () => void) {
 export function titleScreen(hasSave: boolean): Promise<'new' | 'continue'> {
   return new Promise((resolve) => {
     const cont = hasSave ? uiBtn('continue', () => resolve('continue'), 'primary') : null;
-    const fresh = uiBtn('newGame', async () => {
-      if (hasSave && !confirm('Start over? Your current progress and deck will be replaced.')) return;
-      resolve('new');
-    }, hasSave ? '' : 'primary');
+    const fresh = uiBtn('newGame', () => resolve('new'), hasSave ? '' : 'primary');
+    if (hasSave) armConfirm(fresh, 'Tap again to start over (progress is replaced)', () => resolve('new'));
     const logo = h('div', { class: 'logo', role: 'heading', 'aria-level': '1' }, 'Hej!');
     logo.addEventListener('click', () => speakUi('title'));
     const tag = h('div', { class: 'tag', lang: 'da' }, ui('tagline').da, h('div', { class: 'small', style: { opacity: '0.7' } }, ui('tagline').en));
@@ -167,6 +166,11 @@ export async function settingsScreen(game: Game) {
   const newPer = h('input', { type: 'number', min: '5', max: '100', value: String(s.newPerDay), style: { width: '90px' } }) as HTMLInputElement;
   newPer.addEventListener('change', async () => { s.newPerDay = Math.max(5, Math.min(100, Number(newPer.value) || 25)); await save(); });
 
+  const resetBtn = h('button', { class: 'btn', type: 'button' }, 'Reset everything');
+  armConfirm(resetBtn, 'Tap again to delete all progress', async () => {
+    await db.clear('cards'); await db.clear('kv'); await db.clear('log');
+    location.reload();
+  });
   overlay.show(sheet(
     h('div', { class: 'kicker' }, ui('settings').da, h('span', { class: 'en' }, ' · Settings')),
     h('h3', {}, 'Scaffolding'), modeSeg(),
@@ -181,25 +185,20 @@ export async function settingsScreen(game: Game) {
       : 'No neural clips generated yet — using your browser’s Danish voice as a fallback. Run `npm run audio` with a Google Cloud TTS key to generate them.',
     h('br'), au.fallbackVoice ? `Fallback voice: ${au.fallbackVoice}` : 'No Danish system voice found — fallback audio may use a non-Danish voice.'),
     h('h3', {}, 'Free conversation (optional AI)'),
-    h('p', { class: 'small' }, 'Snak works offline with built-in conversations. Add an Anthropic API key to also get open-ended, generated conversations. The key stays in this browser and is sent only to api.anthropic.com.'),
-    aiKey,
+    IS_ARTIFACT
+      ? h('p', { class: 'small' }, 'Snak works with built-in conversations here. Open-ended AI conversation needs the installed version of the game (npm run dev), which can call the Anthropic API with your own key.')
+      : h('p', { class: 'small' }, 'Snak works offline with built-in conversations. Add an Anthropic API key to also get open-ended, generated conversations. The key stays in this browser and is sent only to api.anthropic.com.'),
+    IS_ARTIFACT ? null : aiKey,
     h('h3', {}, 'Content review'),
     h('p', { class: 'small' }, `${reviewed} of ${lines.length} lines approved by a native speaker. ${reports.length} mistake report${reports.length === 1 ? '' : 's'} saved on this device.`),
-    h('div', { class: 'row' },
+    IS_ARTIFACT ? h('p', { class: 'small muted' }, 'Exporting reports and progress works in the installed version.') : h('div', { class: 'row' },
       h('button', { class: 'btn', type: 'button', onclick: () => download(`hej-reports-${Date.now()}.json`, { version: C.version, reports }) }, 'Export reports'),
       h('button', {
         class: 'btn', type: 'button',
         onclick: async () => download(`hej-save-${Date.now()}.json`, { save: game.save, cards: await db.all('cards') }),
       }, 'Export progress')),
     h('h3', {}, 'Danger zone'),
-    h('button', {
-      class: 'btn', type: 'button',
-      onclick: async () => {
-        if (!confirm('Delete all progress, deck and reports on this device?')) return;
-        await db.clear('cards'); await db.clear('kv'); await db.clear('log');
-        location.reload();
-      },
-    }, 'Reset everything'),
+    resetBtn,
     closeRow(() => overlay.hide())));
 }
 

@@ -14,6 +14,7 @@ import { h, overlay, toast, ui, uiBtn } from '../ui/dom';
 import { openReport } from '../ui/report';
 import { playLine, sentence, speakerHeader } from '../ui/sentence';
 import { AiChat, describeError, levelOf } from './ai';
+import { IS_ARTIFACT } from '../env';
 import { coach, matchAny, suggest } from './match';
 
 // ─── runtime tokenising (typed text, AI replies) ─────────────────────────────
@@ -67,7 +68,7 @@ export function openTalkHub(game: Game, npcId?: string) {
   const save = game.save;
   const topics = Object.values(C.talk.topics).filter((t) => !npcId || t.npc === npcId);
   const metNpcs = Object.values(C.npcs).filter((n) => game.met(n.id));
-  const hasKey = !!S.settings.aiKey;
+  const hasKey = !!S.settings.aiKey && !IS_ARTIFACT;
   const rows = topics.map((t) => {
     const open = save.done.includes(t.after);
     const npc = C.npcs[t.npc];
@@ -87,7 +88,9 @@ export function openTalkHub(game: Game, npcId?: string) {
         speakerHeader(n.id),
         h('div', { class: 'grow small muted' }, 'Anything goes — generated at your level, with corrections.'),
         h('button', { class: 'btn good', type: 'button', onclick: () => void runAi(game, n.id) }, 'Snak'))) : h('p', { class: 'muted' }, 'Meet someone first!'))
-      : h('p', { class: 'small muted' }, 'Add an Anthropic API key in Settings (⚙) to chat about anything with the characters you’ve met. Without a key, the conversations above work fully offline.'),
+      : h('p', { class: 'small muted' }, IS_ARTIFACT
+        ? 'Open-ended AI conversation is available in the installed version of the game. The conversations above work right here.'
+        : 'Add an Anthropic API key in Settings (⚙) to chat about anything with the characters you’ve met. Without a key, the conversations above work fully offline.'),
     h('div', { class: 'row', style: { justifyContent: 'flex-end', marginTop: '12px' } }, uiBtn('close', () => overlay.hide()))));
 }
 
