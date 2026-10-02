@@ -42,8 +42,7 @@ local function tagged(tag)
 end
 
 local function waitTagged(tag, timeout)
-	local deadline = os.clock() + (timeout or 20)
-	while os.clock() < deadline do
+	for _ = 1, math.ceil((timeout or 20) / 0.5) do
 		local inst = tagged(tag)
 		if inst then
 			return inst
@@ -316,7 +315,7 @@ local function updateLighting(dt)
 	local inHole = camera.CFrame.Position.Y < -2 and Vector3.new(camera.CFrame.Position.X, 0, camera.CFrame.Position.Z).Magnitude < Config.Hole.TopRadiusStuds
 	local preset = inHole and lightingFor(camera.CFrame.Position.Y) or Strata.Surface
 	local k = math.min(1, dt * 2)
-	if cc then
+	if cc and cc.TintColor then
 		cc.TintColor = cc.TintColor:Lerp(preset.Tint, k)
 		cc.Saturation += (preset.Saturation - cc.Saturation) * k
 		cc.Contrast += (preset.Contrast - cc.Contrast) * k
@@ -324,7 +323,9 @@ local function updateLighting(dt)
 	if bloom and not WorldView.BloomOverride then
 		bloom.Intensity += (preset.Bloom - bloom.Intensity) * k
 	end
-	Lighting.Ambient = Lighting.Ambient:Lerp(preset.Ambient, k)
+	if Lighting.Ambient then
+		Lighting.Ambient = Lighting.Ambient:Lerp(preset.Ambient, k)
+	end
 end
 
 function WorldView.SetShowcase(on: boolean)

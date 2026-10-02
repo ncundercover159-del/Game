@@ -198,6 +198,8 @@ function Runtime:_makeEnv(scriptInstance)
 			return math.floor(clock.Now)
 		end,
 		clock = function()
+			-- monotonic with a tiny drift so busy-wait loops still terminate
+			clock.Mono += 0.0002
 			return clock.Mono
 		end,
 	}, { __index = os })

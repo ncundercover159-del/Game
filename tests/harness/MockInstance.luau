@@ -79,6 +79,17 @@ local EVENT_NAMES = {
 	MouseButton1Click = true,
 	Activated = true,
 	Heartbeat = true,
+	MouseButton1Down = true,
+	MouseButton1Up = true,
+	MouseEnter = true,
+	MouseLeave = true,
+	FocusLost = true,
+	Focused = true,
+	InputBegan = true,
+	InputEnded = true,
+	InputChanged = true,
+	Stepped2 = true,
+	OnClientInvoke = false,
 	Stepped = true,
 	RenderStepped = true,
 	PreSimulation = true,
@@ -116,6 +127,12 @@ meta.__index = function(self, key)
 	if child then
 		return child
 	end
+	if key == "Position" and p.CFrame and typeof(p.CFrame) == "CFrame" then
+		return p.CFrame.Position
+	end
+	if key == "CFrame" and typeof(p.Position) == "Vector3" then
+		return require("@lune/roblox").CFrame.new(p.Position)
+	end
 	if EVENT_NAMES[key] then
 		local s = MockSignal.new(key)
 		p[key] = s
@@ -125,6 +142,11 @@ meta.__index = function(self, key)
 end
 
 meta.__newindex = function(self, key, value)
+	if key == "Position" and typeof(value) == "Vector3" then
+		local CF = require("@lune/roblox").CFrame
+		local old = props(self).CFrame
+		props(self).CFrame = old and (CF.new(value) * old.Rotation) or CF.new(value)
+	end
 	if key == "Parent" then
 		Methods._SetParent(self, value)
 		return
@@ -402,7 +424,7 @@ function Methods.Fire(self, ...)
 end
 
 function Methods.GetPivot(self)
-	return props(self).CFrame or props(self).PivotCFrame
+	return props(self).CFrame or props(self).PivotCFrame or require("@lune/roblox").CFrame.new()
 end
 
 function Methods.PivotTo(self, cf)
@@ -436,5 +458,60 @@ function Methods.GetPartsInPart()
 end
 
 function Methods.RequestStreamAroundAsync() end
+
+-- Client-side remote calls go straight to the server handlers in the same
+-- runtime (integration tests run server and client together).
+MockInstance.LocalPlayer = nil
+function Methods.InvokeServer(self, ...)
+	local handler = props(self).OnServerInvoke
+	assert(handler, "no OnServerInvoke for " .. tostring(props(self).Name))
+	return handler(MockInstance.LocalPlayer, ...)
+end
+
+function Methods.FireServer(self, ...)
+	local s = props(self).OnServerEvent
+	if s then
+		s:Fire(MockInstance.LocalPlayer, ...)
+	end
+end
+
+local fireClient = Methods.FireClient
+function Methods.FireClient(self, player, ...)
+	fireClient(self, player, ...)
+	local s = props(self).OnClientEvent
+	if s and player == MockInstance.LocalPlayer then
+		s:Fire(...)
+	end
+end
+
+local fireAll = Methods.FireAllClients
+function Methods.FireAllClients(self, ...)
+	fireAll(self, ...)
+	local s = props(self).OnClientEvent
+	if s then
+		s:Fire(...)
+	end
+end
+
+function Methods.Emit() end
+function Methods.BulkMoveTo(_, parts, cframes)
+	for i, part in parts do
+		props(part).CFrame = cframes[i]
+	end
+end
+function Methods.GetBoundingBox(self)
+	return props(self).PivotCFrame or require("@lune/roblox").CFrame.new(), require("@lune/roblox").Vector3.new(4, 4, 4)
+end
+function Methods.DisplaySystemMessage() end
+function Methods.SetMotor() end
+function Methods.IsVibrationSupported()
+	return false
+end
+function Methods.LoadAnimation()
+	return MockInstance.new("AnimationTrack")
+end
+function Methods.SetPrimaryPartCFrame(self, cf)
+	props(self).PivotCFrame = cf
+end
 
 return MockInstance
