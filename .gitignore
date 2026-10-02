@@ -11,3 +11,4 @@ __pycache__/
 *.blend2
 # OS
 .DS_Store
+KD_fbx_models.zip
