@@ -47,8 +47,9 @@ Values are the sampled reference colours; textures vary around them (plus or min
   * a darker 2-3 px rim (fake AO);
   * a lighter top-left edge highlight;
   * a few crack or speckle details.
-* **Environment:** one 1024 x 1024 atlas (8 x 8 tiles of 128 px). Texel density **32 px per stud** for all environment modules.
-* **Hero tools:** one texture set per tool (colour, normal, roughness, metalness, emissive mask), each 1024 x 1024. They are baked in Blender from procedural shader graphs:
+* **Environment:** one 1024 x 1024 atlas (`blender/kd/textures.py`): 10 x 10 cells of 102 px, each a 96 px pixel-noise tile (32 x 32 art, upscaled x3) inside a 3 px gutter of repeated edge pixels; unused cells are neutral grey. One tile per palette material; each face shows its tile once, so it reads as chunky pixel art at any size.
+* **Kept parts:** sign faces (SurfaceGui text), Neon, Glass and see-through parts are never meshed. They stay real Roblox parts so glow, glass and text render properly (`meshkit.stays_part` = `GreyboxSwap.KeepsVisible`).
+* **Hero tools (planned, not built yet; current tool meshes use flat role colours):** one texture set per tool (colour, normal, roughness, metalness, emissive mask), each 1024 x 1024. They are baked in Blender from procedural shader graphs:
   * AO and curvature masks for edge wear and crevice dirt;
   * gradients and colour variation.
 * **Skins:** the same UV layout per tool; only the texture set and the particle colours change. Galaxy and Animated Rainbow add extra geometry (rings, fins) as separate optional meshes.

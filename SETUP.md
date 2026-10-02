@@ -124,19 +124,33 @@ Create each item below in Creator Hub with exactly this name, price and descript
 - Create it in Creator Hub → Monetization → Subscriptions with the perks in the description above.
 - Set the price, paste the `EXP-...` id into `Config.SubscriptionIds.club`, set `Config.Subscription.DisplayPrice` to the real price, and set `Config.Subscription.Enabled = true`.
 
-## 4. Upload the Blender art (swap GREYBOX stand-ins)
-This could not run during the build: Roblox's API hosts were blocked in the build environment. It is a single command:
+## 4. Put the Blender art in (swap GREYBOX stand-ins)
+The map ships as grey stand-in blocks; every one carries the tag `GREYBOX` and an `AssetKey`. There are two ways to swap in the meshes. Both use `Shared.GreyboxSwap`, which works out where each import landed, its scale and its rotation by itself, so the importer's settings don't matter.
+
+**A. Import in Studio (no API key):**
+1. Open `place/KeepDigging.rbxl`. Unzip `KD_fbx_models.zip` (made by the art build). Select all the `.fbx` files and drag them onto the 3D view, or use the 3D Importer, and keep the default settings. The imports land in a pile somewhere in the world. That is expected.
+2. In the Command Bar, run:
+   ```
+   require(game.ReplicatedStorage.Shared.GreyboxSwap).Run({ Manifest = require(game.ReplicatedStorage.Shared.MeshManifest), Undo = true })
+   ```
+   The Output shows `[KD] Placed N of M stand-ins ...`. The imports move into `ServerStorage.KD_Imported`, every stand-in gets a `<key>_Mesh` child, and the grey parts turn invisible but keep colliding. Signs, Neon, Glass and see-through parts stay as parts on purpose. Ctrl+Z undoes it, and running it again is safe.
+3. Save the place.
+- If you skip step 2, the same swap runs at server start (`AssetSwapService`) whenever there are imports in the Workspace or `ServerStorage.KD_Imported`.
+- For a place without these modules, paste the whole `tools/studio/SwapGreybox.lua` into the Command Bar instead (it is the same code with the manifest inlined).
+- Imports that don't match this place's layout (from an older zip) are listed in the Output and left grey. Re-import those files from the current zip.
+
+**B. Upload with Open Cloud.** Roblox's API hosts were blocked in the build environment, so this could not run during the build. It is a single command:
 ```
 export ROBLOX_API_KEY=...        # Open Cloud key with asset:read + asset:write
 export ROBLOX_CREATOR_ID=...     # your user id (or set ROBLOX_CREATOR_TYPE=group and a group id)
 python3 tools/upload_assets.py   # uploads assets/export/*.fbx, icons, audio; writes src/shared/AssetRegistry.luau
 rojo build default.project.json -o build/code.rbxl && lune run tools/build_place
 ```
-- **What changes:** on the next server start, `AssetSwapService` swaps every `GREYBOX`-tagged stand-in with a matching `AssetKey` for the uploaded mesh. The stand-in stays behind as the invisible collision box. Tool rigs, pets, crew and finds are preloaded into `ReplicatedStorage.KD_Assets` for clients. Sounds and icons switch automatically.
-- **Manual fallback:** bulk-import `assets/export/*.fbx` with Studio's 3D Importer, put the imported models in `ServerStorage.KD_Imported` named by AssetKey, and run `tools/studio/SwapGreybox.lua` in the command bar.
-- **Find leftovers:** `game:GetService("CollectionService"):GetTagged("GREYBOX")` lists every remaining stand-in.
+On the next server start, `AssetSwapService` loads the uploaded meshes and runs the same swap. Tool, find, pet and crew models are preloaded into `ReplicatedStorage.KD_Assets`; live tool rigs stay primitive-built. Sounds and icons switch automatically.
 
-Regenerate the art first (headless Blender 4.5): `python3 -m pip install bpy==4.5.14` then `python blender/build_all.py`.
+`game:GetService("CollectionService"):GetTagged("GREYBOX")` lists every stand-in that hasn't been swapped yet.
+
+Regenerate the art first (headless Blender 4.5): `python3 -m pip install bpy==4.5.14` then `python blender/build_all.py`. That build also rewrites `src/shared/MeshManifest.luau`, `tools/studio/SwapGreybox.lua` and `KD_fbx_models.zip` (`tools/gen_swap_script.py`), so rebuild the place afterwards.
 
 ## 5. Icons and thumbnails
 - Experience icon: `assets/renders/marketing/icon_512.png`.

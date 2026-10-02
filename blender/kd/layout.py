@@ -958,10 +958,33 @@ def build_distant(L):
             floats.box((s, 7, s * 0.8), (fx + rng.uniform(-3, 3), fy - 3 - i * 6.5, fz + rng.uniform(-3, 3)), "cobble" if i > 1 else "dirt")
         floats.box((3.5, 9, 3.5), (fx + w * 0.2, fy + 9.5, fz), "trunk")
         floats.box((10, 7, 10), (fx + w * 0.2, fy + 16, fz), "leaves", tags=["ReactLeaves"])
+    # Voxel mountain range on the horizon: each peak is a stack of shrinking,
+    # slightly offset blocks (snow on the top layers) plus a smaller shoulder
+    # peak, so the silhouette reads as stepped mountains rather than a wall.
     mountains = L.module("env_mountains", "Mountains", "Map/Scenery", tags=["Scenery"])
+    # own random stream so the rest of the map stays identical
+    shared_rng, L.rng = L.rng, random.Random(SEED + 97)
+    rng = L.rng
+
+    def peak(mx, mz, w, h, steps):
+        sh = h / steps
+        ox = oz = 0.0
+        for i in range(steps):
+            f = 1 - i / steps
+            sw = w * (0.18 + 0.82 * f)
+            snow = i >= steps - 2
+            mountains.box((sw, sh + 0.5, sw * 0.62), (mx + ox, i * sh + sh / 2 - 60, mz + oz),
+                          "mountain_snow" if snow else "mountain", collide=False, shadow=False, shade=i % 2)
+            ox += rng.uniform(-0.035, 0.035) * w
+            oz += rng.uniform(-0.02, 0.02) * w
+
     for (mx, mz, w, h) in [(-900, -1300, 700, 420), (-200, -1500, 900, 560), (650, -1350, 800, 460), (-1300, -700, 600, 360), (1300, -800, 600, 340)]:
-        mountains.box((w, h, w * 0.6), (mx, h / 2 - 60, mz), "mountain", collide=False, shadow=False, jitter=0.02)
-        mountains.box((w * 0.45, h * 0.18, w * 0.3), (mx, h - 60 - h * 0.09 + 6, mz), "mountain_snow", collide=False, shadow=False)
+        peak(mx, mz, w, h, 8)
+        side = 1 if mx < 0 else -1
+        peak(mx + side * w * 0.42, mz + w * 0.12, w * 0.55, h * 0.58, 6)
+    L.rng = shared_rng
+    for _ in range(20):  # the draws the old single-box mountains made, keeping later colours stable
+        shared_rng.random()
 
 
 def build_hub(L):

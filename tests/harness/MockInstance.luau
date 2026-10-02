@@ -105,6 +105,14 @@ local IS_A = {
 	ValueBase = { IntValue = true, NumberValue = true, StringValue = true, BoolValue = true, ObjectValue = true },
 }
 
+local function Vector3Min(a, b)
+	return require("@lune/roblox").Vector3.new(math.min(a.X, b.X), math.min(a.Y, b.Y), math.min(a.Z, b.Z))
+end
+
+local function Vector3Max(a, b)
+	return require("@lune/roblox").Vector3.new(math.max(a.X, b.X), math.max(a.Y, b.Y), math.max(a.Z, b.Z))
+end
+
 local MockInstance = {}
 local Methods = {}
 local meta = {}
@@ -129,6 +137,9 @@ meta.__index = function(self, key)
 	end
 	if key == "Position" and p.CFrame and typeof(p.CFrame) == "CFrame" then
 		return p.CFrame.Position
+	end
+	if key == "WorldPivot" and p.ClassName == "Model" then
+		return Methods.GetPivot(self)
 	end
 	if key == "CFrame" and typeof(p.Position) == "Vector3" then
 		return require("@lune/roblox").CFrame.new(p.Position)
@@ -423,13 +434,66 @@ function Methods.Fire(self, ...)
 	end
 end
 
+-- Models follow Roblox's pivot rules: PrimaryPart, else WorldPivot, else the
+-- centre of their parts' bounds; PivotTo and ScaleTo carry every descendant
+-- part along (ScaleTo scales about the pivot).
+local function isModel(self)
+	return props(self).ClassName == "Model"
+end
+
+local function descendantParts(self)
+	local out = {}
+	for _, d in Methods.GetDescendants(self) do
+		if Methods.IsA(d, "BasePart") and typeof(props(d).CFrame) == "CFrame" then
+			table.insert(out, d)
+		end
+	end
+	return out
+end
+
 function Methods.GetPivot(self)
-	return props(self).CFrame or props(self).PivotCFrame or require("@lune/roblox").CFrame.new()
+	local CF = require("@lune/roblox").CFrame
+	local p = props(self)
+	if isModel(self) then
+		if p.PrimaryPart and props(p.PrimaryPart).CFrame then
+			return props(p.PrimaryPart).CFrame
+		end
+		if p.WorldPivot then
+			return p.WorldPivot
+		end
+		if p.PivotCFrame then
+			return p.PivotCFrame
+		end
+		local lo, hi
+		for _, part in descendantParts(self) do
+			local pos = props(part).CFrame.Position
+			lo = lo and Vector3Min(lo, pos) or pos
+			hi = hi and Vector3Max(hi, pos) or pos
+		end
+		return lo and CF.new((lo + hi) / 2) or CF.new()
+	end
+	return p.CFrame or p.PivotCFrame or CF.new()
 end
 
 function Methods.PivotTo(self, cf)
-	props(self).PivotCFrame = cf
-	props(self).CFrame = cf
+	local p = props(self)
+	if isModel(self) then
+		local delta = cf * Methods.GetPivot(self):Inverse()
+		for _, part in descendantParts(self) do
+			props(part).CFrame = delta * props(part).CFrame
+		end
+		if not p.PrimaryPart then
+			p.WorldPivot = cf
+		end
+		p.PivotCFrame = cf
+		return
+	end
+	p.PivotCFrame = cf
+	p.CFrame = cf
+end
+
+function Methods.GetScale(self)
+	return props(self).Scale or 1
 end
 
 function Methods.Play(self)
@@ -450,7 +514,21 @@ function Methods.LoadCharacter(self) end
 function Methods.SetNetworkOwner(self) end
 
 function Methods.ScaleTo(self, s)
-	props(self).Scale = s
+	local p = props(self)
+	local k = s / (p.Scale or 1)
+	if isModel(self) then
+		local CF = require("@lune/roblox").CFrame
+		local pivot = Methods.GetPivot(self)
+		for _, part in descendantParts(self) do
+			local pp = props(part)
+			local rel = pivot:ToObjectSpace(pp.CFrame)
+			pp.CFrame = pivot * (CF.new(rel.Position * k) * rel.Rotation)
+			if typeof(pp.Size) == "Vector3" then
+				pp.Size = pp.Size * k
+			end
+		end
+	end
+	p.Scale = s
 end
 
 function Methods.GetPartsInPart()

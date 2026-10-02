@@ -105,49 +105,134 @@ def mat_kind(key):
     return "base"
 
 
-def build_module_meshes(module, index, mats, max_tris=12000, local=True, segments=1):
-    """Builds one or more mesh objects (split under max_tris) for a layout module."""
+MAX_CHUNK_EXTENT = 1000.0  # studs; a MeshPart can be at most 2048 on any axis
+PROBE_NAME = "KD_Probe"
+
+
+def part_aabb(matrix, size):
+    """Axis-aligned bounds (Blender space) of a part's box."""
+    sx, sy, sz = size
+    corners = [matrix @ Vector((x * sx / 2, z * sz / 2, y * sy / 2)) for x in (-1, 1) for y in (-1, 1) for z in (-1, 1)]
+    lo = Vector([min(c[i] for c in corners) for i in range(3)])
+    hi = Vector([max(c[i] for c in corners) for i in range(3)])
+    return lo, hi
+
+
+def b2r(v):
+    """Blender (x, y, z) -> Roblox (x, y, z)."""
+    return (v[0], v[2], -v[1])
+
+
+def object_bounds_roblox(ob):
+    pts = [b2r(ob.matrix_world @ v.co) for v in ob.data.vertices]
+    lo = [min(p[i] for p in pts) for i in range(3)]
+    hi = [max(p[i] for p in pts) for i in range(3)]
+    return lo, hi
+
+
+def add_probe(entry, mats):
+    """A tiny cube at a known, deliberately off-centre point inside the module's
+    bounds. After import its position reveals any rotation the importer applied."""
+    c, size = entry["center"], entry["size"]
+    signs = (1, 1, -1)
+    fracs = (0.3, 0.15, 0.2)
+    pos = [c[i] + signs[i] * min(fracs[i] * size[i], max(0.0, size[i] / 2 - 0.15)) for i in range(3)]
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=0.2)
+    bmesh.ops.translate(bm, verts=bm.verts, vec=r2b(pos))
+    me = bpy.data.meshes.new(PROBE_NAME)
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(mats["base"])
+    ob = bpy.data.objects.new(PROBE_NAME, me)
+    bpy.context.scene.collection.objects.link(ob)
+    entry["probe"] = [round(v, 4) for v in pos]
+    return ob
+
+
+def stays_part(p):
+    """Parts the swap keeps as real Roblox parts instead of meshing them:
+    sign faces (SurfaceGui text), Neon glow, Glass and other see-through parts.
+    Must match GreyboxSwap.KeepsVisible in src/shared/GreyboxSwap.luau."""
+    t = p.get("t", 0)
+    return bool(p.get("gui")) or mat_kind(p["m"]) != "base" or 0 < t < 0.99 or bool(p.get("a", {}).get("KeepVisible"))
+
+
+def build_module_meshes(module, index, mats, max_tris=12000, local=True, segments=1, probe=False, skip_kept=True):
+    """Builds the mesh objects for a layout module.
+
+    Invisible parts are left out, and with skip_kept the parts that stay real
+    parts after the swap (see stays_part) are too. Objects are split when a
+    chunk passes max_tris or MAX_CHUNK_EXTENT. Returns (objects, manifest entry)
+    where the entry holds the local bounds of the whole module and of every
+    chunk in Roblox coordinates (studs), plus the probe position when probe=True.
+    """
     objects = []
     pivot = module["pivot"] if not local else [0, 0, 0]
     yaw = module["yaw"] if not local else 0
-    origin = Matrix.Identity(4)
-    if not local:
-        origin = Matrix.Identity(4)
     chunk = 0
     bm = None
     tris = 0
+    box = None
     kinds = ["base", "glow", "glass"]
 
     def flush():
-        nonlocal bm, chunk, tris
+        nonlocal bm, chunk, tris, box
         if bm is None:
             return
-        me = bpy.data.meshes.new(f"{module['key']}_{chunk}")
+        name = f"{module['key']}_{chunk}" if chunk else module["key"]
+        me = bpy.data.meshes.new(name)
         bm.to_mesh(me)
         bm.free()
         for k in kinds:
             me.materials.append(mats[k])
-        ob = bpy.data.objects.new(f"{module['key']}_{chunk}" if chunk else module["key"], me)
+        ob = bpy.data.objects.new(name, me)
         bpy.context.scene.collection.objects.link(ob)
         objects.append(ob)
         bm = None
+        box = None
         chunk += 1
         tris = 0
 
     for p in module["parts"]:
-        if p.get("t", 0) >= 0.99:
+        if p.get("t", 0) >= 0.99 or (skip_kept and stays_part(p)):
             continue
+        if local:
+            m = Matrix.Translation(r2b(p["p"])) @ roblox_rot(*p.get("r", (0, 0, 0))).to_4x4()
+        else:
+            m = part_matrix(pivot, yaw, p)
+        lo, hi = part_aabb(m, p["z"])
+        if box is not None:
+            ulo = Vector([min(box[0][i], lo[i]) for i in range(3)])
+            uhi = Vector([max(box[1][i], hi[i]) for i in range(3)])
+            if max(uhi - ulo) > MAX_CHUNK_EXTENT:
+                flush()
         if bm is None:
             bm = bmesh.new()
-            uv = bm.loops.layers.uv.new("UVMap")
+            bm.loops.layers.uv.new("UVMap")
         uv = bm.loops.layers.uv.active
-        m = part_matrix(pivot, yaw, p) if not local else (Matrix.Translation(r2b(p["p"])) @ roblox_rot(*p.get("r", (0, 0, 0))).to_4x4())
+        box = (lo, hi) if box is None else (Vector([min(box[0][i], lo[i]) for i in range(3)]), Vector([max(box[1][i], hi[i]) for i in range(3)]))
         add_part(bm, m, p["z"], p["m"], p["s"], index, uv, kinds.index(mat_kind(p["m"])), segments=segments)
         tris = sum(len(f.verts) - 2 for f in bm.faces)
         if tris > max_tris:
             flush()
     flush()
-    return objects
+    entry = None
+    if objects:
+        chunks = []
+        glo, ghi = [1e9] * 3, [-1e9] * 3
+        for i, ob in enumerate(objects):
+            lo, hi = object_bounds_roblox(ob)
+            glo = [min(glo[k], lo[k]) for k in range(3)]
+            ghi = [max(ghi[k], hi[k]) for k in range(3)]
+            chunks.append({"index": i, "name": ob.name,
+                           "center": [round((lo[k] + hi[k]) / 2, 4) for k in range(3)],
+                           "size": [round(hi[k] - lo[k], 4) for k in range(3)]})
+        entry = {"center": [round((glo[k] + ghi[k]) / 2, 4) for k in range(3)],
+                 "size": [round(ghi[k] - glo[k], 4) for k in range(3)], "chunks": chunks}
+        if probe:
+            objects.append(add_probe(entry, mats))
+    return objects, entry
 
 
 def export_fbx(objects, path):

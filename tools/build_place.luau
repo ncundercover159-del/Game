@@ -195,7 +195,10 @@ for _, m in layout.modules do
 	for _, p in m.parts do
 		buildPart(p, pivot).Parent = model
 	end
-	model.WorldPivot = pivot
+	-- WorldPivotData is the serialized form of WorldPivot (an OptionalCFrame);
+	-- setting WorldPivot here would only live in memory and never reach the file,
+	-- leaving Studio to pivot every module on its bounding-box centre.
+	model.WorldPivotData = pivot
 	if m.greybox then
 		model:AddTag("GREYBOX")
 		model:SetAttribute("AssetKey", m.key)

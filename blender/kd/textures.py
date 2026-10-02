@@ -4,7 +4,10 @@ Each material key gets one tile: a 34x34 pixel-art face upscaled x3 with
 nearest filtering, built from the palette's light/mid/dark values with
 per-pixel noise, a darker rim (fake AO), a lighter top-left edge and a
 material-specific motif (grass blades, planks, cobbles, cracks, facets...).
-The atlas is 1024x1024 (10x10 tiles of 102 px): texel density ~25 px/stud.
+The atlas is 1024x1024: 10x10 cells of 102 px, each a 96 px tile (32x32 art
+upscaled x3) inside a 3 px gutter of repeated edge pixels, so texture
+compression blocks and mip levels never mix in a neighbour's colours.
+Unused cells are neutral grey.
 """
 from pathlib import Path
 
@@ -14,9 +17,11 @@ from PIL import Image
 from palette import MATERIALS
 
 GRID = 10
-TILE = 102
-ART = 34
-ATLAS = GRID * TILE
+TILE = 102  # cell pitch
+ART = 32  # art pixels per tile side (upscaled x3)
+GUTTER = (TILE - ART * 3) // 2
+ATLAS = 1024
+NEUTRAL = (128, 128, 128)
 
 
 def hexrgb(h):
@@ -68,12 +73,13 @@ def tile_for(key, rng):
     img[(xx == 1) & (rim > 0)] = img[(xx == 1) & (rim > 0)] * 0.7 + light * 0.3
     img[(yy == 1) & (rim > 0)] = img[(yy == 1) & (rim > 0)] * 0.7 + light * 0.3
     img = np.clip(img, 0, 255).astype(np.uint8)
-    return Image.fromarray(img, "RGB").resize((TILE, TILE), Image.NEAREST)
+    big = np.asarray(Image.fromarray(img, "RGB").resize((ART * 3, ART * 3), Image.NEAREST))
+    return Image.fromarray(np.pad(big, ((GUTTER, GUTTER), (GUTTER, GUTTER), (0, 0)), mode="edge"), "RGB")
 
 
 def build_atlas(out_path: Path, seed=11):
     rng = np.random.default_rng(seed)
-    atlas = Image.new("RGB", (ATLAS, ATLAS), (255, 0, 255))
+    atlas = Image.new("RGB", (ATLAS, ATLAS), NEUTRAL)
     index = {}
     for i, key in enumerate(sorted(MATERIALS)):
         if i >= GRID * GRID:
@@ -87,11 +93,8 @@ def build_atlas(out_path: Path, seed=11):
 
 
 def tile_uv(index, key):
-    """UV rect (u0, v0, u1, v1) of a key's tile, with a half-texel inset."""
+    """UV rect (u0, v0, u1, v1) of a key's art area (inside the gutter, half-texel inset)."""
     gx, gy = index[key]
-    inset = 1.5 / ATLAS
-    u0 = gx / GRID + inset
-    u1 = (gx + 1) / GRID - inset
-    v1 = 1 - gy / GRID - inset
-    v0 = 1 - (gy + 1) / GRID + inset
-    return u0, v0, u1, v1
+    x0, y0 = gx * TILE + GUTTER + 0.5, gy * TILE + GUTTER + 0.5
+    x1, y1 = gx * TILE + GUTTER + ART * 3 - 0.5, gy * TILE + GUTTER + ART * 3 - 0.5
+    return x0 / ATLAS, 1 - y1 / ATLAS, x1 / ATLAS, 1 - y0 / ATLAS

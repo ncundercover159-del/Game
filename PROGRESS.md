@@ -12,16 +12,20 @@ Updated after every milestone. If context is lost, re-read this file, DECISIONS.
 | (e) Free path | done | |
 | (f) Leaderboards, feed, plaques, finds, Artifacts hall | done | |
 | (g) Bottom event and cycle reset | done | |
-| (h) Blender art pass | todo | |
-| (i) Polish, self-test, SETUP.md, reference match | todo | |
+| (h) Blender art pass | done | `python blender/build_all.py`: atlas, 37 environment meshes + manifest, tool and find meshes, icons, hero render and reference pair |
+| (i) Polish, self-test, SETUP.md, reference match | in progress | 56 Lune tests; Studio import + mesh swap verified by tests only |
 
 ## Toolchain (this run)
-- Lune 0.10.5, Rojo 7.7.1, StyLua 2.5.2, selene 0.31.0 (installed with cargo into `~/.cargo/bin`).
+- Lune 0.10.5, Rojo 7.7.1, StyLua 2.5.2 (built with `--features luau`; without it, it silently skips .luau files), selene 0.31.0 (installed with cargo into `~/.cargo/bin`).
 - Blender 4.5.14 LTS as `bpy` in `/root/kd/venv` (`/root/kd/venv/bin/python`).
 
 ## Commands
 - `lune run tests/run`: self-tests.
+- `python3 blender/kd/layout.py`, then `rojo build default.project.json -o build/code.rbxl && lune run tools/build_place`: the place file.
+- `/root/kd/venv/bin/python blender/build_all.py`: art, mesh manifest, command-bar swap script and `KD_fbx_models.zip`.
 - `lune run tools/simulate --write --check`: economy tables and constraint check.
 
 ## Known issues
 - Not yet run inside Roblox Studio (no Studio in this environment); verified by Lune tests, compile + selene lint, Rojo build.
+- First Studio report from the owner: after importing the FBX files, the models sat in a pile in the middle of the map. Cause: the importer drops imports in the view, the old swap script trusted the importer's pivot, and the place never saved module pivots (`WorldPivot` instead of `WorldPivotData`). All three are fixed and covered by `tests/specs/swap.luau`; still waiting on a re-check in Studio.
+- Most of the code has never been run through StyLua (the old binary skipped .luau files); only files touched since then are formatted. selene reports 451 pre-existing warnings, no errors.

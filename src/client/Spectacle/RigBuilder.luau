@@ -11,8 +11,10 @@
 
 	Parts are anchored, non-colliding and moved in bulk; skin themes only
 	change colours/materials/particles (and add rings/fins on top tiers),
-	never timing. If the Blender mesh for a tool part has been uploaded it
-	is used instead of the GREYBOX primitives (ReplicatedStorage.KD_Assets).
+	never timing. Rigs are always built from these primitives; the Blender
+	tool meshes (assets/export/tool_*.fbx) are used for icons and renders and,
+	once uploaded, preloaded into ReplicatedStorage.KD_Assets, but are not
+	swapped onto live rigs yet.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

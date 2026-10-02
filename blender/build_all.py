@@ -3,12 +3,15 @@
     /root/kd/venv/bin/python blender/build_all.py [--fast]
 
 1. assets/export/atlas.png                    pixel-noise texture atlas
-2. assets/export/<moduleKey>.fbx              one per unique layout module (local space)
-3. assets/export/<toolRig>.fbx                tool rigs from assets/gamedata.json
+2. assets/export/<moduleKey>.fbx              one per unique GREYBOX module (local space)
+   assets/export/manifest.json                local bounds of every exported mesh + probe
+3. assets/export/tool_<name>.fbx              tool rigs from assets/gamedata.json
 4. assets/export/<findId>.fbx                 faceted find meshes
 5. assets/renders/icons/<id>.png              store / find icons
 6. docs/screenshots/hero.png, tool_<id>.png   hero view and tool turntable shots
 7. docs/reference-match/hero_vs_reference.png side-by-side with reference/hero.png
+8. src/shared/MeshManifest.luau, tools/studio/SwapGreybox.lua (tools/gen_swap_script.py)
+   and KD_fbx_models.zip (the files to import in Studio, gitignored)
 Roblox (x, y, z) -> Blender (x, -z, y); every FBX is exported -Z forward, Y up.
 """
 import json
@@ -116,24 +119,32 @@ def render():
 
 
 # 1. atlas ------------------------------------------------------------------
+EXPORT.mkdir(parents=True, exist_ok=True)
+for stale in EXPORT.glob("*.fbx"):
+    stale.unlink()
 atlas_path = EXPORT / "atlas.png"
 index = textures.build_atlas(atlas_path)
 print("atlas", atlas_path)
 
 # 2. environment modules ----------------------------------------------------
+# Only GREYBOX modules get meshes; marker modules are invisible gameplay volumes.
 seen = {}
 for mod in layout["modules"]:
-    seen.setdefault(mod["key"], mod)
+    if mod["greybox"]:
+        seen.setdefault(mod["key"], mod)
 tri_total = 0
+manifest = {}
 for key, mod in sorted(seen.items()):
     reset()
     mats = meshkit.atlas_materials(bpy.data.images.load(str(atlas_path)))
-    objs = meshkit.build_module_meshes(mod, index, mats)
+    objs, entry = meshkit.build_module_meshes(mod, index, mats, probe=True)
     if not objs:
         continue
     tri_total += sum(len(p.vertices) - 2 for o in objs for p in o.data.polygons)
     meshkit.export_fbx(objs, EXPORT / f"{key}.fbx")
-print(f"exported {len(seen)} modules, {tri_total} tris")
+    manifest[key] = entry
+(EXPORT / "manifest.json").write_text(json.dumps(manifest, indent=1, sort_keys=True))
+print(f"exported {len(manifest)} modules, {tri_total} tris")
 
 
 # 3. tool rigs ----------------------------------------------------------------
@@ -174,7 +185,8 @@ def build_rig(rig_id, rig):
 for rig_id, rig in sorted(game["rigs"].items()):
     reset()
     objs = build_rig(rig_id, rig)
-    meshkit.export_fbx(objs, EXPORT / f"{rig_id}.fbx")
+    # AssetKey used by RigBuilder: "tool_" .. toolId:sub(5) ("dig_pebble" -> "tool_pebble")
+    meshkit.export_fbx(objs, EXPORT / f"tool_{rig_id[4:]}.fbx")
     setup_render((512, 512), 16, ICONS / f"{rig_id}.png", transparent=True)
     frame_objects(objs)
     render()
@@ -206,8 +218,7 @@ print("exported", len(game["finds"]), "finds")
 reset()
 mats = meshkit.atlas_materials(bpy.data.images.load(str(atlas_path)))
 for mod in layout["modules"]:
-    for o in meshkit.build_module_meshes(mod, index, mats, local=False):
-        pass
+    meshkit.build_module_meshes(mod, index, mats, local=False, skip_kept=False)
 cam = layout["heroCamera"]
 setup_render((1536, 1024), 32, SHOTS / "hero.png")
 camera(meshkit.r2b(cam["position"]), meshkit.r2b(cam["lookAt"]), cam["fov"])
@@ -223,3 +234,9 @@ pair.paste(ref, (0, 0))
 pair.paste(ours, (ref.width + 16, 0))
 pair.save(MATCH / "hero_vs_reference.png")
 print("hero + reference match written")
+
+# 6. swap script, runtime manifest and the Studio import bundle --------------
+sys.path.insert(0, str(ROOT / "tools"))
+import gen_swap_script  # noqa: E402
+
+gen_swap_script.main()
