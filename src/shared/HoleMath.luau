@@ -70,6 +70,20 @@ function HoleMath.RadiusAtY(y: number): number
 	return band.Radius
 end
 
+-- Rim positions where dig sequences are staged (evenly spaced around the
+-- hole, just outside the fence ring). Shared so server and clients agree.
+function HoleMath.DigSpot(index: number)
+	local n = Config.World.DigSpots
+	local angle = (index - 1) / n * math.pi * 2 + math.pi / n
+	local radius = Config.Hole.TopRadiusStuds + 5
+	return {
+		X = math.cos(angle) * radius,
+		Z = math.sin(angle) * radius,
+		Angle = angle,
+		Radius = radius,
+	}
+end
+
 -- Seed for a new cycle. `salt` should differ per server (e.g. JobId) so two
 -- servers rarely share a find map; the seed is shown in the Find Map.
 function HoleMath.NewSeed(cycle: number, salt: string, now: number): number

@@ -1,3 +1,4 @@
+local task = require("@lune/task")
 --[[
 	MockInstance: a lightweight stand-in for Roblox Instances, enough for the
 	server logic under test (folders, remotes, parts, attributes, tags,

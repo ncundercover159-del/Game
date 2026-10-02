@@ -602,6 +602,36 @@ add({
 	Description = 'Shows "Pebble Pusher" above your name. Earned with Shards only.',
 })
 add({
+	Id = "title_s1digger",
+	Category = "Title",
+	Tab = "Style",
+	Section = "Titles & Name Tags",
+	Name = 'Title: "S1 Digger"',
+	ShardPrice = 500,
+	Ownership = "OneTime",
+	Priority = "P2",
+	Slot = "Title",
+	Tier = 2,
+	Season = "S1",
+	Effect = { Text = "S1 Digger" },
+	Description = 'Shows "S1 Digger" above your name. Season 1 free-track reward, also earnable with Shards.',
+})
+add({
+	Id = "title_s1finisher",
+	Category = "Title",
+	Tab = "Style",
+	Section = "Titles & Name Tags",
+	Name = 'Title: "Season 1 Finisher"',
+	ShardPrice = 900,
+	Ownership = "OneTime",
+	Priority = "P2",
+	Slot = "Title",
+	Tier = 3,
+	Season = "S1",
+	Effect = { Text = "Season 1 Finisher" },
+	Description = 'Shows "Season 1 Finisher" above your name. Season 1 free-track reward, also earnable with Shards.',
+})
+add({
 	Id = "namecolor",
 	Category = "NameColor",
 	Tab = "Style",
