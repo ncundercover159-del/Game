@@ -35,6 +35,7 @@ def part_matrix(pivot, yaw, p):
 
 def add_part(bm, matrix, size, key, shape, index, uv_layer, mat_index, bevel=0.22, segments=1):
     sx, sy, sz = size  # roblox x, y(up), z
+    before = set(bm.faces)
     scale = Matrix.Diagonal((sx, sz, sy, 1))  # blender x, y(depth), z(up)
     if shape == "Cylinder":
         # Roblox cylinders run along local X
@@ -54,8 +55,9 @@ def add_part(bm, matrix, size, key, shape, index, uv_layer, mat_index, bevel=0.2
         smallest = min(sx, sy, sz)
         off = min(bevel, smallest * 0.2)
         if off > 0.01:
-            res = bmesh.ops.bevel(bm, geom=edges + list(verts), offset=off, segments=segments, profile=0.6, affect="EDGES", clamp_overlap=True)
-            faces = list(set(faces) | set(res.get("faces", [])))
+            bmesh.ops.bevel(bm, geom=edges + list(verts), offset=off, segments=segments, profile=0.6, affect="EDGES", clamp_overlap=True)
+            bm.normal_update()
+    faces = [f for f in bm.faces if f not in before]
     u0, v0, u1, v1 = tile_uv(index, key)
     for f in faces:
         if not f.is_valid:
