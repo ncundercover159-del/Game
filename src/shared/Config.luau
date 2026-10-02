@@ -347,9 +347,9 @@ Config.World = {
 	BaySlots = 30, -- Auto-Digger bays around the rim
 	HeroCamera = {
 		-- Reproduces the reference image framing (docs/REFERENCE_SPEC.md).
-		Position = { 0, 132, 214 },
-		LookAt = { 0, -14, -30 },
-		FieldOfView = 62,
+		Position = { 0, 104, 152 },
+		LookAt = { 0, -22, -38 },
+		FieldOfView = 64,
 	},
 }
 
