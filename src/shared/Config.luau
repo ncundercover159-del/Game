@@ -263,7 +263,7 @@ Config.Social = {
 Config.Pool = {
 	Enabled = true,
 	FillRobux = 2500,
-	BonusMetresPerPlayer = 6,
+	BonusMetresPerPlayer = 10,
 	BonusShards = 30,
 	BonusXP = 80,
 }

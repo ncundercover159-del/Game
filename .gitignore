@@ -1,0 +1,13 @@
+# Build intermediates
+build/
+*.rbxl.lock
+*.rbxlx.lock
+# Python
+__pycache__/
+*.pyc
+.venv/
+# Blender autosaves / backups
+*.blend1
+*.blend2
+# OS
+.DS_Store
