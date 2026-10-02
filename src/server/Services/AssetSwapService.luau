@@ -65,10 +65,9 @@ end
 local function hideStandIn(standIn: Instance)
 	local parts = standIn:IsA("BasePart") and { standIn } or {}
 	for _, d in standIn:GetDescendants() do
+		-- SurfaceGuis stay readable: hiding a part via Transparency keeps its text visible.
 		if d:IsA("BasePart") then
 			table.insert(parts, d)
-		elseif d:IsA("SurfaceGui") or d:IsA("Decal") or d:IsA("Texture") then
-			-- keep signage readable: text lives on the stand-in faces
 		end
 	end
 	for _, p in parts do

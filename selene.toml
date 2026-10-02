@@ -1,0 +1,4 @@
+std = "kd_std"
+[rules]
+shadowing = "allow"
+unused_variable = "warn"

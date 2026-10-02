@@ -97,9 +97,7 @@ local function detect()
 		local probe = DataStoreService:GetDataStore("KD_Probe")
 		probe:GetAsync("probe")
 	end)
-	if ok then
-		Store.Mode = "Live"
-	elseif RunService:IsStudio() then
+	if not ok and RunService:IsStudio() then
 		Store.Mode = "LocalFallback"
 		warn(
 			"[Store] DataStores unavailable in Studio ("
@@ -107,7 +105,7 @@ local function detect()
 				.. "). Using an in-memory store; data will not persist. Enable 'Studio Access to API Services' to test real saves."
 		)
 	else
-		-- Live server: keep trying the real service.
+		-- Working DataStores, or a live server (which keeps retrying the real service).
 		Store.Mode = "Live"
 	end
 end
